@@ -1,0 +1,12 @@
+env/
+build/
+/.idea
+credentials/
+*.egg-info
+__pycache__
+build/docs/
+.cache
+.pytest_cache
+
+# ignore private keys
+*.pem
