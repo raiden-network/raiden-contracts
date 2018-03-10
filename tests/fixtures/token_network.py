@@ -13,4 +13,4 @@ def get_token_network(chain, create_contract):
 
 @pytest.fixture()
 def token_network(get_token_network, custom_token, secret_registry):
-    return get_token_network([custom_token.address, secret_registry.addrress])
+    return get_token_network([custom_token.address, secret_registry.address])

@@ -46,6 +46,7 @@ contract TokenNetworkRegistry is Utils {
         // Token contract checks are in the corresponding TokenNetwork contract
 
         token_network_address = new TokenNetwork(_token_address, secret_registry_address);
+        token_to_token_networks[_token_address] = token_network_address;
         TokenNetworkCreated(_token_address, token_network_address);
 
         return token_network_address;

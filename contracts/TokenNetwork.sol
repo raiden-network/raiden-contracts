@@ -606,7 +606,7 @@ contract TokenNetwork is Utils {
     {
         require(signature.length == 65);
 
-        bytes32 signed_hash = keccak256(
+        bytes32 message_hash = keccak256(
             nonce,
             transferred_amount,
             locksroot,
@@ -616,7 +616,7 @@ contract TokenNetwork is Utils {
         );
 
         var (r, s, v) = signatureSplit(signature);
-        return ecrecover(signed_hash, v, r, s);
+        return ecrecover(message_hash, v, r, s);
     }
 
     function signatureSplit(bytes signature)

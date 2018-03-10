@@ -1,5 +1,6 @@
 import pytest
 from utils.config import C_SECRET_REGISTRY
+from tests.fixtures.utils import *
 
 
 @pytest.fixture()
