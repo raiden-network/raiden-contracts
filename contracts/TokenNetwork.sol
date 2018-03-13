@@ -201,9 +201,6 @@ contract TokenNetwork is Utils {
 
         added_deposit = total_deposit - channel.participants[participant].deposit;
 
-        // Sender should have enough balance
-        require(token.balanceOf(msg.sender) >= added_deposit);
-
         // Change the state
         channel.participants[participant].deposit += added_deposit;
 
