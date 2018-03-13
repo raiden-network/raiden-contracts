@@ -502,8 +502,8 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount;
         uint256 total_deposit;
 
-        Participant memory participant1_state = channels[channel_identifier].participants[participant1];
-        Participant memory participant2_state = channels[channel_identifier].participants[participant2];
+        Participant storage participant1_state = channels[channel_identifier].participants[participant1];
+        Participant storage participant2_state = channels[channel_identifier].participants[participant2];
 
         // Make sure the addresses are channel participant addresses
         require(participant1_state.initialized);
