@@ -634,25 +634,6 @@ contract TokenNetwork is Utils {
         require(v == 27 || v == 28);
     }
 
-    // TODO - not used anymore now
-    function decodeLock(bytes lock)
-        pure
-        internal
-        returns (uint64 expiration, uint256 amount, bytes32 hashlock)
-    {
-        require(lock.length == 72);
-
-        // Lock format:
-        // [0:8] expiration
-        // [8:40] amount
-        // [40:72] hashlock
-        assembly {
-            expiration := mload(add(lock, 8))
-            amount := mload(add(lock, 40))
-            hashlock := mload(add(lock, 72))
-        }
-    }
-
     function computeMerkleRoot(bytes32 lockhash, bytes merkle_proof)
         pure
         internal
