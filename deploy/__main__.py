@@ -99,9 +99,6 @@ def main(**kwargs):
         secret_registry_address = deploy_contract('SecretRegistry')
         print('SecretRegistry address:', secret_registry_address)
 
-        endpoint_registry_address = deploy_contract('EndpointRegistry')
-        print('EndpointRegistry address:', endpoint_registry_address)
-
         token_network_registry_address = deploy_contract('TokenNetworkRegistry', [secret_registry_address])
         print('TokenNetworkRegistry address:', token_network_registry_address)
 
