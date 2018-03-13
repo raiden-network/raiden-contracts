@@ -8,7 +8,8 @@ contract SecretRegistry {
 
     string constant public contract_version = "0.3._";
 
-    // Token address => TokenNetwork address
+    // Secret => block number at which the secret was revealed
+    // uint64 is sufficient to represent 8774136260326 years with blocks of 15s.
     mapping(bytes32 => uint64) public secret_to_block;
 
     /*
