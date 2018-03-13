@@ -398,7 +398,6 @@ contract TokenNetwork is Utils {
     /// @param partner Address of the participant who owes the locked tokens.
     /// @param expiration_block Block height at which the lock expires.
     /// @param locked_amount Amount of tokens that the locked transfer values.
-    /// @param hashlock The hash of the secret
     /// @param merkle_proof The merkle proof needed to compute the merkle root.
     /// @param secret A value used as a preimage in a HTL Transfer
     function registerSecretAndUnlock(
@@ -406,7 +405,6 @@ contract TokenNetwork is Utils {
         address partner,
         uint64 expiration_block,
         uint256 locked_amount,
-        bytes32 hashlock,
         bytes merkle_proof,
         bytes32 secret)
         stillTimeout(channel_identifier)
@@ -418,7 +416,6 @@ contract TokenNetwork is Utils {
             partner,
             expiration_block,
             locked_amount,
-            hashlock,
             merkle_proof,
             secret
         );
@@ -436,7 +433,6 @@ contract TokenNetwork is Utils {
     /// @param partner Address of the participant who owes the locked tokens.
     /// @param expiration_block Block height at which the lock expires.
     /// @param locked_amount Amount of tokens that the locked transfer values.
-    /// @param hashlock The hash of the secret
     /// @param merkle_proof The merkle proof needed to compute the merkle root.
     /// @param secret A value used as a preimage in a HTL Transfer
     function unlock(
@@ -444,13 +440,13 @@ contract TokenNetwork is Utils {
         address partner,
         uint64 expiration_block,
         uint256 locked_amount,
-        bytes32 hashlock,
         bytes merkle_proof,
         bytes32 secret)
         stillTimeout(channel_identifier)
         public
     {
         bytes32 key;
+        bytes32 hashlock;
         bytes32 computed_locksroot;
         bytes32 lockhash;
 
@@ -466,8 +462,8 @@ contract TokenNetwork is Utils {
         // have expired. We compare the expiration block with the block at which
         // the secret has been registered on chain.
         require(expiration_block > secret_registry.secret_to_block(secret));
-        require(hashlock == keccak256(secret));
 
+        hashlock = keccak256(secret);
         lockhash = keccak256(expiration_block, locked_amount, hashlock);
         computed_locksroot = computeMerkleRoot(lockhash, merkle_proof);
 
