@@ -24,7 +24,7 @@ contract TokenNetwork is Utils {
     // Used for determining the next channel identifier
     // Start from 1 instead of 0, otherwise the first channel will have an additional
     // 15000 gas cost than the rest
-    uint256 public last_channel_index = 1;
+    uint256 public last_channel_index = 0;
 
     // The ClosingRequest identfier must be THE SAME as the channel identifier (mapping key) from `channels`
     mapping (uint256 => ClosingRequest) public closing_requests;
