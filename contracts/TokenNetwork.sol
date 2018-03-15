@@ -159,18 +159,23 @@ contract TokenNetwork is Utils {
 
         // Increase channel index counter
         last_channel_index += 1;
+        Channel storage channel = channels[last_channel_index];
 
-        require(channels[last_channel_index].settle_timeout == 0);
-        require(!channels[last_channel_index].participants[participant1].initialized);
-        require(!channels[last_channel_index].participants[participant2].initialized);
+        require(channel.settle_timeout == 0);
+
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
+
+        require(!participant1_state.initialized);
+        require(!participant2_state.initialized);
 
         // Store channel information
-        channels[last_channel_index] = Channel({settle_timeout: settle_timeout});
+        channel.settle_timeout = settle_timeout;
 
         // Mark the channel participants
         // We use this in setDeposit to ensure the beneficiary is a channel participant
-        channels[last_channel_index].participants[participant1].initialized = true;
-        channels[last_channel_index].participants[participant2].initialized = true;
+        participant1_state.initialized = true;
+        participant2_state.initialized = true;
 
         ChannelOpened(last_channel_index, participant1, participant2, settle_timeout);
 
@@ -190,24 +195,25 @@ contract TokenNetwork is Utils {
     {
         uint256 added_deposit;
         Channel storage channel = channels[channel_identifier];
+        Participant storage participant_state = channel.participants[participant];
 
         // Channel must be open and participant must be part of the channel.
-        require(channel.participants[participant].initialized);
+        require(participant_state.initialized);
 
         // Channel cannot be closed
         require(closing_requests[channel_identifier].settle_block_number == 0);
 
-        require(channel.participants[participant].deposit < total_deposit);
+        require(participant_state.deposit < total_deposit);
 
-        added_deposit = total_deposit - channel.participants[participant].deposit;
+        added_deposit = total_deposit - participant_state.deposit;
 
         // Change the state
-        channel.participants[participant].deposit += added_deposit;
+        participant_state.deposit += added_deposit;
 
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
 
-        ChannelNewDeposit(channel_identifier, participant, channel.participants[participant].deposit);
+        ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
     }
 
     /// @notice Close a channel between two parties that was used bidirectionally.
@@ -229,9 +235,10 @@ contract TokenNetwork is Utils {
         public
     {
         address partner_address;
+        ClosingRequest storage closing_request = closing_requests[channel_identifier];
 
         // Close can be called only once
-        require(closing_requests[channel_identifier].settle_block_number == 0);
+        require(closing_request.settle_block_number == 0);
 
         Channel storage channel = channels[channel_identifier];
 
@@ -239,8 +246,8 @@ contract TokenNetwork is Utils {
         require(channel.participants[msg.sender].initialized);
 
         // Store the closing request data
-        closing_requests[channel_identifier].closing_participant = msg.sender;
-        closing_requests[channel_identifier].settle_block_number = channel.settle_timeout + block.number;
+        closing_request.closing_participant = msg.sender;
+        closing_request.settle_block_number = channel.settle_timeout + block.number;
 
         // An empty value means that the closer never received a transfer, or
         // he is intentionally not providing the latest transfer, in which case
@@ -450,10 +457,11 @@ contract TokenNetwork is Utils {
         bytes32 computed_locksroot;
         bytes32 lockhash;
 
-        // Check that the partner is a channel participant.
-        require(channels[channel_identifier].participants[partner].initialized);
+        Channel storage channel = channels[last_channel_index];
+        Participant storage partner_state = channel.participants[partner];
 
-        Participant storage partner_state = channels[channel_identifier].participants[partner];
+        // Check that the partner is a channel participant.
+        require(partner_state.initialized);
 
         // An empty locksroot means there are no pending locks
         require(partner_state.locksroot != 0);
@@ -502,8 +510,10 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount;
         uint256 total_deposit;
 
-        Participant storage participant1_state = channels[channel_identifier].participants[participant1];
-        Participant storage participant2_state = channels[channel_identifier].participants[participant2];
+        Channel storage channel = channels[channel_identifier];
+
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
 
         // Make sure the addresses are channel participant addresses
         require(participant1_state.initialized);
@@ -533,8 +543,8 @@ contract TokenNetwork is Utils {
         participant2_amount = total_deposit - participant1_amount;
 
         // Remove the channel data from storage
-        delete channels[channel_identifier].participants[participant1];
-        delete channels[channel_identifier].participants[participant2];
+        delete channel.participants[participant1];
+        delete channel.participants[participant2];
         delete channels[channel_identifier];
         delete closing_requests[channel_identifier];
 
@@ -570,19 +580,20 @@ contract TokenNetwork is Utils {
         internal
     {
         Channel storage channel = channels[channel_identifier];
+        Participant storage participant_state = channel.participants[participant];
 
-        require(channel.participants[participant].initialized);
-        require(nonce > channel.participants[participant].nonce);
+        require(participant_state.initialized);
+        require(nonce > participant_state.nonce);
         // Transfers can have 0 value
-        require(transferred_amount >= channel.participants[participant].transferred_amount);
+        require(transferred_amount >= participant_state.transferred_amount);
 
         // Note, locksroot may be 0x0 and it may not change between two balance proofs.
 
         // Update the partner's structure with the data provided
         // by the closing participant.
-        channel.participants[participant].nonce = nonce;
-        channel.participants[participant].locksroot = locksroot;
-        channel.participants[participant].transferred_amount = transferred_amount;
+        participant_state.nonce = nonce;
+        participant_state.locksroot = locksroot;
+        participant_state.transferred_amount = transferred_amount;
     }
 
     function recoverAddressFromSignature(
