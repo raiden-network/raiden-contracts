@@ -1,0 +1,2 @@
+include requirements.txt
+include raiden_contracts/data/contracts.json

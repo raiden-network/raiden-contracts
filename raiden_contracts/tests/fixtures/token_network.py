@@ -1,5 +1,5 @@
 import pytest
-from utils.config import C_TOKEN_NETWORK
+from raiden_contracts.utils.config import C_TOKEN_NETWORK
 
 
 @pytest.fixture()

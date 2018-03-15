@@ -1,10 +1,5 @@
-import pytest
 from ethereum import tester
-from utils.config import C_TOKEN_NETWORK, E_CHANNEL_OPENED
-from tests.fixtures.utils import *
-from tests.fixtures.token_network import *
-from tests.fixtures.token import *
-from tests.fixtures.secret_registry import *
+from raiden_contracts.utils.config import C_TOKEN_NETWORK, E_CHANNEL_OPENED
 
 
 def test_open_channel_call(token_network, get_accounts):

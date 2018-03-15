@@ -1,6 +1,5 @@
 populus>=2.2.0
 
-# requirement for eth-testrpc used by populus
 ethereum<2.0.0,>=1.6.1
 
 eth-utils>=0.7.1,<0.8.*

@@ -1,8 +1,6 @@
 import pytest
-from ethereum import tester
-from utils.config import C_SECRET_REGISTRY, E_SECRET_REVEALED
-from tests.fixtures.utils import *
-from tests.fixtures.secret_registry import *
+from raiden_contracts.utils.config import C_SECRET_REGISTRY, E_SECRET_REVEALED
+from .fixtures import raiden_contracts_version, fake_hex, check_secret_revealed
 
 
 def test_version(secret_registry):
@@ -33,7 +31,7 @@ def test_register_secret_return_value(secret_registry, get_accounts):
 
     # We use call here to make sure we would get the correct return value
     # even though this does not change the state
-    assert secret_registry.call({'from': A}).registerSecret(secret) == True
+    assert secret_registry.call({'from': A}).registerSecret(secret) is True
 
     secret_registry.transact({'from': A}).registerSecret(secret)
 
@@ -41,8 +39,8 @@ def test_register_secret_return_value(secret_registry, get_accounts):
     # FIXME Think about what happens if someone decides to use an already used
     # secret for a mediating transfer
     # We use call here to get the return value
-    assert secret_registry.call({'from': A}).registerSecret(secret) == False
-    assert secret_registry.call({'from': B}).registerSecret(secret) == False
+    assert secret_registry.call({'from': A}).registerSecret(secret) is False
+    assert secret_registry.call({'from': B}).registerSecret(secret) is False
 
 
 def test_register_secret(secret_registry, get_accounts, get_block):

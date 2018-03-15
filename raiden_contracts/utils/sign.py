@@ -1,5 +1,5 @@
 from web3 import Web3
-from utils.sign_utils import *
+from .sign_utils import *
 
 
 def sign_balance_proof(

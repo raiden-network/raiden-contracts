@@ -1,8 +1,8 @@
 import pytest
 from ethereum import tester
-from utils.config import *
-from utils.sign import *
-from tests.fixtures import *
+from raiden_contracts.utils.config import *
+from raiden_contracts.utils.sign import *
+from .fixtures import *
 
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
