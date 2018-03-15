@@ -10,3 +10,4 @@ eth-keyfile==0.4.1
 eth-keys==0.1.0-beta.4
 web3==4.0.0b4
 click
+coincurve
