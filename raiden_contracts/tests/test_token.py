@@ -1,6 +1,5 @@
 import pytest
 from ethereum import tester
-from tests.fixtures.token import *
 
 
 def test_token_mint(web3, custom_token, get_accounts):
@@ -18,7 +17,7 @@ def test_token_mint(web3, custom_token, get_accounts):
         token.transact({'from': A}).mint()
 
     wei_value = 10**17 + 21000
-    tokens = 50 * multiplier;
+    tokens = 50 * multiplier
     token.transact({'from': A, 'value': wei_value}).mint()
     assert token.call().balanceOf(A) == tokens
     assert token.call().totalSupply() == supply + tokens
@@ -29,7 +28,9 @@ def test_token_transfer_funds(web3, owner, custom_token, get_accounts, txn_gas):
     (A, B) = get_accounts(2)
     token = custom_token
     multiplier = custom_token.call().multiplier()
+    assert multiplier > 0
     supply = token.call().totalSupply()
+    assert supply > 0
     wei_value = 10**17 + 21000
 
     with pytest.raises(tester.TransactionFailed):

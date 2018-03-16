@@ -1,6 +1,5 @@
 import pytest
-from utils.config import C_SECRET_REGISTRY
-from tests.fixtures.utils import *
+from raiden_contracts.utils.config import C_SECRET_REGISTRY
 
 
 @pytest.fixture()

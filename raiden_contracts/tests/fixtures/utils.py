@@ -1,5 +1,5 @@
 import pytest
-from utils.logs import LogHandler
+from raiden_contracts.utils.logs import LogHandler
 
 print_the_logs = False
 

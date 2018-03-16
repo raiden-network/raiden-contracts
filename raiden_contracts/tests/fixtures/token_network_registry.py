@@ -1,7 +1,5 @@
 import pytest
-from utils.config import C_TOKEN_NETWORK_REGISTRY
-from tests.fixtures.utils import *
-
+from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY
 
 @pytest.fixture()
 def get_token_network_registry(chain, create_contract):

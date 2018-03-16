@@ -1,10 +1,7 @@
 import pytest
 from ethereum import tester
-from utils.config import C_TOKEN_NETWORK
-from tests.fixtures.utils import *
-from tests.fixtures.token_network import *
-from tests.fixtures.token import *
-from tests.fixtures.secret_registry import *
+from raiden_contracts.utils.config import C_TOKEN_NETWORK
+from .fixtures import raiden_contracts_version, fake_address, empty_address
 
 
 def test_version(token_network):
@@ -45,6 +42,7 @@ def test_constructor_call(get_token_network, custom_token, secret_registry, get_
         get_token_network([custom_token.address, A])
 
     token_network = get_token_network([custom_token.address, secret_registry.address])
+    assert token_network is not None
 
 
 def test_constructor(get_token_network, custom_token, secret_registry):

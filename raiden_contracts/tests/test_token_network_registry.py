@@ -1,10 +1,10 @@
 import pytest
 from ethereum import tester
-from utils.config import C_TOKEN_NETWORK_REGISTRY, C_TOKEN_NETWORK, E_TOKEN_NETWORK_CREATED
-from tests.fixtures.utils import *
-from tests.fixtures.secret_registry import *
-from tests.fixtures.token import *
-from tests.fixtures.token_network_registry import *
+from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY, C_TOKEN_NETWORK, E_TOKEN_NETWORK_CREATED
+from .fixtures.utils import *
+from .fixtures.secret_registry import *
+from .fixtures.token import *
+from .fixtures.token_network_registry import *
 
 
 def test_version(token_network_registry):
