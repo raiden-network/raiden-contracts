@@ -78,12 +78,6 @@ config = {
     'author_email': 'contact@brainbot.li',
     'description': DESCRIPTION,
     'url': 'https://github.com/raiden-network/raiden-contracts/',
-
-    #   With include_package_data set to True command `py setup.py sdist`
-    #   fails to include package_data contents in the created package.
-    #   I have no idea whether it's a bug or a feature.
-    #
-
     'license': 'MIT',
     'keywords': 'raiden ethereum blockchain',
     'install_requires': read_requirements('requirements.txt'),
