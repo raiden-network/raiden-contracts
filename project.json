@@ -267,8 +267,8 @@
         }
       }
     },
-    "contracts_source_dir": "./contracts",
-    "import_remappings": []
+    "contracts_source_dirs": ["./contracts", "./contracts/test/"],
+    "import_remappings": ["raiden=contracts"]
   },
   "contracts": {
     "backends": {

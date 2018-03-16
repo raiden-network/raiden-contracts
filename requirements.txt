@@ -1,12 +1,3 @@
-populus>=2.2.0
-
-ethereum<2.0.0,>=1.6.1
-
-eth-utils>=0.7.1,<0.8.*
-eth-abi>=0.5.0,<1.*
-eth-tester==0.1.0b10
-eth-keyfile==0.4.1
-eth-keys==0.1.0-beta.4
-web3==4.0.0b4
+ethereum
 click
 coincurve

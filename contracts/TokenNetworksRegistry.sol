@@ -4,7 +4,7 @@ import "./Utils.sol";
 import "./Token.sol";
 import "./TokenNetwork.sol";
 
-contract TokenNetworkRegistry is Utils {
+contract TokenNetworksRegistry is Utils {
 
     /*
      *  Data structures
