@@ -50,7 +50,7 @@ class ContractManager:
                 self.abi.update(ContractManager.precompile_contracts(dir_path))
             self.contracts_source_dirs = path
         elif os.path.isdir(path) is True:
-            ContractManager.__init__(self, [path])
+            ContractManager.__init__(self, path)
         else:
             self.abi = json.load(open(path, 'r'))
 
@@ -106,21 +106,24 @@ class ContractManager:
         return ret
 
     def get_contract_abi(self, contract_name: str) -> dict:
-        """
-        Return:
-            ABI of a contract
-        """
-        return self.abi[contract_name]
+        """ Returns the ABI for a given contract. """
+        return self.abi[contract_name]['abi']
 
     def get_event_abi(self, contract_name: str, event_name: str):
-        """
-        Get ABI of an event
-        """
+        """ Returns the ABI for a given event. """
         contract_abi = self.get_contract_abi(contract_name)
-        return [
-            x for x in contract_abi['abi']
+        result = [
+            x for x in contract_abi
             if x['type'] == 'event' and x['name'] == event_name
         ]
+
+        num_results = len(result)
+        if num_results == 0:
+            raise KeyError(f"Event '{event_name}' not found.")
+        elif num_results >= 2:
+            raise KeyError(f"Multiple events '{event_name}' found.")
+
+        return result[0]
 
 
 CONTRACT_MANAGER = ContractManager(CONTRACTS_DIR)
