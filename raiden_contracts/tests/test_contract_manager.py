@@ -7,9 +7,9 @@ PRECOMPILED_CONTRACTS_PATH = 'raiden_contracts/data/contracts.json'
 def contract_manager_meta(contracts_path):
     manager = ContractManager(contracts_path)
     abi = manager.get_contract_abi('TokenNetwork')
-    assert isinstance(abi, dict)
+    assert isinstance(abi, list)
     abi = manager.get_event_abi('TokenNetwork', 'ChannelClosed')
-    assert isinstance(abi[0], dict)
+    assert isinstance(abi, dict)
 
 
 def test_contract_manager_compile():

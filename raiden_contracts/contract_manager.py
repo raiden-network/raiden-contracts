@@ -27,6 +27,21 @@ except ImportError:
     log.info('ethereum._solidity not found. Contract compilation will be unavailable')
 
 
+def get_event_from_abi(abi: list, event_name: str):
+    result = [
+        x for x in abi
+        if x['type'] == 'event' and x['name'] == event_name
+    ]
+
+    num_results = len(result)
+    if num_results == 0:
+        raise KeyError(f"Event '{event_name}' not found.")
+    elif num_results >= 2:
+        raise KeyError(f"Multiple events '{event_name}' found.")
+
+    return result[0]
+
+
 def assert_has_solidity(func):
     """decorator - Raise CompileError if HAS_SOLIDITY is set to False"""
     @wraps(func)
@@ -48,9 +63,11 @@ class ContractManager:
         self.contracts_source_dirs = None
         self.abi = dict()
         if isinstance(path, dict):
-            for dir_path in path.values():
-                self.abi.update(ContractManager.precompile_contracts(dir_path, path))
             self.contracts_source_dirs = path
+            for dir_path in path.values():
+                self.abi.update(
+                    ContractManager.precompile_contracts(dir_path, self.get_mappings())
+                )
         elif os.path.isdir(path) is True:
             ContractManager.__init__(self, [path])
         else:
@@ -63,13 +80,14 @@ class ContractManager:
             self.get_contract_path(contract_name)[0],
             contract_name,
             combined='abi,bin',
-            libraries=libs
+            libraries=libs,
+            extra_args=self.get_mappings()
         )
 
     def get_contract_path(self, contract_name: str):
         return sum(
             (self.list_contract_path(contract_name, x)
-             for x in self.contracts_source_dirs),
+             for x in self.contracts_source_dirs.values()),
             []
         )
 
@@ -82,9 +100,13 @@ class ContractManager:
             if os.path.basename(x).split('.', 1)[0] == contract_name
         ]
 
+    def get_mappings(self):
+        """Return dict of mappings to use as solc argument."""
+        return ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
+
     @staticmethod
     @assert_has_solidity
-    def precompile_contracts(contracts_dir: str, mapping: dict()) -> dict:
+    def precompile_contracts(contracts_dir: str, map_dirs: list) -> dict:
         """
         Compile solidity contracts into ABI. This requires solc somewhere in the $PATH
             and also ethereum.tools python library.
@@ -96,7 +118,6 @@ class ContractManager:
             map (contract_name => ABI)
         """
         ret = {}
-        map_dirs = ['%s=%s' % (k, v) for k, v in mapping.items()]
         for contract in os.listdir(contracts_dir):
             contract_path = os.path.join(contracts_dir, contract)
             if os.path.isfile(contract_path) is False and '.sol' not in contract_path:
@@ -110,21 +131,13 @@ class ContractManager:
         return ret
 
     def get_contract_abi(self, contract_name: str) -> dict:
-        """
-        Return:
-            ABI of a contract
-        """
-        return self.abi[contract_name]
+        """ Returns the ABI for a given contract. """
+        return self.abi[contract_name]['abi']
 
     def get_event_abi(self, contract_name: str, event_name: str):
-        """
-        Get ABI of an event
-        """
+        """ Returns the ABI for a given event. """
         contract_abi = self.get_contract_abi(contract_name)
-        return [
-            x for x in contract_abi['abi']
-            if x['type'] == 'event' and x['name'] == event_name
-        ]
+        return get_event_from_abi(contract_abi, event_name)
 
 
 CONTRACT_MANAGER = ContractManager(CONTRACTS_DIR)
