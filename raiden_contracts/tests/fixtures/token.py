@@ -1,5 +1,6 @@
 import pytest
 from raiden_contracts.utils.config import C_HUMAN_STANDARD_TOKEN, C_CUSTOM_TOKEN
+from .utils import *
 
 token_args = [
     (10 ** 26, 18, 'CustomToken', 'TKN'),

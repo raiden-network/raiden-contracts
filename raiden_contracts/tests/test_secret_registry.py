@@ -66,9 +66,3 @@ def test_events(secret_registry, event_handler):
 
     ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secret))
     ev_handler.check()
-
-
-def test_print_gas_cost(secret_registry, print_gas):
-    secret = b'secretsecretsecretsecretsecretse'
-    txn_hash = secret_registry.transact().registerSecret(secret)
-    print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')

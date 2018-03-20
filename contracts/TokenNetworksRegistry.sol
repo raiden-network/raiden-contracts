@@ -4,7 +4,7 @@ import "./Utils.sol";
 import "./Token.sol";
 import "./TokenNetwork.sol";
 
-contract TokenNetworkRegistry is Utils {
+contract TokenNetworksRegistry is Utils {
 
     /*
      *  Data structures
@@ -12,6 +12,7 @@ contract TokenNetworkRegistry is Utils {
 
     string constant public contract_version = "0.3._";
     address public secret_registry_address;
+    uint256 public chain_id;
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
@@ -20,16 +21,18 @@ contract TokenNetworkRegistry is Utils {
      *  Events
      */
 
-    event TokenNetworkCreated(address token_address, address token_network_address);
+    event TokenNetworkRegistered(address token_address, address token_network_address);
 
     /*
      *  Constructor
      */
 
-    function TokenNetworkRegistry(address _secret_registry_address) public {
+    function TokenNetworksRegistry(address _secret_registry_address, uint256 _chain_id) public {
+        require(_chain_id > 0);
         require(_secret_registry_address != 0x0);
         require(contractExists(_secret_registry_address));
         secret_registry_address = _secret_registry_address;
+        chain_id = _chain_id;
     }
 
     /*
@@ -45,9 +48,10 @@ contract TokenNetworkRegistry is Utils {
 
         // Token contract checks are in the corresponding TokenNetwork contract
 
-        token_network_address = new TokenNetwork(_token_address, secret_registry_address);
+        token_network_address = new TokenNetwork(_token_address, secret_registry_address, chain_id);
+
         token_to_token_networks[_token_address] = token_network_address;
-        TokenNetworkCreated(_token_address, token_network_address);
+        TokenNetworkRegistered(_token_address, token_network_address);
 
         return token_network_address;
     }

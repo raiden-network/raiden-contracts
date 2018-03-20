@@ -6,6 +6,7 @@ def sign_balance_proof(
         privatekey,
         channel_identifier,
         token_network_address,
+        chain_identifier,
         nonce,
         transferred_amount,
         locksroot,
@@ -16,6 +17,7 @@ def sign_balance_proof(
         'bytes32',
         'uint256',
         'address',
+        'uint256',
         'bytes32'
     ], [
         nonce,
@@ -23,6 +25,7 @@ def sign_balance_proof(
         locksroot,
         channel_identifier,
         token_network_address,
+        chain_identifier,
         additional_hash
     ])
 

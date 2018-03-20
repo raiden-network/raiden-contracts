@@ -7,21 +7,28 @@ from .fixtures import *
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
     TokenNetworkRegistry = chain.provider.get_contract_factory(C_TOKEN_NETWORK_REGISTRY)
-    deploy_txn_hash = TokenNetworkRegistry.deploy(args=[custom_token.address])
+    deploy_txn_hash = TokenNetworkRegistry.deploy(args=[custom_token.address, int(chain.web3.version.network)])
     print_gas(deploy_txn_hash, C_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
     txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
     print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
 
 
-def test_token_network_deployment(chain, print_gas, custom_token, secret_registry):
+def test_token_network_deployment(chain, print_gas, custom_token, secret_registry, token_network_registry):
     TokenNetwork = chain.provider.get_contract_factory(C_TOKEN_NETWORK)
     deploy_txn_hash = TokenNetwork.deploy(args=[
         custom_token.address,
-        secret_registry.address
+        secret_registry.address,
+        int(chain.web3.version.network)
     ])
 
     print_gas(deploy_txn_hash, C_TOKEN_NETWORK + ' DEPLOYMENT')
+
+
+def test_token_network_create(chain, print_gas, custom_token, secret_registry, token_network_registry):
+    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
+
+    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
 def test_secret_registry(secret_registry, print_gas):
@@ -30,8 +37,9 @@ def test_secret_registry(secret_registry, print_gas):
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
 
-def test_channel_deposit(web3, token_network, custom_token, get_accounts, print_gas):
+def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_gas):
     (A, B) = get_accounts(2)
+    chain_id = int(web3.version.network)
 
     custom_token.transact({'from': A, 'value': 10 ** 18}).mint()
     custom_token.transact({'from': B, 'value': 10 ** 18}).mint()
@@ -56,6 +64,7 @@ def test_channel_deposit(web3, token_network, custom_token, get_accounts, print_
         tester.k3,
         1,
         token_network.address,
+        chain_id,
         nonce,
         transferred_amount,
         locksroot,
@@ -80,6 +89,7 @@ def test_channel_deposit(web3, token_network, custom_token, get_accounts, print_
         tester.k2,
         1,
         token_network.address,
+        chain_id,
         nonce,
         transferred_amount,
         locksroot,

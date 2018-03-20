@@ -1,5 +1,7 @@
 import pytest
 from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY
+from .utils import *
+
 
 @pytest.fixture()
 def get_token_network_registry(chain, create_contract):
@@ -11,8 +13,8 @@ def get_token_network_registry(chain, create_contract):
 
 
 @pytest.fixture()
-def token_network_registry(get_token_network_registry, secret_registry):
-    return get_token_network_registry([secret_registry.address])
+def token_network_registry(chain, get_token_network_registry, secret_registry):
+    return get_token_network_registry([secret_registry.address, int(chain.web3.version.network)])
 
 
 def check_token_network_created(token_address, token_network_address):
