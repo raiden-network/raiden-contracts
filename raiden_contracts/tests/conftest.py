@@ -1,1 +1,1 @@
-from .fixtures import * # flake8: noqa
+from .fixtures import *  # flake8: noqa

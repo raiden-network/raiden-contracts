@@ -1,11 +1,16 @@
 import pytest
 from ethereum import tester
-from raiden_contracts.utils.config import C_TOKEN_NETWORK, E_CHANNEL_OPENED, SETTLE_TIMEOUT_MIN, SETTLE_TIMEOUT_MAX
-from .fixtures.utils import *
-from .fixtures.token_network_registry import *
-from .fixtures.token_network import *
-from .fixtures.token import *
-from .fixtures.secret_registry import *
+from raiden_contracts.utils.config import (
+    E_CHANNEL_OPENED,
+    SETTLE_TIMEOUT_MIN,
+    SETTLE_TIMEOUT_MAX
+)
+from .utils import check_channel_opened
+from .fixtures.config import (
+    empty_address,
+    fake_address,
+    fake_bytes
+)
 
 
 def test_open_channel_call(token_network, get_accounts):
@@ -64,14 +69,14 @@ def test_open_channel_state(token_network, get_accounts):
     assert channel[2] == 0
 
     A_state = token_network.call().getChannelParticipantInfo(1, A)
-    assert A_state[0] == True
+    assert A_state[0] is True
     assert A_state[1] == 0
     assert A_state[2] == 0
     assert A_state[3] == 0
     assert A_state[4] == fake_bytes(32)
 
     B_state = token_network.call().getChannelParticipantInfo(1, B)
-    assert B_state[0] == True
+    assert B_state[0] is True
     assert B_state[1] == 0
     assert B_state[2] == 0
     assert B_state[3] == 0

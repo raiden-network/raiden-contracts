@@ -1,20 +1,30 @@
-import pytest
 from ethereum import tester
-from raiden_contracts.utils.config import *
-from raiden_contracts.utils.sign import *
-from .fixtures import *
+from raiden_contracts.utils.config import (
+    C_TOKEN_NETWORK_REGISTRY,
+    C_TOKEN_NETWORK,
+    C_SECRET_REGISTRY
+)
+from raiden_contracts.utils.sign import sign_balance_proof
 
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
     TokenNetworkRegistry = chain.provider.get_contract_factory(C_TOKEN_NETWORK_REGISTRY)
-    deploy_txn_hash = TokenNetworkRegistry.deploy(args=[custom_token.address, int(chain.web3.version.network)])
+    deploy_txn_hash = TokenNetworkRegistry.deploy(
+        args=[custom_token.address, int(chain.web3.version.network)]
+    )
     print_gas(deploy_txn_hash, C_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
     txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
     print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
 
 
-def test_token_network_deployment(chain, print_gas, custom_token, secret_registry, token_network_registry):
+def test_token_network_deployment(
+        chain,
+        print_gas,
+        custom_token,
+        secret_registry,
+        token_network_registry
+):
     TokenNetwork = chain.provider.get_contract_factory(C_TOKEN_NETWORK)
     deploy_txn_hash = TokenNetwork.deploy(args=[
         custom_token.address,
@@ -25,7 +35,13 @@ def test_token_network_deployment(chain, print_gas, custom_token, secret_registr
     print_gas(deploy_txn_hash, C_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
-def test_token_network_create(chain, print_gas, custom_token, secret_registry, token_network_registry):
+def test_token_network_create(
+        chain,
+        print_gas,
+        custom_token,
+        secret_registry,
+        token_network_registry
+):
     txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
 
     print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')

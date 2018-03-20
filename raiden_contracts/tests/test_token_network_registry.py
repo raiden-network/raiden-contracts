@@ -1,10 +1,15 @@
 import pytest
 from ethereum import tester
-from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY, C_TOKEN_NETWORK, E_TOKEN_NETWORK_CREATED
-from .fixtures.utils import *
-from .fixtures.secret_registry import *
-from .fixtures.token import *
-from .fixtures.token_network_registry import *
+from raiden_contracts.utils.config import (
+    C_TOKEN_NETWORK,
+    E_TOKEN_NETWORK_CREATED
+)
+from .fixtures.config import (
+    raiden_contracts_version,
+    empty_address,
+    fake_address
+)
+from .utils import check_token_network_created
 
 
 def test_version(token_network_registry):
@@ -39,10 +44,10 @@ def test_constructor_call(chain, get_token_network_registry, secret_registry, ge
     with pytest.raises(tester.TransactionFailed):
         get_token_network_registry([secret_registry.address, 0])
 
-    registry = get_token_network_registry([secret_registry.address, chain_id])
+    get_token_network_registry([secret_registry.address, chain_id])
 
 
-def test_constructor_call(chain, get_token_network_registry, secret_registry):
+def test_constructor_call_state(chain, get_token_network_registry, secret_registry):
     chain_id = int(chain.web3.version.network)
 
     registry = get_token_network_registry([secret_registry.address, chain_id])
@@ -88,18 +93,28 @@ def test_create_erc20_token_network(chain, web3, token_network_registry, custom_
 
     # Check that the token network contract was indeed created
     TokenNetwork = chain.provider.get_contract_factory(C_TOKEN_NETWORK)
-    token_network = web3.eth.contract(address=new_token_network, ContractFactoryClass=TokenNetwork)
+    token_network = web3.eth.contract(
+        address=new_token_network,
+        ContractFactoryClass=TokenNetwork
+    )
     assert token_network.call().token() == custom_token.address
-    assert token_network.call().secret_registry() == token_network_registry.call().secret_registry_address()
+    secret_registry_address = token_network_registry.call().secret_registry_address()
+    assert token_network.call().secret_registry() == secret_registry_address
     assert token_network.call().chain_id() == token_network_registry.call().chain_id()
 
 
 def test_events(token_network_registry, custom_token, event_handler):
     ev_handler = event_handler(token_network_registry)
 
-    new_token_network = token_network_registry.call().createERC20TokenNetwork(custom_token.address)
+    new_token_network = token_network_registry.call().createERC20TokenNetwork(
+        custom_token.address
+    )
 
     txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
 
-    ev_handler.add(txn_hash, E_TOKEN_NETWORK_CREATED, check_token_network_created(custom_token.address, new_token_network))
+    ev_handler.add(
+        txn_hash,
+        E_TOKEN_NETWORK_CREATED,
+        check_token_network_created(custom_token.address, new_token_network)
+    )
     ev_handler.check()

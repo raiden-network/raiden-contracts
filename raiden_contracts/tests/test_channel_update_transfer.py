@@ -1,11 +1,5 @@
-import pytest
-from ethereum import tester
-from raiden_contracts.utils.config import C_TOKEN_NETWORK, E_TRANSFER_UPDATED
-from .fixtures.utils import *
-from .fixtures.token_network_registry import *
-from .fixtures.token_network import *
-from .fixtures.channel import *
-from .fixtures.token import *
+from raiden_contracts.utils.config import E_TRANSFER_UPDATED
+from .utils import check_transfer_updated
 
 
 # TODO: test transferred_amount > deposit - this works now!!!!
@@ -13,7 +7,13 @@ def test_update_channel_fail_small_deposit():
     pass
 
 
-def test_update_channel_event_no_offchain_transfers(get_accounts, token_network, create_channel, create_balance_proof, event_handler):
+def test_update_channel_event_no_offchain_transfers(
+        get_accounts,
+        token_network,
+        create_channel,
+        create_balance_proof,
+        event_handler
+):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
@@ -28,7 +28,14 @@ def test_update_channel_event_no_offchain_transfers(get_accounts, token_network,
     ev_handler.check()
 
 
-def test_update_channel_event(get_accounts, token_network, create_channel, channel_deposit, create_balance_proof, event_handler):
+def test_update_channel_event(
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+        event_handler
+):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10

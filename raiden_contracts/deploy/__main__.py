@@ -16,12 +16,12 @@ from raiden_contracts.utils.utils import (
 @click.command()
 @click.option(
     '--rpc-provider',
-    default="http://127.0.0.1:8545",
+    default='http://127.0.0.1:8545',
     help='Address of the Ethereum RPC provider'
 )
 @click.option(
     '--json',
-    default="build/contracts.json",
+    default='build/contracts.json',
     help='Path to compiled contracts data'
 )
 @click.option(
@@ -87,7 +87,7 @@ def main(**kwargs):
     print('Owner is', owner)
     assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
 
-    transaction={'from': owner}
+    transaction = {'from': owner}
     if gas_price == 0:
         transaction['gasPrice'] = gas_price
 
@@ -95,18 +95,45 @@ def main(**kwargs):
         contracts_compiled_data = json.load(json_data)
 
         if not token_address:
-            token_address = deploy_contract(web3, contracts_compiled_data, 'CustomToken', transaction, txn_wait, [supply, token_decimals, token_name, token_symbol])
+            token_address = deploy_contract(
+                web3,
+                contracts_compiled_data,
+                'CustomToken',
+                transaction,
+                txn_wait,
+                [supply, token_decimals, token_name, token_symbol]
+            )
 
         assert token_address and is_address(token_address)
         token_address = to_checksum_address(token_address)
 
-        secret_registry_address = deploy_contract(web3, contracts_compiled_data, 'SecretRegistry', transaction, txn_wait)
+        secret_registry_address = deploy_contract(
+            web3,
+            contracts_compiled_data,
+            'SecretRegistry',
+            transaction,
+            txn_wait
+        )
 
-        token_network_registry_address = deploy_contract(web3, contracts_compiled_data, 'TokenNetworksRegistry', transaction, txn_wait, [secret_registry_address, int(web3.version.network)])
+        token_network_registry_address = deploy_contract(
+            web3,
+            contracts_compiled_data,
+            'TokenNetworksRegistry',
+            transaction,
+            txn_wait,
+            [secret_registry_address, int(web3.version.network)]
+        )
 
-        token_network_registry = instantiate_contract(web3, contracts_compiled_data, 'TokenNetworksRegistry', token_network_registry_address)
+        token_network_registry = instantiate_contract(
+            web3,
+            contracts_compiled_data,
+            'TokenNetworksRegistry',
+            token_network_registry_address
+        )
 
-        txhash = token_network_registry.transact(transaction).createERC20TokenNetwork(token_address)
+        txhash = token_network_registry.transact(transaction).createERC20TokenNetwork(
+            token_address
+        )
         receipt = check_succesful_tx(web3, txhash, txn_wait)
 
         print('TokenNetwork address: {0}. Gas used: {1}'.format(
@@ -118,22 +145,41 @@ def main(**kwargs):
 def instantiate_contract(web3, contracts_compiled_data, contract_name, contract_address):
     contract_interface = contracts_compiled_data[contract_name]
 
-    contract = web3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bytecode'], address=contract_address)
+    contract = web3.eth.contract(
+        abi=contract_interface['abi'],
+        bytecode=contract_interface['bytecode'],
+        address=contract_address
+    )
 
     return contract
 
-def deploy_contract(web3, contracts_compiled_data, contract_name, transaction, txn_wait=200, args=[]):
+
+def deploy_contract(
+        web3,
+        contracts_compiled_data,
+        contract_name,
+        transaction,
+        txn_wait=200,
+        args=[]
+):
     contract_interface = contracts_compiled_data[contract_name]
 
     # Instantiate and deploy contract
-    contract = web3.eth.contract(abi=contract_interface['abi'], bytecode=contract_interface['bytecode'])
+    contract = web3.eth.contract(
+        abi=contract_interface['abi'],
+        bytecode=contract_interface['bytecode']
+    )
 
     # Get transaction hash from deployed contract
     txhash = contract.deploy(transaction=transaction, args=args)
 
     # Get tx receipt to get contract address
     receipt = check_succesful_tx(web3, txhash, txn_wait)
-    print('{0} address: {1}. Gas used: {2}'.format(contract_name, receipt['contractAddress'], receipt['gasUsed']))
+    print('{0} address: {1}. Gas used: {2}'.format(
+        contract_name,
+        receipt['contractAddress'],
+        receipt['gasUsed'])
+    )
     return receipt['contractAddress']
 
 

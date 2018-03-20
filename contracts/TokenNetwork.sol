@@ -191,7 +191,8 @@ contract TokenNetwork is Utils {
     /// Can be called by anyone.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
     /// @param participant Channel participant who's deposit is being set.
-    /// @param total_deposit Idempotent function which sets the total amount of tokens that the participant will have as a deposit.
+    /// @param total_deposit Idempotent function which sets the total amount of
+    /// tokens that the participant will have as a deposit.
     function setDeposit(
         uint256 channel_identifier,
         address participant,
@@ -222,7 +223,8 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Close a channel between two parties that was used bidirectionally.
-    /// Only a participant may close the channel, providing a balance proof signed by its partner. Callable only once.
+    /// Only a participant may close the channel, providing a balance proof
+    /// signed by its partner. Callable only once.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
     /// @param nonce Strictly monotonic value used to order transfers.
     /// @param transferred_amount Total amount of tokens transferred by the channel partner
@@ -409,7 +411,8 @@ contract TokenNetwork is Utils {
         TransferUpdated(channel_identifier, closing_participant);
     }
 
-    /// @notice Registers the lock secret in the SecretRegistry contract. Unlocks a pending transfer and increases the partner's transferred amount
+    /// @notice Registers the lock secret in the SecretRegistry contract.
+    /// Unlocks a pending transfer and increases the partner's transferred amount
     /// with the transfer value. A lock can be unlocked only once per participant.
     // Anyone can call unlock a transfer on behalf of a channel participant.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.

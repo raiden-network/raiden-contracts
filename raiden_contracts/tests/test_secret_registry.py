@@ -1,6 +1,7 @@
 import pytest
-from raiden_contracts.utils.config import C_SECRET_REGISTRY, E_SECRET_REVEALED
-from .fixtures import raiden_contracts_version, fake_hex, check_secret_revealed
+from raiden_contracts.utils.config import E_SECRET_REVEALED
+from .utils import check_secret_revealed
+from .fixtures.config import fake_hex, raiden_contracts_version
 
 
 def test_version(secret_registry):
