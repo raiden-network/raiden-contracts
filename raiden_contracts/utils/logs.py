@@ -63,12 +63,13 @@ class LogHandler:
             with Timeout(seconds) as timeout:
                 while len(list(self.event_waiting.keys())):
                     timeout.sleep(2)
-        except:
+        except Exception as e:
+            print(e)
             message = 'NO EVENTS WERE TRIGGERED FOR: ' + str(self.event_waiting)
             if len(self.event_unkown) > 0:
                 message += '\n UNKOWN EVENTS: ' + str(self.event_unkown)
 
-            # FIXME Events triggered in another transaction
+            # FIXME Events triggered in an internal transaction
             # don't have the transactionHash we are looking for here
             # so we just check if the number of unknown events we find
             # is the same as the found events

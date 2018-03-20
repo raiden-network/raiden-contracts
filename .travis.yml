@@ -1,11 +1,36 @@
-# Config file for automatic testing at travis-ci.org
+dist: trusty
+sudo: true
+language: generic
 
-language: python
-python:
-  - 3.6
 
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements.txt
+jobs:
+  include:
+    - language: python
+      if: type = pull_request
+      python: '3.5'
+      env:
+        - TEST_TYPE=core-contracts
+        - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.19/solc-static-linux'
+        - SOLC_VERSION='v0.4.19'
 
-# Command to run tests, e.g. python setup.py test
-script: true
+      cache:
+        pip: true
+        directories:
+          - $HOME/.cache/pip
+
+      before_install:
+            - mkdir -p $HOME/.bin
+            - export PATH=$PATH:$HOME/.bin
+            - ./.travis/download_solc.sh
+
+      install:
+        - pip install -U pip wheel coveralls "coverage<4.4"
+        - pip install pytest-travis-fold
+        - pip install flake8
+        - pip install -r requirements.txt
+
+      before_script:
+        - flake8 raiden_contracts/
+
+      script:
+        - coverage run --source raiden_contracts/ -m py.test --populus-project 'contracts/' -k-needs_xorg --travis-fold=always -vvvvvvvvs $TEST_TYPE
