@@ -581,8 +581,7 @@ contract TokenNetwork is Utils {
 
     }*/
 
-    function getChannelInfo(
-        uint256 channel_identifier)
+    function getChannelInfo(uint256 channel_identifier)
         view
         external
         returns (uint256, address, uint256)
