@@ -21,7 +21,7 @@ contract TokenNetworksRegistry is Utils {
      *  Events
      */
 
-    event TokenNetworkRegistered(address token_address, address token_network_address);
+    event TokenNetworkCreated(address token_address, address token_network_address);
 
     /*
      *  Constructor
@@ -51,7 +51,7 @@ contract TokenNetworksRegistry is Utils {
         token_network_address = new TokenNetwork(_token_address, secret_registry_address, chain_id);
 
         token_to_token_networks[_token_address] = token_network_address;
-        TokenNetworkRegistered(_token_address, token_network_address);
+        TokenNetworkCreated(_token_address, token_network_address);
 
         return token_network_address;
     }

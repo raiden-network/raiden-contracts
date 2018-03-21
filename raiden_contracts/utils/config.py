@@ -10,7 +10,7 @@ E_CHANNEL_CLOSED = 'ChannelClosed'
 E_CHANNEL_UNLOCKED = 'ChannelUnlocked'
 E_TRANSFER_UPDATED = 'TransferUpdated'
 E_CHANNEL_SETTLED = 'ChannelSettled'
-E_TOKEN_NETWORK_CREATED = 'TokenNetworkRegistered'
+E_TOKEN_NETWORK_CREATED = 'TokenNetworkCreated'
 E_SECRET_REVEALED = 'SecretRevealed'
 
 SETTLE_TIMEOUT_MIN = 6
