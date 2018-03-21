@@ -1,9 +1,10 @@
 import pytest
 from raiden_contracts.utils.config import C_HUMAN_STANDARD_TOKEN, C_CUSTOM_TOKEN
+from .utils import *  # flake8: noqa
 
 token_args = [
     (10 ** 26, 18, 'CustomToken', 'TKN'),
-    (10 ** 26, 0, 'CustomToken', 'TKN')
+    # (10 ** 26, 0, 'CustomToken', 'TKN')
 ]
 
 

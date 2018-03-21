@@ -1,6 +1,7 @@
 import pytest
-from raiden_contracts.utils.config import C_SECRET_REGISTRY, E_SECRET_REVEALED
-from .fixtures import raiden_contracts_version, fake_hex, check_secret_revealed
+from raiden_contracts.utils.config import E_SECRET_REVEALED
+from .utils import check_secret_revealed
+from .fixtures.config import fake_hex, raiden_contracts_version
 
 
 def test_version(secret_registry):
@@ -66,9 +67,3 @@ def test_events(secret_registry, event_handler):
 
     ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secret))
     ev_handler.check()
-
-
-def test_print_gas_cost(secret_registry, print_gas):
-    secret = b'secretsecretsecretsecretsecretse'
-    txn_hash = secret_registry.transact().registerSecret(secret)
-    print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')

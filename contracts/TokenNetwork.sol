@@ -18,6 +18,9 @@ contract TokenNetwork is Utils {
     // Instance of SecretRegistry used for storing secrets revealed in a mediating transfer.
     SecretRegistry public secret_registry;
 
+    // Chain ID as specified by EIP155 used in balance proof signatures to avoid replay attacks
+    uint256 public chain_id;
+
     // Channel identifier is a uint256, incremented after each new channel
     mapping (uint256 => Channel) public channels;
 
@@ -85,7 +88,7 @@ contract TokenNetwork is Utils {
 
     event ChannelNewDeposit(uint256 channel_identifier, address participant, uint256 deposit);
 
-    event ChannelClosed(uint256 channel_identifier, address closing_participant);
+    event ChannelClosed(uint256 channel_identifier, address closing_address);
 
     event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
 
@@ -122,9 +125,10 @@ contract TokenNetwork is Utils {
      *  Constructor
      */
 
-    function TokenNetwork(address _token_address, address _secret_registry) public {
+    function TokenNetwork(address _token_address, address _secret_registry, uint256 _chain_id) public {
         require(_token_address != 0x0);
         require(_secret_registry != 0x0);
+        require(_chain_id > 0);
         require(contractExists(_token_address));
         require(contractExists(_secret_registry));
 
@@ -134,6 +138,7 @@ contract TokenNetwork is Utils {
         require(token.totalSupply() > 0);
 
         secret_registry = SecretRegistry(_secret_registry);
+        chain_id = _chain_id;
     }
 
     /*
@@ -186,7 +191,8 @@ contract TokenNetwork is Utils {
     /// Can be called by anyone.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
     /// @param participant Channel participant who's deposit is being set.
-    /// @param total_deposit Idempotent function which sets the total amount of tokens that the participant will have as a deposit.
+    /// @param total_deposit Idempotent function which sets the total amount of
+    /// tokens that the participant will have as a deposit.
     function setDeposit(
         uint256 channel_identifier,
         address participant,
@@ -217,7 +223,8 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Close a channel between two parties that was used bidirectionally.
-    /// Only a participant may close the channel, providing a balance proof signed by its partner. Callable only once.
+    /// Only a participant may close the channel, providing a balance proof
+    /// signed by its partner. Callable only once.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
     /// @param nonce Strictly monotonic value used to order transfers.
     /// @param transferred_amount Total amount of tokens transferred by the channel partner
@@ -265,13 +272,16 @@ contract TokenNetwork is Utils {
         // Signature must be from the channel partner
         require(msg.sender != partner_address);
 
-        updateParticipantStruct(
-            channel_identifier,
-            partner_address,
-            nonce,
-            locksroot,
-            transferred_amount
-        );
+        // If there are off-chain transfers, update the participant's state
+        if (nonce > 0) {
+            updateParticipantStruct(
+                channel_identifier,
+                partner_address,
+                nonce,
+                locksroot,
+                transferred_amount
+            );
+        }
 
         ChannelClosed(channel_identifier, msg.sender);
     }
@@ -385,20 +395,24 @@ contract TokenNetwork is Utils {
             signature
         );
 
+        // If there are off-chain transfers, update the participant's state
         // This will reset the transferred amount, invalidating any unlocked locks that were
         // unlocked but not included in the new locksroot
-        updateParticipantStruct(
-            channel_identifier,
-            closing_participant,
-            nonce,
-            locksroot,
-            transferred_amount
-        );
+        if (nonce > 0) {
+            updateParticipantStruct(
+                channel_identifier,
+                closing_participant,
+                nonce,
+                locksroot,
+                transferred_amount
+            );
+        }
 
         TransferUpdated(channel_identifier, closing_participant);
     }
 
-    /// @notice Registers the lock secret in the SecretRegistry contract. Unlocks a pending transfer and increases the partner's transferred amount
+    /// @notice Registers the lock secret in the SecretRegistry contract.
+    /// Unlocks a pending transfer and increases the partner's transferred amount
     /// with the transfer value. A lock can be unlocked only once per participant.
     // Anyone can call unlock a transfer on behalf of a channel participant.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
@@ -410,7 +424,7 @@ contract TokenNetwork is Utils {
     function registerSecretAndUnlock(
         uint256 channel_identifier,
         address partner,
-        uint64 expiration_block,
+        uint256 expiration_block,
         uint256 locked_amount,
         bytes merkle_proof,
         bytes32 secret)
@@ -445,7 +459,7 @@ contract TokenNetwork is Utils {
     function unlock(
         uint256 channel_identifier,
         address partner,
-        uint64 expiration_block,
+        uint256 expiration_block,
         uint256 locked_amount,
         bytes merkle_proof,
         bytes32 secret)
@@ -567,6 +581,41 @@ contract TokenNetwork is Utils {
 
     }*/
 
+    function getChannelInfo(
+        uint256 channel_identifier)
+        view
+        external
+        returns (uint256, address, uint256)
+    {
+        Channel storage channel = channels[channel_identifier];
+        ClosingRequest storage closing_request = closing_requests[channel_identifier];
+
+        return (
+            channel.settle_timeout,
+            closing_request.closing_participant,
+            closing_request.settle_block_number
+        );
+    }
+
+    function getChannelParticipantInfo(
+        uint256 channel_identifier,
+        address participant)
+        view
+        external
+        returns (bool, uint256, uint256, uint64, bytes32)
+    {
+        Channel storage channel = channels[channel_identifier];
+        Participant storage participant_state = channel.participants[participant];
+
+        return (
+            participant_state.initialized,
+            participant_state.deposit,
+            participant_state.transferred_amount,
+            participant_state.nonce,
+            participant_state.locksroot
+        );
+    }
+
     /*
      * Internal Functions
      */
@@ -616,6 +665,7 @@ contract TokenNetwork is Utils {
             locksroot,
             channel_identifier,
             address(this),
+            chain_id,
             additional_hash
         );
 
