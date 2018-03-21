@@ -1,23 +1,7 @@
 import pytest
 from raiden_contracts.utils.logs import LogHandler
-
-print_the_logs = False
-
-raiden_contracts_version = '0.3.0'
-MAX_UINT256 = 2 ** 256 - 1
-MAX_UINT192 = 2 ** 192 - 1
-MAX_UINT32 = 2 ** 32 - 1
-fake_address = '0x03432'
-empty_address = '0x0000000000000000000000000000000000000000'
-passphrase = '0'
-
-
-def fake_hex(size):
-    return '0x' + ''.join(['02' for i in range(0, size)])
-
-
-def fake_bytes(size):
-    return bytearray.fromhex(fake_hex(size)[2:])
+from ethereum import tester
+from .config import passphrase
 
 
 @pytest.fixture()
@@ -59,6 +43,14 @@ def create_accounts(web3):
             web3.personal.unlockAccount(new_account, passphrase)
             new_accounts.append(new_account)
         return new_accounts
+    return get
+
+
+@pytest.fixture
+def get_private_key(web3):
+    def get(account_address):
+        index = web3.eth.accounts.index(account_address)
+        return getattr(tester, 'k' + str(index))
     return get
 
 

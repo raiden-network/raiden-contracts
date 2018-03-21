@@ -9,8 +9,7 @@ contract SecretRegistry {
     string constant public contract_version = "0.3._";
 
     // Secret => block number at which the secret was revealed
-    // uint64 is sufficient to represent 8774136260326 years with blocks of 15s.
-    mapping(bytes32 => uint64) public secret_to_block;
+    mapping(bytes32 => uint256) public secret_to_block;
 
     /*
      *  Events
@@ -22,7 +21,7 @@ contract SecretRegistry {
         if (secret_to_block[secret] > 0) {
             return false;
         }
-        secret_to_block[secret] = uint64(block.number);
+        secret_to_block[secret] = block.number;
         SecretRevealed(secret);
         return true;
     }

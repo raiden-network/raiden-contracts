@@ -14,9 +14,3 @@ def get_secret_registry(chain, create_contract):
 @pytest.fixture()
 def secret_registry(get_secret_registry):
     return get_secret_registry([])
-
-
-def check_secret_revealed(secret):
-    def get(event):
-        assert event['args']['secret'] == secret
-    return get
