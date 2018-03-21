@@ -8,10 +8,23 @@
 
 ## Installation
 
-`make`
+### Compile the contracts
+As the `populus` library is incompatible with more recent libraries we have
+to use different environments here.
 
-or:
+First install the requirements
+```bash
+pip install -r requirements_populus.txt
 ```
+and then build the contracts
+```
+python setup.py build
+```
+
+
+After this uninstall `populus` and install the dependencies for the python package.
+```
+pip freeze  | xargs pip uninstall -y
 pip install -r requirements.txt
 
 ```
