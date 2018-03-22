@@ -88,7 +88,7 @@ contract TokenNetwork is Utils {
 
     event ChannelNewDeposit(uint256 channel_identifier, address participant, uint256 deposit);
 
-    event ChannelClosed(uint256 channel_identifier, address closing_address);
+    event ChannelClosed(uint256 channel_identifier, address closing_participant);
 
     event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
 
