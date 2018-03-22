@@ -6,8 +6,8 @@ from functools import wraps
 log = logging.getLogger(__name__)
 CONTRACTS_DIR = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
 CONTRACTS_SOURCE_DIRS = {
-    'raiden': os.path.join(os.path.dirname(__file__), '../contracts/'),
-    'test': os.path.join(os.path.dirname(__file__), '../contracts/test'),
+    'raiden': os.path.join(os.path.dirname(__file__), 'contracts/'),
+    'test': os.path.join(os.path.dirname(__file__), 'contracts/test'),
 }
 CONTRACTS_SOURCE_DIRS = {
     k: os.path.normpath(v) for k, v in CONTRACTS_SOURCE_DIRS.items()
@@ -127,7 +127,7 @@ class ContractManager:
         ret = {}
         for contract in os.listdir(contracts_dir):
             contract_path = os.path.join(contracts_dir, contract)
-            if os.path.isfile(contract_path) is False and '.sol' not in contract_path:
+            if os.path.isfile(contract_path) is False or '.sol' not in contract_path:
                 continue
             contract_name = os.path.basename(contract).split('.')[0]
             ret[contract_name] = _solidity.compile_contract(
@@ -147,4 +147,7 @@ class ContractManager:
         return get_event_from_abi(contract_abi, event_name)
 
 
-CONTRACT_MANAGER = ContractManager(CONTRACTS_DIR)
+if os.path.isfile(CONTRACTS_DIR):
+    CONTRACT_MANAGER = ContractManager(CONTRACTS_DIR)
+else:
+    CONTRACT_MANAGER = ContractManager(CONTRACTS_SOURCE_DIRS)
