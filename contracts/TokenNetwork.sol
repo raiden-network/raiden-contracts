@@ -395,18 +395,15 @@ contract TokenNetwork is Utils {
             signature
         );
 
-        // If there are off-chain transfers, update the participant's state
         // This will reset the transferred amount, invalidating any unlocked locks that were
         // unlocked but not included in the new locksroot
-        if (nonce > 0) {
-            updateParticipantStruct(
-                channel_identifier,
-                closing_participant,
-                nonce,
-                locksroot,
-                transferred_amount
-            );
-        }
+        updateParticipantStruct(
+            channel_identifier,
+            closing_participant,
+            nonce,
+            locksroot,
+            transferred_amount
+        );
 
         TransferUpdated(channel_identifier, closing_participant);
     }
