@@ -7,7 +7,7 @@ jobs:
   include:
     - language: python
       if: type = pull_request
-      python: '3.6'
+      python: '3.5'
       env:
         - TEST_TYPE=raiden_contracts
         - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.19/solc-static-linux'

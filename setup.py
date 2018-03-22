@@ -88,7 +88,7 @@ config = {
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.5',
     ],
     'entry_points': {
         'console_scripts': ['deploy = raiden_contracts.deploy.__main__:main'],

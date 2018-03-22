@@ -21,7 +21,7 @@ from raiden_contracts.utils.utils import (
 )
 @click.option(
     '--json',
-    default='build/contracts.json',
+    default='raiden_contracts/data/contracts.json',
     help='Path to compiled contracts data'
 )
 @click.option(

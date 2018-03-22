@@ -35,9 +35,9 @@ def get_event_from_abi(abi: list, event_name: str):
 
     num_results = len(result)
     if num_results == 0:
-        raise KeyError(f"Event '{event_name}' not found.")
+        raise KeyError("Event '{}' not found.".format(event_name))
     elif num_results >= 2:
-        raise KeyError(f"Multiple events '{event_name}' found.")
+        raise KeyError("Multiple events '{}' found.".format(event_name))
 
     return result[0]
 

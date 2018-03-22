@@ -8,30 +8,12 @@
 
 ## Installation
 
-### Compile the contracts
-As the `populus` library is incompatible with more recent libraries we have
-to use different environments here.
-
-First install the requirements
-```bash
-pip install -r requirements_populus.txt
 ```
-and then build the contracts
-```
-python setup.py build
-```
-
-
-After this uninstall `populus` and install the dependencies for the python package.
-```
-pip freeze  | xargs pip uninstall -y
-pip install -r requirements.txt
-
+make install
 ```
 
 ## Deployment on a testnet
 
-! You need to have the compiled contract data first. You can run `populus compile` for that.
 
 ```
 # Following calls are equivalent
@@ -40,7 +22,7 @@ python -m deploy
 
 python -m deploy \
        --rpc-provider http://127.0.0.1:8545 \
-       --json build/contracts.json
+       --json raiden_contracts/data/contracts.json
        --owner 0x5601Ea8445A5d96EEeBF89A67C4199FbB7a43Fbb \
        --wait 300 \
        --token-name CustomToken --token-symbol TKN \
@@ -51,11 +33,31 @@ python -m deploy --token-address <TOKEN_ADDRESS>
 
 ```
 
-## Use
+## Development
+
+We use `populus` for develpment. At the moment, this library is incompatible with recent libraries that act as dependencies. Therefore, we have to use different environments here.
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+After you are finished, to uninstall `populus` and install the dependencies for the `raiden-contracts` package, you can do:
 
 ```
-populus compile
+pip freeze  | xargs pip uninstall -y
+pip install -r requirements.txt
 
+```
+
+### Compile the contracts
+
+```
+python setup.py build
+```
+
+### Testing
+
+```
 # tests
 pytest
 pytest -p no:warnings -s
