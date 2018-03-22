@@ -36,5 +36,5 @@ def test_solc_unavailable():
         importlib.reload(raiden_contracts.contract_manager)
         with pytest.raises(_solidity.CompileError):
             contract_manager_meta(CONTRACTS_SOURCE_DIRS)
-    except ModuleNotFoundError:
+    except ImportError:
         pass
