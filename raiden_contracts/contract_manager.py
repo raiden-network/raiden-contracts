@@ -12,18 +12,25 @@ CONTRACTS_SOURCE_DIRS = {
 CONTRACTS_SOURCE_DIRS = {
     k: os.path.normpath(v) for k, v in CONTRACTS_SOURCE_DIRS.items()
 }
-HAS_SOLIDITY = False
+_solidity = None
+
+
+def import_or_return_none(module):
+    import importlib
+    try:
+        return importlib.import_module(module)
+    except ImportError:
+        return None
+
 
 #
-# set HAS_SOLIDITY to True if ethereum library is installed AND solidity binary exists
+# import _solidity as a module if ethereum library is installed AND solidity binary exists
 #
-try:
-    from ethereum.tools import _solidity
-    if _solidity.get_compiler_path() is None:
-        log.warn('solc not found in $PATH. Check your path or set $SOLC_BINARY.')
-    else:
-        HAS_SOLIDITY = True
-except ImportError:
+_solidity = import_or_return_none('ethereum.tools._solidity')
+if _solidity is None:
+    # ethereum < 2.0.0
+    _solidity = import_or_return_none('ethereum._solidity')
+else:
     log.info('ethereum._solidity not found. Contract compilation will be unavailable')
 
 
@@ -35,9 +42,9 @@ def get_event_from_abi(abi: list, event_name: str):
 
     num_results = len(result)
     if num_results == 0:
-        raise KeyError(f"Event '{event_name}' not found.")
+        raise KeyError("Event '{}' not found.".format(event_name))
     elif num_results >= 2:
-        raise KeyError(f"Multiple events '{event_name}' found.")
+        raise KeyError("Multiple events '{}' found.".format(event_name))
 
     return result[0]
 
@@ -46,7 +53,7 @@ def assert_has_solidity(func):
     """decorator - Raise CompileError if HAS_SOLIDITY is set to False"""
     @wraps(func)
     def func_wrap(*args, **kwargs):
-        if HAS_SOLIDITY is False:
+        if _solidity is None:
             raise _solidity.CompileError(
                 'solc not found in $PATH. Check your path or set $SOLC_BINARY.'
             )
