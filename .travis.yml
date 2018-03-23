@@ -6,7 +6,6 @@ language: generic
 jobs:
   include:
     - language: python
-      if: type = pull_request
       python: '3.5'
       env:
         - TEST_TYPE=raiden_contracts
@@ -27,7 +26,7 @@ jobs:
         - pip install -U pip wheel coveralls "coverage<4.4"
         - pip install pytest-travis-fold
         - pip install flake8
-        - pip install -r requirements.txt
+        - pip install -r requirements-dev.txt
 
       before_script:
         - flake8 raiden_contracts/

@@ -35,7 +35,7 @@ python -m deploy --token-address <TOKEN_ADDRESS>
 
 ## Development
 
-We use `populus` for develpment. At the moment, this library is incompatible with recent libraries that act as dependencies. Therefore, we have to use different environments here.
+We use `populus` for development. At the moment, this library is incompatible with recent libraries that act as dependencies. Therefore, we have to use different environments here.
 
 ```bash
 pip install -r requirements-dev.txt

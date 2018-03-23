@@ -1,4 +1,7 @@
-from raiden_contracts.contract_manager import ContractManager, CONTRACTS_SOURCE_DIRS
+from raiden_contracts.contract_manager import (
+    ContractManager,
+    CONTRACTS_SOURCE_DIRS,
+)
 import pytest
 
 PRECOMPILED_CONTRACTS_PATH = 'raiden_contracts/data/contracts.json'
@@ -13,12 +16,7 @@ def contract_manager_meta(contracts_path):
 
 
 def test_contract_manager_compile():
-    # try to load & compile contracts from a source directory
-    try:
-        contract_manager_meta(CONTRACTS_SOURCE_DIRS)
-    except NameError:
-        # name '_solidity' is not defined in older pyethereum versions
-        pass
+    contract_manager_meta(CONTRACTS_SOURCE_DIRS)
 
 
 def test_contract_manager_json():
