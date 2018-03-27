@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from functools import wraps
+from typing import Union, List, Dict
 
 log = logging.getLogger(__name__)
 CONTRACTS_DIR = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
@@ -15,7 +16,7 @@ CONTRACTS_SOURCE_DIRS = {
 _solidity = None
 
 
-def import_or_return_none(module):
+def import_or_return_none(module: str):
     import importlib
     try:
         return importlib.import_module(module)
@@ -34,7 +35,7 @@ else:
     log.info('ethereum._solidity not found. Contract compilation will be unavailable')
 
 
-def get_event_from_abi(abi: list, event_name: str):
+def get_event_from_abi(abi: List, event_name: str):
     result = [
         x for x in abi
         if x['type'] == 'event' and x['name'] == event_name
@@ -62,9 +63,9 @@ def assert_has_solidity(func):
 
 
 class ContractManager:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: Union[str, List[str]]) -> None:
         """Params:
-            path (str, list): either path to a precompiled contract JSON file, or a list of
+            path: either path to a precompiled contract JSON file, or a list of
                 directories which contain solidity files to compile
         """
         self.contracts_source_dirs = None
@@ -75,13 +76,13 @@ class ContractManager:
                 self.abi.update(
                     ContractManager.precompile_contracts(dir_path, self.get_mappings())
                 )
-        elif os.path.isdir(path) is True:
+        elif os.path.isdir(path):
             ContractManager.__init__(self, [path])
         else:
             self.abi = json.load(open(path, 'r'))
 
     @assert_has_solidity
-    def compile_contract(self, contract_name, libs=None, *args):
+    def compile_contract(self, contract_name: str, libs=None, *args):
         """Compile contract and return JSON containing abi and bytecode"""
         return _solidity.compile_contract(
             self.get_contract_path(contract_name)[0],
@@ -107,18 +108,18 @@ class ContractManager:
             if os.path.basename(x).split('.', 1)[0] == contract_name
         ]
 
-    def get_mappings(self):
+    def get_mappings(self) -> List[str]:
         """Return dict of mappings to use as solc argument."""
         return ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
 
     @staticmethod
     @assert_has_solidity
-    def precompile_contracts(contracts_dir: str, map_dirs: list) -> dict:
+    def precompile_contracts(contracts_dir: str, map_dirs: List) -> Dict:
         """
         Compile solidity contracts into ABI. This requires solc somewhere in the $PATH
             and also ethereum.tools python library.
         Parameters:
-            contracts_dir (str): directory where the contracts are stored.
+            contracts_dir: directory where the contracts are stored.
             All files with .sol suffix will be compiled.
             The method won't recurse into subdirectories.
         Return:
@@ -137,11 +138,11 @@ class ContractManager:
             )
         return ret
 
-    def get_contract_abi(self, contract_name: str) -> dict:
+    def get_contract_abi(self, contract_name: str) -> Dict:
         """ Returns the ABI for a given contract. """
         return self.abi[contract_name]['abi']
 
-    def get_event_abi(self, contract_name: str, event_name: str):
+    def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
         """ Returns the ABI for a given event. """
         contract_abi = self.get_contract_abi(contract_name)
         return get_event_from_abi(contract_abi, event_name)
