@@ -7,6 +7,11 @@ __pycache__
 build/docs/
 .cache
 .pytest_cache
+venv/
 
 # ignore private keys
 *.pem
+
+# editors
+.vscode/
+
