@@ -78,9 +78,9 @@ def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_ga
     additional_hash = b'\x00' * 32
     signature = sign_balance_proof(
         tester.k3,
-        1,
         token_network.address,
         chain_id,
+        1,
         nonce,
         transferred_amount,
         locksroot,
@@ -103,9 +103,9 @@ def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_ga
     additional_hash = b'\x00' * 32
     closing_signature = sign_balance_proof(
         tester.k2,
-        1,
         token_network.address,
         chain_id,
+        1,
         nonce,
         transferred_amount,
         locksroot,
