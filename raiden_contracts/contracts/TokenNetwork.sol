@@ -468,7 +468,7 @@ contract TokenNetwork is Utils {
         bytes32 computed_locksroot;
         bytes32 lockhash;
 
-        Channel storage channel = channels[last_channel_index];
+        Channel storage channel = channels[channel_identifier];
         Participant storage partner_state = channel.participants[partner];
 
         // Check that the partner is a channel participant.
