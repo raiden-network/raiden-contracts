@@ -2,16 +2,15 @@ from web3 import Web3
 from .sign_utils import sign
 
 
-def sign_balance_proof(
-        privatekey,
-        channel_identifier,
+def hash_balance_proof(
         token_network_address,
         chain_identifier,
+        channel_identifier,
         nonce,
         transferred_amount,
         locksroot,
         additional_hash):
-    message_hash = Web3.soliditySha3([
+    return Web3.soliditySha3([
         'uint64',
         'uint256',
         'bytes32',
@@ -29,6 +28,25 @@ def sign_balance_proof(
         additional_hash
     ])
 
-    privatekey = hex(int.from_bytes(privatekey, byteorder='big'))
 
-    return sign(privatekey, message_hash, v=27)
+def sign_balance_proof(
+        privatekey,
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        nonce,
+        transferred_amount,
+        locksroot,
+        additional_hash,
+        v=27):
+    message_hash = hash_balance_proof(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        nonce,
+        transferred_amount,
+        locksroot,
+        additional_hash
+    )
+
+    return sign(privatekey, message_hash, v)

@@ -50,7 +50,8 @@ def create_accounts(web3):
 def get_private_key(web3):
     def get(account_address):
         index = web3.eth.accounts.index(account_address)
-        return getattr(tester, 'k' + str(index))
+        privkey = getattr(tester, 'k' + str(index))
+        return hex(int.from_bytes(privkey, byteorder='big'))
     return get
 
 

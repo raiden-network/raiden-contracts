@@ -46,7 +46,8 @@ def create_balance_proof(token_network, get_private_key):
             transferred_amount=0,
             nonce=0,
             locksroot=None,
-            additional_hash=None
+            additional_hash=None,
+            v=27
     ):
         private_key = get_private_key(participant)
         locksroot = locksroot or b'\x00' * 32
@@ -54,13 +55,14 @@ def create_balance_proof(token_network, get_private_key):
 
         signature = sign_balance_proof(
             private_key,
-            channel_identifier,
             token_network.address,
             int(token_network.call().chain_id()),
+            channel_identifier,
             nonce,
             transferred_amount,
             locksroot,
-            additional_hash
+            additional_hash,
+            v
         )
         return (
             channel_identifier,

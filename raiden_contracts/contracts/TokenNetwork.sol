@@ -2,6 +2,7 @@ pragma solidity ^0.4.17;
 
 import "./Token.sol";
 import "./Utils.sol";
+import "./lib/ECVerify.sol";
 import "./SecretRegistry.sol";
 
 contract TokenNetwork is Utils {
@@ -260,7 +261,7 @@ contract TokenNetwork is Utils {
         // he is intentionally not providing the latest transfer, in which case
         // the closing party is going to lose the tokens that were transferred
         // to him.
-        partner_address = recoverAddressFromSignature(
+        partner_address = recoverAddressFromBalanceProof(
             channel_identifier,
             nonce,
             transferred_amount,
@@ -346,7 +347,7 @@ contract TokenNetwork is Utils {
         // We also need the signature from the non-closing participant on behalf of which the 3rd
         // party makes the transaction. This signature will be provided to the 3rd party
         //  together with the balance proof.
-        address non_closing_participant = recoverAddressFromSignature(
+        address non_closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
             nonce,
             transferred_amount,
@@ -386,7 +387,7 @@ contract TokenNetwork is Utils {
         stillTimeout(channel_identifier)
         internal
     {
-        address closing_participant = recoverAddressFromSignature(
+        address closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
             nonce,
             transferred_amount,
@@ -641,7 +642,7 @@ contract TokenNetwork is Utils {
         participant_state.transferred_amount = transferred_amount;
     }
 
-    function recoverAddressFromSignature(
+    function recoverAddressFromBalanceProof(
         uint256 channel_identifier,
         uint64 nonce,
         uint256 transferred_amount,
@@ -651,10 +652,8 @@ contract TokenNetwork is Utils {
     )
         view
         internal
-        returns (address)
+        returns (address signature_address)
     {
-        require(signature.length == 65);
-
         bytes32 message_hash = keccak256(
             nonce,
             transferred_amount,
@@ -665,30 +664,7 @@ contract TokenNetwork is Utils {
             additional_hash
         );
 
-        var (r, s, v) = signatureSplit(signature);
-        return ecrecover(message_hash, v, r, s);
-    }
-
-    function signatureSplit(bytes signature)
-        pure
-        internal
-        returns (bytes32 r, bytes32 s, uint8 v)
-    {
-        // The signature format is a compact form of:
-        //   {bytes32 r}{bytes32 s}{uint8 v}
-        // Compact means, uint8 is not padded to 32 bytes.
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            // Here we are loading the last 32 bytes, including 31 bytes
-            // of 's'. There is no 'mload8' to do this.
-            //
-            // 'byte' is not working due to the Solidity parser, so lets
-            // use the second best option, 'and'
-            v := and(mload(add(signature, 65)), 0xff)
-        }
-
-        require(v == 27 || v == 28);
+        signature_address = ECVerify.ecverify(message_hash,signature);
     }
 
     function computeMerkleRoot(bytes32 lockhash, bytes merkle_proof)

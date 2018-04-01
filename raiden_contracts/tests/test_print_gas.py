@@ -1,4 +1,3 @@
-from ethereum import tester
 from raiden_contracts.utils.config import (
     C_TOKEN_NETWORK_REGISTRY,
     C_TOKEN_NETWORK,
@@ -53,7 +52,14 @@ def test_secret_registry(secret_registry, print_gas):
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
 
-def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_gas):
+def test_channel_cycle(
+        web3,
+        token_network,
+        custom_token,
+        get_accounts,
+        print_gas,
+        get_private_key
+):
     (A, B) = get_accounts(2)
     chain_id = int(web3.version.network)
 
@@ -77,16 +83,16 @@ def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_ga
     locksroot = b'\x00' * 32
     additional_hash = b'\x00' * 32
     signature = sign_balance_proof(
-        tester.k3,
-        1,
+        get_private_key(B),
         token_network.address,
         chain_id,
+        1,
         nonce,
         transferred_amount,
         locksroot,
         additional_hash,
     )
-    # TODO: compare transferred_amount with deposit!!!!
+
     txn_hash = token_network.transact({'from': A}).closeChannel(
         1,
         nonce,
@@ -102,10 +108,10 @@ def test_channel_cycle(web3, token_network, custom_token, get_accounts, print_ga
     locksroot = b'\x00' * 32
     additional_hash = b'\x00' * 32
     closing_signature = sign_balance_proof(
-        tester.k2,
-        1,
+        get_private_key(A),
         token_network.address,
         chain_id,
+        1,
         nonce,
         transferred_amount,
         locksroot,
