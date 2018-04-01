@@ -91,6 +91,7 @@ def test_ecrecover_output(
 
 
 def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_private_key):
+    """ ecrecover returns 0 due to an error caused by an incorrect value of the v parameter """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     message_hash = Web3.soliditySha3(['string', 'uint256'], ['hello', 5])

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.17;
 
 /*
-This is a contract used for testing the ECVerify library and ecrecover behaviour.
-.*/
+ * This is a contract used for testing the ECVerify library and ecrecover behaviour.
+ */
 
 import "raiden/lib/ECVerify.sol";
 

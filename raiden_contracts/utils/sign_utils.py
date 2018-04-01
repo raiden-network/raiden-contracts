@@ -3,8 +3,6 @@ from eth_utils import remove_0x_prefix
 
 
 def sign(privkey: str, msg: bytes, v=0) -> bytes:
-    if isinstance(privkey, bytes):
-        privkey = hex(int.from_bytes(privkey, byteorder='big'))
     assert isinstance(msg, bytes)
     assert isinstance(privkey, str)
 
