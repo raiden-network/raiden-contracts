@@ -91,7 +91,7 @@ contract TokenNetwork is Utils {
 
     event ChannelClosed(uint256 channel_identifier, address closing_participant);
 
-    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
+    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, bytes32 hashlock, uint256 transferred_amount);
 
     event TransferUpdated(uint256 channel_identifier, address closing_participant);
 
@@ -562,7 +562,7 @@ contract TokenNetwork is Utils {
         // it's safe to update the transferred_amount in place.
         partner_state.transferred_amount += locked_amount;
 
-        ChannelUnlocked(channel_identifier, partner, partner_state.transferred_amount);
+        ChannelUnlocked(channel_identifier, partner, hashlock, partner_state.transferred_amount);
     }
 
     /// @notice Settles the balance between the two parties
