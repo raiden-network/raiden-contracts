@@ -445,6 +445,62 @@ contract TokenNetwork is Utils {
         require(secret_registry.registerSecret(secret));
     }
 
+    /// @notice punish partner unlock a obsolete lock which he has annouced to abandon .
+    // Anyone can call punishObsoleteUnlock  on behalf of a channel participant.
+    /// @param channel_identifier The channel identifier - mapping key used for `channels`.
+    /// @param beneficiary Address of the participant who owes the locked tokens.
+    /// //@param expiration_block Block height at which the lock expires.
+    /// @param locked_amount Amount of tokens that the locked transfer values.
+    /// @param hashlock hash of a preimage used in a HTL Transfer
+    /// @param additional_hash Computed from the message. Used for message authentication.
+    /// @param signature signature of partner who has annouced to abandon this transfer,whether or not he knows the password.
+    function punishObsoleteUnlock(
+        uint256 channel_identifier,
+        address beneficiary,
+    /*uint256 expiration_block, */
+        uint256 locked_amount,
+        bytes32 hashlock,
+        bytes32 additional_hash,
+        bytes signature)
+        stillTimeout(channel_identifier)
+    public
+    {
+        address cheater;
+        bytes32 key;
+
+        Channel storage channel = channels[channel_identifier];
+        Participant storage beneficiary_state = channel.participants[beneficiary];
+
+        // Check that the partner is a channel participant.
+        require(beneficiary_state.initialized);
+        // An empty locksroot means there are no pending locks
+        require(beneficiary_state.locksroot != 0);
+        /*
+        the cheater provides his signature of lockhash to annouce that he has already abandon this transfer.
+        */
+        cheater = recoverAddressFromUnlockProof(
+            channel_identifier,
+            locked_amount,
+            hashlock,
+            additional_hash,
+            signature
+        );
+        Participant storage cheater_state = channel.participants[cheater];
+        require(cheater_state.initialized);
+        require(cheater!=beneficiary);
+
+        /*
+        the cheater must have used the hashlock to unlock the transfer which has annouced to abandon.
+        */
+        key = keccak256(beneficiary_state.nonce, hashlock);
+        require(beneficiary_state.unlocked_locks[key]);
+
+        /*
+        punish the cheater.
+        */
+        beneficiary_state.transferred_amount = 0;
+    }
+
     /// @notice Unlocks a pending transfer and increases the partner's transferred amount
     /// with the transfer value. A lock can be unlocked only once per participant.
     // Anyone can call unlock a transfer on behalf of a channel participant.
@@ -640,6 +696,29 @@ contract TokenNetwork is Utils {
         participant_state.nonce = nonce;
         participant_state.locksroot = locksroot;
         participant_state.transferred_amount = transferred_amount;
+    }
+
+    function recoverAddressFromUnlockProof(
+        uint256 channel_identifier,
+        uint256 locked_amount,
+        bytes32 hashlock,
+        bytes32 additional_hash,
+        bytes signature
+    )
+    view
+    internal
+    returns (address signature_address)
+    {
+        bytes32 message_hash = keccak256(
+            locked_amount,
+            hashlock,
+            channel_identifier,
+            /*address(this), do we need this for replay attach?
+            chain_id,*/
+            additional_hash
+        );
+
+        signature_address = ECVerify.ecverify(message_hash,signature);
     }
 
     function recoverAddressFromBalanceProof(
