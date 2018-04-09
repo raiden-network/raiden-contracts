@@ -32,20 +32,23 @@ contract MonitoringService is Utils {
     struct Reward{
         // The amount of the reward to be paid out to the MS
         // that provided latest BP
-        uint192 reward_amount;
+        //uint192 reward_amount;
+
+        // The signature of the reward
+        bytes reward_proof_signature;
 
         // Nonce of the most recently provided BP
         uint64 nonce;
 
         // Address of the monitoring service that provided the most recent BP
-        address ms_address;
+        //address ms_address;
 
         // Address of the Raiden Node that was monitored
         // This is also the address that has the reward deducted from its deposit
-        address raiden_node_address;
+        address reward_sender_address;
 
         // Unique ID to prevent replay attacks on other chains
-        uint256 chain_id;
+        //uint256 chain_id;
     }
 
     /*
@@ -56,7 +59,7 @@ contract MonitoringService is Utils {
     event RaidenNodeNewDeposit(address sender, address receiver, uint amount);
     event RegisteredMonitoringService(address monitoring_service);
     event NewBalanceProofReceived(
-        uint192 reward_amount,
+        bytes reward_proof_signature,
         uint64 nonce,
         address ms_address,
         address raiden_node_address
@@ -150,8 +153,7 @@ contract MonitoringService is Utils {
         bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature,
-        bytes reward_proof,
-        uint192 reward_amount,
+        address reward_sender_address,
         bytes reward_proof_signature,
         address token_network_address)
         isMonitor(msg.sender)
@@ -163,26 +165,15 @@ contract MonitoringService is Utils {
         // Only allow PBs with higher nonce to be submitted
         require(reward.nonce < nonce);
 
-        TokenNetwork token_network = TokenNetwork(token_network_address);
-
-        address raiden_node_address = recoverAddressFromRewardProof(
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            token_network.chain_id(),
-            nonce,
-            reward_proof_signature
-        );
-
         // MSC stores channel_identifier, MS_address, reward_amount, nonce
         // of the MS that provided the balance_proof with highest nonce
         rewards[channel_identifier] = Reward({
-            reward_amount: reward_amount,
+            reward_proof_signature: reward_proof_signature,
             nonce: nonce,
-            ms_address: msg.sender,
-            raiden_node_address: raiden_node_address,
-            chain_id: token_network.chain_id()
+            reward_sender_address: reward_sender_address
         });
+
+        TokenNetwork token_network = TokenNetwork(token_network_address);
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateTransferDelegate(
@@ -194,7 +185,13 @@ contract MonitoringService is Utils {
             closing_signature,
             non_closing_signature
         );
-        emit NewBalanceProofReceived(reward_amount, nonce, msg.sender, raiden_node_address);
+
+        emit NewBalanceProofReceived(
+            reward_proof_signature,
+            nonce,
+            msg.sender,
+            reward_sender_address
+        );
     }
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward
@@ -203,8 +200,10 @@ contract MonitoringService is Utils {
     /// @param token_network_address Address of the Token Network in which the channel
     function claimReward(
         uint256 channel_identifier,
-        address token_network_address)
-        //isMonitor(ms_address) // should this function be callable by anyone?
+        address token_network_address,
+        uint192 reward_amount,
+        address monitor_address,
+        uint64 nonce)
         public
         returns (bool)
     {
@@ -219,14 +218,24 @@ contract MonitoringService is Utils {
         Reward reward = rewards[channel_identifier];
 
         // Make sure that the Reward exists
-        require(reward.ms_address != 0x0);
+        require(reward.reward_sender_address != 0x0);
+
+        address raiden_node_address = recoverAddressFromRewardProof(
+            channel_identifier,
+            reward_amount,
+            token_network_address,
+            token_network.chain_id(),
+            nonce,
+            monitor_address,
+            reward.reward_proof_signature
+        );
 
         // Deduct reward from raiden_node deposit
-        raiden_node_deposits[reward.raiden_node_address] =- reward.reward_amount;
+        raiden_node_deposits[raiden_node_address] =- reward_amount;
         // payout reward
-        token.transfer(reward.ms_address, reward.reward_amount);
+        token.transfer(monitor_address, reward_amount);
 
-        emit RewardClaimed(reward.ms_address, reward.reward_amount, channel_identifier);
+        emit RewardClaimed(monitor_address, reward_amount, channel_identifier);
 
         // delete storage
         delete rewards[channel_identifier];
@@ -244,6 +253,7 @@ contract MonitoringService is Utils {
         address token_network_address,
         uint256 chain_id,
         uint64 nonce,
+        address monitor_address,
         bytes signature
     )
         view
@@ -255,7 +265,8 @@ contract MonitoringService is Utils {
             reward_amount,
             token_network_address,
             chain_id,
-            nonce
+            nonce,
+            monitor_address
         );
 
         signature_address = ECVerify.ecverify(message_hash, signature);
