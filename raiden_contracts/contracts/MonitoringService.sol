@@ -9,29 +9,49 @@ import "./TokenNetwork.sol";
 contract MonitoringService is Utils {
 
     Token token; // Only allow RDN?
+
+    // The minimum allowed deposit for a MS
     uint256 minimum_deposit;
-    uint256 minimum_fee;
 
     // keep track of registered Monitoring Services
     // A Monitoring Services must deposit to register
     mapping(address => bool) registered_monitoring_services;
 
     // channel_identifier => Struct
+    // Keep track of the rewards per channel
     mapping(uint256 => Reward) rewards;
 
+    // Deposits made by the MSs
     mapping(address => uint) ms_deposits;
+    // Deposits made by the raiden nodes
     mapping(address => uint) raiden_node_deposits;
 
-    /* Structs */
+    /*
+     *  Structs
+     */
     struct Reward{
+        // The amount of the reward to be paid out to the MS
+        // that provided latest BP
         uint192 reward_amount;
+
+        // Nonce of the most recently provided BP
         uint64 nonce;
+
+        // Address of the monitoring service that provided the most recent BP
         address ms_address;
+
+        // Address of the Raiden Node that was monitored
+        // This is also the address that has the reward deducted from its deposit
         address raiden_node_address;
+
+        // Unique ID to prevent replay attacks on other chains
         uint256 chain_id;
     }
 
-    /* Events */
+    /*
+     *  Events
+     */
+
     event MonitoringServiceNewDeposit(address sender, address receiver, uint amount);
     event RaidenNodeNewDeposit(address sender, address receiver, uint amount);
     event RegisteredMonitoringService(address monitoring_service);
@@ -41,17 +61,27 @@ contract MonitoringService is Utils {
         address ms_address,
         address raiden_node_address
     );
-    event RewardClaimed(address ms_address, uint amount);
+    event RewardClaimed(address ms_address, uint amount, uint256 channel_id);
+
+    /*
+     *  Modifiers 
+     */
 
     modifier isMonitor(address _ms_address) {
         require(registered_monitoring_services[_ms_address]);
         _;
     }
 
+    /*
+     *  Constructor
+     */
+
+    /// @notice Set the default values for the smart contract
+    /// @param _token_address The address of the token to use for rewards
+    /// @param _minimum_deposit The minimum value that a MS must deposit to be registered
     function MonitoringService(
         address _token_address,
-        uint256 _minimum_deposit,
-        uint256 _minimum_fee)
+        uint256 _minimum_deposit)
         public
     {
         require(_token_address != 0x0);
@@ -59,26 +89,32 @@ contract MonitoringService is Utils {
         require(contractExists(_token_address));
 
         minimum_deposit = _minimum_deposit;
-        minimum_fee = _minimum_fee;
 
         token = Token(_token_address);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
     }
 
-    function monitorServiceDeposit(address beneficiary, uint amount) returns (bool) {
+    /// @notice Sets the deposit of a Monitoring Service and registers the MS
+    /// Can be called by anyone
+    /// @param beneficiary Address of the MS to be registered 
+    /// (deposit doesn't have to be paid by the MS address)
+    /// @param amount The amount to deposit. Must be higher or equal to minimum_deposit
+    function monitorServiceDeposit(address beneficiary, uint amount) {
         require(amount >= minimum_deposit);
-        // Do we allow several topping up for the MS?
+        // Do we allow topping up for the MS?
         require(ms_deposits[beneficiary] == 0);
 
+        // Add the deposit for the MS_address
         ms_deposits[beneficiary] =+ amount;
 
+        // Transfer the deposit to the smart contract
         require(token.transferFrom(msg.sender, address(this), amount));
 
+        // Register MS
         registered_monitoring_services[beneficiary] = true;
 
         emit MonitoringServiceNewDeposit(msg.sender, beneficiary, amount);
-        //emit RegisteredMonitoringService(beneficiary);
     }
 
     function raidenNodeDeposit(address beneficiary, uint amount) returns (bool) {
@@ -86,9 +122,26 @@ contract MonitoringService is Utils {
 
         raiden_node_deposits[beneficiary] =+ amount;
 
+        // Transfer the deposit to the smart contract
+        require(token.transferFrom(msg.sender, address(this), amount));
+
         emit RaidenNodeNewDeposit(msg.sender, beneficiary, amount);
     }
 
+    /// @notice Called by a registered MS, when providing a new balance proof
+    /// to a monitored channel.
+    /// Can be called multiple times by different registered MSs as long as the PB provided
+    /// is newer than the current newest registered BP.
+    /// @param channel_identifier Unique identifier for the channel being monitored in a
+    /// specific TokenNetwork.
+    /// @param nonce Strictly monotonic value used to order PBs
+    /// omitting PB specific params, since these will not be provided in the future
+    /// @param reward_proof Computed from the reward message. Used for message authentication.
+    /// @param reward_amount Amount of tokens to be rewarded to MS if BP
+    /// is the last BP to be provided.
+    /// @param reward_proof_signature Signature of the Raiden Node signing the reward
+    /// @param token_network_address Address of the Token Network in which the channel
+    /// being monitored exists.
     function monitor(
         uint256 channel_identifier,
         uint64 nonce,
@@ -123,11 +176,13 @@ contract MonitoringService is Utils {
 
         // MSC stores channel_identifier, MS_address, reward_amount, nonce
         // of the MS that provided the balance_proof with highest nonce
-        rewards[channel_identifier] = Reward({reward_amount: reward_amount,
-                                              nonce: nonce,
-                                              ms_address: msg.sender,
-                                              raiden_node_address: raiden_node_address,
-                                              chain_id: token_network.chain_id()});
+        rewards[channel_identifier] = Reward({
+            reward_amount: reward_amount,
+            nonce: nonce,
+            ms_address: msg.sender,
+            raiden_node_address: raiden_node_address,
+            chain_id: token_network.chain_id()
+        });
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateTransferDelegate(
@@ -142,8 +197,11 @@ contract MonitoringService is Utils {
         emit NewBalanceProofReceived(reward_amount, nonce, msg.sender, raiden_node_address);
     }
 
+    /// @notice Called after a monitored channel is settled in order for MS to claim the reward
+    /// Can be called once per settled channel by everyone on behalf of MS
+    /// @param channel_identifier Unique identifier for the channel being monitored in a
+    /// @param token_network_address Address of the Token Network in which the channel
     function claimReward(
-        uint reward_amount,
         uint256 channel_identifier,
         address token_network_address)
         //isMonitor(ms_address) // should this function be callable by anyone?
@@ -168,17 +226,17 @@ contract MonitoringService is Utils {
         // payout reward
         token.transfer(reward.ms_address, reward.reward_amount);
 
-        emit RewardClaimed(reward.ms_address, reward.reward_amount);
+        emit RewardClaimed(reward.ms_address, reward.reward_amount, channel_identifier);
 
         // delete storage
         delete rewards[channel_identifier];
     }
 
     // TODO
-    function msWithdraw() {}
+    function MonitoringServiceWithdraw() {}
 
     // TODO
-    function userWithdraw() {}
+    function raidenNodeWithdraw() {}
 
     function recoverAddressFromRewardProof(
         uint256 channel_identifier,
