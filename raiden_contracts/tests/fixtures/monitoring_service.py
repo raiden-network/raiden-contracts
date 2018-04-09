@@ -12,8 +12,8 @@ def get_monitoring_service(chain, create_contract):
 
 
 @pytest.fixture()
-def monitoring_service_external(get_token_network, custom_token):
-    return get_token_network([
+def monitoring_service_external(get_monitoring_service, custom_token):
+    return get_monitoring_service([
         custom_token.address,
-        100
+        10
     ])
