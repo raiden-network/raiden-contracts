@@ -5,6 +5,7 @@ from .utils import *
 from .secret_registry import *
 from .token_network_registry import *
 from .token_network import *
+from .monitoring_service import *
 from .channel import *
 from .test_contracts import *
 from .contracts import *

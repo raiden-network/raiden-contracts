@@ -3,6 +3,7 @@ C_TOKEN_NETWORK_REGISTRY = 'TokenNetworksRegistry'
 C_TOKEN_NETWORK = 'TokenNetwork'
 C_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'
 C_CUSTOM_TOKEN = 'CustomToken'
+C_MONITORING_SERVICE = 'MonitoringService'
 
 E_CHANNEL_OPENED = 'ChannelOpened'
 E_CHANNEL_NEW_DEPOSIT = 'ChannelNewDeposit'
