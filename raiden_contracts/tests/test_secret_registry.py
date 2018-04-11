@@ -1,4 +1,5 @@
 import pytest
+from web3 import Web3
 from raiden_contracts.utils.config import E_SECRET_REVEALED
 from .utils import check_secret_revealed
 from .fixtures.config import fake_hex, raiden_contracts_version
@@ -48,12 +49,13 @@ def test_register_secret(secret_registry, get_accounts, get_block):
     (A, B) = get_accounts(2)
     secret = b'secretsecretsecretsecretsecretse'
     secret2 = b'secretsecretsecretsecretsecretss'
+    secrethash = Web3.sha3(secret)
 
-    assert secret_registry.call().secret_to_block(secret) == 0
+    assert secret_registry.call().secrethash_to_block(secrethash) == 0
 
     txn_hash = secret_registry.transact({'from': A}).registerSecret(secret)
 
-    assert secret_registry.call().secret_to_block(secret) == get_block(txn_hash)
+    assert secret_registry.call().secrethash_to_block(secrethash) == get_block(txn_hash)
 
     # A should be able to register any number of secrets
     secret_registry.transact({'from': A}).registerSecret(secret2)
@@ -61,9 +63,10 @@ def test_register_secret(secret_registry, get_accounts, get_block):
 
 def test_events(secret_registry, event_handler):
     secret = b'secretsecretsecretsecretsecretse'
+    secrethash = Web3.sha3(secret)
     ev_handler = event_handler(secret_registry)
 
     txn_hash = secret_registry.transact().registerSecret(secret)
 
-    ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secret))
+    ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secrethash))
     ev_handler.check()

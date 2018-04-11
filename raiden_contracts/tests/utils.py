@@ -1,6 +1,6 @@
-def check_secret_revealed(secret):
+def check_secret_revealed(secrethash):
     def get(event):
-        assert event['args']['secret'] == secret
+        assert event['args']['secrethash'] == secrethash
     return get
 
 
