@@ -25,22 +25,22 @@ def test_verify(
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 3)
-    signature = balance_proof_A[5]
+    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
+    signature = balance_proof_A[3]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
         int(web3.version.network),
-        *balance_proof_A[:5]
+        *balance_proof_A[:3]
     )
     address = signature_test_contract.call().verify(balance_proof_hash, signature)
     assert address == A
 
-    balance_proof_B = create_balance_proof(channel_identifier, B, 0, 0)
-    signature = balance_proof_B[5]
+    balance_proof_B = create_balance_proof(channel_identifier, B, 0, 0, 0)
+    signature = balance_proof_B[3]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
         int(web3.version.network),
-        *balance_proof_B[:5]
+        *balance_proof_B[:3]
     )
     address = signature_test_contract.call().verify(balance_proof_hash, signature)
     assert address == B
@@ -70,15 +70,15 @@ def test_ecrecover_output(
 ):
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)
-    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 3)
-    signature = balance_proof_A[5]
+    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
+    signature = balance_proof_A[3]
     r = signature[:32]
     s = signature[32:64]
     v = signature[64:]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
         int(web3.version.network),
-        *balance_proof_A[:5]
+        *balance_proof_A[:3]
     )
 
     address = signature_test_contract.call().verifyEcrecoverOutput(

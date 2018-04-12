@@ -3,7 +3,6 @@ from raiden_contracts.utils.config import (
     C_TOKEN_NETWORK,
     C_SECRET_REGISTRY
 )
-from raiden_contracts.utils.sign import sign_balance_proof
 
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
@@ -58,10 +57,9 @@ def test_channel_cycle(
         custom_token,
         get_accounts,
         print_gas,
-        get_private_key
+        create_balance_proof
 ):
     (A, B) = get_accounts(2)
-    chain_id = int(web3.version.network)
 
     custom_token.transact({'from': A, 'value': 10 ** 18}).mint()
     custom_token.transact({'from': B, 'value': 10 ** 18}).mint()
@@ -78,52 +76,16 @@ def test_channel_cycle(
     txn_hash = token_network.transact({'from': B}).setDeposit(1, B, 10)
     print_gas(txn_hash, C_TOKEN_NETWORK + '.setDeposit')
 
-    nonce = 3
-    transferred_amount = 5
-    locksroot = b'\x00' * 32
-    additional_hash = b'\x00' * 32
-    signature = sign_balance_proof(
-        get_private_key(B),
-        token_network.address,
-        chain_id,
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-    )
+    balance_proof_A = create_balance_proof(1, A, 10, 0, 5)
+    balance_proof_B = create_balance_proof(1, B, 5, 0, 3)
+    balance_proof_BA = create_balance_proof(1, B, 10, 0, 5)
 
-    txn_hash = token_network.transact({'from': A}).closeChannel(
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-        signature
-    )
+    txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof_B)
     print_gas(txn_hash, C_TOKEN_NETWORK + '.closeChannel')
 
-    nonce = 3
-    transferred_amount = 15
-    locksroot = b'\x00' * 32
-    additional_hash = b'\x00' * 32
-    closing_signature = sign_balance_proof(
-        get_private_key(A),
-        token_network.address,
-        chain_id,
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-    )
     txn_hash = token_network.transact({'from': B}).updateTransfer(
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-        closing_signature
+        *balance_proof_A,
+        balance_proof_BA[3]
     )
     print_gas(txn_hash, C_TOKEN_NETWORK + '.updateTransfer')
 
@@ -131,7 +93,7 @@ def test_channel_cycle(
     prebalance_B = custom_token.call().balanceOf(B)
 
     web3.testing.mine(8)
-    txn_hash = token_network.transact().settleChannel(1, A, B)
-    assert custom_token.call().balanceOf(A) == prebalance_A + 20 - 15 + 5
-    assert custom_token.call().balanceOf(B) == prebalance_B + 10 - 5 + 15
+    txn_hash = token_network.transact().settleChannel(1, A, 10, 0, b'', b'', B, 5, 0, b'', b'')
+    assert custom_token.call().balanceOf(A) == prebalance_A + 20 - 10 + 5
+    assert custom_token.call().balanceOf(B) == prebalance_B + 10 - 5 + 10
     print_gas(txn_hash, C_TOKEN_NETWORK + '.settleChannel')

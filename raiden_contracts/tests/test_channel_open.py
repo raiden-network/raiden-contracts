@@ -61,26 +61,29 @@ def test_open_channel_state(token_network, get_accounts):
     (A, B) = get_accounts(2)
     settle_timeout = SETTLE_TIMEOUT_MIN + 10
 
+    channel = token_network.call().getChannelInfo(1)
+    assert channel[0] == 0  # settle_block_number
+    assert channel[1] == 0  # state
+
     token_network.transact().openChannel(A, B, settle_timeout)
 
     channel = token_network.call().getChannelInfo(1)
-    assert channel[0] == settle_timeout
-    assert channel[1] == empty_address
-    assert channel[2] == 0
+    assert channel[0] == settle_timeout  # settle_block_number
+    assert channel[1] == 1  # state
 
     A_state = token_network.call().getChannelParticipantInfo(1, A)
-    assert A_state[0] is True
-    assert A_state[1] == 0
-    assert A_state[2] == 0
-    assert A_state[3] == 0
-    assert A_state[4] == fake_bytes(32)
+    assert A_state[0] == 0
+    assert A_state[1] is True
+    assert A_state[2] is False
+    assert A_state[3] == fake_bytes(32)
+    assert A_state[4] == 0
 
     B_state = token_network.call().getChannelParticipantInfo(1, B)
-    assert B_state[0] is True
-    assert B_state[1] == 0
-    assert B_state[2] == 0
-    assert B_state[3] == 0
-    assert B_state[4] == fake_bytes(32)
+    assert B_state[0] == 0
+    assert B_state[1] is True
+    assert B_state[2] is False
+    assert B_state[3] == fake_bytes(32)
+    assert B_state[4] == 0
 
 
 def test_open_channel_event(get_accounts, token_network, event_handler):
