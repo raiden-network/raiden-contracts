@@ -8,6 +8,7 @@ import "./TokenNetwork.sol";
 
 contract MonitoringService is Utils {
 
+    // Token to be used for paying the rewards
     Token token; // Only allow RDN?
 
     // The minimum allowed deposit for a MS
@@ -21,10 +22,8 @@ contract MonitoringService is Utils {
     // Keep track of the rewards per channel
     mapping(uint256 => Reward) rewards;
 
-    // Deposits made by the MSs
-    mapping(address => uint) ms_deposits;
-    // Deposits made by the raiden nodes
-    mapping(address => uint) raiden_node_deposits;
+    // Keep track of balances
+    mapping(address => uint) balances;
 
     /*
      *  Structs
@@ -45,8 +44,8 @@ contract MonitoringService is Utils {
      *  Events
      */
 
-    event MonitoringServiceNewDeposit(address sender, address receiver, uint amount);
-    event RaidenNodeNewDeposit(address sender, address receiver, uint amount);
+    //event MonitoringServiceNewDeposit(address sender, address receiver, uint amount);
+    event NewDeposit(address sender, address receiver, uint amount);
     event RegisteredMonitoringService(address monitoring_service);
     event NewBalanceProofReceived(
         bytes reward_proof_signature,
@@ -55,6 +54,9 @@ contract MonitoringService is Utils {
         address raiden_node_address
     );
     event RewardClaimed(address ms_address, uint amount, uint256 channel_id);
+    event MonitoringServiceRegistered(address ms_address);
+    event MonitoringServiceDeregistered(address ms_address);
+    event Withdrawn(address account, uint amount);
 
     /*
      *  Modifiers 
@@ -62,6 +64,11 @@ contract MonitoringService is Utils {
 
     modifier isMonitor(address _ms_address) {
         require(registered_monitoring_services[_ms_address]);
+        _;
+    }
+
+    modifier isNotMonitor(address raiden_node_address) {
+        require(!registered_monitoring_services[raiden_node_address]);
         _;
     }
 
@@ -88,37 +95,29 @@ contract MonitoringService is Utils {
         require(token.totalSupply() > 0);
     }
 
-    /// @notice Sets the deposit of a Monitoring Service and registers the MS
-    /// Can be called by anyone
-    /// @param beneficiary Address of the MS to be registered 
-    /// (deposit doesn't have to be paid by the MS address)
-    /// @param amount The amount to deposit. Must be higher or equal to minimum_deposit
-    function monitorServiceDeposit(address beneficiary, uint amount) public {
-        require(amount >= minimum_deposit);
-        // Do we allow topping up for the MS?
-        require(ms_deposits[beneficiary] == 0);
-
-        // Add the deposit for the MS_address
-        ms_deposits[beneficiary] += amount;
-
-        // Transfer the deposit to the smart contract
-        require(token.transferFrom(msg.sender, address(this), amount));
-
-        // Register MS
-        registered_monitoring_services[beneficiary] = true;
-
-        emit MonitoringServiceNewDeposit(msg.sender, beneficiary, amount);
-    }
-
-    function raidenNodeDeposit(address beneficiary, uint amount) public returns (bool) {
+    /// @notice Deposit tokens used to either pay MSs or to regsiter as MS
+    /// Can be called by anyone several times and on behalf of other accounts
+    /// @param beneficiary The account benefitting from the deposit
+    /// @param amount The amount of tokens to be depositted
+    function deposit(address beneficiary, uint amount) public {
         require(amount > 0);
 
-        raiden_node_deposits[beneficiary] += amount;
+        // This also allows for registered MSs to deposit and use other MSs
+        balances[beneficiary] += amount;
 
         // Transfer the deposit to the smart contract
         require(token.transferFrom(msg.sender, address(this), amount));
 
-        emit RaidenNodeNewDeposit(msg.sender, beneficiary, amount);
+        emit NewDeposit(msg.sender, beneficiary, amount);
+    }
+
+    /// @notice Deposit and register as Monitoring Service in one function call
+    /// Can be called once and is only callable by addresses not already registered as MS
+    function depositAndRegisterMonitoringService() isNotMonitor(msg.sender) public {
+        uint amount_to_deposit = minimum_deposit - balances[msg.sender];
+
+        require(token.transferFrom(msg.sender, address(this), amount_to_deposit));
+        require(registerMonitoringService());
     }
 
     /// @notice Called by a registered MS, when providing a new balance proof
@@ -219,9 +218,11 @@ contract MonitoringService is Utils {
         );
 
         // Deduct reward from raiden_node deposit
-        raiden_node_deposits[raiden_node_address] -= reward_amount;
-        // payout reward
-        token.transfer(monitor_address, reward_amount);
+        balances[raiden_node_address] -= reward_amount;
+        // Add reward to the monitoring services' balance.
+        // This minimizes the amount of gas cost
+        // Only use token.transfer in the withdraw function
+        balances[monitor_address] += reward_amount;
 
         emit RewardClaimed(monitor_address, reward_amount, channel_identifier);
 
@@ -229,16 +230,43 @@ contract MonitoringService is Utils {
         delete rewards[channel_identifier];
     }
 
-    // TODO
-    function MonitoringServiceWithdraw() public isMonitor(msg.sender) {
-        // Withdraw all or some amount that doesn't result in total deposit 
-        // being lower than minimum_deposit
+    /// @notice Withdraw depositted tokens. If msg.sender is MS don't allow to
+    /// withdraw below minimum_deposit.
+    /// Can be called by addresses with a deposit as long as they have a positive balance
+    /// @param amount Amount of tokens to be withdrawn
+    function withdraw(uint amount) public {
+        // TODO: make sure that deposits reserved for open rewards cannot be withdrawn
+        if (registered_monitoring_services[msg.sender]) {
+            require(balances[msg.sender] - amount >= minimum_deposit);
+            balances[msg.sender] -= amount;
+            require(token.transfer(msg.sender, amount));
+        } else {
+            require(balances[msg.sender] - amount >= 0);
+            balances[msg.sender] -= amount;
+            require(token.transfer(msg.sender, amount));
+        }
+        Withdrawn(msg.sender, amount);
     }
 
-    // TODO
-    function raidenNodeWithdraw() public {
-        // Withdraw deposit
-        // TODO: make sure that deposits reserved for open rewards cannot be withdrawn
+    /// @notice Allow an address with a balance equal to or above minimum_deposit to
+    /// register as Monitoring Service.
+    function registerMonitoringService() isNotMonitor(msg.sender) public returns (bool) {
+        // only allow to register if not already registered
+        require(!registered_monitoring_services[msg.sender]);
+        if (balances[msg.sender] >= minimum_deposit) {
+            registered_monitoring_services[msg.sender] = true;
+            MonitoringServiceRegistered(msg.sender);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /// @notice Let Monitoring Services deregister as monitoring services.
+    /// Only callable by registered Monitoring Services
+    function deregisterMonitoringService() isMonitor(msg.sender) public {
+        registered_monitoring_services[msg.sender] = false;
+        MonitoringServiceDeregistered(msg.sender);
     }
 
     function recoverAddressFromRewardProof(
