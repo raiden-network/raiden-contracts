@@ -116,7 +116,9 @@ contract MonitoringService is Utils {
     function depositAndRegisterMonitoringService() isNotMonitor(msg.sender) public {
         uint amount_to_deposit = minimum_deposit - balances[msg.sender];
 
-        require(token.transferFrom(msg.sender, address(this), amount_to_deposit));
+        // Deposit the amount needed to register
+        deposit(msg.sender, amount_to_deposit);
+        // Register as a Monitoring Service
         require(registerMonitoringService());
     }
 
