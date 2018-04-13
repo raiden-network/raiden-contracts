@@ -9,10 +9,10 @@ import "./TokenNetwork.sol";
 contract MonitoringService is Utils {
 
     // Token to be used for paying the rewards
-    Token token; // Only allow RDN?
+    Token public token; // Only allow RDN?
 
     // The minimum allowed deposit for a MS
-    uint256 minimum_deposit;
+    uint256 public minimum_deposit;
 
     // keep track of registered Monitoring Services
     // A Monitoring Services must deposit to register
@@ -23,7 +23,7 @@ contract MonitoringService is Utils {
     mapping(uint256 => Reward) rewards;
 
     // Keep track of balances
-    mapping(address => uint) balances;
+    mapping(address => uint) public balances;
 
     /*
      *  Structs
