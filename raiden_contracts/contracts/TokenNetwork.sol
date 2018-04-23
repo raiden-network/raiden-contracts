@@ -58,23 +58,24 @@ contract TokenNetwork is Utils {
         // This can be the locksroot after settlement, if we have locked transfers
         bytes32 balance_hash_or_locksroot;
 
-        // Nonce used in updateTransfer to compare balance hashes during the settlement window
-        // This is replace in `settleChannel` by the total amount of tokens locked in pending
-        // transfers. This is kept in the contract after settlement and that can be
-        // withdrawn by calling `unlock`.
+        // Nonce used in updateNonClosingBalanceProof to compare balance hashes during the
+        // settlement window. This is replace in `settleChannel` by the total amount of tokens
+        // locked in pending transfers. This is kept in the contract after settlement and that
+        // can be withdrawn by calling `unlock`.
         uint256 nonce_or_locked_amount;
     }
 
     struct Channel {
         // After opening the channel this value represents the settlement window. This is the
-        // number of blocks that need to be mined between closing the channel uncooperatively and
-        // settling the channel.
+        // number of blocks that need to be mined between closing the channel uncooperatively
+        // and settling the channel.
         // After the channel has been uncooperatively closed, this value represents the
         // block number after which settleChannel can be called.
         uint248 settle_block_number;
 
         // Channel state
-        // 1 = open, 2 = closed, 3 = settled with unlocked tokens
+        // 1 = open, 2 = closed
+        // 0 = non-existent or settled
         uint8 state;
 
         mapping(address => Participant) participants;
@@ -95,9 +96,13 @@ contract TokenNetwork is Utils {
 
     event ChannelClosed(uint256 channel_identifier, address closing_participant);
 
-    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 unlocked_amount, uint256 returned_tokens);
+    event ChannelUnlocked(
+        uint256 channel_identifier,
+        address participant,
+        uint256 unlocked_amount,
+        uint256 returned_tokens);
 
-    event TransferUpdated(uint256 channel_identifier, address closing_participant);
+    event NonClosingBalanceProofUpdated(uint256 channel_identifier, address closing_participant);
 
     event ChannelSettled(uint256 channel_identifier);
 
@@ -110,23 +115,8 @@ contract TokenNetwork is Utils {
         _;
     }
 
-    modifier isClosed(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == 2);
-        _;
-    }
-
-    modifier isSettled(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == 3);
-        _;
-    }
-
     modifier isParticipant(uint256 channel_identifier, address participant) {
         require(channels[channel_identifier].participants[participant].initialized);
-        _;
-    }
-
-    modifier stillTimeout(uint256 channel_identifier) {
-        require(channels[channel_identifier].settle_block_number >= block.number);
         _;
     }
 
@@ -139,7 +129,12 @@ contract TokenNetwork is Utils {
      *  Constructor
      */
 
-    function TokenNetwork(address _token_address, address _secret_registry, uint256 _chain_id) public {
+    function TokenNetwork(
+        address _token_address,
+        address _secret_registry,
+        uint256 _chain_id)
+        public
+    {
         require(_token_address != 0x0);
         require(_secret_registry != 0x0);
         require(_chain_id > 0);
@@ -163,7 +158,8 @@ contract TokenNetwork is Utils {
     /// Can be called by anyone.
     /// @param participant1 Ethereum address of a channel participant.
     /// @param participant2 Ethereum address of the other channel participant.
-    /// @param settle_timeout Number of blocks that need to be mined between a call to closeChannel and settleChannel.
+    /// @param settle_timeout Number of blocks that need to be mined between a
+    /// call to closeChannel and settleChannel.
     function openChannel(
         address participant1,
         address participant2,
@@ -240,13 +236,15 @@ contract TokenNetwork is Utils {
     /// Only a participant may close the channel, providing a balance proof
     /// signed by its partner. Callable only once.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
-    /// @param balance_hash Hash of (transferred_amount, locksroot, additional_hash).
+    /// @param balance_hash Hash of (transferred_amount, locked_amount, locksroot).
+    /// @param additional_hash Computed from the message. Used for message authentication.
     /// @param nonce Strictly monotonic value used to order transfers.
     /// @param signature Partner's signature of the balance proof data.
     function closeChannel(
         uint256 channel_identifier,
-        uint256 nonce,
         bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
         bytes signature)
         isOpen(channel_identifier)
         isParticipant(channel_identifier, msg.sender)
@@ -269,8 +267,9 @@ contract TokenNetwork is Utils {
         // to him.
         partner_address = recoverAddressFromBalanceProof(
             channel_identifier,
-            nonce,
             balance_hash,
+            nonce,
+            additional_hash,
             signature
         );
 
@@ -280,7 +279,10 @@ contract TokenNetwork is Utils {
         // If there are off-chain transfers, update the participant's state
         if (nonce > 0) {
             require(channel.participants[partner_address].initialized);
-            updateBalanceProofData(channel_identifier, partner_address, nonce, balance_hash);
+
+            // This is the key for the partner's balance data storage
+            bytes32 key = keccak256(channel_identifier, partner_address, msg.sender);
+            updateBalanceProofData(key, nonce, balance_hash);
         }
 
         ChannelClosed(channel_identifier, msg.sender);
@@ -289,40 +291,51 @@ contract TokenNetwork is Utils {
     /// @notice Called on a closed channel, the function allows the non-closing participant to
     // provide the last balance proof, which modifies the closing participant's state. Can be
     // called multiple times by anyone.
-    /// @param balance_hash Hash of (transferred_amount, locksroot, additional_hash).
+    /// @param balance_hash Hash of (transferred_amount, locked_amount, locksroot).
+    /// @param additional_hash Computed from the message. Used for message authentication.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
     /// @param nonce Strictly monotonic value used to order transfers.
     /// @param closing_signature Closing participant's signature of the balance proof data.
     /// @param non_closing_signature Non-closing participant signature of the balance proof data.
-    function updateTransfer(
+    function updateNonClosingBalanceProof(
         uint256 channel_identifier,
-        uint256 nonce,
         bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature)
-        isClosed(channel_identifier)
-        stillTimeout(channel_identifier)
         external
     {
+        Channel storage channel = channels[channel_identifier];
+
+        // Channel must be closed
+        require(channel.state == 2);
+
+        // Channel must be in the settlement window
+        require(channel.settle_block_number >= block.number);
+
         // We need the signature from the non-closing participant to allow anyone
         // to make this transaction. E.g. a monitoring service.
         address non_closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
-            nonce,
             balance_hash,
+            nonce,
+            additional_hash,
             non_closing_signature
         );
 
-        Channel storage channel = channels[channel_identifier];
-        Participant storage non_closing_participant_state = channel.participants[non_closing_participant];
+        Participant storage non_closing_participant_state = channel.participants[
+            non_closing_participant
+        ];
 
         // Make sure the signature is from a channel participant
         require(non_closing_participant_state.initialized);
 
         address closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
-            nonce,
             balance_hash,
+            nonce,
+            additional_hash,
             closing_signature
         );
 
@@ -337,9 +350,11 @@ contract TokenNetwork is Utils {
         // Make sure the first signature is from the closing participant
         require(closing_participant_state.is_closer);
 
-        updateBalanceProofData(channel_identifier, closing_participant, nonce, balance_hash);
+        // This is the key for the closing participant's balance data storage
+        bytes32 key = keccak256(channel_identifier, closing_participant, non_closing_participant);
+        updateBalanceProofData(key, nonce, balance_hash);
 
-        TransferUpdated(channel_identifier, closing_participant);
+        NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
     }
 
     /// @notice Registers the lock secret in the SecretRegistry contract.
@@ -350,33 +365,31 @@ contract TokenNetwork is Utils {
     /// @notice Settles the balance between the two parties.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
     /// @param participant1 Channel participant.
-    /// @param participant1_transferred_amount The latest known amount of tokens transferred from `participant1` to `participant2`.
+    /// @param participant1_transferred_amount The latest known amount of tokens transferred
+    /// from `participant1` to `participant2`.
     /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
     /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
     /// @param participant1_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant1`, used to validate the unlocked proofs.
-    /// @param participant1_additional_hash Computed from the message. Used for message authentication.
     /// @param participant2 Other channel participant.
-    /// @param participant2_transferred_amount The latest known amount of tokens transferred from `participant2` to `participant1`.
+    /// @param participant2_transferred_amount The latest known amount of tokens transferred
+    /// from `participant2` to `participant1`.
     /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
     /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
     /// @param participant2_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant2`, used to validate the unlocked proofs.
-    /// @param participant2_additional_hash Computed from the message. Used for message authentication.
     function settleChannel(
         uint256 channel_identifier,
         address participant1,
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
         bytes32 participant1_locksroot,
-        bytes32 participant1_additional_hash,
         address participant2,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount,
-        bytes32 participant2_locksroot,
-        bytes32 participant2_additional_hash)
+        bytes32 participant2_locksroot)
         public
     {
         Channel storage channel = channels[channel_identifier];
@@ -397,24 +410,25 @@ contract TokenNetwork is Utils {
         require(verifyBalanceProofData(
             channel_identifier,
             participant1,
+            participant2,
             participant1_transferred_amount,
             participant1_locked_amount,
-            participant1_locksroot,
-            participant1_additional_hash
+            participant1_locksroot
         ));
 
         require(verifyBalanceProofData(
             channel_identifier,
             participant2,
+            participant1,
             participant2_transferred_amount,
             participant2_locked_amount,
-            participant2_locksroot,
-            participant2_additional_hash
+            participant2_locksroot
         ));
 
         // We cannot use anymore local variables here because we get a "Stack too deep" error
-        // participant2_transferred_amount is the amount of tokens that participant1 needs to receive
-        // participant1_transferred_amount is the amount of tokens that participant2 needs to receive
+        // `participant2_transferred_amount` is the amount of tokens that `participant1`
+        // needs to receive. `participant1_transferred_amount` is the amount of tokens that
+        // `participant2` needs to receive
         (
             participant2_transferred_amount,
             participant1_transferred_amount
@@ -436,12 +450,14 @@ contract TokenNetwork is Utils {
         updateBalanceUnlockData(
             channel_identifier,
             participant1,
+            participant2,
             participant1_locked_amount,
             participant1_locksroot
         );
         updateBalanceUnlockData(
             channel_identifier,
             participant2,
+            participant1,
             participant2_locked_amount,
             participant2_locksroot
         );
@@ -473,7 +489,12 @@ contract TokenNetwork is Utils {
         // this is because there is no way to tell which participant (if any)
         // had ownership over the token.
 
-        total_deposit_available = participant1_deposit + participant2_deposit - participant1_locked_amount - participant2_locked_amount;
+        total_deposit_available = (
+            participant1_deposit
+            + participant2_deposit
+            - participant1_locked_amount
+            - participant2_locked_amount
+        );
 
         participant1_amount = (
             participant1_deposit
@@ -489,7 +510,8 @@ contract TokenNetwork is Utils {
         // Therefore, participant2's transferred_amount will be lower than in reality
         participant1_amount = max(participant1_amount, 0);
 
-        // At this point `participant1_amount` is between [0,total_deposit_available], so this is safe.
+        // At this point `participant1_amount` is between [0,total_deposit_available],
+        // so this is safe.
         participant2_amount = total_deposit_available - participant1_amount;
 
         return (participant1_amount, participant2_amount);
@@ -499,41 +521,46 @@ contract TokenNetwork is Utils {
     // participant.  Anyone can call unlock on behalf of a channel participant.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
     /// @param partner Address of the participant who owes the locked tokens.
-    /// @param merkle_tree The entire merkle tree of locked transfers.
+    /// @param merkle_tree_leaves The entire merkle tree of pending transfers.
     function unlock(
         uint256 channel_identifier,
         address participant,
         address partner,
-        bytes merkle_tree)
-        isSettled(channel_identifier)
-        isParticipant(channel_identifier, partner)
+        bytes merkle_tree_leaves)
         public
     {
+        // Channel must be settled and channel data deleted
+        require(channels[channel_identifier].state == 0);
+
         bytes32 computed_locksroot;
         uint256 unlocked_amount;
 
-        BalanceData storage partner_balance_state = balance_data[keccak256(channel_identifier, partner)];
+        // This hashed key makes sure that both participant and partner are channel nodes
+        BalanceData storage partner_balance_state = balance_data[
+            keccak256(channel_identifier, partner, participant)
+        ];
 
-        // An empty locksroot means there are no pending locks
+        // The partner must have a non-empty locksroot,
+        // meaning that there must be pending locks to unlock
         require(partner_balance_state.balance_hash_or_locksroot != 0);
 
-        // There must be a locked amount of tokens in the smart contract, used for withdrawing locked transfers with secrets revealed on chain
+        // There must be a locked amount of tokens in the smart contract, used for withdrawing
+        // locked transfers with secrets revealed on chain
         require(partner_balance_state.nonce_or_locked_amount > 0);
 
-        (computed_locksroot, unlocked_amount) = calculateAndVerifyLockedAmount(merkle_tree);
+        (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
 
         // Make sure the computed merkle root is same as the one from the provided balance proof
         require(partner_balance_state.balance_hash_or_locksroot == computed_locksroot);
 
         // Make sure we don't transfer more tokens than previously reserved in the smart contract.
-        unlocked_amount = max(unlocked_amount, partner_balance_state.nonce_or_locked_amount);
+        unlocked_amount = min(unlocked_amount, partner_balance_state.nonce_or_locked_amount);
 
         // Transfer the rest of the tokens back to the partner
         uint256 returned_tokens = partner_balance_state.nonce_or_locked_amount - unlocked_amount;
 
-        // Remove data structures and clear storage
-        delete balance_data[keccak256(channel_identifier, participant)];
-        delete balance_data[keccak256(channel_identifier, partner)];
+        // Remove partner's data structure and clear storage
+        delete balance_data[keccak256(channel_identifier, partner, participant)];
 
         // Transfer the unlocked tokens to the participant
         require(token.transfer(participant, unlocked_amount));
@@ -543,7 +570,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(partner, returned_tokens));
         }
 
-        ChannelUnlocked(channel_identifier, partner, unlocked_amount, returned_tokens);
+        ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
     }
 
     // TODO
@@ -559,17 +586,15 @@ contract TokenNetwork is Utils {
     }*/
 
     function updateBalanceProofData(
-        uint256 channel_identifier,
-        address participant,
+        bytes32 key,
         uint256 nonce,
         bytes32 balance_hash)
         internal
     {
-        BalanceData storage balance_state = balance_data[
-            keccak256(channel_identifier, participant)
-        ];
+        BalanceData storage balance_state = balance_data[key];
 
-        // Multiple calls to updateTransfer can be made and we need to store the last known balance proof data
+        // Multiple calls to updateNonClosingBalanceProof can be made and we need to store
+        // the last known balance proof data
         require(nonce > balance_state.nonce_or_locked_amount);
 
         balance_state.nonce_or_locked_amount = nonce;
@@ -579,11 +604,12 @@ contract TokenNetwork is Utils {
     function updateBalanceUnlockData(
         uint256 channel_identifier,
         address participant,
+        address partner,
         uint256 locked_amount,
         bytes32 locksroot)
         internal
     {
-        bytes32 key = keccak256(channel_identifier, participant);
+        bytes32 key = keccak256(channel_identifier, participant, partner);
 
         // If there are transfers to unlock, store the locksroot and total amount of tokens
         // locked in pending transfers. Otherwise, clear storage.
@@ -600,22 +626,23 @@ contract TokenNetwork is Utils {
     function verifyBalanceProofData(
         uint256 channel_identifier,
         address participant,
+        address partner,
         uint256 transferred_amount,
         uint256 locked_amount,
-        bytes32 locksroot,
-        bytes32 additional_hash)
+        bytes32 locksroot)
         view
         internal
         returns (bool correct_balance_data)
     {
-        BalanceData storage balance_state = balance_data[keccak256(channel_identifier, participant)];
+        BalanceData storage balance_state = balance_data[
+            keccak256(channel_identifier, participant, partner)
+        ];
 
         // Make sure the hash of the provided state is the same as the stored balance_hash
         correct_balance_data = balance_state.balance_hash_or_locksroot == keccak256(
             transferred_amount,
             locked_amount,
-            locksroot,
-            additional_hash
+            locksroot
         );
     }
 
@@ -634,13 +661,18 @@ contract TokenNetwork is Utils {
 
     function getChannelParticipantInfo(
         uint256 channel_identifier,
-        address participant)
+        address participant,
+        address partner)
         view
         external
         returns (uint240, bool, bool, bytes32, uint256)
     {
-        Participant storage participant_state = channels[channel_identifier].participants[participant];
-        BalanceData storage participant_balance_state = balance_data[keccak256(channel_identifier, participant)];
+        Participant storage participant_state = channels[channel_identifier].participants[
+            participant
+        ];
+        BalanceData storage participant_balance_state = balance_data[
+            keccak256(channel_identifier, participant, partner)
+        ];
 
         return (
             participant_state.deposit,
@@ -657,8 +689,9 @@ contract TokenNetwork is Utils {
 
     function recoverAddressFromBalanceProof(
         uint256 channel_identifier,
-        uint256 nonce,
         bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
         bytes signature
     )
         view
@@ -666,8 +699,9 @@ contract TokenNetwork is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(
-            nonce,
             balance_hash,
+            nonce,
+            additional_hash,
             channel_identifier,
             address(this),
             chain_id
@@ -676,49 +710,92 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
-    function calculateAndVerifyLockedAmount(bytes merkle_tree)
+    function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
         view
         internal
         returns (bytes32, uint256)
     {
+        uint256 length = merkle_tree_leaves.length;
+
         // each merkle_tree lock component has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
-        require(merkle_tree.length % 96 == 0);
+        require(length % 96 == 0);
 
         uint256 i;
         uint256 total_unlocked_amount;
-        uint256 expiration_block;
-        uint256 locked_amount;
-        bytes32 secrethash;
+        uint256 unlocked_amount;
         bytes32 lockhash;
         bytes32 merkle_root;
 
-        for (i = 32; i <= merkle_tree.length; i += 96) {
-            assembly {
-                expiration_block := mload(add(merkle_tree, i))
-                locked_amount := mload(add(merkle_tree, add(i, 32)))
-                secrethash := mload(add(merkle_tree, add(i, 64)))
-            }
+        bytes32[] memory merkle_layer = new bytes32[](length / 96 + 1);
 
-            // Check if the lock's secret was revealed in the SecretRegistry
-            // The lock must not have expired, it does not matter how far in the future it would
-            // have expired. We compare the expiration block with the block at which
-            // the secret has been registered on chain.
-            if (expiration_block > secret_registry.secrethash_to_block(secrethash)) {
-                total_unlocked_amount += locked_amount;
-            }
-
-            // Calculate the lockhash for computing the merkle root
-            lockhash = keccak256(expiration_block, locked_amount, secrethash);
-
-            if (merkle_root < lockhash) {
-                merkle_root = keccak256(merkle_root, lockhash);
-            } else {
-                merkle_root = keccak256(lockhash, merkle_root);
-            }
+        for (i = 32; i < length; i += 96) {
+            (lockhash, unlocked_amount) = getLockDataFromMerkleTree(merkle_tree_leaves, i);
+            total_unlocked_amount += unlocked_amount;
+            merkle_layer[i / 96] = lockhash;
         }
 
+        length /= 96;
+
+        while (length > 1) {
+            if (length % 2 != 0) {
+                merkle_layer[length] = merkle_layer[length - 1];
+                length += 1;
+            }
+
+            for (i = 0; i < length - 1; i+= 2) {
+                if (merkle_layer[i] == merkle_layer[i + 1]) {
+                    lockhash = merkle_layer[i];
+                }
+                else if (merkle_layer[i] < merkle_layer[i + 1]) {
+                    lockhash = keccak256(merkle_layer[i], merkle_layer[i + 1]);
+                } else {
+                    lockhash = keccak256(merkle_layer[i + 1], merkle_layer[i]);
+                }
+                merkle_layer[i / 2] = lockhash;
+            }
+            length = i / 2;
+        }
+
+        merkle_root = merkle_layer[0];
+
         return (merkle_root, total_unlocked_amount);
+    }
+
+    function getLockDataFromMerkleTree(bytes merkle_tree_leaves, uint256 offset)
+        view
+        internal
+        returns (bytes32, uint256)
+    {
+        uint256 expiration_block;
+        uint256 locked_amount;
+        uint256 reveal_time;
+        bytes32 secrethash;
+        bytes32 lockhash;
+
+        if (merkle_tree_leaves.length <= offset) {
+            return (lockhash, 0);
+        }
+
+        assembly {
+            expiration_block := mload(add(merkle_tree_leaves, offset))
+            locked_amount := mload(add(merkle_tree_leaves, add(offset, 32)))
+            secrethash := mload(add(merkle_tree_leaves, add(offset, 64)))
+        }
+
+        // Calculate the lockhash for computing the merkle root
+        lockhash = keccak256(expiration_block, locked_amount, secrethash);
+
+        // Check if the lock's secret was revealed in the SecretRegistry
+        // The lock must not have expired, it does not matter how far in the future it would
+        // have expired. We compare the expiration block with the block at which
+        // the secret has been registered on chain.
+        reveal_time = secret_registry.getSecretRevealBlockHeight(secrethash);
+        if (reveal_time == 0 || expiration_block <= reveal_time) {
+            locked_amount = 0;
+        }
+
+        return (lockhash, locked_amount);
     }
 
     function min(uint256 a, uint256 b) pure internal returns (uint256)
