@@ -1,7 +1,7 @@
 import pytest
 from ethereum import tester
 from raiden_contracts.utils.config import E_CHANNEL_NEW_DEPOSIT
-from .utils import check_new_deposit
+from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import (
     empty_address,
     fake_address,
@@ -81,18 +81,18 @@ def test_deposit_channel_state(token_network, create_channel, channel_deposit, g
 
     channel_identifier = create_channel(A, B)
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
+    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[0] == 0
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B)
+    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[0] == 0
 
     channel_deposit(channel_identifier, A, deposit_A)
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
+    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[0] == deposit_A
 
     channel_deposit(channel_identifier, B, deposit_B)
-    B_state = token_network.call().getChannelParticipantInfo(1, B)
+    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[0] == deposit_B
 
 

@@ -1,7 +1,7 @@
 import pytest
 from ethereum import tester
 from raiden_contracts.utils.config import E_TRANSFER_UPDATED
-from .utils import check_transfer_updated
+from raiden_contracts.utils.events import check_transfer_updated
 from .fixtures.config import (
     fake_bytes
 )
@@ -26,22 +26,25 @@ def test_update_channel_state(
 
     txn_hash1 = token_network.transact({'from': A}).closeChannel(*balance_proof_B)
 
-    token_network.transact({'from': B}).updateTransfer(*balance_proof_A, balance_proof_BA[3])
+    token_network.transact({'from': B}).updateNonClosingBalanceProof(
+        *balance_proof_A,
+        balance_proof_BA[4]
+    )
 
     channel = token_network.call().getChannelInfo(1)
     assert channel[0] == settle_timeout + get_block(txn_hash1)  # settle_block_number
     assert channel[1] == 2  # state
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
+    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
     assert A_state[2] is True  # is_closer
-    assert A_state[3] == balance_proof_A[2]  # balance_hash
+    assert A_state[3] == balance_proof_A[1]  # balance_hash
     assert A_state[4] == 5  # nonce
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B)
+    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[1] is True  # initialized
     assert B_state[2] is False  # is_closer
-    assert B_state[3] == balance_proof_B[2]  # balance_hash
+    assert B_state[3] == balance_proof_B[1]  # balance_hash
     assert B_state[4] == 3
 
 
@@ -61,7 +64,10 @@ def test_update_channel_fail_no_offchain_transfers(
     token_network.transact({'from': A}).closeChannel(*balance_proof_B)
 
     with pytest.raises(tester.TransactionFailed):
-        token_network.transact({'from': B}).updateTransfer(*balance_proof_A, balance_proof_BA[3])
+        token_network.transact({'from': B}).updateNonClosingBalanceProof(
+            *balance_proof_A,
+            balance_proof_BA[4]
+        )
 
 
 def test_update_channel_event(
@@ -85,9 +91,9 @@ def test_update_channel_event(
     balance_proof_AB = create_balance_proof(channel_identifier, B, 2, 0, 1)
 
     token_network.transact({'from': A}).closeChannel(*balance_proof_B)
-    txn_hash = token_network.transact({'from': B}).updateTransfer(
+    txn_hash = token_network.transact({'from': B}).updateNonClosingBalanceProof(
         *balance_proof_A,
-        balance_proof_AB[3]
+        balance_proof_AB[4]
     )
 
     ev_handler.add(txn_hash, E_TRANSFER_UPDATED, check_transfer_updated(channel_identifier, A))

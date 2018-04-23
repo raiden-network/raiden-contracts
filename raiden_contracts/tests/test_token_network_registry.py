@@ -9,7 +9,7 @@ from .fixtures.config import (
     empty_address,
     fake_address
 )
-from .utils import check_token_network_created
+from raiden_contracts.utils.events import check_token_network_created
 
 
 def test_version(token_network_registry):

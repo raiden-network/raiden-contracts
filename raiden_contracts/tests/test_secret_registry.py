@@ -1,7 +1,7 @@
 import pytest
 from web3 import Web3
 from raiden_contracts.utils.config import E_SECRET_REVEALED
-from .utils import check_secret_revealed
+from raiden_contracts.utils.events import check_secret_revealed
 from .fixtures.config import fake_hex, raiden_contracts_version
 
 
@@ -52,10 +52,12 @@ def test_register_secret(secret_registry, get_accounts, get_block):
     secrethash = Web3.sha3(secret)
 
     assert secret_registry.call().secrethash_to_block(secrethash) == 0
+    assert secret_registry.call().getSecretRevealBlockHeight(secrethash) == 0
 
     txn_hash = secret_registry.transact({'from': A}).registerSecret(secret)
 
     assert secret_registry.call().secrethash_to_block(secrethash) == get_block(txn_hash)
+    assert secret_registry.call().getSecretRevealBlockHeight(secrethash) == get_block(txn_hash)
 
     # A should be able to register any number of secrets
     secret_registry.transact({'from': A}).registerSecret(secret2)

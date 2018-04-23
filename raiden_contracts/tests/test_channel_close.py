@@ -1,7 +1,8 @@
 from raiden_contracts.utils.config import E_CHANNEL_CLOSED
-from .utils import check_channel_closed
+from raiden_contracts.utils.events import check_channel_closed
 from .fixtures.config import (
-    fake_bytes
+    fake_bytes,
+    fake_hex
 )
 
 
@@ -27,22 +28,27 @@ def test_close_channel_state(
     deposit_A = 20
     transferred_amount = 5
     nonce = 3
+    locksroot = fake_hex(32, '03')
+
+    # Create channel and deposit
     channel_identifier = create_channel(A, B, settle_timeout)
     channel_deposit(channel_identifier, A, deposit_A)
+
+    # Create balance proofs
     balance_proof = create_balance_proof(
         channel_identifier,
         B,
         transferred_amount,
         0,
         nonce,
-        fake_bytes(32, '02')
+        locksroot
     )
 
     channel = token_network.call().getChannelInfo(1)
     assert channel[0] == settle_timeout  # settle_block_number
     assert channel[1] == 1  # state
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
+    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
     assert A_state[2] is False  # is_closer
     assert A_state[3] == fake_bytes(32)  # balance_hash
@@ -54,16 +60,16 @@ def test_close_channel_state(
     assert channel[0] == settle_timeout + get_block(txn_hash)  # settle_block_number
     assert channel[1] == 2  # state
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
+    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
     assert A_state[2] is True  # is_closer
     assert A_state[3] == fake_bytes(32)  # balance_hash
     assert A_state[4] == 0  # nonce
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B)
+    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[1] is True  # initialized
     assert B_state[2] is False  # is_closer
-    assert B_state[3] == balance_proof[2]  # balance_hash
+    assert B_state[3] == balance_proof[1]  # balance_hash
     assert B_state[4] == nonce  # nonce
 
 
