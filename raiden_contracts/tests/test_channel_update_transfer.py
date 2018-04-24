@@ -37,13 +37,13 @@ def test_update_channel_state(
 
     A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
-    assert A_state[2] is True  # is_closer
+    assert A_state[2] is True  # is_the_closer
     assert A_state[3] == balance_proof_A[1]  # balance_hash
     assert A_state[4] == 5  # nonce
 
     B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[1] is True  # initialized
-    assert B_state[2] is False  # is_closer
+    assert B_state[2] is False  # is_the_closer
     assert B_state[3] == balance_proof_B[1]  # balance_hash
     assert B_state[4] == 3
 

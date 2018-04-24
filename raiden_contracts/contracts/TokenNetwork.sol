@@ -50,7 +50,7 @@ contract TokenNetwork is Utils {
         // This is a value set to true after the channel has been closed, only if this is the
         // participant who closed the channel.
         // This is bytes1 and it gets packed with the rest of the struct data.
-        bool is_closer;
+        bool is_the_closer;
     }
 
     struct BalanceData {
@@ -256,7 +256,7 @@ contract TokenNetwork is Utils {
 
         // Mark the channel as closed and mark the closing participant
         channel.state = 2;
-        channel.participants[msg.sender].is_closer = true;
+        channel.participants[msg.sender].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
         channel.settle_block_number += uint248(block.number);
@@ -289,8 +289,8 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Called on a closed channel, the function allows the non-closing participant to
-    // provide the last balance proof, which modifies the closing participant's state. Can be
-    // called multiple times by anyone.
+    /// provide the last balance proof, which modifies the closing participant's state. Can be
+    /// called multiple times by anyone.
     /// @param balance_hash Hash of (transferred_amount, locked_amount, locksroot).
     /// @param additional_hash Computed from the message. Used for message authentication.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
@@ -339,7 +339,7 @@ contract TokenNetwork is Utils {
             closing_signature
         );
 
-        // Make sure the signatures are frorm different accounts
+        // Make sure the signatures are from different accounts
         require(closing_participant != non_closing_participant);
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
@@ -348,7 +348,7 @@ contract TokenNetwork is Utils {
         require(closing_participant_state.initialized);
 
         // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_closer);
+        require(closing_participant_state.is_the_closer);
 
         // This is the key for the closing participant's balance data storage
         bytes32 key = keccak256(channel_identifier, closing_participant, non_closing_participant);
@@ -510,7 +510,7 @@ contract TokenNetwork is Utils {
         // Therefore, participant2's transferred_amount will be lower than in reality
         participant1_amount = max(participant1_amount, 0);
 
-        // At this point `participant1_amount` is between [0,total_deposit_available],
+        // At this point `participant1_amount` is between [0, total_deposit_available],
         // so this is safe.
         participant2_amount = total_deposit_available - participant1_amount;
 
@@ -518,7 +518,7 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Unlocks all locked off-chain transfers and sends the locked tokens to the
-    // participant.  Anyone can call unlock on behalf of a channel participant.
+    /// participant. Anyone can call unlock on behalf of a channel participant.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
     /// @param partner Address of the participant who owes the locked tokens.
     /// @param merkle_tree_leaves The entire merkle tree of pending transfers.
@@ -677,7 +677,7 @@ contract TokenNetwork is Utils {
         return (
             participant_state.deposit,
             participant_state.initialized,
-            participant_state.is_closer,
+            participant_state.is_the_closer,
             participant_balance_state.balance_hash_or_locksroot,
             participant_balance_state.nonce_or_locked_amount
         );

@@ -71,7 +71,7 @@ def test_update_channel_state(
     A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[0] == 0
     assert A_state[1] == 0  # initialized
-    assert A_state[2] == 0  # is_closer
+    assert A_state[2] == 0  # is_the_closer
 
     # Make sure balance data has been updated
     assert A_state[3] == bytearray.fromhex(locksroot1[2:])  # locksroot
@@ -80,7 +80,7 @@ def test_update_channel_state(
     B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[0] == 0
     assert B_state[1] == 0  # initialized
-    assert B_state[2] == 0  # is_closer
+    assert B_state[2] == 0  # is_the_closer
 
     # Make sure balance data has been updated
     assert B_state[3] == bytearray.fromhex(locksroot2[2:])  # locksroot

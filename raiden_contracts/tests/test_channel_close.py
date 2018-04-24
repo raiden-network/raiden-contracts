@@ -50,7 +50,7 @@ def test_close_channel_state(
 
     A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
-    assert A_state[2] is False  # is_closer
+    assert A_state[2] is False  # is_the_closer
     assert A_state[3] == fake_bytes(32)  # balance_hash
     assert A_state[4] == 0  # nonce
 
@@ -62,13 +62,13 @@ def test_close_channel_state(
 
     A_state = token_network.call().getChannelParticipantInfo(1, A, B)
     assert A_state[1] is True  # initialized
-    assert A_state[2] is True  # is_closer
+    assert A_state[2] is True  # is_the_closer
     assert A_state[3] == fake_bytes(32)  # balance_hash
     assert A_state[4] == 0  # nonce
 
     B_state = token_network.call().getChannelParticipantInfo(1, B, A)
     assert B_state[1] is True  # initialized
-    assert B_state[2] is False  # is_closer
+    assert B_state[2] is False  # is_the_closer
     assert B_state[3] == balance_proof[1]  # balance_hash
     assert B_state[4] == nonce  # nonce
 
