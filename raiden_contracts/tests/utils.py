@@ -3,8 +3,8 @@ import random
 from functools import reduce
 from collections import namedtuple
 from web3 import Web3
-from ..utils.config import SETTLE_TIMEOUT_MIN
-from ..utils.merkle import compute_merkle_tree
+from raiden_contracts.utils.config import SETTLE_TIMEOUT_MIN
+from raiden_contracts.utils.merkle import compute_merkle_tree
 from eth_abi import encode_abi
 
 
@@ -93,20 +93,32 @@ def get_packed_transfers(pending_transfers, types):
 
 
 def get_settlement_amounts(
-        deposit1,
-        transferred_amount1,
-        locked_amount1,
-        deposit2,
-        transferred_amount2,
-        locked_amount2
+        participant1_deposit,
+        participant1_transferred_amount,
+        participant1_locked_amount,
+        participant2_deposit,
+        participant2_transferred_amount,
+        participant2_locked_amount
 ):
-    total_deposit_available = deposit1 + deposit2 - locked_amount1 - locked_amount2
-    participant1 = deposit1 + transferred_amount2 - transferred_amount1
+    """ Settlement algorithm
+
+    Calculates the token amounts to be transferred to the channel participants when
+    a channel is settled
+    """
+    total_deposit_available = (
+        participant1_deposit
+        + participant2_deposit
+        - participant1_locked_amount
+        - participant2_locked_amount)
+    participant1 = (
+        participant1_deposit
+        + participant2_transferred_amount
+        - participant1_transferred_amount)
     participant1 = min(participant1, total_deposit_available)
     participant1 = max(participant1, 0)
     participant2 = total_deposit_available - participant1
 
-    return (participant1, participant2, locked_amount1 + locked_amount2)
+    return (participant1, participant2, participant1_locked_amount + participant2_locked_amount)
 
 
 def get_unlocked_amount(secret_registry, merkle_tree_leaves):
@@ -122,3 +134,7 @@ def get_unlocked_amount(secret_registry, merkle_tree_leaves):
         if reveal_block > 0 and reveal_block < expiration_block:
             unlocked_amount += locked_amount
     return unlocked_amount
+
+
+def get_locked_amount(pending_transfers):
+    return reduce((lambda x, y: x + y[1]), pending_transfers, 0)

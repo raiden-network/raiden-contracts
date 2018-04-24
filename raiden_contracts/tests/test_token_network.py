@@ -1,10 +1,6 @@
 import pytest
 from ethereum import tester
-from .fixtures.config import (
-    raiden_contracts_version,
-    empty_address,
-    fake_address
-)
+from .fixtures.config import raiden_contracts_version, empty_address, fake_address
 
 
 def test_version(token_network):

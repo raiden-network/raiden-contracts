@@ -34,7 +34,7 @@ def compute_merkle_tree(items: Iterable[bytes]) -> MerkleTree:
         return MerkleTree(layers=[[EMPTY_MERKLE_ROOT]])
 
     if not len(leaves) == len(set(leaves)):
-        raise ValueError('The items must not cointain duplicate items')
+        raise ValueError('The leaves items must not contain duplicate items')
 
     tree = [leaves]
     layer = leaves

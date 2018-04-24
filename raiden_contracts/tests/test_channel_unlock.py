@@ -1,11 +1,11 @@
-from functools import reduce
 from raiden_contracts.utils.config import E_CHANNEL_UNLOCKED
-from ..utils.events import check_channel_unlocked
+from raiden_contracts.utils.events import check_channel_unlocked
 from .utils import (
     get_pending_transfers_tree,
-    get_unlocked_amount
+    get_unlocked_amount,
+    get_locked_amount
 )
-from ..utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
+from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
 from .fixtures.config import fake_hex
 
 
@@ -103,7 +103,7 @@ def test_channel_unlock(
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     locksroot_bytes = get_merkle_root(pending_transfers_tree.merkle_tree)
     locksroot2 = '0x' + locksroot_bytes.hex()
-    locked_amount2 = reduce((lambda x, y: x + y[1]), pending_transfers_tree.transfers, 0)
+    locked_amount2 = get_locked_amount(pending_transfers_tree.transfers)
 
     # Create balance proofs
     balance_proof_A = create_balance_proof(

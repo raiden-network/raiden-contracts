@@ -1,9 +1,10 @@
-from raiden_contracts.utils.config import E_CHANNEL_CLOSED
-from raiden_contracts.utils.events import check_channel_closed
-from .fixtures.config import (
-    fake_bytes,
-    fake_hex
+from raiden_contracts.utils.config import (
+    E_CHANNEL_CLOSED,
+    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_CLOSED
 )
+from raiden_contracts.utils.events import check_channel_closed
+from .fixtures.config import fake_bytes, fake_hex
 
 
 def test_close_channel_fail_small_deposit():
@@ -44,33 +45,51 @@ def test_close_channel_state(
         locksroot
     )
 
-    channel = token_network.call().getChannelInfo(1)
-    assert channel[0] == settle_timeout  # settle_block_number
-    assert channel[1] == 1  # state
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == settle_timeout
+    assert state == CHANNEL_STATE_OPEN
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
-    assert A_state[1] is True  # initialized
-    assert A_state[2] is False  # is_the_closer
-    assert A_state[3] == fake_bytes(32)  # balance_hash
-    assert A_state[4] == 0  # nonce
+    (
+        _,
+        A_is_initialized,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_is_initialized is True
+    assert A_is_the_closer is False
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
 
     txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof)
 
-    channel = token_network.call().getChannelInfo(1)
-    assert channel[0] == settle_timeout + get_block(txn_hash)  # settle_block_number
-    assert channel[1] == 2  # state
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == settle_timeout + get_block(txn_hash)
+    assert state == CHANNEL_STATE_CLOSED
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
-    assert A_state[1] is True  # initialized
-    assert A_state[2] is True  # is_the_closer
-    assert A_state[3] == fake_bytes(32)  # balance_hash
-    assert A_state[4] == 0  # nonce
+    (
+        _,
+        A_is_initialized,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_is_initialized is True
+    assert A_is_the_closer is True
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
-    assert B_state[1] is True  # initialized
-    assert B_state[2] is False  # is_the_closer
-    assert B_state[3] == balance_proof[1]  # balance_hash
-    assert B_state[4] == nonce  # nonce
+    (
+        _,
+        B_is_initialized,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, B, A)
+    assert B_is_initialized is True
+    assert B_is_the_closer is False
+    assert B_balance_hash == balance_proof[1]
+    assert B_nonce == nonce
 
 
 def test_close_channel_event_no_offchain_transfers(

@@ -1,11 +1,10 @@
-from functools import reduce
 from raiden_contracts.utils.config import (
     C_TOKEN_NETWORK_REGISTRY,
     C_TOKEN_NETWORK,
     C_SECRET_REGISTRY
 )
-from .utils import get_pending_transfers_tree
-from ..utils.merkle import get_merkle_root
+from .utils import get_pending_transfers_tree, get_locked_amount
+from raiden_contracts.utils.merkle import get_merkle_root
 
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
@@ -83,11 +82,11 @@ def test_channel_cycle(
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
     locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)
-    locked_amount1 = reduce((lambda x, y: x + y[1]), pending_transfers_tree1.transfers, 0)
+    locked_amount1 = get_locked_amount(pending_transfers_tree1.transfers)
 
     pending_transfers_tree2 = get_pending_transfers_tree(web3, [3], [], 7)
     locksroot2 = get_merkle_root(pending_transfers_tree2.merkle_tree)
-    locked_amount2 = reduce((lambda x, y: x + y[1]), pending_transfers_tree2.transfers, 0)
+    locked_amount2 = get_locked_amount(pending_transfers_tree2.transfers)
 
     balance_proof_A = create_balance_proof(1, A, 10, locked_amount1, 5, locksroot1)
     balance_proof_B = create_balance_proof(1, B, 5, locked_amount2, 3, locksroot2)

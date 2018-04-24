@@ -2,10 +2,7 @@ import pytest
 from ethereum import tester
 from raiden_contracts.utils.config import E_CHANNEL_NEW_DEPOSIT
 from raiden_contracts.utils.events import check_new_deposit
-from .fixtures.config import (
-    empty_address,
-    fake_address,
-)
+from .fixtures.config import empty_address, fake_address
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):

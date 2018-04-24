@@ -1,9 +1,6 @@
 import pytest
 from ethereum import tester
-from raiden_contracts.utils.config import (
-    C_TOKEN_NETWORK,
-    E_TOKEN_NETWORK_CREATED
-)
+from raiden_contracts.utils.config import C_TOKEN_NETWORK, E_TOKEN_NETWORK_CREATED
 from .fixtures.config import (
     raiden_contracts_version,
     empty_address,

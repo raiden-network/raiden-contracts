@@ -1,4 +1,8 @@
-from raiden_contracts.utils.config import E_CHANNEL_SETTLED, SETTLE_TIMEOUT_MIN
+from raiden_contracts.utils.config import (
+    E_CHANNEL_SETTLED,
+    SETTLE_TIMEOUT_MIN,
+    CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+)
 from raiden_contracts.utils.events import check_channel_settled
 from .utils import get_settlement_amounts
 from .fixtures.config import fake_hex
@@ -63,28 +67,40 @@ def test_update_channel_state(
     )
 
     # Make sure channel data has been removed
-    channel = token_network.call().getChannelInfo(1)
-    assert channel[0] == 0  # settle_block_number
-    assert channel[1] == 0  # state
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == 0  # settle_block_number
+    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
 
     # Make sure participant data has been removed
-    A_state = token_network.call().getChannelParticipantInfo(1, A, B)
-    assert A_state[0] == 0
-    assert A_state[1] == 0  # initialized
-    assert A_state[2] == 0  # is_the_closer
+    (
+        A_deposit,
+        A_is_initialized,
+        A_is_the_closer,
+        A_locksroot,
+        A_locked_amount
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_deposit == 0
+    assert A_is_initialized == 0
+    assert A_is_the_closer == 0
 
     # Make sure balance data has been updated
-    assert A_state[3] == bytearray.fromhex(locksroot1[2:])  # locksroot
-    assert A_state[4] == 2  # locked_amount
+    assert A_locksroot == bytearray.fromhex(locksroot1[2:])
+    assert A_locked_amount == 2
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B, A)
-    assert B_state[0] == 0
-    assert B_state[1] == 0  # initialized
-    assert B_state[2] == 0  # is_the_closer
+    (
+        B_deposit,
+        B_is_initialized,
+        B_is_the_closer,
+        B_locksroot,
+        B_locked_amount
+    ) = token_network.call().getChannelParticipantInfo(1, B, A)
+    assert B_deposit == 0
+    assert B_is_initialized == 0
+    assert B_is_the_closer == 0
 
     # Make sure balance data has been updated
-    assert B_state[3] == bytearray.fromhex(locksroot2[2:])  # locksroot
-    assert B_state[4] == 1  # locked_amount
+    assert B_locksroot == bytearray.fromhex(locksroot2[2:])
+    assert B_locked_amount == 1
 
     # Make sure the correct amount of tokens has been transferred
     (A_amount, B_amount, locked_amount) = get_settlement_amounts(deposit_A, 10, 2, 0, 5, 1)
