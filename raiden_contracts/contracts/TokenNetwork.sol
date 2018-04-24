@@ -59,7 +59,7 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash_or_locksroot;
 
         // Nonce used in updateNonClosingBalanceProof to compare balance hashes during the
-        // settlement window. This is replace in `settleChannel` by the total amount of tokens
+        // settlement window. This is replaced in `settleChannel` by the total amount of tokens
         // locked in pending transfers. This is kept in the contract after settlement and that
         // can be withdrawn by calling `unlock`.
         uint256 nonce_or_locked_amount;
