@@ -490,16 +490,16 @@ contract TokenNetwork is Utils {
         // had ownership over the token.
 
         total_deposit_available = (
-            participant1_deposit
-            + participant2_deposit
-            - participant1_locked_amount
-            - participant2_locked_amount
+            participant1_deposit +
+            participant2_deposit -
+            participant1_locked_amount -
+            participant2_locked_amount
         );
 
         participant1_amount = (
-            participant1_deposit
-            + participant2_transferred_amount
-            - participant1_transferred_amount
+            participant1_deposit +
+            participant2_transferred_amount -
+            participant1_transferred_amount
         );
 
         // To account for cases when participant2 does not provide participant1's balance proof
