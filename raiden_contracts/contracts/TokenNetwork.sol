@@ -281,7 +281,7 @@ contract TokenNetwork is Utils {
             require(channel.participants[partner_address].initialized);
 
             // This is the key for the partner's balance data storage
-            bytes32 key = keccak256(channel_identifier, partner_address, msg.sender);
+            bytes32 key = getBalanceDataKey(channel_identifier, partner_address, msg.sender);
             updateBalanceProofData(key, nonce, balance_hash);
         }
 
@@ -351,7 +351,7 @@ contract TokenNetwork is Utils {
         require(closing_participant_state.is_the_closer);
 
         // This is the key for the closing participant's balance data storage
-        bytes32 key = keccak256(channel_identifier, closing_participant, non_closing_participant);
+        bytes32 key = getBalanceDataKey(channel_identifier, closing_participant, non_closing_participant);
         updateBalanceProofData(key, nonce, balance_hash);
 
         NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
@@ -537,7 +537,7 @@ contract TokenNetwork is Utils {
 
         // This hashed key makes sure that both participant and partner are channel nodes
         BalanceData storage partner_balance_state = balance_data[
-            keccak256(channel_identifier, partner, participant)
+            getBalanceDataKey(channel_identifier, partner, participant)
         ];
 
         // The partner must have a non-empty locksroot,
@@ -560,7 +560,7 @@ contract TokenNetwork is Utils {
         uint256 returned_tokens = partner_balance_state.nonce_or_locked_amount - unlocked_amount;
 
         // Remove partner's data structure and clear storage
-        delete balance_data[keccak256(channel_identifier, partner, participant)];
+        delete balance_data[getBalanceDataKey(channel_identifier, partner, participant)];
 
         // Transfer the unlocked tokens to the participant
         require(token.transfer(participant, unlocked_amount));
@@ -584,6 +584,23 @@ contract TokenNetwork is Utils {
     {
 
     }*/
+
+    /// @dev Returns the unique identifier for the channel participant balance data.
+    /// @param channel_identifier The channel identifier - mapping key used for `balance_data`.
+    /// @param participant Address of the channel participant whose balance data
+    /// is referenced by the key.
+    /// @param partner Address of the channel partner.
+    /// @return Unique identifier for the participant's balance data.
+    function getBalanceDataKey(
+        uint256 channel_identifier,
+        address participant,
+        address partner)
+        pure
+        internal
+        returns (bytes32 data)
+    {
+        return keccak256(channel_identifier, participant, partner);
+    }
 
     function updateBalanceProofData(
         bytes32 key,
@@ -609,7 +626,7 @@ contract TokenNetwork is Utils {
         bytes32 locksroot)
         internal
     {
-        bytes32 key = keccak256(channel_identifier, participant, partner);
+        bytes32 key = getBalanceDataKey(channel_identifier, participant, partner);
 
         // If there are transfers to unlock, store the locksroot and total amount of tokens
         // locked in pending transfers. Otherwise, clear storage.
@@ -635,7 +652,7 @@ contract TokenNetwork is Utils {
         returns (bool correct_balance_data)
     {
         BalanceData storage balance_state = balance_data[
-            keccak256(channel_identifier, participant, partner)
+            getBalanceDataKey(channel_identifier, participant, partner)
         ];
 
         // Make sure the hash of the provided state is the same as the stored balance_hash
@@ -671,7 +688,7 @@ contract TokenNetwork is Utils {
             participant
         ];
         BalanceData storage participant_balance_state = balance_data[
-            keccak256(channel_identifier, participant, partner)
+            getBalanceDataKey(channel_identifier, participant, partner)
         ];
 
         return (
