@@ -203,7 +203,7 @@ contract TokenNetwork is Utils {
     /// @notice Sets the channel participant total deposit value.
     /// Can be called by anyone.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`
-    /// @param participant Channel participant who's deposit is being set.
+    /// @param participant Channel participant whose deposit is being set.
     /// @param total_deposit Idempotent function which sets the total amount of
     /// tokens that the participant will have as a deposit.
     function setDeposit(
@@ -586,7 +586,7 @@ contract TokenNetwork is Utils {
     }*/
 
     /// @dev Returns the unique identifier for the channel participant balance data.
-    /// @param channel_identifier The channel identifier - mapping key used for `balance_data`.
+    /// @param channel_identifier The channel identifier - mapping key used for `channels`.
     /// @param participant Address of the channel participant whose balance data
     /// is referenced by the key.
     /// @param partner Address of the channel partner.
@@ -649,20 +649,23 @@ contract TokenNetwork is Utils {
         bytes32 locksroot)
         view
         internal
-        returns (bool correct_balance_data)
+        returns (bool balance_data_is_correct)
     {
         BalanceData storage balance_state = balance_data[
             getBalanceDataKey(channel_identifier, participant, partner)
         ];
 
         // Make sure the hash of the provided state is the same as the stored balance_hash
-        correct_balance_data = balance_state.balance_hash_or_locksroot == keccak256(
+        balance_data_is_correct = balance_state.balance_hash_or_locksroot == keccak256(
             transferred_amount,
             locked_amount,
             locksroot
         );
     }
 
+    /// @dev Returns the channel specific data.
+    /// @param channel_identifier The channel identifier - mapping key used for `channels`.
+    /// @return Channel state and settle_block_number.
     function getChannelInfo(uint256 channel_identifier)
         view
         external
@@ -676,6 +679,13 @@ contract TokenNetwork is Utils {
         );
     }
 
+    /// @dev Returns the channel specific data.
+    /// @param channel_identifier The channel identifier - mapping key used for `channels`.
+    /// @param participant Address of the channel participant whose data will be returned.
+    /// @param partner Address of the participant's channel partner.
+    /// @return Participant's channel deposit, verification that the participant is part of the
+    /// channel, whether the participant has called `closeChannel` or not, balance_hash or
+    /// locksroot, nonce or locked_amount.
     function getChannelParticipantInfo(
         uint256 channel_identifier,
         address participant,
@@ -760,11 +770,10 @@ contract TokenNetwork is Utils {
                 length += 1;
             }
 
-            for (i = 0; i < length - 1; i+= 2) {
+            for (i = 0; i < length - 1; i += 2) {
                 if (merkle_layer[i] == merkle_layer[i + 1]) {
                     lockhash = merkle_layer[i];
-                }
-                else if (merkle_layer[i] < merkle_layer[i + 1]) {
+                } else if (merkle_layer[i] < merkle_layer[i + 1]) {
                     lockhash = keccak256(merkle_layer[i], merkle_layer[i + 1]);
                 } else {
                     lockhash = keccak256(merkle_layer[i + 1], merkle_layer[i]);
@@ -786,7 +795,7 @@ contract TokenNetwork is Utils {
     {
         uint256 expiration_block;
         uint256 locked_amount;
-        uint256 reveal_time;
+        uint256 reveal_block;
         bytes32 secrethash;
         bytes32 lockhash;
 
@@ -804,11 +813,10 @@ contract TokenNetwork is Utils {
         lockhash = keccak256(expiration_block, locked_amount, secrethash);
 
         // Check if the lock's secret was revealed in the SecretRegistry
-        // The lock must not have expired, it does not matter how far in the future it would
-        // have expired. We compare the expiration block with the block at which
-        // the secret has been registered on chain.
-        reveal_time = secret_registry.getSecretRevealBlockHeight(secrethash);
-        if (reveal_time == 0 || expiration_block <= reveal_time) {
+        // The secret must have been revealed in the SecretRegistry contract before the lock's
+        // expiration_block in order for the hash time lock transfer to be successful.
+        reveal_block = secret_registry.getSecretRevealBlockHeight(secrethash);
+        if (reveal_block == 0 || expiration_block <= reveal_block) {
             locked_amount = 0;
         }
 
