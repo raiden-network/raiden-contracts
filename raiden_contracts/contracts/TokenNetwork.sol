@@ -463,8 +463,13 @@ contract TokenNetwork is Utils {
         );
 
         // Do the actual token transfers
-        require(token.transfer(participant1, participant2_transferred_amount));
-        require(token.transfer(participant2, participant1_transferred_amount));
+        if (participant2_transferred_amount > 0) {
+            require(token.transfer(participant1, participant2_transferred_amount));
+        }
+
+        if (participant1_transferred_amount > 0) {
+            require(token.transfer(participant2, participant1_transferred_amount));
+        }
 
         ChannelSettled(channel_identifier);
     }
