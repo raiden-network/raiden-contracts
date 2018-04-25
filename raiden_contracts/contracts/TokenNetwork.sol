@@ -40,7 +40,7 @@ contract TokenNetwork is Utils {
         // Total amount of token transferred to this smart contract through the
         // `setDeposit` function, note that direct token transfer cannot be
         // tracked and will be burned.
-        uint240 deposit;
+        uint256 deposit;
 
         // This value is set to true after the channel has been opened.
         // This is an efficient way to mark the channel participants without doing a deposit.
@@ -71,7 +71,7 @@ contract TokenNetwork is Utils {
         // and settling the channel.
         // After the channel has been uncooperatively closed, this value represents the
         // block number after which settleChannel can be called.
-        uint248 settle_block_number;
+        uint256 settle_block_number;
 
         // Channel state
         // 1 = open, 2 = closed
@@ -92,7 +92,7 @@ contract TokenNetwork is Utils {
         uint256 settle_timeout
     );
 
-    event ChannelNewDeposit(uint256 channel_identifier, address participant, uint240 deposit);
+    event ChannelNewDeposit(uint256 channel_identifier, address participant, uint256 deposit);
 
     event ChannelClosed(uint256 channel_identifier, address closing_participant);
 
@@ -120,7 +120,7 @@ contract TokenNetwork is Utils {
         _;
     }
 
-    modifier settleTimeoutValid(uint248 timeout) {
+    modifier settleTimeoutValid(uint256 timeout) {
         require(timeout >= 6 && timeout <= 2700000);
         _;
     }
@@ -163,7 +163,7 @@ contract TokenNetwork is Utils {
     function openChannel(
         address participant1,
         address participant2,
-        uint248 settle_timeout)
+        uint256 settle_timeout)
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -209,12 +209,12 @@ contract TokenNetwork is Utils {
     function setDeposit(
         uint256 channel_identifier,
         address participant,
-        uint240 total_deposit)
+        uint256 total_deposit)
         isOpen(channel_identifier)
         isParticipant(channel_identifier, participant)
         public
     {
-        uint240 added_deposit;
+        uint256 added_deposit;
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
 
@@ -259,7 +259,7 @@ contract TokenNetwork is Utils {
         channel.participants[msg.sender].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
-        channel.settle_block_number += uint248(block.number);
+        channel.settle_block_number += uint256(block.number);
 
         // An empty value means that the closer never received a transfer, or
         // he is intentionally not providing the latest transfer, in which case
@@ -425,7 +425,6 @@ contract TokenNetwork is Utils {
             participant2_locksroot
         ));
 
-        // We cannot use anymore local variables here because we get a "Stack too deep" error
         // `participant2_transferred_amount` is the amount of tokens that `participant1`
         // needs to receive. `participant1_transferred_amount` is the amount of tokens that
         // `participant2` needs to receive
@@ -674,7 +673,7 @@ contract TokenNetwork is Utils {
     function getChannelInfo(uint256 channel_identifier)
         view
         external
-        returns (uint248, uint8)
+        returns (uint256, uint8)
     {
         Channel storage channel = channels[channel_identifier];
 
@@ -697,7 +696,7 @@ contract TokenNetwork is Utils {
         address partner)
         view
         external
-        returns (uint240, bool, bool, bytes32, uint256)
+        returns (uint256, bool, bool, bytes32, uint256)
     {
         Participant storage participant_state = channels[channel_identifier].participants[
             participant
