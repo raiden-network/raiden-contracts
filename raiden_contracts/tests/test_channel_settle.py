@@ -16,7 +16,8 @@ def test_update_channel_state(
         channel_deposit,
         get_accounts,
         get_block,
-        create_balance_proof
+        create_balance_proof,
+        create_balance_proof_update_signature
 ):
     (A, B) = get_accounts(2)
     settle_timeout = SETTLE_TIMEOUT_MIN
@@ -40,17 +41,13 @@ def test_update_channel_state(
         B, 5, 1, 3,
         locksroot2, additional_hash
     )
-    balance_proof_BA = create_balance_proof(
-        channel_identifier,
-        B, 10, 2, 5,
-        locksroot1, additional_hash
-    )
+    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
 
     # Close channel and update balance proofs
     token_network.transact({'from': A}).closeChannel(*balance_proof_B)
     token_network.transact({'from': B}).updateNonClosingBalanceProof(
         *balance_proof_A,
-        balance_proof_BA[4]
+        balance_proof_update_signature_B
     )
 
     # Settlement window must be over before settling the channel
@@ -119,6 +116,7 @@ def test_update_channel_event(
         create_channel,
         channel_deposit,
         create_balance_proof,
+        create_balance_proof_update_signature,
         event_handler
 ):
     ev_handler = event_handler(token_network)
@@ -132,12 +130,12 @@ def test_update_channel_event(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, locksroot)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, locksroot)
-    balance_proof_BA = create_balance_proof(channel_identifier, B, 10, 0, 1, locksroot)
+    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
 
     token_network.transact({'from': A}).closeChannel(*balance_proof_B)
     token_network.transact({'from': B}).updateNonClosingBalanceProof(
         *balance_proof_A,
-        balance_proof_BA[4]
+        balance_proof_update_signature_B
     )
 
     web3.testing.mine(settle_timeout)

@@ -60,7 +60,8 @@ def test_channel_cycle(
         secret_registry,
         get_accounts,
         print_gas,
-        create_balance_proof
+        create_balance_proof,
+        create_balance_proof_update_signature
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 11
@@ -90,7 +91,7 @@ def test_channel_cycle(
 
     balance_proof_A = create_balance_proof(1, A, 10, locked_amount1, 5, locksroot1)
     balance_proof_B = create_balance_proof(1, B, 5, locked_amount2, 3, locksroot2)
-    balance_proof_BA = create_balance_proof(1, B, 10, locked_amount1, 5, locksroot1)
+    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
 
     for lock in pending_transfers_tree1.unlockable:
         txn_hash = secret_registry.transact({'from': A}).registerSecret(lock[3])
@@ -104,7 +105,7 @@ def test_channel_cycle(
 
     txn_hash = token_network.transact({'from': B}).updateNonClosingBalanceProof(
         *balance_proof_A,
-        balance_proof_BA[4]
+        balance_proof_update_signature_B
     )
     print_gas(txn_hash, C_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
 

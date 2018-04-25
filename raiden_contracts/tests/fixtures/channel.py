@@ -1,6 +1,10 @@
 import pytest
 from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.sign import sign_balance_proof, hash_balance_data
+from raiden_contracts.utils.sign import (
+    sign_balance_proof,
+    hash_balance_data,
+    sign_balance_proof_update_message
+)
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 
@@ -73,4 +77,32 @@ def create_balance_proof(token_network, get_private_key):
             additional_hash,
             signature
         )
+    return get
+
+
+@pytest.fixture()
+def create_balance_proof_update_signature(token_network, get_private_key):
+    def get(
+            participant,
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature,
+            v=27
+    ):
+        private_key = get_private_key(participant)
+
+        non_closing_signature = sign_balance_proof_update_message(
+            private_key,
+            token_network.address,
+            int(token_network.call().chain_id()),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature,
+            v
+        )
+        return non_closing_signature
     return get

@@ -316,11 +316,12 @@ contract TokenNetwork is Utils {
 
         // We need the signature from the non-closing participant to allow anyone
         // to make this transaction. E.g. a monitoring service.
-        address non_closing_participant = recoverAddressFromBalanceProof(
+        address non_closing_participant = recoverAddressFromBalanceProofUpdateMessage(
             channel_identifier,
             balance_hash,
             nonce,
             additional_hash,
+            closing_signature,
             non_closing_signature
         );
 
@@ -739,6 +740,31 @@ contract TokenNetwork is Utils {
         );
 
         signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function recoverAddressFromBalanceProofUpdateMessage(
+        uint256 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes closing_signature,
+        bytes non_closing_signature
+    )
+        view
+        internal
+        returns (address signature_address)
+    {
+        bytes32 message_hash = keccak256(
+            balance_hash,
+            nonce,
+            additional_hash,
+            channel_identifier,
+            address(this),
+            chain_id,
+            closing_signature
+        );
+
+        signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
     }
 
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)

@@ -84,6 +84,7 @@ def test_channel_unlock(
         channel_deposit,
         get_accounts,
         create_balance_proof,
+        create_balance_proof_update_signature,
         event_handler
 ):
     (A, B) = get_accounts(2)
@@ -116,11 +117,7 @@ def test_channel_unlock(
         B, 5, locked_amount2, 3,
         locksroot2, additional_hash
     )
-    balance_proof_BA = create_balance_proof(
-        channel_identifier,
-        B, 10, locked_amount1, 5,
-        locksroot1, additional_hash
-    )
+    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
 
     # Reveal secrets before settlement window ends
     for lock in pending_transfers_tree.unlockable:
@@ -131,7 +128,7 @@ def test_channel_unlock(
     token_network.transact({'from': A}).closeChannel(*balance_proof_B)
     token_network.transact({'from': B}).updateNonClosingBalanceProof(
         *balance_proof_A,
-        balance_proof_BA[4]
+        balance_proof_update_signature_B
     )
 
     # Settlement window must be over before settling the channel

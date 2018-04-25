@@ -15,7 +15,8 @@ def hash_balance_proof(
         channel_identifier,
         balance_hash,
         nonce,
-        additional_hash):
+        additional_hash
+):
     return Web3.soliditySha3([
         'bytes32',
         'uint256',
@@ -33,6 +34,34 @@ def hash_balance_proof(
     ])
 
 
+def hash_balance_proof_update_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        balance_hash,
+        nonce,
+        additional_hash,
+        closing_signature
+):
+    return Web3.soliditySha3([
+        'bytes32',
+        'uint256',
+        'bytes32',
+        'uint256',
+        'address',
+        'uint256',
+        'bytes'
+    ], [
+        balance_hash,
+        nonce,
+        additional_hash,
+        channel_identifier,
+        token_network_address,
+        chain_identifier,
+        closing_signature
+    ])
+
+
 def sign_balance_proof(
         privatekey,
         token_network_address,
@@ -41,7 +70,8 @@ def sign_balance_proof(
         balance_hash,
         nonce,
         additional_hash,
-        v=27):
+        v=27
+):
     message_hash = hash_balance_proof(
         token_network_address,
         chain_identifier,
@@ -49,6 +79,30 @@ def sign_balance_proof(
         balance_hash,
         nonce,
         additional_hash
+    )
+
+    return sign(privatekey, message_hash, v)
+
+
+def sign_balance_proof_update_message(
+        privatekey,
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        balance_hash,
+        nonce,
+        additional_hash,
+        closing_signature,
+        v=27
+):
+    message_hash = hash_balance_proof_update_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        balance_hash,
+        nonce,
+        additional_hash,
+        closing_signature
     )
 
     return sign(privatekey, message_hash, v)
