@@ -8,7 +8,7 @@ from .utils import get_settlement_amounts
 from .fixtures.config import fake_hex
 
 
-def test_update_channel_state(
+def test_settle_channel_state(
         web3,
         custom_token,
         token_network,

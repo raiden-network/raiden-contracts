@@ -487,19 +487,14 @@ contract TokenNetwork is Utils {
     {
         uint256 participant1_amount;
         uint256 participant2_amount;
-        uint256 total_deposit_available;
+        uint256 total_deposit;
 
         // Direct token transfers done through the token `transfer` function
         // cannot be accounted for, these superfluous tokens will be burned,
         // this is because there is no way to tell which participant (if any)
         // had ownership over the token.
 
-        total_deposit_available = (
-            participant1_deposit +
-            participant2_deposit -
-            participant1_locked_amount -
-            participant2_locked_amount
-        );
+        total_deposit = participant1_deposit + participant2_deposit;
 
         participant1_amount = (
             participant1_deposit +
@@ -509,7 +504,7 @@ contract TokenNetwork is Utils {
 
         // To account for cases when participant2 does not provide participant1's balance proof
         // Therefore, participant1's transferred_amount will be lower than in reality
-        participant1_amount = min(participant1_amount, total_deposit_available);
+        participant1_amount = min(participant1_amount, total_deposit);
 
         // To account for cases when participant1 does not provide participant2's balance proof
         // Therefore, participant2's transferred_amount will be lower than in reality
@@ -517,7 +512,11 @@ contract TokenNetwork is Utils {
 
         // At this point `participant1_amount` is between [0, total_deposit_available],
         // so this is safe.
-        participant2_amount = total_deposit_available - participant1_amount;
+        participant2_amount = total_deposit - participant1_amount;
+
+        // Handle old balance proofs with a high locked_amount
+        participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
+        participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
         return (participant1_amount, participant2_amount);
     }
