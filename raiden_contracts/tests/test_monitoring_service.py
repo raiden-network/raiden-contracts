@@ -2,7 +2,7 @@ import pytest
 from raiden_contracts.utils.config import (
     E_CHANNEL_CLOSED
 )
-from .utils import check_channel_closed
+from ..utils.events import check_channel_closed
 from raiden_contracts.utils.sign import sign_reward_proof
 from ethereum.utils import denoms
 
