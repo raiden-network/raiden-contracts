@@ -574,17 +574,64 @@ contract TokenNetwork is Utils {
         ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
     }
 
-    // TODO
-    /*function cooperativeSettle(
+    function cooperativeSettle(
         uint256 channel_identifier,
-        uint256 balance1,
-        uint256 balance2,
-        bytes signature1,
-        bytes signature2)
+        uint256 participant1_balance,
+        uint256 participant2_balance,
+        bytes participant1_signature,
+        bytes participant2_signature)
         public
     {
+        address participant1;
+        address participant2;
+        uint256 total_deposit;
+        Channel storage channel = channels[channel_identifier];
 
-    }*/
+        participant1 = recoverAddressFromCooperativeSettleSignature(
+            channel_identifier,
+            participant1_balance,
+            participant2_balance,
+            participant1_signature
+        );
+
+        participant2 = recoverAddressFromCooperativeSettleSignature(
+            channel_identifier,
+            participant1_balance,
+            participant2_balance,
+            participant2_signature
+        );
+
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
+
+        total_deposit = participant1_state.deposit + participant2_state.deposit;
+
+        // The channel must be open
+        require(channel.state == 1);
+
+        // The participant addresses must be part of the channel
+        require(participant1_state.initialized);
+        require(participant2_state.initialized);
+
+        // The sum of the provided balances must be equal to the total deposit
+        require(total_deposit == (participant1_balance + participant2_balance));
+
+        // Remove channel data from storage before doing the token transfers
+        delete channel.participants[participant1];
+        delete channel.participants[participant2];
+        delete channels[channel_identifier];
+
+        // Do the token transfers
+        if (participant1_balance > 0) {
+            require(token.transfer(participant1, participant1_balance));
+        }
+
+        if (participant2_balance > 0) {
+            require(token.transfer(participant2, participant2_balance));
+        }
+
+        ChannelSettled(channel_identifier);
+    }
 
     /// @dev Returns the unique identifier for the channel participant balance data.
     /// @param channel_identifier The channel identifier - mapping key used for `channels`.
@@ -756,6 +803,27 @@ contract TokenNetwork is Utils {
         );
 
         signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
+    }
+
+    function recoverAddressFromCooperativeSettleSignature(
+        uint256 channel_identifier,
+        uint256 participant1_balance,
+        uint256 participant2_balance,
+        bytes signature
+    )
+        view
+        internal
+        returns (address signature_address)
+    {
+        bytes32 message_hash = keccak256(
+            participant1_balance,
+            participant2_balance,
+            channel_identifier,
+            address(this),
+            chain_id
+        );
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)

@@ -3,7 +3,8 @@ from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
     hash_balance_data,
-    sign_balance_proof_update_message
+    sign_balance_proof_update_message,
+    sign_cooperative_settle_message
 )
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
@@ -12,7 +13,7 @@ from .secret_registry import *  # flake8: noqa
 @pytest.fixture()
 def create_channel(token_network):
     def get(A, B, settle_timeout=SETTLE_TIMEOUT_MIN):
-        token_network.transact().openChannel(A, B, settle_timeout)
+        txn_hash = token_network.transact().openChannel(A, B, settle_timeout)
         channel_identifier = token_network.call().last_channel_index()
         assert token_network.call().getChannelInfo(channel_identifier)[0] == settle_timeout
         assert token_network.call().getChannelParticipantInfo(channel_identifier, A, B)[1] is True
@@ -105,4 +106,28 @@ def create_balance_proof_update_signature(token_network, get_private_key):
             v
         )
         return non_closing_signature
+    return get
+
+
+@pytest.fixture()
+def create_cooperative_settle_signature(token_network, get_private_key):
+    def get(
+            channel_identifier,
+            participant,
+            participant1_balance,
+            participant2_balance,
+            v=27
+    ):
+        private_key = get_private_key(participant)
+
+        signature = sign_cooperative_settle_message(
+            private_key,
+            token_network.address,
+            int(token_network.call().chain_id()),
+            channel_identifier,
+            participant1_balance,
+            participant2_balance,
+            v
+        )
+        return signature
     return get
