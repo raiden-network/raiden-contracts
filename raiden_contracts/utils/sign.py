@@ -66,17 +66,23 @@ def hash_cooperative_settle_message(
         token_network_address,
         chain_identifier,
         channel_identifier,
+        participant1_address,
         participant1_balance,
+        participant2_address,
         participant2_balance
 ):
     return Web3.soliditySha3([
+        'address',
         'uint256',
+        'address',
         'uint256',
         'uint256',
         'address',
         'uint256'
     ], [
+        participant1_address,
         participant1_balance,
+        participant2_address,
         participant2_balance,
         channel_identifier,
         token_network_address,
@@ -135,7 +141,9 @@ def sign_cooperative_settle_message(
         token_network_address,
         chain_identifier,
         channel_identifier,
+        participant1_address,
         participant1_balance,
+        participant2_address,
         participant2_balance,
         v=27
 ):
@@ -143,7 +151,9 @@ def sign_cooperative_settle_message(
         token_network_address,
         chain_identifier,
         channel_identifier,
+        participant1_address,
         participant1_balance,
+        participant2_address,
         participant2_balance
     )
 

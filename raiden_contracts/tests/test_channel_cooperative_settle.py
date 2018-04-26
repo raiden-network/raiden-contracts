@@ -34,14 +34,14 @@ def test_cooperative_settle_channel_state(
     signature_A = create_cooperative_settle_signature(
         channel_identifier,
         A,
-        balance_A,
-        balance_B
+        A, balance_A,
+        B, balance_B
     )
     signature_B = create_cooperative_settle_signature(
         channel_identifier,
         B,
-        balance_A,
-        balance_B
+        A, balance_A,
+        B, balance_B
     )
 
     pre_account_balance_A = custom_token.call().balanceOf(A)
@@ -51,8 +51,8 @@ def test_cooperative_settle_channel_state(
     # Settle the channel
     token_network.transact({'from': C}).cooperativeSettle(
         channel_identifier,
-        balance_A,
-        balance_B,
+        A, balance_A,
+        B, balance_B,
         signature_A,
         signature_B
     )
@@ -122,23 +122,23 @@ def test_update_channel_event(
     signature_A = create_cooperative_settle_signature(
         channel_identifier,
         A,
-        balance_A,
-        balance_B
+        B, balance_B,
+        A, balance_A
     )
     signature_B = create_cooperative_settle_signature(
         channel_identifier,
         B,
-        balance_A,
-        balance_B
+        B, balance_B,
+        A, balance_A
     )
 
     # Settle the channel
     txn_hash = token_network.transact({'from': B}).cooperativeSettle(
         channel_identifier,
-        balance_A,
-        balance_B,
-        signature_A,
-        signature_B
+        B, balance_B,
+        A, balance_A,
+        signature_B,
+        signature_A
     )
 
     ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(channel_identifier))

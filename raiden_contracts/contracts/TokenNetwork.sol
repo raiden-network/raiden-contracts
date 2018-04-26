@@ -576,10 +576,13 @@ contract TokenNetwork is Utils {
 
     function cooperativeSettle(
         uint256 channel_identifier,
+        address participant1_address,
         uint256 participant1_balance,
+        address participant2_address,
         uint256 participant2_balance,
         bytes participant1_signature,
-        bytes participant2_signature)
+        bytes participant2_signature
+    )
         public
     {
         address participant1;
@@ -589,14 +592,18 @@ contract TokenNetwork is Utils {
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
+            participant1_address,
             participant1_balance,
+            participant2_address,
             participant2_balance,
             participant1_signature
         );
 
         participant2 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
+            participant1_address,
             participant1_balance,
+            participant2_address,
             participant2_balance,
             participant2_signature
         );
@@ -605,6 +612,10 @@ contract TokenNetwork is Utils {
         Participant storage participant2_state = channel.participants[participant2];
 
         total_deposit = participant1_state.deposit + participant2_state.deposit;
+
+        // The provided addresses must be the same as the recovered ones
+        require(participant1 == participant1_address);
+        require(participant2 == participant2_address);
 
         // The channel must be open
         require(channel.state == 1);
@@ -807,7 +818,9 @@ contract TokenNetwork is Utils {
 
     function recoverAddressFromCooperativeSettleSignature(
         uint256 channel_identifier,
+        address participant1,
         uint256 participant1_balance,
+        address participant2,
         uint256 participant2_balance,
         bytes signature
     )
@@ -816,7 +829,9 @@ contract TokenNetwork is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(
+            participant1,
             participant1_balance,
+            participant2,
             participant2_balance,
             channel_identifier,
             address(this),

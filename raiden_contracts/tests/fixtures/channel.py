@@ -114,7 +114,9 @@ def create_cooperative_settle_signature(token_network, get_private_key):
     def get(
             channel_identifier,
             participant,
+            participant1_address,
             participant1_balance,
+            participant2_address,
             participant2_balance,
             v=27
     ):
@@ -125,7 +127,9 @@ def create_cooperative_settle_signature(token_network, get_private_key):
             token_network.address,
             int(token_network.call().chain_id()),
             channel_identifier,
+            participant1_address,
             participant1_balance,
+            participant2_address,
             participant2_balance,
             v
         )
