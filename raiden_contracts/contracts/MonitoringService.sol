@@ -3,7 +3,6 @@ pragma solidity ^0.4.21;
 import "./Token.sol";
 import "./Utils.sol";
 import "./lib/ECVerify.sol";
-import "./SecretRegistry.sol";
 import "./TokenNetwork.sol";
 
 contract MonitoringService is Utils {
@@ -81,7 +80,8 @@ contract MonitoringService is Utils {
     /// @param _minimum_deposit The minimum value that a MS must deposit to be registered
     function MonitoringService(
         address _token_address,
-        uint256 _minimum_deposit)
+        uint256 _minimum_deposit
+    )
         public
     {
         require(_token_address != 0x0);
@@ -135,14 +135,19 @@ contract MonitoringService is Utils {
     /// being monitored exists.
     function monitor(
         uint256 channel_identifier,
+<<<<<<< HEAD
 		bytes32 balance_hash,
+=======
+        bytes32 balance_hash,
+>>>>>>> update to comply with changes in style guide
         uint64 nonce,
         bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature,
         address reward_sender_address,
         bytes reward_proof_signature,
-        address token_network_address)
+        address token_network_address
+    )
         isMonitor(msg.sender)
         public
     {
@@ -165,7 +170,7 @@ contract MonitoringService is Utils {
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
             channel_identifier,
-			balance_hash,
+            balance_hash,
             nonce,
             additional_hash,
             closing_signature,
@@ -190,7 +195,8 @@ contract MonitoringService is Utils {
         uint256 channel_identifier,
         address token_network_address,
         uint192 reward_amount,
-        address monitor_address)
+        address monitor_address
+    )
         public
         returns (bool)
     {
