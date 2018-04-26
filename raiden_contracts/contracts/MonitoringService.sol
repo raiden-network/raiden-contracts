@@ -135,11 +135,7 @@ contract MonitoringService is Utils {
     /// being monitored exists.
     function monitor(
         uint256 channel_identifier,
-<<<<<<< HEAD
-		bytes32 balance_hash,
-=======
         bytes32 balance_hash,
->>>>>>> update to comply with changes in style guide
         uint64 nonce,
         bytes32 additional_hash,
         bytes closing_signature,
