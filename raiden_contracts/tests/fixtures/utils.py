@@ -15,20 +15,6 @@ def owner(web3, owner_index):
 
 
 @pytest.fixture()
-def get_accounts(web3, owner_index, create_accounts):
-    def get(number, index_start=None):
-        if not index_start:
-            index_start = owner_index + 1
-        accounts_len = len(web3.eth.accounts)
-        index_end = min(number + index_start, accounts_len)
-        accounts = web3.eth.accounts[index_start:index_end]
-        if number > len(accounts):
-            accounts += create_accounts(number - len(accounts))
-        return accounts
-    return get
-
-
-@pytest.fixture()
 def create_accounts(web3):
     def get(number):
         new_accounts = []
@@ -43,6 +29,20 @@ def create_accounts(web3):
             web3.personal.unlockAccount(new_account, passphrase)
             new_accounts.append(new_account)
         return new_accounts
+    return get
+
+
+@pytest.fixture()
+def get_accounts(web3, owner_index, create_accounts):
+    def get(number, index_start=None):
+        if not index_start:
+            index_start = owner_index + 1
+        accounts_len = len(web3.eth.accounts)
+        index_end = min(number + index_start, accounts_len)
+        accounts = web3.eth.accounts[index_start:index_end]
+        if number > len(accounts):
+            accounts += create_accounts(number - len(accounts))
+        return accounts
     return get
 
 

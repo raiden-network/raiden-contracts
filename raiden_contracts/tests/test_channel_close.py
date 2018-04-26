@@ -1,8 +1,12 @@
-from raiden_contracts.utils.config import E_CHANNEL_CLOSED
-from .utils import check_channel_closed
+from raiden_contracts.utils.config import (
+    E_CHANNEL_CLOSED,
+    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_CLOSED
+)
+from raiden_contracts.utils.events import check_channel_closed
+from .fixtures.config import fake_bytes, fake_hex
 
 
-# TODO: test transferred_amount > deposit - this works now!!!!
 def test_close_channel_fail_small_deposit():
     pass
 
@@ -10,6 +14,82 @@ def test_close_channel_fail_small_deposit():
 # TODO: test event argument when a delegate closes
 def test_close_channel_event_delegate():
     pass
+
+
+def test_close_channel_state(
+        token_network,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        get_block,
+        create_balance_proof
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 6
+    deposit_A = 20
+    transferred_amount = 5
+    nonce = 3
+    locksroot = fake_hex(32, '03')
+
+    # Create channel and deposit
+    channel_identifier = create_channel(A, B, settle_timeout)
+    channel_deposit(channel_identifier, A, deposit_A)
+
+    # Create balance proofs
+    balance_proof = create_balance_proof(
+        channel_identifier,
+        B,
+        transferred_amount,
+        0,
+        nonce,
+        locksroot
+    )
+
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == settle_timeout
+    assert state == CHANNEL_STATE_OPEN
+
+    (
+        _,
+        A_is_initialized,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_is_initialized is True
+    assert A_is_the_closer is False
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
+
+    txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof)
+
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == settle_timeout + get_block(txn_hash)
+    assert state == CHANNEL_STATE_CLOSED
+
+    (
+        _,
+        A_is_initialized,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_is_initialized is True
+    assert A_is_the_closer is True
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
+
+    (
+        _,
+        B_is_initialized,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, B, A)
+    assert B_is_initialized is True
+    assert B_is_the_closer is False
+    assert B_balance_hash == balance_proof[1]
+    assert B_nonce == nonce
 
 
 def test_close_channel_event_no_offchain_transfers(
@@ -23,7 +103,7 @@ def test_close_channel_event_no_offchain_transfers(
     (A, B) = get_accounts(2)
 
     channel_identifier = create_channel(A, B)
-    balance_proof = create_balance_proof(channel_identifier, B, 0, 0)
+    balance_proof = create_balance_proof(channel_identifier, B, 0, 0, 0)
 
     txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof)
 
@@ -45,7 +125,7 @@ def test_close_channel_event(
 
     channel_identifier = create_channel(A, B)
     channel_deposit(channel_identifier, A, deposit_A)
-    balance_proof = create_balance_proof(channel_identifier, B, 5, 3)
+    balance_proof = create_balance_proof(channel_identifier, B, 5, 0, 3)
 
     txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof)
 

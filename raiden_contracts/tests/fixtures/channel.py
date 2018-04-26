@@ -1,6 +1,10 @@
 import pytest
 from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.sign import sign_balance_proof
+from raiden_contracts.utils.sign import (
+    sign_balance_proof,
+    hash_balance_data,
+    sign_balance_proof_update_message
+)
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 
@@ -11,8 +15,8 @@ def create_channel(token_network):
         token_network.transact().openChannel(A, B, settle_timeout)
         channel_identifier = token_network.call().last_channel_index()
         assert token_network.call().getChannelInfo(channel_identifier)[0] == settle_timeout
-        assert token_network.call().getChannelParticipantInfo(channel_identifier, A)[0] is True
-        assert token_network.call().getChannelParticipantInfo(channel_identifier, B)[0] is True
+        assert token_network.call().getChannelParticipantInfo(channel_identifier, A, B)[1] is True
+        assert token_network.call().getChannelParticipantInfo(channel_identifier, B, A)[1] is True
         return channel_identifier
     return get
 
@@ -44,6 +48,7 @@ def create_balance_proof(token_network, get_private_key):
             channel_identifier,
             participant,
             transferred_amount=0,
+            locked_amount=0,
             nonce=0,
             locksroot=None,
             additional_hash=None,
@@ -53,23 +58,51 @@ def create_balance_proof(token_network, get_private_key):
         locksroot = locksroot or b'\x00' * 32
         additional_hash = additional_hash or b'\x00' * 32
 
+        balance_hash = hash_balance_data(transferred_amount, locked_amount, locksroot)
+
         signature = sign_balance_proof(
             private_key,
             token_network.address,
             int(token_network.call().chain_id()),
             channel_identifier,
+            balance_hash,
             nonce,
-            transferred_amount,
-            locksroot,
             additional_hash,
             v
         )
         return (
             channel_identifier,
+            balance_hash,
             nonce,
-            transferred_amount,
-            locksroot,
             additional_hash,
             signature
         )
+    return get
+
+
+@pytest.fixture()
+def create_balance_proof_update_signature(token_network, get_private_key):
+    def get(
+            participant,
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature,
+            v=27
+    ):
+        private_key = get_private_key(participant)
+
+        non_closing_signature = sign_balance_proof_update_message(
+            private_key,
+            token_network.address,
+            int(token_network.call().chain_id()),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature,
+            v
+        )
+        return non_closing_signature
     return get

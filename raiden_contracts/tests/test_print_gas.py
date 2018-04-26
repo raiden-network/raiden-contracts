@@ -3,7 +3,8 @@ from raiden_contracts.utils.config import (
     C_TOKEN_NETWORK,
     C_SECRET_REGISTRY
 )
-from raiden_contracts.utils.sign import sign_balance_proof
+from .utils import get_pending_transfers_tree, get_locked_amount
+from raiden_contracts.utils.merkle import get_merkle_root
 
 
 def test_token_network_registry(chain, token_network_registry, custom_token, print_gas):
@@ -56,12 +57,14 @@ def test_channel_cycle(
         web3,
         token_network,
         custom_token,
+        secret_registry,
         get_accounts,
         print_gas,
-        get_private_key
+        create_balance_proof,
+        create_balance_proof_update_signature
 ):
     (A, B) = get_accounts(2)
-    chain_id = int(web3.version.network)
+    settle_timeout = 11
 
     custom_token.transact({'from': A, 'value': 10 ** 18}).mint()
     custom_token.transact({'from': B, 'value': 10 ** 18}).mint()
@@ -71,67 +74,67 @@ def test_channel_cycle(
     custom_token.transact({'from': A}).approve(token_network.address, 50)
     custom_token.transact({'from': B}).approve(token_network.address, 50)
 
-    txn_hash = token_network.transact().openChannel(A, B, 7)
+    txn_hash = token_network.transact().openChannel(A, B, settle_timeout)
     print_gas(txn_hash, C_TOKEN_NETWORK + '.openChannel')
 
     txn_hash = token_network.transact({'from': A}).setDeposit(1, A, 20)
     txn_hash = token_network.transact({'from': B}).setDeposit(1, B, 10)
     print_gas(txn_hash, C_TOKEN_NETWORK + '.setDeposit')
 
-    nonce = 3
-    transferred_amount = 5
-    locksroot = b'\x00' * 32
-    additional_hash = b'\x00' * 32
-    signature = sign_balance_proof(
-        get_private_key(B),
-        token_network.address,
-        chain_id,
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-    )
+    pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
+    locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)
+    locked_amount1 = get_locked_amount(pending_transfers_tree1.transfers)
 
-    txn_hash = token_network.transact({'from': A}).closeChannel(
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-        signature
-    )
+    pending_transfers_tree2 = get_pending_transfers_tree(web3, [3], [], 7)
+    locksroot2 = get_merkle_root(pending_transfers_tree2.merkle_tree)
+    locked_amount2 = get_locked_amount(pending_transfers_tree2.transfers)
+
+    balance_proof_A = create_balance_proof(1, A, 10, locked_amount1, 5, locksroot1)
+    balance_proof_B = create_balance_proof(1, B, 5, locked_amount2, 3, locksroot2)
+    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
+
+    for lock in pending_transfers_tree1.unlockable:
+        txn_hash = secret_registry.transact({'from': A}).registerSecret(lock[3])
+    for lock in pending_transfers_tree2.unlockable:
+        txn_hash = secret_registry.transact({'from': A}).registerSecret(lock[3])
+
+    print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
+
+    txn_hash = token_network.transact({'from': A}).closeChannel(*balance_proof_B)
     print_gas(txn_hash, C_TOKEN_NETWORK + '.closeChannel')
 
-    nonce = 3
-    transferred_amount = 15
-    locksroot = b'\x00' * 32
-    additional_hash = b'\x00' * 32
-    closing_signature = sign_balance_proof(
-        get_private_key(A),
-        token_network.address,
-        chain_id,
-        1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
+    txn_hash = token_network.transact({'from': B}).updateNonClosingBalanceProof(
+        *balance_proof_A,
+        balance_proof_update_signature_B
     )
-    txn_hash = token_network.transact({'from': B}).updateTransfer(
+    print_gas(txn_hash, C_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
+
+    web3.testing.mine(settle_timeout)
+    txn_hash = token_network.transact().settleChannel(
         1,
-        nonce,
-        transferred_amount,
-        locksroot,
-        additional_hash,
-        closing_signature
+        A, 10, locked_amount1, locksroot1,
+        B, 5, locked_amount2, locksroot2
     )
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.updateTransfer')
-
-    prebalance_A = custom_token.call().balanceOf(A)
-    prebalance_B = custom_token.call().balanceOf(B)
-
-    web3.testing.mine(8)
-    txn_hash = token_network.transact().settleChannel(1, A, B)
-    assert custom_token.call().balanceOf(A) == prebalance_A + 20 - 15 + 5
-    assert custom_token.call().balanceOf(B) == prebalance_B + 10 - 5 + 15
     print_gas(txn_hash, C_TOKEN_NETWORK + '.settleChannel')
+
+    txn_hash = token_network.transact().unlock(
+        1,
+        A,
+        B,
+        pending_transfers_tree2.packed_transfers
+    )
+    print_gas(txn_hash, '{0}.unlock {1} locks'.format(
+        C_TOKEN_NETWORK,
+        len(pending_transfers_tree2.transfers)
+    ))
+
+    txn_hash = token_network.transact().unlock(
+        1,
+        B,
+        A,
+        pending_transfers_tree1.packed_transfers
+    )
+    print_gas(txn_hash, '{0}.unlock {1} locks'.format(
+        C_TOKEN_NETWORK,
+        len(pending_transfers_tree1.transfers)
+    ))

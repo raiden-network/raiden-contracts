@@ -3,14 +3,12 @@ from ethereum import tester
 from raiden_contracts.utils.config import (
     E_CHANNEL_OPENED,
     SETTLE_TIMEOUT_MIN,
-    SETTLE_TIMEOUT_MAX
+    SETTLE_TIMEOUT_MAX,
+    CHANNEL_STATE_NONEXISTENT_OR_SETTLED,
+    CHANNEL_STATE_OPEN
 )
-from .utils import check_channel_opened
-from .fixtures.config import (
-    empty_address,
-    fake_address,
-    fake_bytes
-)
+from raiden_contracts.utils.events import check_channel_opened
+from .fixtures.config import empty_address, fake_address, fake_bytes
 
 
 def test_open_channel_call(token_network, get_accounts):
@@ -61,26 +59,41 @@ def test_open_channel_state(token_network, get_accounts):
     (A, B) = get_accounts(2)
     settle_timeout = SETTLE_TIMEOUT_MIN + 10
 
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == 0  # settle_block_number
+    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
+
     token_network.transact().openChannel(A, B, settle_timeout)
 
-    channel = token_network.call().getChannelInfo(1)
-    assert channel[0] == settle_timeout
-    assert channel[1] == empty_address
-    assert channel[2] == 0
+    (settle_block_number, state) = token_network.call().getChannelInfo(1)
+    assert settle_block_number == settle_timeout  # settle_block_number
+    assert state == CHANNEL_STATE_OPEN  # state
 
-    A_state = token_network.call().getChannelParticipantInfo(1, A)
-    assert A_state[0] is True
-    assert A_state[1] == 0
-    assert A_state[2] == 0
-    assert A_state[3] == 0
-    assert A_state[4] == fake_bytes(32)
+    (
+        A_deposit,
+        A_is_initialized,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, A, B)
+    assert A_deposit == 0
+    assert A_is_initialized is True
+    assert A_is_the_closer is False
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
 
-    B_state = token_network.call().getChannelParticipantInfo(1, B)
-    assert B_state[0] is True
-    assert B_state[1] == 0
-    assert B_state[2] == 0
-    assert B_state[3] == 0
-    assert B_state[4] == fake_bytes(32)
+    (
+        B_deposit,
+        B_is_initialized,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce
+    ) = token_network.call().getChannelParticipantInfo(1, B, A)
+    assert B_deposit == 0
+    assert B_is_initialized is True
+    assert B_is_the_closer is False
+    assert B_balance_hash == fake_bytes(32)
+    assert B_nonce == 0
 
 
 def test_open_channel_event(get_accounts, token_network, event_handler):
