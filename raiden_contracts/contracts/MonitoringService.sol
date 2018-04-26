@@ -135,9 +135,8 @@ contract MonitoringService is Utils {
     /// being monitored exists.
     function monitor(
         uint256 channel_identifier,
+		bytes32 balance_hash,
         uint64 nonce,
-        uint256 transferred_amount,
-        bytes32 locksroot,
         bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature,
@@ -164,11 +163,10 @@ contract MonitoringService is Utils {
         TokenNetwork token_network = TokenNetwork(token_network_address);
 
         // Call updateTransfer in the corresponding TokenNetwork
-        token_network.updateTransferDelegate(
+        token_network.updateNonClosingBalanceProof(
             channel_identifier,
+			balance_hash,
             nonce,
-            transferred_amount,
-            locksroot,
             additional_hash,
             closing_signature,
             non_closing_signature
