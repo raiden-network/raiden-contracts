@@ -18,10 +18,8 @@ def test_cooperative_settle_channel_call(
     balance_A = 5
     balance_B = 25
 
-    # Create channel and deposit
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
         channel_identifier,
@@ -120,7 +118,6 @@ def test_cooperative_settle_channel_signatures(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
         channel_identifier,
@@ -178,7 +175,6 @@ def test_cooperative_settle_channel_0(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
         channel_identifier,
@@ -224,7 +220,6 @@ def test_cooperative_settle_channel_00(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
         channel_identifier,
@@ -269,10 +264,8 @@ def test_cooperative_settle_channel_state(
     balance_A = 5
     balance_B = 25
 
-    # Create channel and deposit
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
         channel_identifier,
@@ -284,7 +277,6 @@ def test_cooperative_settle_channel_state(
     pre_account_balance_B = custom_token.call().balanceOf(B)
     pre_balance_contract = custom_token.call().balanceOf(token_network.address)
 
-    # Settle the channel
     token_network.transact({'from': C}).cooperativeSettle(
         channel_identifier,
         A, balance_A,
@@ -323,10 +315,8 @@ def test_cooperative_settle_channel_wrong_balances(
     balance_A_fail2 = 6
     balance_B_fail2 = 8
 
-    # Create channel and deposit
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create cooperative settle signatures
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
         channel_identifier,
@@ -396,7 +386,6 @@ def test_update_channel_event(
         A, balance_A
     )
 
-    # Settle the channel
     txn_hash = token_network.transact({'from': B}).cooperativeSettle(
         channel_identifier,
         B, balance_B,
