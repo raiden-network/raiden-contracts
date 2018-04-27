@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN
+from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN, CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
     hash_balance_data,
@@ -8,6 +8,7 @@ from raiden_contracts.utils.sign import (
 )
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
+from .config import fake_bytes
 
 
 @pytest.fixture()
@@ -40,6 +41,75 @@ def channel_deposit(token_network, custom_token):
             deposit
         )
         return txn_hash
+    return get
+
+
+@pytest.fixture()
+def create_channel_and_deposit(create_channel, channel_deposit):
+    def get(participant1, participant2, deposit1=0, deposit2=0, settle_timeout=SETTLE_TIMEOUT_MIN):
+        channel_identifier = create_channel(participant1, participant2, settle_timeout)
+
+        if deposit1 > 0:
+            channel_deposit(channel_identifier, participant1, deposit1)
+        if deposit2 > 0:
+            channel_deposit(channel_identifier, participant2, deposit2)
+        return channel_identifier
+    return get
+
+
+@pytest.fixture()
+def cooperative_settle_state_tests(custom_token, token_network):
+    def get(
+            channel_identifier,
+            A, balance_A,
+            B, balance_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+    ):
+        # Make sure the correct amount of tokens has been transferred
+        account_balance_A = custom_token.call().balanceOf(A)
+        account_balance_B = custom_token.call().balanceOf(B)
+        balance_contract = custom_token.call().balanceOf(token_network.address)
+        assert account_balance_A == pre_account_balance_A + balance_A
+        assert account_balance_B == pre_account_balance_B + balance_B
+        assert balance_contract == pre_balance_contract - balance_A - balance_B
+
+        # Make sure channel data has been removed
+        (settle_block_number, state) = token_network.call().getChannelInfo(1)
+        assert settle_block_number == 0  # settle_block_number
+        assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
+
+        # Make sure participant data has been removed
+        (
+            A_deposit,
+            A_is_initialized,
+            A_is_the_closer,
+            A_locksroot,
+            A_locked_amount
+        ) = token_network.call().getChannelParticipantInfo(1, A, B)
+        assert A_deposit == 0
+        assert A_is_initialized == 0
+        assert A_is_the_closer == 0
+
+        # Make sure there is no balance data
+        assert A_locksroot == fake_bytes(32)
+        assert A_locked_amount == 0
+
+        (
+            B_deposit,
+            B_is_initialized,
+            B_is_the_closer,
+            B_locksroot,
+            B_locked_amount
+        ) = token_network.call().getChannelParticipantInfo(1, B, A)
+        assert B_deposit == 0
+        assert B_is_initialized == 0
+        assert B_is_the_closer == 0
+
+        # Make sure there is no balance data
+        assert B_locksroot == fake_bytes(32)
+        assert B_locked_amount == 0
     return get
 
 
@@ -110,28 +180,30 @@ def create_balance_proof_update_signature(token_network, get_private_key):
 
 
 @pytest.fixture()
-def create_cooperative_settle_signature(token_network, get_private_key):
+def create_cooperative_settle_signatures(token_network, get_private_key):
     def get(
+            participants_to_sign,
             channel_identifier,
-            participant,
             participant1_address,
             participant1_balance,
             participant2_address,
             participant2_balance,
             v=27
     ):
-        private_key = get_private_key(participant)
-
-        signature = sign_cooperative_settle_message(
-            private_key,
-            token_network.address,
-            int(token_network.call().chain_id()),
-            channel_identifier,
-            participant1_address,
-            participant1_balance,
-            participant2_address,
-            participant2_balance,
-            v
-        )
-        return signature
+        signatures = []
+        for participant in participants_to_sign:
+            private_key = get_private_key(participant)
+            signature = sign_cooperative_settle_message(
+                private_key,
+                token_network.address,
+                int(token_network.call().chain_id()),
+                channel_identifier,
+                participant1_address,
+                participant1_balance,
+                participant2_address,
+                participant2_balance,
+                v
+            )
+            signatures.append(signature)
+        return signatures
     return get

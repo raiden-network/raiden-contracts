@@ -585,6 +585,9 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        require(participant1_address != 0x0);
+        require(participant2_address != 0x0);
+
         address participant1;
         address participant2;
         uint256 total_deposit;
