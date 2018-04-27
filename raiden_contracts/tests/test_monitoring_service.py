@@ -48,6 +48,7 @@ def test_msc_happy_path(
     get_accounts,
     create_channel,
     create_balance_proof,
+    create_balance_proof_update_signature,
     create_reward_proof,
     event_handler,
     custom_token
@@ -75,16 +76,16 @@ def test_msc_happy_path(
     custom_token.transact({'from': B}).approve(token_network.address, 20)
     token_network.transact({'from': B}).setDeposit(channel_identifier, B, 20)
     # 2) create balance proof
-    balance_proof_A = create_balance_proof(channel_identifier, B, 10, 1)
-    balance_proof_B = create_balance_proof(channel_identifier, A, 20, 2)
-    balance_proof_B_nc = create_balance_proof(channel_identifier, B, 20, 2)
+    balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
+    balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
+    non_closing_signature_B = create_balance_proof_update_signature(B, *balance_proof_B)
     # 2a) create reward proof
     reward_proof = create_reward_proof(
         A,
         channel_identifier,
         reward_amount,
         token_network.address,
-        balance_proof_B[1],
+        balance_proof_B[2],
         MS
     )
     # 3) c1 closes channel
@@ -95,13 +96,12 @@ def test_msc_happy_path(
 
     txn_hash = monitoring_service_external.transact({'from': MS}).monitor(
         balance_proof_B[0],  # channel_id
-        balance_proof_B[1],  # nonce
-        balance_proof_B[2],  # transferred amount
-        balance_proof_B[3],  # locksroot
-        balance_proof_B[4],  # additional_hash
-        balance_proof_B[5],  # closing signature
-        balance_proof_B_nc[5],  # non-closing signature
-        MS,                 # reward sender address
+        balance_proof_B[1],  # balance_hash
+        balance_proof_B[2],  # nonce
+        balance_proof_B[3],  # additional_hash
+        balance_proof_B[4],  # closing signature
+        non_closing_signature_B,  # non-closing signature
+        B,                 # reward sender address
         reward_proof[6],  # reward proof signature
         token_network.address,  # token network address
 
@@ -109,7 +109,17 @@ def test_msc_happy_path(
     # 5) MSC calls TokenNetwork updateTransfer
     # 6) channel is settled
     token_network.web3.testing.mine(8)
-    token_network.transact().settleChannel(channel_identifier, A, B)
+    token_network.transact().settleChannel(
+        channel_identifier,  # channel_id
+        A,                   # participant1
+        20,                  # participant1_transferred_amount
+        0,                   # participant1_locked_amount
+        b'\x00' * 32,        # participant1_locksroot
+        B,                   # participant2
+        10,                  # participant2_transferred_amount
+        0,                   # participant2_locked_amount
+        b'\x00' * 32,        # participant2_locksroot
+    )
     # 7) MS claims the reward
     monitoring_service_external.transact({'from': MS}).claimReward(
         channel_identifier,

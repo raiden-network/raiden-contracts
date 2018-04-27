@@ -128,7 +128,7 @@ contract MonitoringService is Utils {
     /// is newer than the current newest registered BP.
     /// @param channel_identifier Unique identifier for the channel being monitored in a
     /// specific TokenNetwork.
-    /// @param nonce Strictly monotonic value used to order PBs
+    /// @param nonce Strictly monotonic value used to order BPs
     /// omitting PB specific params, since these will not be provided in the future
     /// @param reward_proof_signature Signature of the Raiden Node signing the reward
     /// @param token_network_address Address of the Token Network in which the channel
