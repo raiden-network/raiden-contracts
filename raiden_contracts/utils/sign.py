@@ -62,6 +62,34 @@ def hash_balance_proof_update_message(
     ])
 
 
+def hash_cooperative_settle_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant1_address,
+        participant1_balance,
+        participant2_address,
+        participant2_balance
+):
+    return Web3.soliditySha3([
+        'address',
+        'uint256',
+        'address',
+        'uint256',
+        'uint256',
+        'address',
+        'uint256'
+    ], [
+        participant1_address,
+        participant1_balance,
+        participant2_address,
+        participant2_balance,
+        channel_identifier,
+        token_network_address,
+        chain_identifier
+    ])
+
+
 def sign_balance_proof(
         privatekey,
         token_network_address,
@@ -103,6 +131,30 @@ def sign_balance_proof_update_message(
         nonce,
         additional_hash,
         closing_signature
+    )
+
+    return sign(privatekey, message_hash, v)
+
+
+def sign_cooperative_settle_message(
+        privatekey,
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant1_address,
+        participant1_balance,
+        participant2_address,
+        participant2_balance,
+        v=27
+):
+    message_hash = hash_cooperative_settle_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant1_address,
+        participant1_balance,
+        participant2_address,
+        participant2_balance
     )
 
     return sign(privatekey, message_hash, v)
