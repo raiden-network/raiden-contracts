@@ -7,9 +7,7 @@ pragma solidity ^0.4.17;
 import "raiden/lib/ECVerify.sol";
 
 contract SignatureVerifyTest {
-    function verify(
-        bytes32 _message_hash,
-        bytes _signed_message)
+    function verify(bytes32 _message_hash, bytes _signed_message)
         pure
         public
         returns (address signer)
@@ -18,11 +16,7 @@ contract SignatureVerifyTest {
         signer = ECVerify.ecverify(_message_hash, _signed_message);
     }
 
-    function verifyEcrecoverOutput(
-        bytes32 hash,
-        bytes32 r,
-        bytes32 s,
-        uint8 v)
+    function verifyEcrecoverOutput(bytes32 hash, bytes32 r, bytes32 s, uint8 v)
         pure
         public
         returns (address signature_address)
