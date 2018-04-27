@@ -100,7 +100,8 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         uint256 unlocked_amount,
-        uint256 returned_tokens);
+        uint256 returned_tokens
+    );
 
     event NonClosingBalanceProofUpdated(uint256 channel_identifier, address closing_participant);
 
@@ -129,10 +130,7 @@ contract TokenNetwork is Utils {
      *  Constructor
      */
 
-    function TokenNetwork(
-        address _token_address,
-        address _secret_registry,
-        uint256 _chain_id)
+    function TokenNetwork(address _token_address, address _secret_registry, uint256 _chain_id)
         public
     {
         require(_token_address != 0x0);
@@ -160,10 +158,7 @@ contract TokenNetwork is Utils {
     /// @param participant2 Ethereum address of the other channel participant.
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
-    function openChannel(
-        address participant1,
-        address participant2,
-        uint256 settle_timeout)
+    function openChannel(address participant1, address participant2, uint256 settle_timeout)
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -206,10 +201,7 @@ contract TokenNetwork is Utils {
     /// @param participant Channel participant whose deposit is being set.
     /// @param total_deposit Idempotent function which sets the total amount of
     /// tokens that the participant will have as a deposit.
-    function setDeposit(
-        uint256 channel_identifier,
-        address participant,
-        uint256 total_deposit)
+    function setDeposit(uint256 channel_identifier, address participant, uint256 total_deposit)
         isOpen(channel_identifier)
         isParticipant(channel_identifier, participant)
         public
@@ -245,7 +237,8 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes signature)
+        bytes signature
+    )
         isOpen(channel_identifier)
         isParticipant(channel_identifier, msg.sender)
         public
@@ -303,7 +296,8 @@ contract TokenNetwork is Utils {
         uint256 nonce,
         bytes32 additional_hash,
         bytes closing_signature,
-        bytes non_closing_signature)
+        bytes non_closing_signature
+    )
         external
     {
         Channel storage channel = channels[channel_identifier];
@@ -390,7 +384,8 @@ contract TokenNetwork is Utils {
         address participant2,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount,
-        bytes32 participant2_locksroot)
+        bytes32 participant2_locksroot
+    )
         public
     {
         Channel storage channel = channels[channel_identifier];
@@ -480,7 +475,8 @@ contract TokenNetwork is Utils {
         uint256 participant1_locked_amount,
         uint256 participant2_deposit,
         uint256 participant2_transferred_amount,
-        uint256 participant2_locked_amount)
+        uint256 participant2_locked_amount
+    )
         pure
         private
         returns (uint256, uint256)
@@ -530,7 +526,8 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         address partner,
-        bytes merkle_tree_leaves)
+        bytes merkle_tree_leaves
+    )
         public
     {
         // Channel must be settled and channel data deleted
@@ -595,10 +592,7 @@ contract TokenNetwork is Utils {
     /// is referenced by the key.
     /// @param partner Address of the channel partner.
     /// @return Unique identifier for the participant's balance data.
-    function getBalanceDataKey(
-        uint256 channel_identifier,
-        address participant,
-        address partner)
+    function getBalanceDataKey(uint256 channel_identifier, address participant, address partner)
         pure
         internal
         returns (bytes32 data)
@@ -606,12 +600,7 @@ contract TokenNetwork is Utils {
         return keccak256(channel_identifier, participant, partner);
     }
 
-    function updateBalanceProofData(
-        bytes32 key,
-        uint256 nonce,
-        bytes32 balance_hash)
-        internal
-    {
+    function updateBalanceProofData(bytes32 key, uint256 nonce, bytes32 balance_hash) internal {
         BalanceData storage balance_state = balance_data[key];
 
         // Multiple calls to updateNonClosingBalanceProof can be made and we need to store
@@ -627,7 +616,8 @@ contract TokenNetwork is Utils {
         address participant,
         address partner,
         uint256 locked_amount,
-        bytes32 locksroot)
+        bytes32 locksroot
+    )
         internal
     {
         bytes32 key = getBalanceDataKey(channel_identifier, participant, partner);
@@ -650,7 +640,8 @@ contract TokenNetwork is Utils {
         address partner,
         uint256 transferred_amount,
         uint256 locked_amount,
-        bytes32 locksroot)
+        bytes32 locksroot
+    )
         view
         internal
         returns (bool balance_data_is_correct)
@@ -693,7 +684,8 @@ contract TokenNetwork is Utils {
     function getChannelParticipantInfo(
         uint256 channel_identifier,
         address participant,
-        address partner)
+        address partner
+    )
         view
         external
         returns (uint256, bool, bool, bytes32, uint256)

@@ -45,7 +45,8 @@ contract CustomToken is StandardToken {
         uint256 initial_supply,
         uint8 decimal_units,
         string token_name,
-        string token_symbol)
+        string token_symbol
+    )
         public
     {
         // Set the name for display purposes

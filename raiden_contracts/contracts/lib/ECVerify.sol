@@ -2,9 +2,7 @@ pragma solidity ^0.4.17;
 
 library ECVerify {
 
-    function ecverify(
-        bytes32 hash,
-        bytes signature)
+    function ecverify(bytes32 hash, bytes signature)
         internal
         pure
         returns (address signature_address)

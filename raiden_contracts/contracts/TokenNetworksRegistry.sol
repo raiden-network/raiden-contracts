@@ -39,8 +39,7 @@ contract TokenNetworksRegistry is Utils {
      *  External Functions
      */
 
-    function createERC20TokenNetwork(
-        address _token_address)
+    function createERC20TokenNetwork(address _token_address)
         external
         returns (address token_network_address)
     {
