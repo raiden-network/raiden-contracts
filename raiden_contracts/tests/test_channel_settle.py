@@ -8,6 +8,44 @@ from .utils import get_settlement_amounts
 from .fixtures.config import fake_hex
 
 
+def test_settle_no_bp_success(
+        web3,
+        token_network,
+        create_channel_and_deposit,
+        get_accounts,
+        create_balance_proof
+):
+    (A, B) = get_accounts(2)
+    deposit_A = 10
+    deposit_B = 6
+    settle_timeout = SETTLE_TIMEOUT_MIN
+    locksroot = fake_hex(32, '00')
+    additional_hash = fake_hex(32, '00')
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+
+    # Create balance proofs
+    balance_proof_B = create_balance_proof(
+        channel_identifier,
+        B, 0, 0, 0,
+        locksroot, additional_hash
+    )
+
+    # Close channel and update balance proofs
+    token_network.transact({'from': A}).closeChannel(*balance_proof_B)
+
+    # Do not call updateNonClosingBalanceProof
+
+    # Settlement window must be over before settling the channel
+    web3.testing.mine(settle_timeout)
+
+    # Settling the channel should work with no balance proofs
+    token_network.transact({'from': A}).settleChannel(
+        channel_identifier,
+        A, 0, 0, locksroot,
+        B, 0, 0, locksroot
+    )
+
+
 def test_settle_channel_state(
         web3,
         custom_token,

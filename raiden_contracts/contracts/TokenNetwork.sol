@@ -705,14 +705,24 @@ contract TokenNetwork is Utils {
     )
         view
         internal
-        returns (bool balance_data_is_correct)
+        returns (bool)
     {
         BalanceData storage balance_state = balance_data[
             getBalanceDataKey(channel_identifier, participant, partner)
         ];
 
+        // When no balance proof has been provided, we need to check this separately because
+        // hashing values of 0 outputs a value != 0
+        if (balance_state.balance_hash_or_locksroot == 0 &&
+            transferred_amount == 0 &&
+            locked_amount == 0 &&
+            locksroot == 0
+        ) {
+            return true;
+        }
+
         // Make sure the hash of the provided state is the same as the stored balance_hash
-        balance_data_is_correct = balance_state.balance_hash_or_locksroot == keccak256(
+        return balance_state.balance_hash_or_locksroot == keccak256(
             transferred_amount,
             locked_amount,
             locksroot
