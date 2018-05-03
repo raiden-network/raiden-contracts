@@ -1,8 +1,9 @@
 import os
 import json
 import logging
-from functools import wraps
 from typing import Union, List, Dict
+
+from solc import compile_files
 
 log = logging.getLogger(__name__)
 CONTRACTS_DIR = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
@@ -13,26 +14,6 @@ CONTRACTS_SOURCE_DIRS = {
 CONTRACTS_SOURCE_DIRS = {
     k: os.path.normpath(v) for k, v in CONTRACTS_SOURCE_DIRS.items()
 }
-_solidity = None
-
-
-def import_or_return_none(module: str):
-    import importlib
-    try:
-        return importlib.import_module(module)
-    except ImportError:
-        return None
-
-
-#
-# import _solidity as a module if ethereum library is installed AND solidity binary exists
-#
-_solidity = import_or_return_none('ethereum.tools._solidity')
-if _solidity is None:
-    # ethereum < 2.0.0
-    _solidity = import_or_return_none('ethereum._solidity')
-else:
-    log.info('ethereum._solidity not found. Contract compilation will be unavailable')
 
 
 def get_event_from_abi(abi: List, event_name: str):
@@ -50,16 +31,14 @@ def get_event_from_abi(abi: List, event_name: str):
     return result[0]
 
 
-def assert_has_solidity(func):
-    """decorator - Raise CompileError if HAS_SOLIDITY is set to False"""
-    @wraps(func)
-    def func_wrap(*args, **kwargs):
-        if _solidity is None:
-            raise _solidity.CompileError(
-                'solc not found in $PATH. Check your path or set $SOLC_BINARY.'
-            )
-        return func(*args, **kwargs)
-    return func_wrap
+def fix_contract_key_names(input: Dict) -> Dict:
+    result = {}
+
+    for k, v in input.items():
+        name = k.split(':')[1]
+        result[name] = v
+
+    return result
 
 
 class ContractManager:
@@ -81,15 +60,12 @@ class ContractManager:
         else:
             self.abi = json.load(open(path, 'r'))
 
-    @assert_has_solidity
     def compile_contract(self, contract_name: str, libs=None, *args):
         """Compile contract and return JSON containing abi and bytecode"""
-        return _solidity.compile_contract(
+        return compile_files(
             self.get_contract_path(contract_name)[0],
-            contract_name,
-            combined='abi,bin',
-            libraries=libs,
-            extra_args=self.get_mappings()
+            output_values=('abi', 'bin'),
+            import_remappings=self.get_mappings()
         )
 
     def get_contract_path(self, contract_name: str):
@@ -113,7 +89,6 @@ class ContractManager:
         return ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
 
     @staticmethod
-    @assert_has_solidity
     def precompile_contracts(contracts_dir: str, map_dirs: List) -> Dict:
         """
         Compile solidity contracts into ABI. This requires solc somewhere in the $PATH
@@ -125,18 +100,22 @@ class ContractManager:
         Return:
             map (contract_name => ABI)
         """
-        ret = {}
+        files = []
         for contract in os.listdir(contracts_dir):
             contract_path = os.path.join(contracts_dir, contract)
-            if os.path.isfile(contract_path) is False or '.sol' not in contract_path:
+            if not os.path.isfile(contract_path) or '.sol' not in contract_path:
                 continue
-            contract_name = os.path.basename(contract).split('.')[0]
-            ret[contract_name] = _solidity.compile_contract(
-                contract_path, contract_name,
-                combined='abi',
-                extra_args=map_dirs
+            files.append(contract_path)
+
+        try:
+            res = compile_files(
+                files,
+                output_values=('abi', 'bin'),
+                import_remappings=map_dirs
             )
-        return ret
+            return fix_contract_key_names(res)
+        except FileNotFoundError:
+            raise Exception('Could not compile the contract. Check that solc is available.')
 
     def get_contract_abi(self, contract_name: str) -> Dict:
         """ Returns the ABI for a given contract. """
