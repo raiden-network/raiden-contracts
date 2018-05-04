@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.23;
 
 import "./Token.sol";
 import "./Utils.sol";
@@ -122,7 +122,7 @@ contract TokenNetwork is Utils {
      *  Constructor
      */
 
-    function TokenNetwork(address _token_address, address _secret_registry, uint256 _chain_id)
+    constructor(address _token_address, address _secret_registry, uint256 _chain_id)
         public
     {
         require(_token_address != 0x0);
@@ -166,7 +166,7 @@ contract TokenNetwork is Utils {
         // Mark channel as opened
         channel.state = 1;
 
-        ChannelOpened(channel_identifier, participant1, participant2, settle_timeout);
+        emit ChannelOpened(channel_identifier, participant1, participant2, settle_timeout);
 
         return channel_identifier;
     }
@@ -201,7 +201,7 @@ contract TokenNetwork is Utils {
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
 
-        ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
+        emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
@@ -254,7 +254,7 @@ contract TokenNetwork is Utils {
         // Signature must be from the channel partner
         assert(partner == recovered_partner_address);
 
-        ChannelClosed(channel_identifier, msg.sender);
+        emit ChannelClosed(channel_identifier, msg.sender);
     }
 
     /// @notice Called on a closed channel, the function allows the non-closing participant to
@@ -321,7 +321,7 @@ contract TokenNetwork is Utils {
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
 
-        NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
+        emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
 
         assert(closing_participant == recovered_closing_participant);
         assert(non_closing_participant == recovered_non_closing_participant);
@@ -430,7 +430,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(participant2, participant1_transferred_amount));
         }
 
-        ChannelSettled(channel_identifier);
+        emit ChannelSettled(channel_identifier);
     }
 
     function getSettleTransferAmounts(
@@ -539,7 +539,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(partner, returned_tokens));
         }
 
-        ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
+        emit ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
 
         assert(computed_locksroot != 0);
         assert(unlocked_amount > 0);
@@ -611,7 +611,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(participant2, participant2_balance));
         }
 
-        ChannelSettled(channel_identifier);
+        emit ChannelSettled(channel_identifier);
     }
 
     /// @dev Returns the unique identifier for the channel

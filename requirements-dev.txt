@@ -1,5 +1,5 @@
 -r requirements.txt
-eth-tester[py-evm]==0.1.0-beta.23,<1.0
+eth-tester[py-evm]==0.1.0-beta.24,<1.0
 pytest
 flake8
 git+https://github.com/raiden-network/raiden-libs.git
