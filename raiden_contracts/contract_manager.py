@@ -62,11 +62,17 @@ class ContractManager:
 
     def compile_contract(self, contract_name: str, libs=None, *args):
         """Compile contract and return JSON containing abi and bytecode"""
-        return compile_files(
-            self.get_contract_path(contract_name)[0],
+        contract_json = compile_files(
+            [self.get_contract_path(contract_name)[0]],
             output_values=('abi', 'bin'),
-            import_remappings=self.get_mappings()
+            import_remappings=self.get_mappings(),
+            optimize=True
         )
+        contract_json = {
+            os.path.basename(key).split('.', 1)[0]: value
+            for key, value in contract_json.items()
+        }
+        return contract_json.get(contract_name, None)
 
     def get_contract_path(self, contract_name: str):
         return sum(
