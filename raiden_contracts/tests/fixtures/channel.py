@@ -1,5 +1,10 @@
 import pytest
-from raiden_contracts.utils.config import C_TOKEN_NETWORK, SETTLE_TIMEOUT_MIN, CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+from raiden_contracts.utils.config import (
+    C_TOKEN_NETWORK,
+    SETTLE_TIMEOUT_MIN,
+    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+)
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
     hash_balance_data,
@@ -14,18 +19,26 @@ from .config import fake_bytes
 @pytest.fixture()
 def create_channel(token_network):
     def get(A, B, settle_timeout=SETTLE_TIMEOUT_MIN):
+        # Make sure there is no channel data on chain
+        (_, channel_settle_timeout, channel_state) = token_network.call().getChannelInfo(A, B)
+        assert channel_settle_timeout == 0
+        assert channel_state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+
+        # Open the channel and retrieve the channel identifier
         txn_hash = token_network.transact().openChannel(A, B, settle_timeout)
-        channel_identifier = token_network.call().last_channel_index()
-        assert token_network.call().getChannelInfo(channel_identifier)[0] == settle_timeout
-        assert token_network.call().getChannelParticipantInfo(channel_identifier, A, B)[1] is True
-        assert token_network.call().getChannelParticipantInfo(channel_identifier, B, A)[1] is True
-        return channel_identifier
+
+        # Test the channel state on chain
+        (channel_identifier, channel_settle_timeout, channel_state) = token_network.call().getChannelInfo(A, B)
+        assert channel_settle_timeout == settle_timeout
+        assert channel_state == CHANNEL_STATE_OPEN
+
+        return txn_hash
     return get
 
 
 @pytest.fixture()
 def channel_deposit(token_network, custom_token):
-    def get(channel_identifier, participant, deposit=None):
+    def get(participant, deposit, partner):
         balance = custom_token.call().balanceOf(participant)
         deposit = deposit or balance
 
@@ -36,9 +49,9 @@ def channel_deposit(token_network, custom_token):
         custom_token.transact({'from': participant}).approve(token_network.address, deposit)
 
         txn_hash = token_network.transact({'from': participant}).setDeposit(
-            channel_identifier,
             participant,
-            deposit
+            deposit,
+            partner
         )
         return txn_hash
     return get
@@ -47,13 +60,13 @@ def channel_deposit(token_network, custom_token):
 @pytest.fixture()
 def create_channel_and_deposit(create_channel, channel_deposit):
     def get(participant1, participant2, deposit1=0, deposit2=0, settle_timeout=SETTLE_TIMEOUT_MIN):
-        channel_identifier = create_channel(participant1, participant2, settle_timeout)
+        txn_hash = create_channel(participant1, participant2, settle_timeout)
 
         if deposit1 > 0:
-            channel_deposit(channel_identifier, participant1, deposit1)
+            channel_deposit(participant1, deposit1, participant2)
         if deposit2 > 0:
-            channel_deposit(channel_identifier, participant2, deposit2)
-        return channel_identifier
+            channel_deposit(participant2, deposit2, participant1)
+        return txn_hash
     return get
 
 
@@ -76,7 +89,7 @@ def cooperative_settle_state_tests(custom_token, token_network):
         assert balance_contract == pre_balance_contract - balance_A - balance_B
 
         # Make sure channel data has been removed
-        (settle_block_number, state) = token_network.call().getChannelInfo(1)
+        (settle_block_number, state) = token_network.call().getChannelInfo(A, B)
         assert settle_block_number == 0  # settle_block_number
         assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
 
@@ -85,31 +98,25 @@ def cooperative_settle_state_tests(custom_token, token_network):
             A_deposit,
             A_is_initialized,
             A_is_the_closer,
-            A_locksroot,
-            A_locked_amount
-        ) = token_network.call().getChannelParticipantInfo(1, A, B)
+            A_balance_hash,
+            A_nonce
+        ) = token_network.call().getChannelParticipantInfo(A, B)
         assert A_deposit == 0
-        assert A_is_initialized == 0
         assert A_is_the_closer == 0
-
-        # Make sure there is no balance data
-        assert A_locksroot == fake_bytes(32)
-        assert A_locked_amount == 0
+        assert A_balance_hash == fake_bytes(32)
+        assert A_nonce == 0
 
         (
             B_deposit,
             B_is_initialized,
             B_is_the_closer,
-            B_locksroot,
-            B_locked_amount
-        ) = token_network.call().getChannelParticipantInfo(1, B, A)
+            B_balance_hash,
+            B_nonce
+        ) = token_network.call().getChannelParticipantInfo(B, A)
         assert B_deposit == 0
-        assert B_is_initialized == 0
         assert B_is_the_closer == 0
-
-        # Make sure there is no balance data
-        assert B_locksroot == fake_bytes(32)
-        assert B_locked_amount == 0
+        assert B_balance_hash == fake_bytes(32)
+        assert B_nonce == 0
     return get
 
 
