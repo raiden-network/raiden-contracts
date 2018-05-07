@@ -18,7 +18,7 @@ def test_cooperative_settle_channel_call(
     balance_A = 5
     balance_B = 25
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -29,7 +29,6 @@ def test_cooperative_settle_channel_call(
 
     with pytest.raises(TypeError):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, -1,
             B, balance_B,
             signature_A,
@@ -37,7 +36,6 @@ def test_cooperative_settle_channel_call(
         )
     with pytest.raises(TypeError):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             B, -1,
             signature_A,
@@ -45,7 +43,6 @@ def test_cooperative_settle_channel_call(
         )
     with pytest.raises(TypeError):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             0x0, balance_A,
             B, balance_B,
             signature_A,
@@ -53,7 +50,6 @@ def test_cooperative_settle_channel_call(
         )
     with pytest.raises(TypeError):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             0x0, balance_B,
             signature_A,
@@ -69,7 +65,6 @@ def test_cooperative_settle_channel_call(
         )
     with pytest.raises(TypeError):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             B, balance_B,
             signature_A,
@@ -78,7 +73,6 @@ def test_cooperative_settle_channel_call(
 
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             empty_address,
             balance_A,
             B, balance_B,
@@ -87,7 +81,6 @@ def test_cooperative_settle_channel_call(
         )
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             empty_address,
             balance_B,
@@ -96,7 +89,6 @@ def test_cooperative_settle_channel_call(
         )
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -116,7 +108,7 @@ def test_cooperative_settle_channel_signatures(
     balance_A = 4
     balance_B = 26
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -127,7 +119,6 @@ def test_cooperative_settle_channel_signatures(
 
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             B, balance_B,
             signature_C,
@@ -135,7 +126,6 @@ def test_cooperative_settle_channel_signatures(
         )
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A,
             B, balance_B,
             signature_A,
@@ -143,7 +133,6 @@ def test_cooperative_settle_channel_signatures(
         )
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_B,
             B, balance_A,
             signature_A,
@@ -151,7 +140,6 @@ def test_cooperative_settle_channel_signatures(
         )
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -173,7 +161,7 @@ def test_cooperative_settle_channel_0(
     balance_A = 0
     balance_B = 30
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -187,7 +175,6 @@ def test_cooperative_settle_channel_0(
     pre_balance_contract = custom_token.call().balanceOf(token_network.address)
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -195,7 +182,6 @@ def test_cooperative_settle_channel_0(
     )
 
     cooperative_settle_state_tests(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         pre_account_balance_A,
@@ -218,7 +204,7 @@ def test_cooperative_settle_channel_00(
     balance_A = 0
     balance_B = 0
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -232,7 +218,6 @@ def test_cooperative_settle_channel_00(
     pre_balance_contract = custom_token.call().balanceOf(token_network.address)
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -240,7 +225,6 @@ def test_cooperative_settle_channel_00(
     )
 
     cooperative_settle_state_tests(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         pre_account_balance_A,
@@ -264,7 +248,7 @@ def test_cooperative_settle_channel_state(
     balance_A = 5
     balance_B = 25
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -278,7 +262,6 @@ def test_cooperative_settle_channel_state(
     pre_balance_contract = custom_token.call().balanceOf(token_network.address)
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -286,7 +269,6 @@ def test_cooperative_settle_channel_state(
     )
 
     cooperative_settle_state_tests(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         pre_account_balance_A,
@@ -315,7 +297,7 @@ def test_cooperative_settle_channel_wrong_balances(
     balance_A_fail2 = 6
     balance_B_fail2 = 8
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -338,7 +320,6 @@ def test_cooperative_settle_channel_wrong_balances(
 
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A_fail1,
             B, balance_B_fail1,
             signature_A_fail1,
@@ -346,7 +327,6 @@ def test_cooperative_settle_channel_wrong_balances(
         )
     with pytest.raises(tester.TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
-            channel_identifier,
             A, balance_A_fail2,
             B, balance_B_fail2,
             signature_A_fail2,
@@ -354,7 +334,6 @@ def test_cooperative_settle_channel_wrong_balances(
         )
 
     token_network.transact({'from': C}).cooperativeSettle(
-        channel_identifier,
         A, balance_A,
         B, balance_B,
         signature_A,
@@ -362,7 +341,7 @@ def test_cooperative_settle_channel_wrong_balances(
     )
 
 
-def test_update_channel_event(
+def test_cooperative_settle_channel_event(
         web3,
         get_accounts,
         token_network,
@@ -376,8 +355,8 @@ def test_update_channel_event(
     deposit_A = 10
     balance_A = 2
     balance_B = 8
-    channel_identifier = create_channel(A, B)
-    channel_deposit(channel_identifier, A, deposit_A)
+    channel_identifier = create_channel(A, B)[0]
+    channel_deposit(A, deposit_A, B)
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -387,7 +366,6 @@ def test_update_channel_event(
     )
 
     txn_hash = token_network.transact({'from': B}).cooperativeSettle(
-        channel_identifier,
         B, balance_B,
         A, balance_A,
         signature_B,

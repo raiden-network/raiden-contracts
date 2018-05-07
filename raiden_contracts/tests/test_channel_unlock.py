@@ -96,9 +96,9 @@ def test_channel_unlock(
     locked_amount1 = 0
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)
-    channel_deposit(channel_identifier, A, deposit_A)
-    channel_deposit(channel_identifier, B, deposit_B)
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, deposit_A, B)
+    channel_deposit(B, deposit_B, A)
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -117,7 +117,11 @@ def test_channel_unlock(
         B, 5, locked_amount2, 3,
         locksroot2, additional_hash
     )
-    balance_proof_update_signature_B = create_balance_proof_update_signature(B, *balance_proof_A)
+    balance_proof_update_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_A
+    )
 
     # Reveal secrets before settlement window ends
     for lock in pending_transfers_tree.unlockable:
@@ -125,8 +129,9 @@ def test_channel_unlock(
         assert secret_registry.call().getSecretRevealBlockHeight(lock[2]) == web3.eth.blockNumber
 
     # Close channel and update balance proofs
-    token_network.transact({'from': A}).closeChannel(*balance_proof_B)
+    token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
     token_network.transact({'from': B}).updateNonClosingBalanceProof(
+        A, B,
         *balance_proof_A,
         balance_proof_update_signature_B
     )
@@ -136,7 +141,6 @@ def test_channel_unlock(
 
     # Settle the channel
     token_network.transact({'from': A}).settleChannel(
-        channel_identifier,
         A, 10, locked_amount1, locksroot1,
         B, 5, locked_amount2, locksroot2
     )
@@ -150,7 +154,6 @@ def test_channel_unlock(
 
     # Unlock the tokens
     txn_hash = token_network.transact().unlock(
-        channel_identifier,
         A,
         B,
         pending_transfers_tree.packed_transfers
