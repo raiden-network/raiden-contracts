@@ -155,9 +155,6 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
-        require(participant1 != 0x0);
-        require(participant2 != 0x0);
-
         bytes32 channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
@@ -184,8 +181,6 @@ contract TokenNetwork is Utils {
         isOpen(participant, partner)
         public
     {
-        require(participant != 0x0);
-        require(partner != 0x0);
         require(total_deposit > 0);
 
         bytes32 channel_identifier;
@@ -227,8 +222,6 @@ contract TokenNetwork is Utils {
         isOpen(msg.sender, partner)
         public
     {
-        require(partner != 0x0);
-
         address recovered_partner_address;
         bytes32 channel_identifier;
 
@@ -285,8 +278,6 @@ contract TokenNetwork is Utils {
     )
         external
     {
-        require(closing_participant != 0x0);
-        require(non_closing_participant != 0x0);
         require(balance_hash != 0x0);
         require(nonce > 0);
 
@@ -502,8 +493,6 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(participant != 0x0);
-        require(partner != 0x0);
         require(merkle_tree_leaves.length > 0);
 
         bytes32 channel_identifier;
@@ -567,9 +556,6 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(participant1_address != 0x0);
-        require(participant2_address != 0x0);
-
         bytes32 channel_identifier;
         address participant1;
         address participant2;
@@ -637,6 +623,9 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
+        require(participant != 0x0);
+        require(partner != 0x0);
+
         // Participant addresses must be different
         require(participant != partner);
 
