@@ -1,5 +1,5 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import E_TRANSFER_UPDATED, CHANNEL_STATE_CLOSED
 from raiden_contracts.utils.events import check_transfer_updated
 from .fixtures.config import fake_bytes
@@ -80,7 +80,7 @@ def test_update_channel_fail_no_offchain_transfers(
 
     token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': B}).updateNonClosingBalanceProof(
             A, B,
             *balance_proof_A,

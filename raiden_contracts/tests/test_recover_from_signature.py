@@ -1,5 +1,5 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from raiden_contracts.utils.sign import hash_balance_proof
 from .fixtures.config import empty_address
@@ -7,11 +7,12 @@ from raiden_contracts.utils.sign_utils import sign
 
 
 @pytest.fixture
-def signature_test_contract(chain, create_contract, custom_token, secret_registry):
-    SignatureVerifyTest = chain.provider.get_contract_factory('SignatureVerifyTest')
-    signature_test_contract = create_contract(SignatureVerifyTest, [])
-
-    return signature_test_contract
+def signature_test_contract(deploy_tester_contract):
+    return deploy_tester_contract(
+        'SignatureVerifyTest',
+        {},
+        []
+    )
 
 
 def test_verify(
@@ -59,7 +60,7 @@ def test_verify_fail(signature_test_contract, get_accounts, get_private_key):
     assert signature_test_contract.call().verify(message_hash, signature) != A
 
     signature2 = signature[:65] + bytes([2])
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         signature_test_contract.call().verify(message_hash, signature2)
 
 

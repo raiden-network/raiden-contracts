@@ -14,6 +14,7 @@ from raiden_contracts.utils.sign import (
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
+from eth_utils import denoms
 
 
 @pytest.fixture()
@@ -43,7 +44,7 @@ def channel_deposit(token_network, custom_token):
         deposit = deposit or balance
 
         while balance < deposit:
-            custom_token.transact({'from': participant, 'value': 10 ** 18}).mint()
+            custom_token.transact({'from': participant, 'value': 100 * denoms.finney}).mint()
             balance = custom_token.call().balanceOf(participant)
 
         custom_token.transact({'from': participant}).approve(token_network.address, deposit)

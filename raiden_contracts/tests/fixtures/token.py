@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.utils.config import C_HUMAN_STANDARD_TOKEN, C_CUSTOM_TOKEN
+from raiden_contracts.utils.config import C_CUSTOM_TOKEN
 from .utils import *  # flake8: noqa
 
 token_args = [
@@ -14,23 +14,9 @@ def token_params(request):
 
 
 @pytest.fixture()
-def get_human_token(chain, create_contract):
-    def get(arguments, transaction=None):
-        HumanToken = chain.provider.get_contract_factory(C_HUMAN_STANDARD_TOKEN)
-        token_contract = create_contract(HumanToken, arguments, transaction)
-        return token_contract
-    return get
-
-
-@pytest.fixture()
-def get_custom_token(chain, create_contract):
-    def get(arguments, transaction=None):
-        CustomToken = chain.provider.get_contract_factory(C_CUSTOM_TOKEN)
-        token_contract = create_contract(CustomToken, arguments, transaction)
-        return token_contract
-    return get
-
-
-@pytest.fixture()
-def custom_token(get_custom_token, token_params):
-    return get_custom_token(token_params)
+def custom_token(deploy_tester_contract, token_params):
+    return deploy_tester_contract(
+        C_CUSTOM_TOKEN,
+        [],
+        token_params
+    )

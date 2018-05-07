@@ -11,7 +11,7 @@ import "raiden/Token.sol";
 
 contract StandardToken is Token {
     uint256 internal _total_supply;
-    mapping (address => uint256) balances;
+    mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) allowed;
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
@@ -33,7 +33,10 @@ contract StandardToken is Token {
     {
         //same as above. Replace this line with the following if you want to protect against wrapping uints.
         //if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value > balances[_to]) {
-        if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
+        require(balances[_from] >= _value);
+        require(allowed[_from][msg.sender] >= _value);
+        require(_value > 0);
+        if ((balances[_from] >= _value) && (allowed[_from][msg.sender] >= _value) && (_value > 0)) {
             balances[_to] += _value;
             balances[_from] -= _value;
             allowed[_from][msg.sender] -= _value;

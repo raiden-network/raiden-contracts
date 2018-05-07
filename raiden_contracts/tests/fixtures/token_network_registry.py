@@ -4,14 +4,16 @@ from .utils import *  # flake8: noqa
 
 
 @pytest.fixture()
-def get_token_network_registry(chain, create_contract):
+def get_token_network_registry(deploy_tester_contract):
     def get(arguments, transaction=None):
-        TokenNetworkRegistry = chain.provider.get_contract_factory(C_TOKEN_NETWORK_REGISTRY)
-        contract = create_contract(TokenNetworkRegistry, arguments, transaction)
-        return contract
+        return deploy_tester_contract(
+            C_TOKEN_NETWORK_REGISTRY,
+            {},
+            arguments
+        )
     return get
 
 
 @pytest.fixture()
-def token_network_registry(chain, get_token_network_registry, secret_registry):
-    return get_token_network_registry([secret_registry.address, int(chain.web3.version.network)])
+def token_network_registry(token_network_registry_contract):
+    return token_network_registry_contract

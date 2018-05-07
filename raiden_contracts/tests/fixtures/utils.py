@@ -1,7 +1,8 @@
 import pytest
 from raiden_contracts.utils.logs import LogHandler
-from ethereum import tester
+from raiden_libs.utils import private_key_to_address
 from .config import passphrase
+from eth_utils import denoms, is_same_address
 
 
 @pytest.fixture()
@@ -10,8 +11,8 @@ def owner_index():
 
 
 @pytest.fixture()
-def owner(web3, owner_index):
-    return web3.eth.accounts[owner_index]
+def owner(faucet_address):
+    return faucet_address
 
 
 @pytest.fixture()
@@ -32,26 +33,44 @@ def create_accounts(web3):
     return get
 
 
+@pytest.fixture
+def create_account(web3, faucet_address, ethereum_tester, get_random_privkey):
+    def get():
+        privkey = get_random_privkey()
+        address = private_key_to_address(privkey)
+        ethereum_tester.add_account(privkey)
+        web3.eth.sendTransaction({
+            'from': faucet_address,
+            'to': address,
+            'value': 1 * denoms.ether
+        })
+        return address
+    return get
+
+
 @pytest.fixture()
-def get_accounts(web3, owner_index, create_accounts):
-    def get(number, index_start=None):
-        if not index_start:
-            index_start = owner_index + 1
-        accounts_len = len(web3.eth.accounts)
-        index_end = min(number + index_start, accounts_len)
-        accounts = web3.eth.accounts[index_start:index_end]
-        if number > len(accounts):
-            accounts += create_accounts(number - len(accounts))
-        return accounts
+def get_accounts(create_account):
+    def get(number):
+        return [
+            create_account()
+            for x in range(number)
+        ]
+
     return get
 
 
 @pytest.fixture
-def get_private_key(web3):
+def get_private_key(web3, ethereum_tester):
     def get(account_address):
-        index = web3.eth.accounts.index(account_address)
-        privkey = getattr(tester, 'k' + str(index))
-        return hex(int.from_bytes(privkey, byteorder='big'))
+        keys = [
+            key.to_hex() for key in ethereum_tester.backend.account_keys
+            if is_same_address(
+                key.public_key.to_address(),
+                account_address
+            )
+        ]
+        assert len(keys) == 1
+        return keys[0]
     return get
 
 
@@ -71,15 +90,10 @@ def create_contract(chain, owner):
 
 
 @pytest.fixture()
-def event_handler(chain, web3):
+def event_handler(contracts_manager, web3):
     def get(contract=None, address=None, abi=None):
         if contract:
-            # Get contract factory name from contract instance
-            # TODO is there an actual API for this??
-            comp_target = contract.metadata['settings']['compilationTarget']
-            name = comp_target[list(comp_target.keys())[0]]
-
-            abi = chain.provider.get_base_contract_factory(name).abi
+            abi = contract.abi
             address = contract.address
 
         if address and abi:
@@ -97,15 +111,15 @@ def txn_cost(web3, txnGas):
 
 
 @pytest.fixture
-def txn_gas(chain):
+def txn_gas(web3):
     def get(txn_hash):
-        receipt = chain.wait.for_receipt(txn_hash)
+        receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt['gasUsed']
     return get
 
 
 @pytest.fixture
-def print_gas(chain, txn_gas):
+def print_gas(web3, txn_gas):
     def get(txn_hash, message=None, additional_gas=0):
         gas_used = txn_gas(txn_hash)
         if not message:
@@ -118,8 +132,8 @@ def print_gas(chain, txn_gas):
 
 
 @pytest.fixture()
-def get_block(chain):
+def get_block(web3):
     def get(txn_hash):
-        receipt = chain.wait.for_receipt(txn_hash)
+        receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt['blockNumber']
     return get

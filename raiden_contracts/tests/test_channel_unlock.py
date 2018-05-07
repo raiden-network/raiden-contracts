@@ -10,12 +10,7 @@ from .fixtures.config import fake_hex
 
 
 def test_merkle_root_0_items(
-        chain,
-        web3,
-        unlock_test,
-        secret_registry,
-        get_block,
-        create_contract,
+        unlock_test
 ):
     (locksroot, unlocked_amount) = unlock_test.call().getMerkleRootAndUnlockedAmountPublic(b'')
     assert locksroot == EMPTY_MERKLE_ROOT
@@ -23,13 +18,10 @@ def test_merkle_root_0_items(
 
 
 def test_merkle_root_1_item_unlockable(
-        chain,
         web3,
         get_accounts,
         unlock_test,
-        secret_registry,
-        get_block,
-        create_contract,
+        secret_registry
 ):
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
@@ -51,13 +43,10 @@ def test_merkle_root_1_item_unlockable(
 
 
 def test_merkle_root(
-        chain,
         web3,
         get_accounts,
         unlock_test,
-        secret_registry,
-        get_block,
-        create_contract,
+        secret_registry
 ):
     (A, B) = get_accounts(2)
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
