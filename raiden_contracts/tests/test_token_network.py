@@ -1,5 +1,5 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
 from .fixtures.config import raiden_contracts_version, empty_address, fake_address
 
 
@@ -7,9 +7,9 @@ def test_version(token_network):
     assert token_network.call().contract_version()[:2] == raiden_contracts_version[:2]
 
 
-def test_constructor_call(chain, get_token_network, custom_token, secret_registry, get_accounts):
+def test_constructor_call(web3, get_token_network, custom_token, secret_registry, get_accounts):
     A = get_accounts(1)[0]
-    chain_id = int(chain.web3.version.network)
+    chain_id = int(web3.version.network)
     with pytest.raises(TypeError):
         get_token_network([])
     with pytest.raises(TypeError):
@@ -33,19 +33,19 @@ def test_constructor_call(chain, get_token_network, custom_token, secret_registr
     with pytest.raises(TypeError):
         get_token_network([custom_token.address, secret_registry.address, -3])
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([empty_address, secret_registry.address, chain_id])
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([A, secret_registry.address, chain_id])
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([secret_registry.address, secret_registry.address, chain_id])
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([custom_token.address, empty_address, chain_id])
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([custom_token.address, A, chain_id])
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         get_token_network([custom_token.address, secret_registry.address, 0])
 
     get_token_network([custom_token.address, secret_registry.address, chain_id])

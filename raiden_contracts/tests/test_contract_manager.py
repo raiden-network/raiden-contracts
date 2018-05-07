@@ -30,6 +30,7 @@ def test_contract_manager_json():
     contract_manager_meta(PRECOMPILED_CONTRACTS_PATH)
 
 
+@pytest.mark.skip(reason='switch over to py-solc')
 def test_solc_unavailable():
     # test scenario where solc is unavailable
     try:

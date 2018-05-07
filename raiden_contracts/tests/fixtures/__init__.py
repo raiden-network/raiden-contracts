@@ -7,3 +7,4 @@ from .token_network_registry import *
 from .token_network import *
 from .channel import *
 from .test_contracts import *
+from .contract_manager import *

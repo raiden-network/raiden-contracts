@@ -1,5 +1,5 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import (
     E_CHANNEL_OPENED,
     SETTLE_TIMEOUT_MIN,
@@ -9,38 +9,39 @@ from raiden_contracts.utils.config import (
 )
 from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import empty_address, fake_address, fake_bytes
+from web3.exceptions import ValidationError
 
 
 def test_open_channel_call(token_network, get_accounts):
     (A, B) = get_accounts(2)
     settle_timeout = SETTLE_TIMEOUT_MIN + 10
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(A, B, -3)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(0x0, B, settle_timeout)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel('', B, settle_timeout)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(fake_address, B, settle_timeout)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(A, 0x0, settle_timeout)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(A, '', settle_timeout)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact().openChannel(A, fake_address, settle_timeout)
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(empty_address, B, settle_timeout)
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, empty_address, settle_timeout)
 
     # Cannot open a channel between 2 participants with the same address
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, A, settle_timeout)
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, B, SETTLE_TIMEOUT_MIN - 1)
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, B, SETTLE_TIMEOUT_MAX + 1)
 
 
@@ -48,9 +49,9 @@ def test_max_1_channel(token_network, get_accounts, create_channel):
     (A, B) = get_accounts(2)
     create_channel(A, B)
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, B, SETTLE_TIMEOUT_MIN)
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(B, A, SETTLE_TIMEOUT_MIN)
 
 

@@ -1,5 +1,7 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
+from eth_utils import denoms
+from web3.exceptions import ValidationError
 
 
 def test_token_mint(web3, custom_token, get_accounts):
@@ -10,10 +12,10 @@ def test_token_mint(web3, custom_token, get_accounts):
 
     token_pre_balance = web3.eth.getBalance(token.address)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token.transact({'from': A}).mint(3)
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token.transact({'from': A}).mint()
 
     wei_value = 10**17 + 21000
@@ -24,7 +26,20 @@ def test_token_mint(web3, custom_token, get_accounts):
     assert web3.eth.getBalance(token.address) == token_pre_balance + wei_value
 
 
-def test_token_transfer_funds(web3, owner, custom_token, get_accounts, txn_gas):
+def test_approve_transfer(web3, custom_token, get_accounts):
+    (A, B) = get_accounts(2)
+    token = custom_token
+    token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
+    initial_balance_A = token.call().balanceOf(A)
+    initial_balance_B = token.call().balanceOf(B)
+    to_transfer = 20
+    token.transact({'from': A}).approve(B, to_transfer)
+    token.transact({'from': B}).transferFrom(A, B, to_transfer)
+    assert token.call().balanceOf(B) == initial_balance_B + to_transfer
+    assert token.call().balanceOf(A) == initial_balance_A - to_transfer
+
+
+def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
     (A, B) = get_accounts(2)
     token = custom_token
     multiplier = custom_token.call().multiplier()
@@ -33,7 +48,9 @@ def test_token_transfer_funds(web3, owner, custom_token, get_accounts, txn_gas):
     assert supply > 0
     wei_value = 10**17 + 21000
 
-    with pytest.raises(tester.TransactionFailed):
+    owner = custom_token.functions.owner_address().call()
+
+    with pytest.raises(TransactionFailed):
         token.transact({'from': owner}).transferFunds()
 
     token.transact({'from': A, 'value': wei_value}).mint()

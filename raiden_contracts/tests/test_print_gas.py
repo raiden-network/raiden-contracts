@@ -8,46 +8,39 @@ from raiden_contracts.utils.merkle import get_merkle_root
 
 
 def test_token_network_registry(
-        chain,
         web3,
-        owner,
-        token_network_registry,
+        deploy_tester_contract_txhash,
+        secret_registry_contract,
         custom_token,
-        secret_registry,
         print_gas
 ):
-    web3.testing.mine(3)
-
-    TokenNetworkRegistry = chain.provider.get_contract_factory(C_TOKEN_NETWORK_REGISTRY)
-    deploy_txn_hash = TokenNetworkRegistry.deploy(
-        transaction={'from': owner},
-        args=[secret_registry.address, int(chain.web3.version.network)]
+    txhash = deploy_tester_contract_txhash(
+        C_TOKEN_NETWORK_REGISTRY,
+        [],
+        [secret_registry_contract.address, int(web3.version.network)]
     )
-    print_gas(deploy_txn_hash, C_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
+    print_gas(txhash, C_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
-    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
-    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
+#    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
+#    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
 
 
 def test_token_network_deployment(
-        chain,
+        web3,
         print_gas,
         custom_token,
-        secret_registry,
-        token_network_registry
+        secret_registry_contract,
+        deploy_tester_contract_txhash
 ):
-    TokenNetwork = chain.provider.get_contract_factory(C_TOKEN_NETWORK)
-    deploy_txn_hash = TokenNetwork.deploy(args=[
-        custom_token.address,
-        secret_registry.address,
-        int(chain.web3.version.network)
-    ])
-
-    print_gas(deploy_txn_hash, C_TOKEN_NETWORK + ' DEPLOYMENT')
+    txhash = deploy_tester_contract_txhash(
+        C_TOKEN_NETWORK,
+        [],
+        [custom_token.address, secret_registry_contract.address, int(web3.version.network)]
+    )
+    print_gas(txhash, C_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
 def test_token_network_create(
-        chain,
         print_gas,
         custom_token,
         secret_registry,

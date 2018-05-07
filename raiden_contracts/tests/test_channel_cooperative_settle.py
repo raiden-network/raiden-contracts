@@ -1,8 +1,9 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.events import check_channel_settled
 from .fixtures.config import empty_address
 from raiden_contracts.utils.config import E_CHANNEL_SETTLED
+from web3.exceptions import ValidationError
 
 
 def test_cooperative_settle_channel_call(
@@ -27,35 +28,35 @@ def test_cooperative_settle_channel_call(
         B, balance_B
     )
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             A, -1,
             B, balance_B,
             signature_A,
             signature_B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             B, -1,
             signature_A,
             signature_B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             0x0, balance_A,
             B, balance_B,
             signature_A,
             signature_B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             0x0, balance_B,
             signature_A,
             signature_B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             channel_identifier,
             A, balance_A,
@@ -63,7 +64,7 @@ def test_cooperative_settle_channel_call(
             0x0,
             signature_B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             B, balance_B,
@@ -71,7 +72,7 @@ def test_cooperative_settle_channel_call(
             0x0
         )
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             empty_address,
             balance_A,
@@ -79,7 +80,7 @@ def test_cooperative_settle_channel_call(
             signature_A,
             signature_B
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             empty_address,
@@ -117,21 +118,21 @@ def test_cooperative_settle_channel_signatures(
         B, balance_B
     )
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             B, balance_B,
             signature_C,
             signature_B
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A,
             B, balance_B,
             signature_A,
             signature_C
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_B,
             B, balance_A,
@@ -318,14 +319,14 @@ def test_cooperative_settle_channel_wrong_balances(
         B, balance_B_fail2
     )
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A_fail1,
             B, balance_B_fail1,
             signature_A_fail1,
             signature_B_fail1
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': C}).cooperativeSettle(
             A, balance_A_fail2,
             B, balance_B_fail2,

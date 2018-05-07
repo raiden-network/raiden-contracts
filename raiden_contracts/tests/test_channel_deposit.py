@@ -1,75 +1,83 @@
 import pytest
-from ethereum import tester
+from eth_tester.exceptions import TransactionFailed
+from web3.exceptions import ValidationError
 from raiden_contracts.utils.config import E_CHANNEL_NEW_DEPOSIT
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import empty_address, fake_address
+from eth_utils import denoms
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
     (A, B) = get_accounts(2)
     create_channel(A, B)[0]
 
-    custom_token.transact({'from': A, 'value': 10 ** 18}).mint()
+    custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
     deposit_A = custom_token.call().balanceOf(A)
 
     custom_token.transact({'from': A}).approve(token_network.address, deposit_A)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
+        token_network.transact({'from': A}).setDeposit(
+            -1,
+            A,
+            deposit_A
+        )
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             '',
             deposit_A,
             B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             fake_address,
             deposit_A,
             B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             0x0,
             deposit_A,
             B
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             A,
             deposit_A,
             ''
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             A,
             deposit_A,
             fake_address
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             A,
             deposit_A,
             0x0
         )
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         token_network.transact({'from': A}).setDeposit(
             A,
             -1,
             B
         )
 
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': A}).setDeposit(
             empty_address,
             deposit_A,
             B
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': A}).setDeposit(
             A,
             deposit_A,
             empty_address
         )
-    with pytest.raises(tester.TransactionFailed):
+    with pytest.raises(TransactionFailed):
         token_network.transact({'from': A}).setDeposit(
             A,
             0,

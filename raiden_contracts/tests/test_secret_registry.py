@@ -1,5 +1,6 @@
 import pytest
 from web3 import Web3
+from web3.exceptions import ValidationError
 from raiden_contracts.utils.config import E_SECRET_REVEALED
 from raiden_contracts.utils.events import check_secret_revealed
 from .fixtures.config import fake_hex, raiden_contracts_version
@@ -10,15 +11,15 @@ def test_version(secret_registry):
 
 
 def test_register_secret_call(secret_registry):
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret()
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret(3)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret(0)
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret('')
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret(fake_hex(33))
 
     # This works due to argument padding

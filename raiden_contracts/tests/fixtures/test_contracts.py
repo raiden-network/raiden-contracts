@@ -2,18 +2,20 @@ import pytest
 
 
 @pytest.fixture()
-def get_unlock_test(chain, create_contract):
+def get_unlock_test(deploy_tester_contract):
     def get(arguments, transaction=None):
-        UnlockTest = chain.provider.get_contract_factory('UnlockTest')
-        contract = create_contract(UnlockTest, arguments, transaction)
-        return contract
+        return deploy_tester_contract(
+            'UnlockTest',
+            {},
+            arguments
+        )
     return get
 
 
 @pytest.fixture()
-def unlock_test(chain, get_unlock_test, custom_token, secret_registry):
+def unlock_test(web3, get_unlock_test, custom_token, secret_registry):
     return get_unlock_test([
         custom_token.address,
         secret_registry.address,
-        int(chain.web3.version.network)
+        int(web3.version.network)
     ])
