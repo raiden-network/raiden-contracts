@@ -22,15 +22,13 @@ contract TokenNetwork is Utils {
     // Chain ID as specified by EIP155 used in balance proof signatures to avoid replay attacks
     uint256 public chain_id;
 
-    // Channel identifier is a uint256, incremented after each new channel
     // channel_identifier => Channel, where the channel identifier is the keccak256 of the
     // addresses of the two participants
     mapping (bytes32 => Channel) public channels;
 
-    // We keep the balance data in a separate mapping to allow channel data structures to be
-    // removed when settling the channel. If there are locked transfers, we need to store
-    // balance data to be able to unlock them at a later time.
-    // Key is the channel_identifier
+    // We keep the unlock data in a separate mapping to allow channel data structures to be
+    // removed when settling. If there are locked transfers, we need to store data needed to
+    // unlock them at a later time. Key is the channel_identifier.
     mapping(bytes32 => UnlockData) channel_identifier_to_unlock_data;
 
     struct Participant {
@@ -54,10 +52,9 @@ contract TokenNetwork is Utils {
     }
 
     struct UnlockData {
-        // Data provided when uncooperatively settling the channel, used to unlock
-        // locked transfers at a later point in time
-        // The key is the merkle tree root of all pending transfers
-        // The value is the total amount of tokens locked in the pending transfers
+        // Data provided when uncooperatively settling the channel, used to unlock locked
+        // transfers at a later point in time. The key is the merkle tree root of all pending
+        // transfers. The value is the total amount of tokens locked in the pending transfers.
         // Note that we store all locksroots for both participants here, with the assumption that
         // no two locksroots can be the same due to having different values for
         // the secrethash of each lock.
@@ -214,7 +211,7 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
-    // may close the channel, providing a balance proof signed by its partner. Callable only once.
+    /// may close the channel, providing a balance proof signed by its partner. Callable only once.
     /// @param partner Channel partner of the `msg.sender`, who provided the signature.
     /// We need the partner for computing the channel identifier.
     /// @param balance_hash Hash of (transferred_amount, locked_amount, locksroot).
