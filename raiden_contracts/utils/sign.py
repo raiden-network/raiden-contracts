@@ -21,7 +21,7 @@ def hash_balance_proof(
         'bytes32',
         'uint256',
         'bytes32',
-        'uint256',
+        'bytes32',
         'address',
         'uint256'
     ], [
@@ -47,7 +47,7 @@ def hash_balance_proof_update_message(
         'bytes32',
         'uint256',
         'bytes32',
-        'uint256',
+        'bytes32',
         'address',
         'uint256',
         'bytes'
@@ -76,7 +76,7 @@ def hash_cooperative_settle_message(
         'uint256',
         'address',
         'uint256',
-        'uint256',
+        'bytes32',
         'address',
         'uint256'
     ], [

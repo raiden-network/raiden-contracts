@@ -44,10 +44,12 @@ contract TokenNetwork is Utils {
         // This is bytes1 and it gets packed with the rest of the struct data.
         bool is_the_closer;
 
-        // keccak256 of the balance data provided after a closeChannel or a updateNonClosingBalanceProof call
+        // keccak256 of the balance data provided after a closeChannel or a
+        // updateNonClosingBalanceProof call
         bytes32 balance_hash;
 
-        // Monotonically increasing counter of the off-chain transfers, provided along with the balance_hash
+        // Monotonically increasing counter of the off-chain transfers, provided along
+        // with the balance_hash
         uint256 nonce;
     }
 
@@ -166,9 +168,6 @@ contract TokenNetwork is Utils {
         require(channel.settle_block_number == 0);
         require(channel.state == 0);
 
-        Participant storage participant1_state = channel.participants[participant1];
-        Participant storage participant2_state = channel.participants[participant2];
-
         // Store channel information
         channel.settle_block_number = settle_timeout;
         // Mark channel as opened
@@ -189,6 +188,10 @@ contract TokenNetwork is Utils {
         isOpen(participant, partner)
         public
     {
+        require(participant != 0x0);
+        require(partner != 0x0);
+        require(total_deposit > 0);
+
         bytes32 channel_identifier;
         uint256 added_deposit;
 
@@ -651,7 +654,14 @@ contract TokenNetwork is Utils {
         }
     }
 
-    function updateBalanceProofData(Channel storage channel, address participant, uint256 nonce, bytes32 balance_hash) internal {
+    function updateBalanceProofData(
+        Channel storage channel,
+        address participant,
+        uint256 nonce,
+        bytes32 balance_hash
+    )
+        internal
+    {
         Participant storage participant_state = channel.participants[participant];
 
         // Multiple calls to updateNonClosingBalanceProof can be made and we need to store
@@ -730,7 +740,8 @@ contract TokenNetwork is Utils {
     /// @dev Returns the channel specific data.
     /// @param participant Address of the channel participant whose data will be returned.
     /// @param partner Address of the participant's channel partner.
-    /// @return Participant's channel deposit, whether the participant has called `closeChannel` or not, balance_hash and nonce.
+    /// @return Participant's channel deposit, whether the participant has called
+    /// `closeChannel` or not, balance_hash and nonce.
     function getChannelParticipantInfo(address participant, address partner)
         view
         external
@@ -766,8 +777,9 @@ contract TokenNetwork is Utils {
     {
         bytes32 channel_identifier;
         channel_identifier = getChannelIdentifier(participant1, participant2);
+        UnlockData storage unlock_data = channel_identifier_to_unlock_data[channel_identifier];
 
-        return channel_identifier_to_unlock_data[channel_identifier].locksroot_to_locked_amount[locksroot];
+        return unlock_data.locksroot_to_locked_amount[locksroot];
     }
 
     /*

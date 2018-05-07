@@ -12,7 +12,7 @@ def get_token_network(chain, create_contract):
 
 
 @pytest.fixture()
-def token_network(chain, token_network_registry, custom_token, secret_registry):
+def token_network(chain, token_network_registry, custom_token):
     token_network_address = token_network_registry.call().createERC20TokenNetwork(
         custom_token.address
     )

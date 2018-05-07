@@ -32,7 +32,7 @@ def create_channel(token_network):
         assert channel_settle_timeout == settle_timeout
         assert channel_state == CHANNEL_STATE_OPEN
 
-        return txn_hash
+        return (channel_identifier, txn_hash)
     return get
 
 
@@ -73,7 +73,6 @@ def create_channel_and_deposit(create_channel, channel_deposit):
 @pytest.fixture()
 def cooperative_settle_state_tests(custom_token, token_network):
     def get(
-            channel_identifier,
             A, balance_A,
             B, balance_B,
             pre_account_balance_A,
@@ -89,14 +88,13 @@ def cooperative_settle_state_tests(custom_token, token_network):
         assert balance_contract == pre_balance_contract - balance_A - balance_B
 
         # Make sure channel data has been removed
-        (settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+        (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
         assert settle_block_number == 0  # settle_block_number
         assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
 
         # Make sure participant data has been removed
         (
             A_deposit,
-            A_is_initialized,
             A_is_the_closer,
             A_balance_hash,
             A_nonce
@@ -108,7 +106,6 @@ def cooperative_settle_state_tests(custom_token, token_network):
 
         (
             B_deposit,
-            B_is_initialized,
             B_is_the_closer,
             B_balance_hash,
             B_nonce
@@ -149,7 +146,6 @@ def create_balance_proof(token_network, get_private_key):
             v
         )
         return (
-            channel_identifier,
             balance_hash,
             nonce,
             additional_hash,
