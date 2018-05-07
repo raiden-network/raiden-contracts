@@ -42,7 +42,7 @@ contract TokenNetwork is Utils {
         // This is bytes1 and it gets packed with the rest of the struct data.
         bool is_the_closer;
 
-        // keccak256 of the balance data provided after a closeChannel or a
+        // keccak256 of the balance data provided after a closeChannel or an
         // updateNonClosingBalanceProof call
         bytes32 balance_hash;
 
@@ -157,7 +157,6 @@ contract TokenNetwork is Utils {
     {
         require(participant1 != 0x0);
         require(participant2 != 0x0);
-        require(participant1 != participant2);
 
         bytes32 channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
@@ -230,9 +229,6 @@ contract TokenNetwork is Utils {
     {
         require(partner != 0x0);
 
-        // Message sender and partner must be different
-        require(msg.sender != partner);
-
         address recovered_partner_address;
         bytes32 channel_identifier;
 
@@ -291,7 +287,6 @@ contract TokenNetwork is Utils {
     {
         require(closing_participant != 0x0);
         require(non_closing_participant != 0x0);
-        require(closing_participant != non_closing_participant);
         require(balance_hash != 0x0);
         require(nonce > 0);
 
@@ -642,6 +637,9 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
+        // Participant addresses must be different
+        require(participant != partner);
+
         // Lexicographic order of the channel addresses
         // This limits the number of channels that can be opened between two nodes to 1.
         if (participant < partner) {
