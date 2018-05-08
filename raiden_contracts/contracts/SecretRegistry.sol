@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.23;
 
 contract SecretRegistry {
 
@@ -27,7 +27,7 @@ contract SecretRegistry {
             return false;
         }
         secrethash_to_block[secrethash] = block.number;
-        SecretRevealed(secrethash);
+        emit SecretRevealed(secrethash);
         return true;
     }
 

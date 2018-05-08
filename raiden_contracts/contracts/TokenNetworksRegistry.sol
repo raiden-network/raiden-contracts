@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.23;
 
 import "./Utils.sol";
 import "./Token.sol";
@@ -27,7 +27,7 @@ contract TokenNetworksRegistry is Utils {
      *  Constructor
      */
 
-    function TokenNetworksRegistry(address _secret_registry_address, uint256 _chain_id) public {
+    constructor(address _secret_registry_address, uint256 _chain_id) public {
         require(_chain_id > 0);
         require(_secret_registry_address != 0x0);
         require(contractExists(_secret_registry_address));
@@ -54,7 +54,7 @@ contract TokenNetworksRegistry is Utils {
         );
 
         token_to_token_networks[_token_address] = token_network_address;
-        TokenNetworkCreated(_token_address, token_network_address);
+        emit TokenNetworkCreated(_token_address, token_network_address);
 
         return token_network_address;
     }
