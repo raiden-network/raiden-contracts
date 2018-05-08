@@ -26,6 +26,7 @@ jobs:
         - pip install -U pip wheel coveralls "coverage<4.4"
         - pip install pytest-travis-fold
         - pip install -r requirements-dev.txt
+        - python setup.py compile_contracts
 
       before_script:
         - flake8 raiden_contracts/

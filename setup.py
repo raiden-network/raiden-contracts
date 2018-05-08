@@ -6,11 +6,11 @@ except ImportError:
     from distutils.core import setup
 
 import os
-import sys
-import distutils
+import json
 from setuptools import Command
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
+from raiden_contracts.contract_manager import CONTRACT_MANAGER
 
 DESCRIPTION = 'Raiden contracts library and utilities'
 VERSION = '0.0.1'
@@ -53,29 +53,9 @@ class CompileContracts(Command):
         pass
 
     def run(self):
-        #  this is a rather ugly hack: populus doesn't allow setting of the output
-        #   directory from the command line
-        #  so we do following:
-        # 1) set proper argv for populus
-        # 2) set BUILD_ASSET_DIR that resides inside the Populus module to our custom dir
-        # 3) invoke populus main
-        #
-
-        old_argv = sys.argv
-        sys.argv = ['populus', 'compile']
-
-        try:
-            import populus.utils.compile
-        except ImportError:
-            self.announce(
-                'Populus not found. Skipping contract compilation',
-                level=distutils.log.WARN
-            )
-            return
-        populus.utils.compile.BUILD_ASSET_DIR = os.path.dirname(COMPILED_CONTRACTS)
-        from populus.cli import main
-        main()
-        sys.argv = old_argv
+        compiled = CONTRACT_MANAGER.precompile_contracts('contracts/', [])
+        with open(COMPILED_CONTRACTS, 'w') as compiled_json:
+            compiled_json.write(json.dumps(compiled))
 
 
 config = {
