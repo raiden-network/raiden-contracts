@@ -66,7 +66,7 @@ class ContractManager:
             [self.get_contract_path(contract_name)[0]],
             output_values=('abi', 'bin'),
             import_remappings=self.get_mappings(),
-            optimize=True
+            optimize=False
         )
         contract_json = {
             os.path.basename(key).split('.', 1)[0]: value
@@ -117,7 +117,8 @@ class ContractManager:
             res = compile_files(
                 files,
                 output_values=('abi', 'bin'),
-                import_remappings=map_dirs
+                import_remappings=map_dirs,
+                optimize=False
             )
             return fix_contract_key_names(res)
         except FileNotFoundError:
