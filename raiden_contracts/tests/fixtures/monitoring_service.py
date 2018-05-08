@@ -3,11 +3,13 @@ from raiden_contracts.utils.config import C_MONITORING_SERVICE
 
 
 @pytest.fixture()
-def get_monitoring_service(chain, create_contract):
+def get_monitoring_service(deploy_tester_contract):
     def get(arguments, transaction=None):
-        MonitoringService = chain.provider.get_contract_factory(C_MONITORING_SERVICE)
-        contract = create_contract(MonitoringService, arguments, transaction)
-        return contract
+        return deploy_tester_contract(
+            C_MONITORING_SERVICE,
+            {},
+            arguments
+        )
     return get
 
 

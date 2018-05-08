@@ -120,11 +120,11 @@ def hash_reward_proof(
         nonce,
         monitor_address):
     return Web3.soliditySha3([
-        'uint256',
+        'bytes32',
         'uint192',
         'address',
         'uint256',
-        'uint64',
+        'uint256',
         'address',
     ], [
         channel_identifier,

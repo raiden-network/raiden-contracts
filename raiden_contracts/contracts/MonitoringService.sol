@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 import "./Token.sol";
 import "./Utils.sol";
@@ -19,7 +19,7 @@ contract MonitoringService is Utils {
 
     // channel_identifier => Struct
     // Keep track of the rewards per channel
-    mapping(uint256 => Reward) rewards;
+    mapping(bytes32 => Reward) rewards;
 
     // Keep track of balances
     mapping(address => uint) public balances;
@@ -32,7 +32,7 @@ contract MonitoringService is Utils {
         bytes reward_proof_signature;
 
         // Nonce of the most recently provided BP
-        uint64 nonce;
+        uint256 nonce;
 
         // Address of the Raiden Node that was monitored
         // This is also the address that has the reward deducted from its deposit
@@ -48,11 +48,11 @@ contract MonitoringService is Utils {
     event RegisteredMonitoringService(address monitoring_service);
     event NewBalanceProofReceived(
         bytes reward_proof_signature,
-        uint64 nonce,
+        uint256 nonce,
         address ms_address,
         address raiden_node_address
     );
-    event RewardClaimed(address ms_address, uint amount, uint256 channel_id);
+    event RewardClaimed(address ms_address, uint amount, bytes32 channel_id);
     event MonitoringServiceRegistered(address ms_address);
     event MonitoringServiceDeregistered(address ms_address);
     event Withdrawn(address account, uint amount);
@@ -78,7 +78,7 @@ contract MonitoringService is Utils {
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
     /// @param _minimum_deposit The minimum value that a MS must deposit to be registered
-    function MonitoringService(
+    constructor(
         address _token_address,
         uint256 _minimum_deposit
     )
@@ -122,31 +122,18 @@ contract MonitoringService is Utils {
         require(registerMonitoringService());
     }
 
-    /// @notice Called by a registered MS, when providing a new balance proof
-    /// to a monitored channel.
-    /// Can be called multiple times by different registered MSs as long as the PB provided
-    /// is newer than the current newest registered BP.
-    /// @param channel_identifier Unique identifier for the channel being monitored in a
-    /// specific TokenNetwork.
-    /// @param nonce Strictly monotonic value used to order BPs
-    /// omitting PB specific params, since these will not be provided in the future
-    /// @param reward_proof_signature Signature of the Raiden Node signing the reward
-    /// @param token_network_address Address of the Token Network in which the channel
-    /// being monitored exists.
-    function monitor(
-        uint256 channel_identifier,
-        bytes32 balance_hash,
-        uint64 nonce,
-        bytes32 additional_hash,
-        bytes closing_signature,
-        bytes non_closing_signature,
-        address reward_sender_address,
-        bytes reward_proof_signature,
-        address token_network_address
-    )
-        isMonitor(msg.sender)
-        public
-    {
+	function updateReward(
+		address token_network_address,
+		address closing_participant,
+		address non_closing_participant,
+		bytes reward_proof_signature,
+		uint256 nonce,
+		address reward_sender_address
+	)
+	internal
+	{
+        TokenNetwork token_network = TokenNetwork(token_network_address);
+		bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
         // Get the Reward struct for the correct channel
         Reward storage reward = rewards[channel_identifier];
 
@@ -160,12 +147,47 @@ contract MonitoringService is Utils {
             nonce: nonce,
             reward_sender_address: reward_sender_address
         });
+	}
 
+    /// @notice Called by a registered MS, when providing a new balance proof
+    /// to a monitored channel.
+    /// Can be called multiple times by different registered MSs as long as the PB provided
+    /// is newer than the current newest registered BP.
+    /// @param nonce Strictly monotonic value used to order BPs
+    /// omitting PB specific params, since these will not be provided in the future
+    /// @param reward_proof_signature Signature of the Raiden Node signing the reward
+    /// @param token_network_address Address of the Token Network in which the channel
+    /// being monitored exists.
+    function monitor(
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes closing_signature,
+        bytes non_closing_signature,
+        address reward_sender_address,
+        bytes reward_proof_signature,
+        address token_network_address,
+        address closing_participant,
+        address non_closing_participant
+    )
+        isMonitor(msg.sender)
+        public
+    {
+		updateReward(
+			token_network_address,
+			closing_participant,
+			non_closing_participant,
+			reward_proof_signature,
+			nonce,
+			reward_sender_address
+		);
         TokenNetwork token_network = TokenNetwork(token_network_address);
+
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
-            channel_identifier,
+            closing_participant,
+            non_closing_participant,
             balance_hash,
             nonce,
             additional_hash,
@@ -183,26 +205,27 @@ contract MonitoringService is Utils {
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward
     /// Can be called once per settled channel by everyone on behalf of MS
-    /// @param channel_identifier Unique identifier for the channel being monitored in a
     /// @param token_network_address Address of the Token Network in which the channel
     /// @param reward_amount Amount to be paid as reward to the MS
     /// @param monitor_address Address of the MS
     function claimReward(
-        uint256 channel_identifier,
         address token_network_address,
         uint192 reward_amount,
-        address monitor_address
+        address monitor_address,
+        address closing_participant,
+        address non_closing_participant
     )
         public
         returns (bool)
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
+		bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
-        uint256 channel_settle_timeout;
-        (channel_settle_timeout, , ) = token_network.getChannelInfo(channel_identifier);
-        require(channel_settle_timeout == 0);
+        uint256 channel_settle_block;
+        (, channel_settle_block, ) = token_network.getChannelInfo(closing_participant, non_closing_participant);
+        require(channel_settle_block == 0);
 
         Reward storage reward = rewards[channel_identifier];
 
@@ -247,7 +270,7 @@ contract MonitoringService is Utils {
             balances[msg.sender] -= amount;
             require(token.transfer(msg.sender, amount));
         }
-        Withdrawn(msg.sender, amount);
+        emit Withdrawn(msg.sender, amount);
     }
 
     /// @notice Allow an address with a balance equal to or above minimum_deposit to
@@ -257,7 +280,7 @@ contract MonitoringService is Utils {
         require(!registered_monitoring_services[msg.sender]);
         if (balances[msg.sender] >= minimum_deposit) {
             registered_monitoring_services[msg.sender] = true;
-            MonitoringServiceRegistered(msg.sender);
+            emit MonitoringServiceRegistered(msg.sender);
             return true;
         } else {
             return false;
@@ -268,15 +291,15 @@ contract MonitoringService is Utils {
     /// Only callable by registered Monitoring Services
     function deregisterMonitoringService() isMonitor(msg.sender) public {
         registered_monitoring_services[msg.sender] = false;
-        MonitoringServiceDeregistered(msg.sender);
+        emit MonitoringServiceDeregistered(msg.sender);
     }
 
     function recoverAddressFromRewardProof(
-        uint256 channel_identifier,
+        bytes32 channel_identifier,
         uint192 reward_amount,
         address token_network_address,
         uint256 chain_id,
-        uint64 nonce,
+        uint256 nonce,
         address monitor_address,
         bytes signature
     )
