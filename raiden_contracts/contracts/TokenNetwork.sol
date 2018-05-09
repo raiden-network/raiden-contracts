@@ -287,12 +287,6 @@ contract TokenNetwork is Utils {
         channel_identifier = getChannelIdentifier(closing_participant, non_closing_participant);
         Channel storage channel = channels[channel_identifier];
 
-        // Channel must be closed
-        require(channel.state == 2);
-
-        // Channel must be in the settlement window
-        require(channel.settle_block_number >= block.number);
-
         // We need the signature from the non-closing participant to allow anyone
         // to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = recoverAddressFromBalanceProofUpdateMessage(
@@ -314,13 +308,19 @@ contract TokenNetwork is Utils {
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
 
-        // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
-
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
 
         emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
+
+        // Channel must be closed
+        assert(channel.state == 2);
+
+        // Channel must be in the settlement window
+        assert(channel.settle_block_number >= block.number);
+
+        // Make sure the first signature is from the closing participant
+        assert(closing_participant_state.is_the_closer);
 
         assert(closing_participant == recovered_closing_participant);
         assert(non_closing_participant == recovered_non_closing_participant);

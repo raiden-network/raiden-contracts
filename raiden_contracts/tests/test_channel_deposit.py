@@ -102,7 +102,7 @@ def test_deposit_notapproved(
     deposit_A = 1
 
     custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
-    balance = custom_token.call().balanceOf(participant)
+    balance = custom_token.call().balanceOf(A)
     assert balance >= deposit_A
 
     with pytest.raises(TransactionFailed):

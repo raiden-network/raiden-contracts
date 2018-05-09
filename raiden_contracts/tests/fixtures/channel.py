@@ -54,9 +54,9 @@ def assign_tokens(token_network, custom_token):
 @pytest.fixture()
 def channel_deposit(token_network, assign_tokens):
     def get(participant, deposit, partner, tx_from=None):
-        assign_tokens(participant, deposit)
-
         tx_from = tx_from or participant
+        assign_tokens(tx_from, deposit)
+
         txn_hash = token_network.transact({'from': tx_from}).setDeposit(
             participant,
             deposit,
@@ -136,9 +136,10 @@ def create_balance_proof(token_network, get_private_key):
             nonce=0,
             locksroot=None,
             additional_hash=None,
-            v=27
+            v=27,
+            signer=None
     ):
-        private_key = get_private_key(participant)
+        private_key = get_private_key(signer or participant)
         locksroot = locksroot or b'\x00' * 32
         additional_hash = additional_hash or b'\x00' * 32
 
