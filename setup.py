@@ -10,7 +10,6 @@ import json
 from setuptools import Command
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
-from raiden_contracts.contract_manager import CONTRACT_MANAGER
 
 DESCRIPTION = 'Raiden contracts library and utilities'
 VERSION = '0.0.1'
@@ -53,6 +52,7 @@ class CompileContracts(Command):
         pass
 
     def run(self):
+        from raiden_contracts.contract_manager import CONTRACT_MANAGER
         compiled = CONTRACT_MANAGER.precompile_contracts('contracts/', [])
         with open(COMPILED_CONTRACTS, 'w') as compiled_json:
             compiled_json.write(json.dumps(compiled))
