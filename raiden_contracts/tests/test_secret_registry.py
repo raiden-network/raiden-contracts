@@ -1,16 +1,19 @@
 import pytest
 from web3 import Web3
 from web3.exceptions import ValidationError
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import E_SECRET_REVEALED
 from raiden_contracts.utils.events import check_secret_revealed
-from .fixtures.config import fake_hex, raiden_contracts_version
+from .fixtures.config import fake_bytes, raiden_contracts_version
 
 
 def test_version(secret_registry):
     assert secret_registry.call().contract_version()[:2] == raiden_contracts_version[:2]
 
 
-def test_register_secret_call(secret_registry):
+def test_register_secret_call(secret_registry, event_handler):
+    ev_handler = event_handler(secret_registry)
+
     with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret()
     with pytest.raises(ValidationError):
@@ -20,12 +23,11 @@ def test_register_secret_call(secret_registry):
     with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret('')
     with pytest.raises(ValidationError):
-        secret_registry.transact().registerSecret(fake_hex(33))
+        secret_registry.transact().registerSecret(fake_bytes(33))
 
-    # This works due to argument padding
-    secret_registry.transact().registerSecret(fake_hex(10))
-
-    secret_registry.transact().registerSecret(fake_hex(32))
+    assert secret_registry.call().registerSecret(fake_bytes(32)) is False
+    assert secret_registry.call().registerSecret(fake_bytes(10, '02')) is True
+    assert secret_registry.call().registerSecret(fake_bytes(32, '02')) is True
 
 
 def test_register_secret_return_value(secret_registry, get_accounts):
@@ -38,9 +40,6 @@ def test_register_secret_return_value(secret_registry, get_accounts):
 
     secret_registry.transact({'from': A}).registerSecret(secret)
 
-    # The secret cannot be registered again by anyone
-    # FIXME Think about what happens if someone decides to use an already used
-    # secret for a mediating transfer
     # We use call here to get the return value
     assert secret_registry.call({'from': A}).registerSecret(secret) is False
     assert secret_registry.call({'from': B}).registerSecret(secret) is False
