@@ -472,7 +472,6 @@ contract TokenNetwork is Utils {
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
-        assert(total_deposit >= participant1_deposit);
         assert(participant1_amount <= total_deposit);
         assert(participant2_amount <= total_deposit);
         assert(total_deposit == (
@@ -563,9 +562,11 @@ contract TokenNetwork is Utils {
         address participant1;
         address participant2;
         uint256 total_deposit;
+        uint256 initial_state;
 
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
+        initial_state = channel.state;
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -590,31 +591,31 @@ contract TokenNetwork is Utils {
 
         total_deposit = participant1_state.deposit + participant2_state.deposit;
 
-        // The provided addresses must be the same as the recovered ones
-        require(participant1 == participant1_address);
-        require(participant2 == participant2_address);
-
-        // The channel must be open
-        require(channel.state == 1);
-
-        // The sum of the provided balances must be equal to the total deposit
-        require(total_deposit == (participant1_balance + participant2_balance));
-
         // Remove channel data from storage before doing the token transfers
         delete channel.participants[participant1];
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
+        emit ChannelSettled(channel_identifier);
+
         // Do the token transfers
         if (participant1_balance > 0) {
-            require(token.transfer(participant1, participant1_balance));
+            assert(token.transfer(participant1, participant1_balance));
         }
 
         if (participant2_balance > 0) {
-            require(token.transfer(participant2, participant2_balance));
+            assert(token.transfer(participant2, participant2_balance));
         }
 
-        emit ChannelSettled(channel_identifier);
+        // The channel must be open
+        assert(initial_state == 1);
+
+        // The provided addresses must be the same as the recovered ones
+        assert(participant1 == participant1_address);
+        assert(participant2 == participant2_address);
+
+        // The sum of the provided balances must be equal to the total deposit
+        assert(total_deposit == (participant1_balance + participant2_balance));
     }
 
     /// @dev Returns the unique identifier for the channel
