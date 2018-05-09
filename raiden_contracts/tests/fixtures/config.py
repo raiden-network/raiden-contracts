@@ -12,4 +12,4 @@ def fake_hex(size, fill='00'):
 
 
 def fake_bytes(size, fill='00'):
-    return bytearray.fromhex(fake_hex(size, fill)[2:])
+    return bytes.fromhex(fake_hex(size, fill)[2:])

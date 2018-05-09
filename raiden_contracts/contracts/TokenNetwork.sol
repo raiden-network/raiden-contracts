@@ -235,24 +235,23 @@ contract TokenNetwork is Utils {
         // This is the block number at which the channel can be settled.
         channel.settle_block_number += uint256(block.number);
 
-        // Nonce 0 means that the closer never received a transfer, or
-        // he is intentionally not providing the latest transfer, in which case
-        // the closing party is going to lose the tokens that were transferred
-        // to him.
-        recovered_partner_address = recoverAddressFromBalanceProof(
-            channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            signature
-        );
-
+        // Nonce 0 means that the closer never received a transfer, therefore never received a
+        // balance proof, or he is intentionally not providing the latest transfer, in which case
+        // the closing party is going to lose the tokens that were transferred to him.
         if (nonce > 0) {
-            updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
-        }
+            recovered_partner_address = recoverAddressFromBalanceProof(
+                channel_identifier,
+                balance_hash,
+                nonce,
+                additional_hash,
+                signature
+            );
 
-        // Signature must be from the channel partner
-        assert(partner == recovered_partner_address);
+            updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
+
+            // Signature must be from the channel partner
+            assert(partner == recovered_partner_address);
+        }
 
         emit ChannelClosed(channel_identifier, msg.sender);
     }
