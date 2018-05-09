@@ -122,18 +122,18 @@ contract MonitoringService is Utils {
         require(registerMonitoringService());
     }
 
-	function updateReward(
-		address token_network_address,
-		address closing_participant,
-		address non_closing_participant,
-		bytes reward_proof_signature,
-		uint256 nonce,
-		address reward_sender_address
-	)
-	internal
-	{
+    function updateReward(
+        address token_network_address,
+        address closing_participant,
+        address non_closing_participant,
+        bytes reward_proof_signature,
+        uint256 nonce,
+        address reward_sender_address
+    )
+    internal
+    {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-		bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
         // Get the Reward struct for the correct channel
         Reward storage reward = rewards[channel_identifier];
 
@@ -173,14 +173,14 @@ contract MonitoringService is Utils {
         isMonitor(msg.sender)
         public
     {
-		updateReward(
-			token_network_address,
-			closing_participant,
-			non_closing_participant,
-			reward_proof_signature,
-			nonce,
-			reward_sender_address
-		);
+        updateReward(
+            token_network_address,
+            closing_participant,
+            non_closing_participant,
+            reward_proof_signature,
+            nonce,
+            reward_sender_address
+        );
         TokenNetwork token_network = TokenNetwork(token_network_address);
 
 
@@ -219,7 +219,7 @@ contract MonitoringService is Utils {
         returns (bool)
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-		bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
