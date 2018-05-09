@@ -133,11 +133,11 @@ contract TokenNetwork is Utils {
 
         token = Token(_token_address);
 
-        // Check if the contract is indeed a token contract
-        require(token.totalSupply() > 0);
-
         secret_registry = SecretRegistry(_secret_registry);
         chain_id = _chain_id;
+
+        // Make sure the contract is indeed a token contract
+        assert(token.totalSupply() > 0);
     }
 
     /*
@@ -477,6 +477,16 @@ contract TokenNetwork is Utils {
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
+        assert(total_deposit >= participant1_deposit);
+        assert(participant1_amount <= total_deposit);
+        assert(participant2_amount <= total_deposit);
+        assert(total_deposit == (
+            participant1_amount +
+            participant2_amount +
+            participant1_locked_amount +
+            participant2_locked_amount
+        ));
+
         return (participant1_amount, participant2_amount);
     }
 
@@ -502,10 +512,6 @@ contract TokenNetwork is Utils {
 
         channel_identifier = getChannelIdentifier(participant, partner);
 
-        // Channel must be settled and channel data deleted
-        require(channels[channel_identifier].state == 0);
-
-
         // Calculate the locksroot for the pending transfers and the amount of tokens
         // corresponding to the locked transfers with secrets revealed on chain.
         (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
@@ -518,9 +524,6 @@ contract TokenNetwork is Utils {
         // pending transfers.
         locked_amount = unlock_data.locksroot_to_locked_amount[computed_locksroot];
 
-        // The locked amount of tokens must be > 0
-        require(unlock_data.locksroot_to_locked_amount[computed_locksroot] > 0);
-
         // Make sure we don't transfer more tokens than previously reserved in the smart contract.
         unlocked_amount = min(unlocked_amount, locked_amount);
 
@@ -530,19 +533,25 @@ contract TokenNetwork is Utils {
         // Remove partner's unlock data
         delete unlock_data.locksroot_to_locked_amount[computed_locksroot];
 
-        // Transfer the unlocked tokens to the participant
-        require(token.transfer(participant, unlocked_amount));
+        // Transfer the unlocked tokens to the participant. unlocked_amount can be 0
+        if (unlocked_amount > 0) {
+            assert(token.transfer(participant, unlocked_amount));
+        }
 
         // Transfer the rest of the tokens back to the partner
         if (returned_tokens > 0) {
-            require(token.transfer(partner, returned_tokens));
+            assert(token.transfer(partner, returned_tokens));
         }
 
         emit ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
 
+        // Channel must be settled and channel data deleted
+        assert(channels[channel_identifier].state == 0);
+
         assert(computed_locksroot != 0);
-        assert(unlocked_amount > 0);
         assert(locked_amount > 0);
+        assert(locked_amount >= unlocked_amount);
+        assert(locked_amount >= returned_tokens);
     }
 
     function cooperativeSettle(

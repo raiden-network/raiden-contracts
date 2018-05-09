@@ -159,7 +159,11 @@ def test_update_wrong_signatures(
     channel_deposit(A, 25, B)
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
-    balance_proof_A_fake = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'), signer=C)
+    balance_proof_A_fake = create_balance_proof(
+        channel_identifier,
+        A, 10, 0, 5, fake_bytes(32, '02'),
+        signer=C
+    )
 
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
@@ -265,6 +269,16 @@ def test_update_channel_fail_no_offchain_transfers(
         fake_bytes(32),
         fake_bytes(64)
     )
+
+    with pytest.raises(TransactionFailed):
+        token_network.transact({'from': B}).updateNonClosingBalanceProof(
+            A, B,
+            fake_bytes(32),
+            0,
+            fake_bytes(32),
+            fake_bytes(64),
+            fake_bytes(64)
+        )
 
     with pytest.raises(TransactionFailed):
         token_network.transact({'from': B}).updateNonClosingBalanceProof(

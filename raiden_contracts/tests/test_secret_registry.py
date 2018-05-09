@@ -1,7 +1,6 @@
 import pytest
 from web3 import Web3
 from web3.exceptions import ValidationError
-from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import E_SECRET_REVEALED
 from raiden_contracts.utils.events import check_secret_revealed
 from .fixtures.config import fake_bytes, raiden_contracts_version
@@ -12,8 +11,6 @@ def test_version(secret_registry):
 
 
 def test_register_secret_call(secret_registry, event_handler):
-    ev_handler = event_handler(secret_registry)
-
     with pytest.raises(ValidationError):
         secret_registry.transact().registerSecret()
     with pytest.raises(ValidationError):

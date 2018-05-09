@@ -1,3 +1,5 @@
+import pytest
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import E_CHANNEL_UNLOCKED
 from raiden_contracts.utils.events import check_channel_unlocked
 from .utils import (
@@ -6,7 +8,7 @@ from .utils import (
     get_locked_amount
 )
 from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
-from .fixtures.config import fake_hex
+from .fixtures.config import fake_hex, fake_bytes
 
 
 def test_merkle_root_0_items(
@@ -62,6 +64,141 @@ def test_merkle_root(
 
     assert locksroot == merkle_root
     assert unlocked_amount == 9
+
+
+def test_unlock_wrong_locksroot(
+        web3,
+        token_network,
+        create_settled_channel,
+        get_accounts
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [], settle_timeout)
+    pending_transfers_tree_A_fake = get_pending_transfers_tree(web3, [1, 3, 6], [], settle_timeout)
+
+    create_settled_channel(
+        A,
+        pending_transfers_tree_A.locked_amount,
+        pending_transfers_tree_A.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.transact().unlock(
+            A,
+            B,
+            pending_transfers_tree_A_fake.packed_transfers
+        )
+
+
+def test_channel_unlock_bigger_locked_amount(
+        web3,
+        token_network,
+        create_settled_channel,
+        get_accounts,
+        reveal_secrets
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+
+    create_settled_channel(
+        A,
+        pending_transfers_tree_A.locked_amount + 1,
+        pending_transfers_tree_A.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+
+    # This should pass, even though the locked amount in storage is bigger.
+    # But those locked tokens will remain locked in the contract
+    token_network.transact().unlock(
+        A,
+        B,
+        pending_transfers_tree_A.packed_transfers
+    )
+
+
+def test_channel_unlock_smaller_locked_amount(
+        web3,
+        token_network,
+        create_settled_channel,
+        get_accounts,
+        reveal_secrets
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+
+    create_settled_channel(
+        A,
+        pending_transfers_tree_A.locked_amount - 1,
+        pending_transfers_tree_A.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+
+    # This should pass, even though the locked amount in storage is smaller.
+    # But those locked tokens will remain locked in the contract
+    token_network.transact().unlock(
+        A,
+        B,
+        pending_transfers_tree_A.packed_transfers
+    )
+
+
+def test_channel_unlock_bigger_unlocked_amount(
+        web3,
+        token_network,
+        secret_registry,
+        create_settled_channel,
+        get_accounts,
+        reveal_secrets
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+    unlocked_amount = get_unlocked_amount(
+        secret_registry,
+        pending_transfers_tree_A.packed_transfers
+    )
+    assert unlocked_amount < pending_transfers_tree_A.locked_amount
+
+    create_settled_channel(
+        A,
+        unlocked_amount - 1,
+        pending_transfers_tree_A.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+
+    # This should pass, even though the locked amount in storage is smaller.
+    # But those locked tokens will remain locked in the contract
+    token_network.transact().unlock(
+        A,
+        B,
+        pending_transfers_tree_A.packed_transfers
+    )
 
 
 def test_channel_unlock(

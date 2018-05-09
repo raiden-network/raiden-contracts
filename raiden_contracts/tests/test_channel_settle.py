@@ -19,19 +19,18 @@ def test_settle_no_bp_success(
     deposit_A = 10
     deposit_B = 6
     settle_timeout = SETTLE_TIMEOUT_MIN
-    locksroot = fake_hex(32, '00')
-    additional_hash = fake_hex(32, '00')
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    locksroot = fake_bytes(32)
+    additional_hash = fake_bytes(32)
+    create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    # Create balance proofs
-    balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B, 0, 0, 0,
-        locksroot, additional_hash
+    # Close channel with no balance proof
+    token_network.transact({'from': A}).closeChannel(
+        B,
+        locksroot,
+        0,
+        additional_hash,
+        fake_bytes(64)
     )
-
-    # Close channel and update balance proofs
-    token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
 
     # Do not call updateNonClosingBalanceProof
 
