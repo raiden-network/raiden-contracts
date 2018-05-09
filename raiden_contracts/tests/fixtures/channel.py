@@ -38,8 +38,8 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def channel_deposit(token_network, custom_token):
-    def get(participant, deposit, partner):
+def assign_tokens(token_network, custom_token):
+    def get(participant, deposit):
         balance = custom_token.call().balanceOf(participant)
         deposit = deposit or balance
 
@@ -48,8 +48,16 @@ def channel_deposit(token_network, custom_token):
             balance = custom_token.call().balanceOf(participant)
 
         custom_token.transact({'from': participant}).approve(token_network.address, deposit)
+    return get
 
-        txn_hash = token_network.transact({'from': participant}).setDeposit(
+
+@pytest.fixture()
+def channel_deposit(token_network, assign_tokens):
+    def get(participant, deposit, partner, tx_from=None):
+        assign_tokens(participant, deposit)
+
+        tx_from = tx_from or participant
+        txn_hash = token_network.transact({'from': tx_from}).setDeposit(
             participant,
             deposit,
             partner

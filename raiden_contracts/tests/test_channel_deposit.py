@@ -91,12 +91,54 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
     )
 
 
+def test_deposit_notapproved(
+        token_network,
+        custom_token,
+        create_channel,
+        get_accounts
+):
+    (A, B) = get_accounts(2)
+    create_channel(A, B)
+    deposit_A = 1
+
+    custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
+    balance = custom_token.call().balanceOf(participant)
+    assert balance >= deposit_A
+
+    with pytest.raises(TransactionFailed):
+        token_network.transact({'from': A}).setDeposit(A, deposit_A, B)
+
+
+def test_small_deposit_fail(
+        token_network,
+        create_channel,
+        channel_deposit,
+        assign_tokens,
+        get_accounts
+):
+    (A, B) = get_accounts(2)
+    create_channel(A, B)
+    channel_deposit(A, 2, B)
+
+    assign_tokens(A, 1)
+
+    # setDeposit is idempotent
+    with pytest.raises(TransactionFailed):
+        token_network.transact({'from': A}).setDeposit(A, 1, B)
+
+
+def test_deposit_delegate(token_network, get_accounts, create_channel, channel_deposit):
+    (A, B, C) = get_accounts(3)
+    create_channel(A, B)
+    channel_deposit(A, 2, B, tx_from=C)
+
+
 def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 15
 
-    create_channel(A, B)[0]
+    create_channel(A, B)
 
     (A_deposit, _, _, _) = token_network.call().getChannelParticipantInfo(A, B)
     assert A_deposit == 0

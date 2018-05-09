@@ -190,18 +190,18 @@ contract TokenNetwork is Utils {
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
 
-        require(participant_state.deposit < total_deposit);
-
         // Calculate the actual amount of tokens that will be transferred
         added_deposit = total_deposit - participant_state.deposit;
 
         // Update the participant's channel deposit
         participant_state.deposit += added_deposit;
 
-        // Do the transfer
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
-
         emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
+
+        // Do the transfer
+        assert(token.transferFrom(msg.sender, address(this), added_deposit));
+
+        assert(participant_state.deposit >= added_deposit);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
