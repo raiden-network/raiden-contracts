@@ -326,11 +326,6 @@ contract TokenNetwork is Utils {
         assert(non_closing_participant == recovered_non_closing_participant);
     }
 
-    /// @notice Registers the lock secret in the SecretRegistry contract.
-    function registerSecret(bytes32 secret) public {
-        require(secret_registry.registerSecret(secret));
-    }
-
     /// @notice Settles the balance between the two parties.
     /// @param participant1 Channel participant.
     /// @param participant1_transferred_amount The latest known amount of tokens transferred
