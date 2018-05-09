@@ -234,7 +234,7 @@ def test_close_channel_event_no_offchain_transfers(
     channel_identifier = create_channel(A, B)[0]
 
     # No off-chain transfers have occured
-    # There is no signature data here, because it has never been provided to A
+    # There is no signature data here, because it was never provided to A
     txn_hash = token_network.transact({'from': A}).closeChannel(
         B,
         fake_bytes(32),

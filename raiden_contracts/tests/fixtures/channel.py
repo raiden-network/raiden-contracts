@@ -87,7 +87,15 @@ def create_settled_channel(
         create_balance_proof,
         create_balance_proof_update_signature
 ):
-    def get(participant1, locked_amount1, locksroot1, participant2, locked_amount2, locksroot2, settle_timeout=SETTLE_TIMEOUT_MIN):
+    def get(
+            participant1,
+            locked_amount1,
+            locksroot1,
+            participant2,
+            locked_amount2,
+            locksroot2,
+            settle_timeout=SETTLE_TIMEOUT_MIN,
+    ):
         transferred_amount1 = 5
         transferred_amount2 = 40
         deposit1 = locked_amount1 + transferred_amount1 - 5
