@@ -99,6 +99,8 @@ def test_unlock_wrong_locksroot(
 def test_channel_unlock_bigger_locked_amount(
         web3,
         token_network,
+        custom_token,
+        secret_registry,
         create_settled_channel,
         get_accounts,
         reveal_secrets
@@ -109,7 +111,13 @@ def test_channel_unlock_bigger_locked_amount(
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
+    unlocked_amount = get_unlocked_amount(
+        secret_registry,
+        pending_transfers_tree_A.packed_transfers
+    )
 
+    # We settle the channel with a bigger locked amount than we will need for the
+    # actual merkle tree of pending transfers
     create_settled_channel(
         A,
         pending_transfers_tree_A.locked_amount + 1,
@@ -120,18 +128,35 @@ def test_channel_unlock_bigger_locked_amount(
         settle_timeout
     )
 
-    # This should pass, even though the locked amount in storage is bigger.
-    # But those locked tokens will remain locked in the contract
+    pre_balance_A = custom_token.call().balanceOf(A)
+    pre_balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_contract == pending_transfers_tree_A.locked_amount + 1
+
+    # This should pass, even though the locked amount in storage is bigger. The rest of the
+    # tokens is sent to B, as tokens corresponding to the locks that could not be unlocked.
     token_network.transact().unlock(
         A,
         B,
         pending_transfers_tree_A.packed_transfers
     )
+    balance_A = custom_token.call().balanceOf(A)
+    balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_A == pre_balance_A + unlocked_amount
+    assert balance_B == (
+        pre_balance_B +
+        pending_transfers_tree_A.locked_amount -
+        unlocked_amount + 1
+    )
+    assert balance_contract == 0
 
 
 def test_channel_unlock_smaller_locked_amount(
         web3,
         token_network,
+        custom_token,
+        secret_registry,
         create_settled_channel,
         get_accounts,
         reveal_secrets
@@ -142,7 +167,13 @@ def test_channel_unlock_smaller_locked_amount(
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
+    unlocked_amount = get_unlocked_amount(
+        secret_registry,
+        pending_transfers_tree_A.packed_transfers
+    )
 
+    # We settle the channel with a smaller locked amount than we will need for the
+    # actual merkle tree of pending transfers
     create_settled_channel(
         A,
         pending_transfers_tree_A.locked_amount - 1,
@@ -153,18 +184,35 @@ def test_channel_unlock_smaller_locked_amount(
         settle_timeout
     )
 
+    pre_balance_A = custom_token.call().balanceOf(A)
+    pre_balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_contract == pending_transfers_tree_A.locked_amount - 1
+
     # This should pass, even though the locked amount in storage is smaller.
-    # But those locked tokens will remain locked in the contract
+    # B will receive less tokens.
     token_network.transact().unlock(
         A,
         B,
         pending_transfers_tree_A.packed_transfers
     )
 
+    balance_A = custom_token.call().balanceOf(A)
+    balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_A == pre_balance_A + unlocked_amount
+    assert balance_B == (
+        pre_balance_B +
+        pending_transfers_tree_A.locked_amount -
+        unlocked_amount - 1
+    )
+    assert balance_contract == 0
+
 
 def test_channel_unlock_bigger_unlocked_amount(
         web3,
         token_network,
+        custom_token,
         secret_registry,
         create_settled_channel,
         get_accounts,
@@ -182,6 +230,7 @@ def test_channel_unlock_bigger_unlocked_amount(
     )
     assert unlocked_amount < pending_transfers_tree_A.locked_amount
 
+    # We settle the channel with a smaller locked amount than the amount that can be unlocked
     create_settled_channel(
         A,
         unlocked_amount - 1,
@@ -192,13 +241,26 @@ def test_channel_unlock_bigger_unlocked_amount(
         settle_timeout
     )
 
+    pre_balance_A = custom_token.call().balanceOf(A)
+    pre_balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_contract == unlocked_amount - 1
+
     # This should pass, even though the locked amount in storage is smaller.
-    # But those locked tokens will remain locked in the contract
+    # A will receive the entire locked amount, corresponding to the locks that have been unlocked
+    # and B will receive nothing.
     token_network.transact().unlock(
         A,
         B,
         pending_transfers_tree_A.packed_transfers
     )
+
+    balance_A = custom_token.call().balanceOf(A)
+    balance_B = custom_token.call().balanceOf(B)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+    assert balance_A == pre_balance_A + unlocked_amount - 1
+    assert balance_B == pre_balance_B
+    assert balance_contract == 0
 
 
 def test_channel_unlock(

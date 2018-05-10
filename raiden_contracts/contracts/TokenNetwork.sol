@@ -199,9 +199,9 @@ contract TokenNetwork is Utils {
         emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
 
         // Do the transfer
-        assert(token.transferFrom(msg.sender, address(this), added_deposit));
+        require(token.transferFrom(msg.sender, address(this), added_deposit));
 
-        assert(participant_state.deposit >= added_deposit);
+        require(participant_state.deposit >= added_deposit);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
@@ -250,7 +250,7 @@ contract TokenNetwork is Utils {
             updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
 
             // Signature must be from the channel partner
-            assert(partner == recovered_partner_address);
+            require(partner == recovered_partner_address);
         }
 
         emit ChannelClosed(channel_identifier, msg.sender);
@@ -314,16 +314,16 @@ contract TokenNetwork is Utils {
         emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
 
         // Channel must be closed
-        assert(channel.state == 2);
+        require(channel.state == 2);
 
         // Channel must be in the settlement window
-        assert(channel.settle_block_number >= block.number);
+        require(channel.settle_block_number >= block.number);
 
         // Make sure the first signature is from the closing participant
-        assert(closing_participant_state.is_the_closer);
+        require(closing_participant_state.is_the_closer);
 
-        assert(closing_participant == recovered_closing_participant);
-        assert(non_closing_participant == recovered_non_closing_participant);
+        require(closing_participant == recovered_closing_participant);
+        require(non_closing_participant == recovered_non_closing_participant);
     }
 
     /// @notice Settles the balance between the two parties.
@@ -529,21 +529,21 @@ contract TokenNetwork is Utils {
 
         // Transfer the unlocked tokens to the participant. unlocked_amount can be 0
         if (unlocked_amount > 0) {
-            assert(token.transfer(participant, unlocked_amount));
+            require(token.transfer(participant, unlocked_amount));
         }
 
         // Transfer the rest of the tokens back to the partner
         if (returned_tokens > 0) {
-            assert(token.transfer(partner, returned_tokens));
+            require(token.transfer(partner, returned_tokens));
         }
 
         emit ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
 
         // Channel must be settled and channel data deleted
-        assert(channels[channel_identifier].state == 0);
+        require(channels[channel_identifier].state == 0);
 
-        assert(computed_locksroot != 0);
-        assert(locked_amount > 0);
+        require(computed_locksroot != 0);
+        require(locked_amount > 0);
         assert(locked_amount >= unlocked_amount);
         assert(locked_amount >= returned_tokens);
     }
@@ -600,19 +600,19 @@ contract TokenNetwork is Utils {
 
         // Do the token transfers
         if (participant1_balance > 0) {
-            assert(token.transfer(participant1, participant1_balance));
+            require(token.transfer(participant1, participant1_balance));
         }
 
         if (participant2_balance > 0) {
-            assert(token.transfer(participant2, participant2_balance));
+            require(token.transfer(participant2, participant2_balance));
         }
 
         // The channel must be open
-        assert(initial_state == 1);
+        require(initial_state == 1);
 
         // The provided addresses must be the same as the recovered ones
-        assert(participant1 == participant1_address);
-        assert(participant2 == participant2_address);
+        require(participant1 == participant1_address);
+        require(participant2 == participant2_address);
 
         // The sum of the provided balances must be equal to the total deposit
         assert(total_deposit == (participant1_balance + participant2_balance));
