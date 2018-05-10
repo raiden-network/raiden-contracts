@@ -137,7 +137,7 @@ contract TokenNetwork is Utils {
         chain_id = _chain_id;
 
         // Make sure the contract is indeed a token contract
-        assert(token.totalSupply() > 0);
+        require(token.totalSupply() > 0);
     }
 
     /*
@@ -472,8 +472,8 @@ contract TokenNetwork is Utils {
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
-        assert(participant1_amount <= total_deposit);
-        assert(participant2_amount <= total_deposit);
+        require(participant1_amount <= total_deposit);
+        require(participant2_amount <= total_deposit);
         assert(total_deposit == (
             participant1_amount +
             participant2_amount +
@@ -544,8 +544,8 @@ contract TokenNetwork is Utils {
 
         require(computed_locksroot != 0);
         require(locked_amount > 0);
+        require(locked_amount >= returned_tokens);
         assert(locked_amount >= unlocked_amount);
-        assert(locked_amount >= returned_tokens);
     }
 
     function cooperativeSettle(
@@ -615,7 +615,7 @@ contract TokenNetwork is Utils {
         require(participant2 == participant2_address);
 
         // The sum of the provided balances must be equal to the total deposit
-        assert(total_deposit == (participant1_balance + participant2_balance));
+        require(total_deposit == (participant1_balance + participant2_balance));
     }
 
     /// @dev Returns the unique identifier for the channel
