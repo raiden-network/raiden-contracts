@@ -19,7 +19,7 @@ def test_cooperative_settle_channel_call(
     balance_A = 5
     balance_B = 25
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -109,7 +109,7 @@ def test_cooperative_settle_channel_signatures(
     balance_A = 4
     balance_B = 26
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -162,7 +162,7 @@ def test_cooperative_settle_channel_0(
     balance_A = 0
     balance_B = 30
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -205,7 +205,7 @@ def test_cooperative_settle_channel_00(
     balance_A = 0
     balance_B = 0
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
         [A, B, C],
@@ -249,7 +249,7 @@ def test_cooperative_settle_channel_state(
     balance_A = 5
     balance_B = 25
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],
@@ -298,7 +298,7 @@ def test_cooperative_settle_channel_wrong_balances(
     balance_A_fail2 = 6
     balance_B_fail2 = 8
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)[0]
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(
         [A, B],

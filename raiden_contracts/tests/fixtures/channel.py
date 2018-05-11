@@ -38,8 +38,8 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def channel_deposit(token_network, custom_token):
-    def get(participant, deposit, partner):
+def assign_tokens(token_network, custom_token):
+    def get(participant, deposit):
         balance = custom_token.call().balanceOf(participant)
         deposit = deposit or balance
 
@@ -48,8 +48,16 @@ def channel_deposit(token_network, custom_token):
             balance = custom_token.call().balanceOf(participant)
 
         custom_token.transact({'from': participant}).approve(token_network.address, deposit)
+    return get
 
-        txn_hash = token_network.transact({'from': participant}).setDeposit(
+
+@pytest.fixture()
+def channel_deposit(token_network, assign_tokens):
+    def get(participant, deposit, partner, tx_from=None):
+        tx_from = tx_from or participant
+        assign_tokens(tx_from, deposit)
+
+        txn_hash = token_network.transact({'from': tx_from}).setDeposit(
             participant,
             deposit,
             partner
@@ -61,13 +69,103 @@ def channel_deposit(token_network, custom_token):
 @pytest.fixture()
 def create_channel_and_deposit(create_channel, channel_deposit):
     def get(participant1, participant2, deposit1=0, deposit2=0, settle_timeout=SETTLE_TIMEOUT_MIN):
-        txn_hash = create_channel(participant1, participant2, settle_timeout)
+        channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
 
         if deposit1 > 0:
             channel_deposit(participant1, deposit1, participant2)
         if deposit2 > 0:
             channel_deposit(participant2, deposit2, participant1)
-        return txn_hash
+        return channel_identifier
+    return get
+
+
+@pytest.fixture()
+def create_settled_channel(
+        web3,
+        token_network,
+        create_channel_and_deposit,
+        create_balance_proof,
+        create_balance_proof_update_signature
+):
+    def get(
+            participant1,
+            locked_amount1,
+            locksroot1,
+            participant2,
+            locked_amount2,
+            locksroot2,
+            settle_timeout=SETTLE_TIMEOUT_MIN,
+    ):
+        transferred_amount1 = 5
+        transferred_amount2 = 40
+        deposit1 = locked_amount1 + transferred_amount1 - 5
+        deposit2 = locked_amount2 + transferred_amount2 + 5
+
+        channel_identifier = create_channel_and_deposit(
+            participant1,
+            participant2,
+            deposit1,
+            deposit2,
+            settle_timeout
+        )
+
+        balance_proof_1 = create_balance_proof(
+            channel_identifier,
+            participant1,
+            transferred_amount1,
+            locked_amount1,
+            5,
+            locksroot1,
+            fake_bytes(32)
+        )
+        balance_proof_2 = create_balance_proof(
+            channel_identifier,
+            participant2,
+            transferred_amount2,
+            locked_amount2,
+            6,
+            locksroot2,
+            fake_bytes(32)
+        )
+        balance_proof_update_signature_2 = create_balance_proof_update_signature(
+            participant2,
+            channel_identifier,
+            *balance_proof_1
+        )
+
+        token_network.transact({'from': participant1}).closeChannel(
+            participant2,
+            *balance_proof_2
+        )
+
+        token_network.transact({'from': participant2}).updateNonClosingBalanceProof(
+            participant1, participant2,
+            *balance_proof_1,
+            balance_proof_update_signature_2
+        )
+
+        web3.testing.mine(settle_timeout)
+        token_network.transact({'from': participant1}).settleChannel(
+            participant1,
+            transferred_amount1,
+            locked_amount1,
+            locksroot1,
+            participant2,
+            transferred_amount2,
+            locked_amount2,
+            locksroot2
+        )
+        return channel_identifier
+
+    return get
+
+
+@pytest.fixture()
+def reveal_secrets(web3, secret_registry):
+    def get(tx_from, transfers):
+        for (_, _, secrethash, secret) in transfers:
+            secret_registry.transact({'from': tx_from}).registerSecret(secret)
+            assert secret_registry.call().getSecretRevealBlockHeight(secrethash) == web3.eth.blockNumber
     return get
 
 
@@ -128,9 +226,10 @@ def create_balance_proof(token_network, get_private_key):
             nonce=0,
             locksroot=None,
             additional_hash=None,
-            v=27
+            v=27,
+            signer=None
     ):
-        private_key = get_private_key(participant)
+        private_key = get_private_key(signer or participant)
         locksroot = locksroot or b'\x00' * 32
         additional_hash = additional_hash or b'\x00' * 32
 

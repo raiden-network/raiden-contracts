@@ -133,11 +133,11 @@ contract TokenNetwork is Utils {
 
         token = Token(_token_address);
 
-        // Check if the contract is indeed a token contract
-        require(token.totalSupply() > 0);
-
         secret_registry = SecretRegistry(_secret_registry);
         chain_id = _chain_id;
+
+        // Make sure the contract is indeed a token contract
+        require(token.totalSupply() > 0);
     }
 
     /*
@@ -190,18 +190,18 @@ contract TokenNetwork is Utils {
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
 
-        require(participant_state.deposit < total_deposit);
-
         // Calculate the actual amount of tokens that will be transferred
         added_deposit = total_deposit - participant_state.deposit;
 
         // Update the participant's channel deposit
         participant_state.deposit += added_deposit;
 
+        emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
+
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
 
-        emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
+        require(participant_state.deposit >= added_deposit);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
@@ -235,24 +235,23 @@ contract TokenNetwork is Utils {
         // This is the block number at which the channel can be settled.
         channel.settle_block_number += uint256(block.number);
 
-        // Nonce 0 means that the closer never received a transfer, or
-        // he is intentionally not providing the latest transfer, in which case
-        // the closing party is going to lose the tokens that were transferred
-        // to him.
-        recovered_partner_address = recoverAddressFromBalanceProof(
-            channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            signature
-        );
-
+        // Nonce 0 means that the closer never received a transfer, therefore never received a
+        // balance proof, or he is intentionally not providing the latest transfer, in which case
+        // the closing party is going to lose the tokens that were transferred to him.
         if (nonce > 0) {
-            updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
-        }
+            recovered_partner_address = recoverAddressFromBalanceProof(
+                channel_identifier,
+                balance_hash,
+                nonce,
+                additional_hash,
+                signature
+            );
 
-        // Signature must be from the channel partner
-        assert(partner == recovered_partner_address);
+            updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
+
+            // Signature must be from the channel partner
+            require(partner == recovered_partner_address);
+        }
 
         emit ChannelClosed(channel_identifier, msg.sender);
     }
@@ -288,12 +287,6 @@ contract TokenNetwork is Utils {
         channel_identifier = getChannelIdentifier(closing_participant, non_closing_participant);
         Channel storage channel = channels[channel_identifier];
 
-        // Channel must be closed
-        require(channel.state == 2);
-
-        // Channel must be in the settlement window
-        require(channel.settle_block_number >= block.number);
-
         // We need the signature from the non-closing participant to allow anyone
         // to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = recoverAddressFromBalanceProofUpdateMessage(
@@ -315,21 +308,22 @@ contract TokenNetwork is Utils {
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
 
-        // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
-
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
 
         emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
 
-        assert(closing_participant == recovered_closing_participant);
-        assert(non_closing_participant == recovered_non_closing_participant);
-    }
+        // Channel must be closed
+        require(channel.state == 2);
 
-    /// @notice Registers the lock secret in the SecretRegistry contract.
-    function registerSecret(bytes32 secret) public {
-        require(secret_registry.registerSecret(secret));
+        // Channel must be in the settlement window
+        require(channel.settle_block_number >= block.number);
+
+        // Make sure the first signature is from the closing participant
+        require(closing_participant_state.is_the_closer);
+
+        require(closing_participant == recovered_closing_participant);
+        require(non_closing_participant == recovered_non_closing_participant);
     }
 
     /// @notice Settles the balance between the two parties.
@@ -478,6 +472,15 @@ contract TokenNetwork is Utils {
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
+        require(participant1_amount <= total_deposit);
+        require(participant2_amount <= total_deposit);
+        assert(total_deposit == (
+            participant1_amount +
+            participant2_amount +
+            participant1_locked_amount +
+            participant2_locked_amount
+        ));
+
         return (participant1_amount, participant2_amount);
     }
 
@@ -503,10 +506,6 @@ contract TokenNetwork is Utils {
 
         channel_identifier = getChannelIdentifier(participant, partner);
 
-        // Channel must be settled and channel data deleted
-        require(channels[channel_identifier].state == 0);
-
-
         // Calculate the locksroot for the pending transfers and the amount of tokens
         // corresponding to the locked transfers with secrets revealed on chain.
         (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
@@ -519,9 +518,6 @@ contract TokenNetwork is Utils {
         // pending transfers.
         locked_amount = unlock_data.locksroot_to_locked_amount[computed_locksroot];
 
-        // The locked amount of tokens must be > 0
-        require(unlock_data.locksroot_to_locked_amount[computed_locksroot] > 0);
-
         // Make sure we don't transfer more tokens than previously reserved in the smart contract.
         unlocked_amount = min(unlocked_amount, locked_amount);
 
@@ -531,8 +527,10 @@ contract TokenNetwork is Utils {
         // Remove partner's unlock data
         delete unlock_data.locksroot_to_locked_amount[computed_locksroot];
 
-        // Transfer the unlocked tokens to the participant
-        require(token.transfer(participant, unlocked_amount));
+        // Transfer the unlocked tokens to the participant. unlocked_amount can be 0
+        if (unlocked_amount > 0) {
+            require(token.transfer(participant, unlocked_amount));
+        }
 
         // Transfer the rest of the tokens back to the partner
         if (returned_tokens > 0) {
@@ -541,9 +539,13 @@ contract TokenNetwork is Utils {
 
         emit ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
 
-        assert(computed_locksroot != 0);
-        assert(unlocked_amount > 0);
-        assert(locked_amount > 0);
+        // Channel must be settled and channel data deleted
+        require(channels[channel_identifier].state == 0);
+
+        require(computed_locksroot != 0);
+        require(locked_amount > 0);
+        require(locked_amount >= returned_tokens);
+        assert(locked_amount >= unlocked_amount);
     }
 
     function cooperativeSettle(
@@ -560,9 +562,11 @@ contract TokenNetwork is Utils {
         address participant1;
         address participant2;
         uint256 total_deposit;
+        uint256 initial_state;
 
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
+        initial_state = channel.state;
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -587,20 +591,12 @@ contract TokenNetwork is Utils {
 
         total_deposit = participant1_state.deposit + participant2_state.deposit;
 
-        // The provided addresses must be the same as the recovered ones
-        require(participant1 == participant1_address);
-        require(participant2 == participant2_address);
-
-        // The channel must be open
-        require(channel.state == 1);
-
-        // The sum of the provided balances must be equal to the total deposit
-        require(total_deposit == (participant1_balance + participant2_balance));
-
         // Remove channel data from storage before doing the token transfers
         delete channel.participants[participant1];
         delete channel.participants[participant2];
         delete channels[channel_identifier];
+
+        emit ChannelSettled(channel_identifier);
 
         // Do the token transfers
         if (participant1_balance > 0) {
@@ -611,7 +607,15 @@ contract TokenNetwork is Utils {
             require(token.transfer(participant2, participant2_balance));
         }
 
-        emit ChannelSettled(channel_identifier);
+        // The channel must be open
+        require(initial_state == 1);
+
+        // The provided addresses must be the same as the recovered ones
+        require(participant1 == participant1_address);
+        require(participant2 == participant2_address);
+
+        // The sum of the provided balances must be equal to the total deposit
+        require(total_deposit == (participant1_balance + participant2_balance));
     }
 
     /// @dev Returns the unique identifier for the channel

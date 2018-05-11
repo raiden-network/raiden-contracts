@@ -47,7 +47,7 @@ def test_open_channel_call(token_network, get_accounts):
 
 def test_max_1_channel(token_network, get_accounts, create_channel):
     (A, B) = get_accounts(2)
-    create_channel(A, B)
+    create_channel(A, B, SETTLE_TIMEOUT_MIN)
 
     with pytest.raises(TransactionFailed):
         token_network.transact().openChannel(A, B, SETTLE_TIMEOUT_MIN)

@@ -4,7 +4,7 @@ from functools import reduce
 from collections import namedtuple
 from web3 import Web3
 from raiden_contracts.utils.config import SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.merkle import compute_merkle_tree
+from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
 from eth_abi import encode_abi
 
 
@@ -13,7 +13,9 @@ PendingTransfersTree = namedtuple('PendingTransfersTree', [
     'unlockable',
     'expired',
     'packed_transfers',
-    'merkle_tree'
+    'merkle_tree',
+    'merkle_root',
+    'locked_amount'
 ])
 
 
@@ -76,7 +78,10 @@ def get_pending_transfers_tree(
     )))
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
+    merkle_root = get_merkle_root(merkle_tree)
+    merkle_root = '0x' + merkle_root.hex()
     packed_transfers = get_packed_transfers(pending_transfers, types)
+    locked_amount = get_locked_amount(pending_transfers)
 
     return PendingTransfersTree(
         transfers=pending_transfers,
@@ -84,6 +89,8 @@ def get_pending_transfers_tree(
         expired=expired_locks,
         packed_transfers=packed_transfers,
         merkle_tree=merkle_tree,
+        merkle_root=merkle_root,
+        locked_amount=locked_amount
     )
 
 
