@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.23;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
@@ -41,7 +41,7 @@ contract CustomToken is StandardToken {
     /// @param token_name Token name for display.
     /// @param token_symbol Token symbol.
     /// @param decimal_units Number of token decimals.
-    function CustomToken (
+    constructor(
         uint256 initial_supply,
         uint8 decimal_units,
         string token_name,
@@ -75,18 +75,18 @@ contract CustomToken is StandardToken {
         balances[msg.sender] += num;
         _total_supply += num;
 
-        Minted(msg.sender, num);
+        emit Minted(msg.sender, num);
 
-        assert(balances[msg.sender] >= num);
+        require(balances[msg.sender] >= num);
         assert(_total_supply >= num);
     }
 
     /// @notice Transfers the collected ETH to the contract owner.
     function transferFunds() public {
         require(msg.sender == owner_address);
-        require(this.balance > 0);
+        require(address(this).balance > 0);
 
-        owner_address.transfer(this.balance);
-        assert(this.balance == 0);
+        owner_address.transfer(address(this).balance);
+        assert(address(this).balance == 0);
     }
 }
