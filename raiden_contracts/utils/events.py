@@ -28,6 +28,14 @@ def check_new_deposit(channel_identifier, participant, deposit):
     return get
 
 
+def check_withdraw(channel_identifier, participant, withdrawn_amount):
+    def get(event):
+        assert event['args']['channel_identifier'] == channel_identifier
+        assert event['args']['participant'] == participant
+        assert event['args']['withdrawn_amount'] == withdrawn_amount
+    return get
+
+
 def check_channel_closed(channel_identifier, closing_participant):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier

@@ -3,6 +3,7 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import (
     SETTLE_TIMEOUT_MIN,
     E_CHANNEL_CLOSED,
+    CHANNEL_STATE_NONEXISTENT_OR_SETTLED,
     CHANNEL_STATE_OPEN,
     CHANNEL_STATE_CLOSED
 )
@@ -19,7 +20,7 @@ def test_close_nonexistent_channel(
     (A, B) = get_accounts(2)
 
     (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
-    assert state == 0
+    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -44,7 +45,7 @@ def test_close_settled_channel(
     channel_deposit(A, 5, B)
 
     (_, _, state) = token_network.call().getChannelInfo(A, B)
-    assert state == 1
+    assert state == CHANNEL_STATE_OPEN
 
     token_network.transact({'from': A}).closeChannel(
         B,
@@ -60,7 +61,7 @@ def test_close_settled_channel(
     )
 
     (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
-    assert state == 0
+    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -185,7 +186,7 @@ def test_close_channel_state(
     assert state == CHANNEL_STATE_OPEN
 
     (
-        _,
+        _, _,
         A_is_the_closer,
         A_balance_hash,
         A_nonce
@@ -201,7 +202,7 @@ def test_close_channel_state(
     assert state == CHANNEL_STATE_CLOSED
 
     (
-        _,
+        _, _,
         A_is_the_closer,
         A_balance_hash,
         A_nonce
@@ -211,7 +212,7 @@ def test_close_channel_state(
     assert A_nonce == 0
 
     (
-        _,
+        _, _,
         B_is_the_closer,
         B_balance_hash,
         B_nonce

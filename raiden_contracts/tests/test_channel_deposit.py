@@ -140,18 +140,18 @@ def test_deposit_channel_state(token_network, create_channel, channel_deposit, g
 
     create_channel(A, B)
 
-    (A_deposit, _, _, _) = token_network.call().getChannelParticipantInfo(A, B)
+    A_deposit = token_network.call().getChannelParticipantInfo(A, B)[0]
     assert A_deposit == 0
 
-    (B_deposit, _, _, _) = token_network.call().getChannelParticipantInfo(B, A)
+    B_deposit = token_network.call().getChannelParticipantInfo(B, A)[0]
     assert B_deposit == 0
 
     channel_deposit(A, deposit_A, B)
-    (A_deposit, _, _, _) = token_network.call().getChannelParticipantInfo(A, B)
+    A_deposit = token_network.call().getChannelParticipantInfo(A, B)[0]
     assert A_deposit == deposit_A
 
     channel_deposit(B, deposit_B, A)
-    (B_deposit, _, _, _) = token_network.call().getChannelParticipantInfo(B, A)
+    B_deposit = token_network.call().getChannelParticipantInfo(B, A)[0]
     assert B_deposit == deposit_B
 
 

@@ -111,11 +111,13 @@ def test_settle_channel_state(
     # Make sure participant data has been removed
     (
         A_deposit,
+        A_withdrawn,
         A_is_the_closer,
         A_balance_hash,
         A_nonce
     ) = token_network.call().getChannelParticipantInfo(A, B)
     assert A_deposit == 0
+    assert A_withdrawn == 0
     assert A_is_the_closer == 0
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
@@ -126,11 +128,13 @@ def test_settle_channel_state(
 
     (
         B_deposit,
+        B_withdrawn,
         B_is_the_closer,
         B_balance_hash,
         B_nonce
     ) = token_network.call().getChannelParticipantInfo(B, A)
     assert B_deposit == 0
+    assert B_withdrawn == 0
     assert B_is_the_closer == 0
     assert B_balance_hash == fake_bytes(32)
     assert B_nonce == 0

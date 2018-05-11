@@ -8,6 +8,9 @@ from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
 from eth_abi import encode_abi
 
 
+MAX_UINT256 = 2 ** 256 - 1
+
+
 PendingTransfersTree = namedtuple('PendingTransfersTree', [
     'transfers',
     'unlockable',

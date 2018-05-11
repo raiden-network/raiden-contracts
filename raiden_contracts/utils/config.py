@@ -6,6 +6,7 @@ C_CUSTOM_TOKEN = 'CustomToken'
 
 E_CHANNEL_OPENED = 'ChannelOpened'
 E_CHANNEL_NEW_DEPOSIT = 'ChannelNewDeposit'
+E_CHANNEL_WITHDRAW = 'ChannelWithdraw'
 E_CHANNEL_CLOSED = 'ChannelClosed'
 E_CHANNEL_UNLOCKED = 'ChannelUnlocked'
 E_TRANSFER_UPDATED = 'NonClosingBalanceProofUpdated'

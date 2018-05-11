@@ -90,6 +90,28 @@ def hash_cooperative_settle_message(
     ])
 
 
+def hash_withdraw_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant,
+        amount_to_withdraw
+):
+    return Web3.soliditySha3([
+        'address',
+        'uint256',
+        'bytes32',
+        'address',
+        'uint256'
+    ], [
+        participant,
+        amount_to_withdraw,
+        channel_identifier,
+        token_network_address,
+        chain_identifier
+    ])
+
+
 def sign_balance_proof(
         privatekey,
         token_network_address,
@@ -155,6 +177,26 @@ def sign_cooperative_settle_message(
         participant1_balance,
         participant2_address,
         participant2_balance
+    )
+
+    return sign(privatekey, message_hash, v)
+
+
+def sign_withdraw_message(
+        privatekey,
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant,
+        amount_to_withdraw,
+        v=27
+):
+    message_hash = hash_withdraw_message(
+        token_network_address,
+        chain_identifier,
+        channel_identifier,
+        participant,
+        amount_to_withdraw
     )
 
     return sign(privatekey, message_hash, v)

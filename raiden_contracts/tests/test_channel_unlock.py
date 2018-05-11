@@ -11,10 +11,11 @@ from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
 from .fixtures.config import fake_hex, fake_bytes
 
 
-def test_merkle_root_0_items(
-        unlock_test
-):
-    (locksroot, unlocked_amount) = unlock_test.call().getMerkleRootAndUnlockedAmountPublic(b'')
+def test_merkle_root_0_items(token_network_test):
+    (
+        locksroot,
+        unlocked_amount
+    ) = token_network_test.call().getMerkleRootAndUnlockedAmountPublic(b'')
     assert locksroot == EMPTY_MERKLE_ROOT
     assert unlocked_amount == 0
 
@@ -22,7 +23,7 @@ def test_merkle_root_0_items(
 def test_merkle_root_1_item_unlockable(
         web3,
         get_accounts,
-        unlock_test,
+        token_network_test,
         secret_registry
 ):
     A = get_accounts(1)[0]
@@ -35,7 +36,7 @@ def test_merkle_root_1_item_unlockable(
         pending_transfers_tree.unlockable[0][2]
     ) == web3.eth.blockNumber
 
-    (locksroot, unlocked_amount) = unlock_test.call().getMerkleRootAndUnlockedAmountPublic(
+    (locksroot, unlocked_amount) = token_network_test.call().getMerkleRootAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers
     )
 
@@ -47,7 +48,7 @@ def test_merkle_root_1_item_unlockable(
 def test_merkle_root(
         web3,
         get_accounts,
-        unlock_test,
+        token_network_test,
         secret_registry
 ):
     (A, B) = get_accounts(2)
@@ -57,7 +58,7 @@ def test_merkle_root(
         secret_registry.transact({'from': A}).registerSecret(lock[3])
         assert secret_registry.call().getSecretRevealBlockHeight(lock[2]) == web3.eth.blockNumber
 
-    (locksroot, unlocked_amount) = unlock_test.call().getMerkleRootAndUnlockedAmountPublic(
+    (locksroot, unlocked_amount) = token_network_test.call().getMerkleRootAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers
     )
     merkle_root = get_merkle_root(pending_transfers_tree.merkle_tree)

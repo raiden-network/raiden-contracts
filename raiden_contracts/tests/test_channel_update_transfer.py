@@ -225,7 +225,7 @@ def test_update_channel_state(
     assert state == CHANNEL_STATE_CLOSED  # state
 
     (
-        _,
+        _, _,
         A_is_the_closer,
         A_balance_hash,
         A_nonce
@@ -235,7 +235,7 @@ def test_update_channel_state(
     assert A_nonce == 5
 
     (
-        _,
+        _, _,
         B_is_the_closer,
         B_balance_hash,
         B_nonce
