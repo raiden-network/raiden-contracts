@@ -243,6 +243,31 @@ def cooperative_settle_state_tests(custom_token, token_network):
 
 
 @pytest.fixture()
+def settle_state_tests(token_network, cooperative_settle_state_tests):
+    def get(
+            A, balance_A, locksroot_A, locked_amount_A,
+            B, balance_B, locksroot_B, locked_amount_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+    ):
+        cooperative_settle_state_tests(
+            A, balance_A,
+            B, balance_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+        )
+
+        locked_amount1 = token_network.call().getParticipantLockedAmount(A, B, locksroot_A)
+        assert locked_amount1 == locked_amount_A
+
+        locked_amount2 = token_network.call().getParticipantLockedAmount(A, B, locksroot_B)
+        assert locked_amount2 == locked_amount_B
+    return get
+
+
+@pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):
     def get(
             participant,

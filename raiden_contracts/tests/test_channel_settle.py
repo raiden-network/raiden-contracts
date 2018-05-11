@@ -52,6 +52,7 @@ def test_settle_channel_state(
         channel_deposit,
         get_accounts,
         get_block,
+        settle_state_tests,
         create_balance_proof,
         create_balance_proof_update_signature
 ):
@@ -103,54 +104,15 @@ def test_settle_channel_state(
         B, 5, 1, locksroot2
     )
 
-    # Make sure channel data has been removed
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
-    assert settle_block_number == 0  # settle_block_number
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
-
-    # Make sure participant data has been removed
-    (
-        A_deposit,
-        A_withdrawn,
-        A_is_the_closer,
-        A_balance_hash,
-        A_nonce
-    ) = token_network.call().getChannelParticipantInfo(A, B)
-    assert A_deposit == 0
-    assert A_withdrawn == 0
-    assert A_is_the_closer == 0
-    assert A_balance_hash == fake_bytes(32)
-    assert A_nonce == 0
-
-    # Make sure balance data has been updated
-    A_locked_amount = token_network.call().getParticipantLockedAmount(A, B, locksroot1)
-    assert A_locked_amount == 2
-
-    (
-        B_deposit,
-        B_withdrawn,
-        B_is_the_closer,
-        B_balance_hash,
-        B_nonce
-    ) = token_network.call().getChannelParticipantInfo(B, A)
-    assert B_deposit == 0
-    assert B_withdrawn == 0
-    assert B_is_the_closer == 0
-    assert B_balance_hash == fake_bytes(32)
-    assert B_nonce == 0
-
-    # Make sure balance data has been updated
-    B_locked_amount = token_network.call().getParticipantLockedAmount(A, B, locksroot2)
-    assert B_locked_amount == 1
-
-    # Make sure the correct amount of tokens has been transferred
     (A_amount, B_amount, locked_amount) = get_settlement_amounts(deposit_A, 10, 2, 0, 5, 1)
-    balance_A = custom_token.call().balanceOf(A)
-    balance_B = custom_token.call().balanceOf(B)
-    balance_contract = custom_token.call().balanceOf(token_network.address)
-    assert balance_A == pre_balance_A + A_amount
-    assert balance_B == pre_balance_B + B_amount
-    assert balance_contract == pre_balance_contract - A_amount - B_amount
+
+    settle_state_tests(
+        A, A_amount, locksroot1, 2,
+        B, B_amount, locksroot2, 1,
+        pre_balance_A,
+        pre_balance_B,
+        pre_balance_contract
+    )
 
 
 def test_settle_channel_event(

@@ -466,12 +466,10 @@ contract TokenNetwork is Utils {
             participant2_transferred_amount,
             participant1_transferred_amount
         ) = getSettleTransferAmounts(
-            participant1_state.deposit,
-            participant1_state.withdrawn_amount,
+            participant1_state,
             participant1_transferred_amount,
             participant1_locked_amount,
-            participant2_state.deposit,
-            participant2_state.withdrawn_amount,
+            participant2_state,
             participant2_transferred_amount,
             participant2_locked_amount
         );
@@ -506,16 +504,14 @@ contract TokenNetwork is Utils {
     }
 
     function getSettleTransferAmounts(
-        uint256 participant1_deposit,
-        uint256 participant1_withdrawn,
+        Participant storage participant1_state,
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
-        uint256 participant2_deposit,
-        uint256 participant2_withdrawn,
+        Participant storage participant2_state,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount
     )
-        pure
+        view
         private
         returns (uint256, uint256)
     {
@@ -528,17 +524,15 @@ contract TokenNetwork is Utils {
         // this is because there is no way to tell which participant (if any)
         // had ownership over the token.
 
-        total_available_deposit = (
-            participant1_deposit +
-            participant2_deposit -
-            participant1_withdrawn -
-            participant2_withdrawn
+        total_available_deposit = getChannelAvailableDeposit(
+            participant1_state,
+            participant2_state
         );
 
         participant1_amount = (
-            participant1_deposit +
+            participant1_state.deposit +
             participant2_transferred_amount -
-            participant1_withdrawn -
+            participant1_state.withdrawn_amount -
             participant1_transferred_amount
         );
 
@@ -647,7 +641,7 @@ contract TokenNetwork is Utils {
         bytes32 channel_identifier;
         address participant1;
         address participant2;
-        uint256 total_deposit;
+        uint256 total_available_deposit;
         uint256 initial_state;
 
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
@@ -675,7 +669,10 @@ contract TokenNetwork is Utils {
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
 
-        total_deposit = participant1_state.deposit + participant2_state.deposit;
+        total_available_deposit = getChannelAvailableDeposit(
+            participant1_state,
+            participant2_state
+        );
 
         // Remove channel data from storage before doing the token transfers
         delete channel.participants[participant1];
@@ -700,8 +697,8 @@ contract TokenNetwork is Utils {
         require(participant1 == participant1_address);
         require(participant2 == participant2_address);
 
-        // The sum of the provided balances must be equal to the total deposit
-        require(total_deposit == (participant1_balance + participant2_balance));
+        // The sum of the provided balances must be equal to the total available deposit
+        require(total_available_deposit == (participant1_balance + participant2_balance));
     }
 
     /// @dev Returns the unique identifier for the channel
@@ -760,6 +757,22 @@ contract TokenNetwork is Utils {
 
         UnlockData storage unlock_data = channel_identifier_to_unlock_data[channel_identifier];
         unlock_data.locksroot_to_locked_amount[locksroot] = locked_amount;
+    }
+
+    function getChannelAvailableDeposit(
+        Participant storage participant1_state,
+        Participant storage participant2_state
+    )
+        view
+        internal
+        returns (uint256 total_available_deposit)
+    {
+        total_available_deposit = (
+            participant1_state.deposit +
+            participant2_state.deposit -
+            participant1_state.withdrawn_amount -
+            participant2_state.withdrawn_amount
+        );
     }
 
     function verifyBalanceHashData(
