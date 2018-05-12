@@ -272,16 +272,18 @@ def withdraw_state_tests(custom_token, token_network):
     def get(
             participant,
             deposit_participant,
-            withdrawn_participant,
+            total_withdrawn_participant,
+            pre_withdrawn_participant,
             pre_balance_participant,
             partner,
             deposit_partner,
-            withdrawn_partner,
+            total_withdrawn_partner,
             pre_balance_partner,
             pre_balance_contract,
             delegate=None,
             pre_balance_delegate=None
     ):
+        current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
         (_, _, state) = token_network.call().getChannelInfo(participant, partner)
         assert state == CHANNEL_STATE_OPEN
 
@@ -293,7 +295,7 @@ def withdraw_state_tests(custom_token, token_network):
             nonce
         ) = token_network.call().getChannelParticipantInfo(participant, partner)
         assert deposit == deposit_participant
-        assert withdrawn_amount == withdrawn_participant
+        assert withdrawn_amount == total_withdrawn_participant
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
@@ -306,7 +308,7 @@ def withdraw_state_tests(custom_token, token_network):
             nonce
         ) = token_network.call().getChannelParticipantInfo(partner, participant)
         assert deposit == deposit_partner
-        assert withdrawn_amount == withdrawn_partner
+        assert withdrawn_amount == total_withdrawn_partner
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
@@ -314,9 +316,9 @@ def withdraw_state_tests(custom_token, token_network):
         balance_participant = custom_token.call().balanceOf(participant)
         balance_partner = custom_token.call().balanceOf(partner)
         balance_contract = custom_token.call().balanceOf(token_network.address)
-        assert balance_participant == pre_balance_participant + withdrawn_participant
+        assert balance_participant == pre_balance_participant + current_withdrawn_participant
         assert balance_partner == pre_balance_partner
-        assert balance_contract == pre_balance_contract - withdrawn_participant
+        assert balance_contract == pre_balance_contract - current_withdrawn_participant
 
         if delegate is not None:
             balance_delegate = custom_token.call().balanceOf(delegate)

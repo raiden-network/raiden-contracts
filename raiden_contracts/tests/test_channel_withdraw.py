@@ -213,14 +213,15 @@ def test_withdraw_bigger(
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, deposit_A + deposit_B + 1, B)
+    with pytest.raises(TransactionFailed):
+        withdraw_channel(B, deposit_A + deposit_B + 1, A)
 
     withdraw_channel(A, 3, B)
+    withdraw_channel(B, 6, A)
     with pytest.raises(TransactionFailed):
-        withdraw_channel(A, deposit_A + deposit_B - 2, B)
-
-    withdraw_channel(B, 4, A)
+        withdraw_channel(A, deposit_A + deposit_B - 5, B)
     with pytest.raises(TransactionFailed):
-        withdraw_channel(A, deposit_A + deposit_B - 6, B)
+        withdraw_channel(B, deposit_A + deposit_B - 2, A)
 
     withdraw_channel(A, deposit_A + deposit_B - 7, B)
 
@@ -355,32 +356,20 @@ def test_withdraw_wrong_signature_content(
 
 
 def test_withdraw_channel_state(
+        get_accounts,
         token_network,
         custom_token,
         create_channel_and_deposit,
-        get_accounts,
-        create_withdraw_signatures,
+        withdraw_channel,
         withdraw_state_tests
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
-    withdraw_A = 25
+    withdraw_A = 15
     withdraw_B = 2
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
-
-    (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
-        [A, B],
-        channel_identifier,
-        A, withdraw_A
-    )
-
-    (signature_A_for_B, signature_B_for_B) = create_withdraw_signatures(
-        [A, B],
-        channel_identifier,
-        B, withdraw_B
-    )
+    create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     balance_A = custom_token.call().balanceOf(A)
     balance_B = custom_token.call().balanceOf(B)
@@ -390,15 +379,10 @@ def test_withdraw_channel_state(
     (_, withdrawn_amount, _, _, _) = token_network.call().getChannelParticipantInfo(A, B)
     assert withdrawn_amount == 0
 
-    token_network.transact({'from': C}).withdraw(
-        A, withdraw_A,
-        B,
-        signature_A_for_A,
-        signature_B_for_A
-    )
+    withdraw_channel(A, withdraw_A, B, C)
 
     withdraw_state_tests(
-        A, deposit_A, withdraw_A, balance_A,
+        A, deposit_A, withdraw_A, 0, balance_A,
         B, deposit_B, 0, balance_B,
         balance_contract,
         C, balance_C
@@ -409,15 +393,23 @@ def test_withdraw_channel_state(
     balance_C = custom_token.call().balanceOf(C)
     balance_contract = custom_token.call().balanceOf(token_network.address)
 
-    token_network.transact({'from': B}).withdraw(
-        B, withdraw_B,
-        A,
-        signature_B_for_B,
-        signature_A_for_B
-    )
+    withdraw_channel(B, withdraw_B, A)
 
     withdraw_state_tests(
-        B, deposit_B, withdraw_B, balance_B,
+        B, deposit_B, withdraw_B, 0, balance_B,
+        A, deposit_A, withdraw_A, balance_A,
+        balance_contract
+    )
+
+    balance_A = custom_token.call().balanceOf(A)
+    balance_B = custom_token.call().balanceOf(B)
+    balance_C = custom_token.call().balanceOf(C)
+    balance_contract = custom_token.call().balanceOf(token_network.address)
+
+    withdraw_channel(B, withdraw_B + 3, A)
+
+    withdraw_state_tests(
+        B, deposit_B, withdraw_B + 3, withdraw_B, balance_B,
         A, deposit_A, withdraw_A, balance_A,
         balance_contract
     )

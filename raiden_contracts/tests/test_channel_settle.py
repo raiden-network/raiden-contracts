@@ -1,7 +1,6 @@
 from raiden_contracts.utils.config import (
     E_CHANNEL_SETTLED,
-    SETTLE_TIMEOUT_MIN,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    SETTLE_TIMEOUT_MIN
 )
 from raiden_contracts.utils.events import check_channel_settled
 from .utils import get_settlement_amounts

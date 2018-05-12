@@ -210,64 +210,58 @@ contract TokenNetwork is Utils {
         require(participant_state.deposit >= added_deposit);
     }
 
-    /// @notice Allows `participant` to withdraw `amount_to_withdraw` tokens from the channel that
-    /// he has with `partner`. Can be called by anyone.
+    /// @notice Allows `participant` to withdraw tokens from the channel that he has with
+    /// `partner`, without closing it. Can be called by anyone.
     /// @param participant Channel participant, who will receive the withdrawn amount.
-    /// @param amount_to_withdraw Amount of tokens to withdraw from the channel.
+    /// @param total_withdraw Total amount of tokens that are marked as withdrawn from the channel
+    /// during the channel lifecycle.
     /// @param partner Channel partner address, needed to compute the channel identifier.
     /// @param participant_signature Participant's signature on the withdraw data.
     /// @param partner_signature Partner's signature on the withdraw data.
     function withdraw(
         address participant,
-        uint256 amount_to_withdraw,
+        uint256 total_withdraw,
         address partner,
         bytes participant_signature,
         bytes partner_signature
     )
         external
     {
-        require(amount_to_withdraw > 0);
+        require(total_withdraw > 0);
 
         bytes32 channel_identifier;
-        address recovered_participant_address;
-        address recovered_partner_address;
         uint256 total_deposit;
+        uint256 current_withdraw;
 
         channel_identifier = getChannelIdentifier(participant, partner);
         Channel storage channel = channels[channel_identifier];
 
-        recovered_participant_address = recoverAddressFromWithdrawMessage(
-            channel_identifier,
-            participant,
-            amount_to_withdraw,
-            participant_signature
-        );
-        recovered_partner_address = recoverAddressFromWithdrawMessage(
-            channel_identifier,
-            participant,
-            amount_to_withdraw,
-            partner_signature
-        );
-
-        Participant storage participant_state = channel.participants[recovered_participant_address];
-        Participant storage partner_state = channel.participants[recovered_partner_address];
+        Participant storage participant_state = channel.participants[participant];
+        Participant storage partner_state = channel.participants[partner];
 
         total_deposit = participant_state.deposit + partner_state.deposit;
+        current_withdraw = total_withdraw - participant_state.withdrawn_amount;
 
-        participant_state.withdrawn_amount += amount_to_withdraw;
+        participant_state.withdrawn_amount += current_withdraw;
 
         // Do the tokens transfer
-        require(token.transfer(participant, amount_to_withdraw));
+        require(token.transfer(participant, current_withdraw));
 
         // Channel must be open
         require(channel.state == 1);
 
-        // Check recovered addresses from signatures
-        require(participant == recovered_participant_address);
-        require(partner == recovered_partner_address);
+        verifyWithdrawSignatures(
+            channel_identifier,
+            participant,
+            partner,
+            total_withdraw,
+            participant_signature,
+            partner_signature
+        );
 
         // Underflow check
-        require(participant_state.withdrawn_amount >= amount_to_withdraw);
+        require(participant_state.withdrawn_amount >= current_withdraw);
+        require(participant_state.withdrawn_amount == total_withdraw);
 
         // Entire withdrawn amount must not be bigger than the entire channel deposit
         require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
@@ -950,7 +944,7 @@ contract TokenNetwork is Utils {
     function recoverAddressFromWithdrawMessage(
         bytes32 channel_identifier,
         address participant,
-        uint256 amount_to_withdraw,
+        uint256 total_withdraw,
         bytes signature
     )
         view
@@ -959,13 +953,44 @@ contract TokenNetwork is Utils {
     {
         bytes32 message_hash = keccak256(
             participant,
-            amount_to_withdraw,
+            total_withdraw,
             channel_identifier,
             address(this),
             chain_id
         );
 
         signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function verifyWithdrawSignatures(
+        bytes32 channel_identifier,
+        address participant,
+        address partner,
+        uint256 total_withdraw,
+        bytes participant_signature,
+        bytes partner_signature
+    )
+        view
+        internal
+    {
+        address recovered_participant_address;
+        address recovered_partner_address;
+
+        recovered_participant_address = recoverAddressFromWithdrawMessage(
+            channel_identifier,
+            participant,
+            total_withdraw,
+            participant_signature
+        );
+        recovered_partner_address = recoverAddressFromWithdrawMessage(
+            channel_identifier,
+            participant,
+            total_withdraw,
+            partner_signature
+        );
+        // Check recovered addresses from signatures
+        require(participant == recovered_participant_address);
+        require(partner == recovered_partner_address);
     }
 
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
