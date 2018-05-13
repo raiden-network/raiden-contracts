@@ -147,7 +147,7 @@ def instantiate_contract(web3, contracts_compiled_data, contract_name, contract_
 
     contract = web3.eth.contract(
         abi=contract_interface['abi'],
-        bytecode=contract_interface['bytecode'],
+        bytecode=contract_interface['bin'],
         address=contract_address
     )
 
@@ -167,7 +167,7 @@ def deploy_contract(
     # Instantiate and deploy contract
     contract = web3.eth.contract(
         abi=contract_interface['abi'],
-        bytecode=contract_interface['bytecode']
+        bytecode=contract_interface['bin']
     )
 
     # Get transaction hash from deployed contract
