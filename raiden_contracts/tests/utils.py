@@ -103,31 +103,34 @@ def get_packed_transfers(pending_transfers, types):
 
 
 def get_settlement_amounts(
-        participant1_deposit,
-        participant1_transferred_amount,
-        participant1_locked_amount,
-        participant2_deposit,
-        participant2_transferred_amount,
-        participant2_locked_amount
+        participant1,
+        participant2
 ):
     """ Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
     a channel is settled
     """
-    total_deposit = participant1_deposit + participant2_deposit
-    participant1 = (
-        participant1_deposit +
-        participant2_transferred_amount -
-        participant1_transferred_amount)
-    participant1 = min(participant1, total_deposit)
-    participant1 = max(participant1, 0)
-    participant2 = total_deposit - participant1
+    total_available_deposit = (
+        participant1.deposit +
+        participant2.deposit -
+        participant1.withdrawn -
+        participant2.withdrawn
+    )
+    participant1_amount = (
+        participant1.deposit +
+        participant2.transferred -
+        participant1.withdrawn -
+        participant1.transferred
+    )
+    participant1_amount = min(participant1_amount, total_available_deposit)
+    participant1_amount = max(participant1_amount, 0)
+    participant2_amount = total_available_deposit - participant1_amount
 
-    participant1 = max(participant1 - participant1_locked_amount, 0)
-    participant2 = max(participant2 - participant2_locked_amount, 0)
+    participant1_amount = max(participant1_amount - participant1.locked, 0)
+    participant2_amount = max(participant2_amount - participant2.locked, 0)
 
-    return (participant1, participant2, participant1_locked_amount + participant2_locked_amount)
+    return (participant1_amount, participant2_amount, participant1.locked + participant2.locked)
 
 
 def get_unlocked_amount(secret_registry, merkle_tree_leaves):

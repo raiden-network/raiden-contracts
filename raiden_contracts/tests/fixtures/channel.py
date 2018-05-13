@@ -12,10 +12,16 @@ from raiden_contracts.utils.sign import (
     sign_cooperative_settle_message,
     sign_withdraw_message
 )
+from .channel_test_values import channel_test_vals
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
 from eth_utils import denoms
+
+
+@pytest.fixture(params=channel_test_vals)
+def channel_test_values(request):
+    return request.param
 
 
 @pytest.fixture()
@@ -102,12 +108,73 @@ def withdraw_channel(token_network, create_withdraw_signatures):
 
 
 @pytest.fixture()
-def create_settled_channel(
+def close_and_update_channel(
         web3,
         token_network,
         create_channel_and_deposit,
         create_balance_proof,
         create_balance_proof_update_signature
+):
+    def get(
+            participant1,
+            transferred_amount1,
+            locked_amount1,
+            locksroot1,
+            participant2,
+            transferred_amount2,
+            locked_amount2,
+            locksroot2,
+    ):
+        nonce1 = 5
+        nonce2 = 7
+        additional_hash1 = fake_bytes(32)
+        additional_hash2 = fake_bytes(32)
+
+        channel_identifier = token_network.call().getChannelIdentifier(participant1, participant2)
+
+        balance_proof_1 = create_balance_proof(
+            channel_identifier,
+            participant1,
+            transferred_amount1,
+            locked_amount1,
+            nonce1,
+            locksroot1,
+            additional_hash1
+        )
+        balance_proof_2 = create_balance_proof(
+            channel_identifier,
+            participant2,
+            transferred_amount2,
+            locked_amount2,
+            nonce2,
+            locksroot2,
+            additional_hash2
+        )
+        balance_proof_update_signature_2 = create_balance_proof_update_signature(
+            participant2,
+            channel_identifier,
+            *balance_proof_1
+        )
+
+        token_network.transact({'from': participant1}).closeChannel(
+            participant2,
+            *balance_proof_2
+        )
+
+        token_network.transact({'from': participant2}).updateNonClosingBalanceProof(
+            participant1, participant2,
+            *balance_proof_1,
+            balance_proof_update_signature_2
+        )
+    return get
+
+
+@pytest.fixture()
+def create_settled_channel(
+        web3,
+        token_network,
+        create_channel_and_deposit,
+        close_and_update_channel
 ):
     def get(
             participant1,
@@ -131,39 +198,15 @@ def create_settled_channel(
             settle_timeout
         )
 
-        balance_proof_1 = create_balance_proof(
-            channel_identifier,
+        close_and_update_channel(
             participant1,
             transferred_amount1,
             locked_amount1,
-            5,
             locksroot1,
-            fake_bytes(32)
-        )
-        balance_proof_2 = create_balance_proof(
-            channel_identifier,
             participant2,
             transferred_amount2,
             locked_amount2,
-            6,
-            locksroot2,
-            fake_bytes(32)
-        )
-        balance_proof_update_signature_2 = create_balance_proof_update_signature(
-            participant2,
-            channel_identifier,
-            *balance_proof_1
-        )
-
-        token_network.transact({'from': participant1}).closeChannel(
-            participant2,
-            *balance_proof_2
-        )
-
-        token_network.transact({'from': participant2}).updateNonClosingBalanceProof(
-            participant1, participant2,
-            *balance_proof_1,
-            balance_proof_update_signature_2
+            locksroot2
         )
 
         web3.testing.mine(settle_timeout)
