@@ -211,7 +211,8 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Allows `participant` to withdraw tokens from the channel that he has with
-    /// `partner`, without closing it. Can be called by anyone.
+    /// `partner`, without closing it. Can be called by anyone. Can only be called once per
+    /// each signed withdraw message.
     /// @param participant Channel participant, who will receive the withdrawn amount.
     /// @param total_withdraw Total amount of tokens that are marked as withdrawn from the channel
     /// during the channel lifecycle.
@@ -240,6 +241,9 @@ contract TokenNetwork is Utils {
         Participant storage partner_state = channel.participants[partner];
 
         total_deposit = participant_state.deposit + partner_state.deposit;
+
+        // Using the total_withdraw (monotonically increasing) in the signed message ensures
+        // that we do not allow reply attack to happen, by using the same withdraw proof twice.
         current_withdraw = total_withdraw - participant_state.withdrawn_amount;
 
         participant_state.withdrawn_amount += current_withdraw;
