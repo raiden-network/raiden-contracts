@@ -41,8 +41,14 @@ def test_settle_no_bp_success(
 
     # Settling the channel should work with no balance proofs
     token_network.transact({'from': A}).settleChannel(
-        A, 0, 0, locksroot,
-        B, 0, 0, locksroot
+        A,
+        0,
+        0,
+        locksroot,
+        B,
+        0,
+        0,
+        locksroot
     )
 
 
@@ -86,15 +92,27 @@ def test_settle_channel_state(
 
     if txn_successful is True:
         token_network.transact({'from': A}).settleChannel(
-            A, vals_A.transferred, vals_A.locked, locksroot_A,
-            B, vals_B.transferred, vals_B.locked, locksroot_B
+            A,
+            vals_A.transferred,
+            vals_A.locked,
+            locksroot_A,
+            B,
+            vals_B.transferred,
+            vals_B.locked,
+            locksroot_B
         )
 
         (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
 
         settle_state_tests(
-            A, A_amount, locksroot_A, vals_A.locked,
-            B, B_amount, locksroot_B, vals_B.locked,
+            A,
+            A_amount,
+            locksroot_A,
+            vals_A.locked,
+            B,
+            B_amount,
+            locksroot_B,
+            vals_B.locked,
             pre_balance_A,
             pre_balance_B,
             pre_balance_contract
@@ -102,8 +120,14 @@ def test_settle_channel_state(
     else:
         with pytest.raises(TransactionFailed):
             token_network.transact({'from': A}).settleChannel(
-                A, vals_A.transferred, vals_A.locked, locksroot_A,
-                B, vals_B.transferred, vals_B.locked, locksroot_B
+                A,
+                vals_A.transferred,
+                vals_A.locked,
+                locksroot_A,
+                B,
+                vals_B.transferred,
+                vals_B.locked,
+                locksroot_B
             )
 
 
@@ -143,8 +167,14 @@ def test_settle_channel_event(
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.transact({'from': A}).settleChannel(
-        A, 10, 0, locksroot,
-        B, 5, 0, locksroot
+        A,
+        10,
+        0,
+        locksroot,
+        B,
+        5,
+        0,
+        locksroot
     )
 
     ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(channel_identifier))

@@ -56,8 +56,14 @@ def test_close_settled_channel(
     )
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
     token_network.transact({'from': A}).settleChannel(
-        A, 0, 0, fake_bytes(32),
-        B, 0, 0, fake_bytes(32)
+        A,
+        0,
+        0,
+        fake_bytes(32),
+        B,
+        0,
+        0,
+        fake_bytes(32)
     )
 
     (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)

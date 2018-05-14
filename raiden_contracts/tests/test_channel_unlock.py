@@ -298,13 +298,21 @@ def test_channel_unlock(
     # Create balance proofs
     balance_proof_A = create_balance_proof(
         channel_identifier,
-        A, 10, locked_amount1, 5,
-        locksroot1, additional_hash
+        A,
+        10,
+        locked_amount1,
+        5,
+        locksroot1,
+        additional_hash
     )
     balance_proof_B = create_balance_proof(
         channel_identifier,
-        B, 5, locked_amount2, 3,
-        locksroot2, additional_hash
+        B,
+        5,
+        locked_amount2,
+        3,
+        locksroot2,
+        additional_hash
     )
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
@@ -330,8 +338,14 @@ def test_channel_unlock(
 
     # Settle the channel
     token_network.transact({'from': A}).settleChannel(
-        A, 10, locked_amount1, locksroot1,
-        B, 5, locked_amount2, locksroot2
+        A,
+        10,
+        locked_amount1,
+        locksroot1,
+        B,
+        5,
+        locked_amount2,
+        locksroot2
     )
 
     pre_balance_A = custom_token.call().balanceOf(A)
