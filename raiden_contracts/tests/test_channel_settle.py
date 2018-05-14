@@ -5,6 +5,7 @@ from raiden_contracts.utils.config import (
     SETTLE_TIMEOUT_MIN
 )
 from raiden_contracts.utils.events import check_channel_settled
+from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
 from .utils import get_settlement_amounts
 from .fixtures.config import fake_hex, fake_bytes
 
@@ -45,6 +46,7 @@ def test_settle_no_bp_success(
     )
 
 
+@pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
 def test_settle_channel_state(
         web3,
         get_accounts,

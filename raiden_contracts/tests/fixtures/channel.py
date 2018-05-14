@@ -12,16 +12,10 @@ from raiden_contracts.utils.sign import (
     sign_cooperative_settle_message,
     sign_withdraw_message
 )
-from .channel_test_values import channel_test_vals
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
 from eth_utils import denoms
-
-
-@pytest.fixture(params=channel_test_vals)
-def channel_test_values(request):
-    return request.param
 
 
 @pytest.fixture()

@@ -8,7 +8,7 @@ ChannelValues = namedtuple('ChannelValues', [
     'locked'
 ])
 
-channel_test_vals = [
+channel_settle_test_values = [
     (
         ChannelValues(deposit=40, withdrawn=10, transferred=26, locked=6),
         ChannelValues(deposit=35, withdrawn=5, transferred=24, locked=4),
