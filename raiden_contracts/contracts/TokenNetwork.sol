@@ -272,8 +272,10 @@ contract TokenNetwork is Utils {
         // Entire withdrawn amount must not be bigger than the entire channel deposit
         require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
 
-        assert(total_deposit >= participant_state.deposit);
-        assert(total_deposit >= partner_state.deposit);
+        require(total_deposit >= participant_state.deposit);
+        require(total_deposit >= partner_state.deposit);
+
+        // A withdraw should never happen if a participant already has a balance proof in storage
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
 
