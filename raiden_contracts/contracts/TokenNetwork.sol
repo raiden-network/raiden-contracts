@@ -263,6 +263,8 @@ contract TokenNetwork is Utils {
             partner_signature
         );
 
+        require(current_withdraw > 0);
+
         // Underflow check
         require(participant_state.withdrawn_amount >= current_withdraw);
         require(participant_state.withdrawn_amount == total_withdraw);
