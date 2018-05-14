@@ -24,15 +24,15 @@ def test_merkle_root_1_item_unlockable(
         web3,
         get_accounts,
         token_network_test,
-        secret_registry
+        secret_registry_contract
 ):
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
 
-    secret_registry.transact({'from': A}).registerSecret(
+    secret_registry_contract.transact({'from': A}).registerSecret(
         pending_transfers_tree.unlockable[0][3]
     )
-    assert secret_registry.call().getSecretRevealBlockHeight(
+    assert secret_registry_contract.call().getSecretRevealBlockHeight(
         pending_transfers_tree.unlockable[0][2]
     ) == web3.eth.blockNumber
 
@@ -49,14 +49,16 @@ def test_merkle_root(
         web3,
         get_accounts,
         token_network_test,
-        secret_registry
+        secret_registry_contract
 ):
     (A, B) = get_accounts(2)
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
 
     for lock in pending_transfers_tree.unlockable:
-        secret_registry.transact({'from': A}).registerSecret(lock[3])
-        assert secret_registry.call().getSecretRevealBlockHeight(lock[2]) == web3.eth.blockNumber
+        secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
+        assert secret_registry_contract.call().getSecretRevealBlockHeight(
+            lock[2]
+        ) == web3.eth.blockNumber
 
     (locksroot, unlocked_amount) = token_network_test.call().getMerkleRootAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers
@@ -101,7 +103,7 @@ def test_channel_unlock_bigger_locked_amount(
         web3,
         token_network,
         custom_token,
-        secret_registry,
+        secret_registry_contract,
         create_settled_channel,
         get_accounts,
         reveal_secrets
@@ -113,7 +115,7 @@ def test_channel_unlock_bigger_locked_amount(
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
-        secret_registry,
+        secret_registry_contract,
         pending_transfers_tree_A.packed_transfers
     )
 
@@ -157,7 +159,7 @@ def test_channel_unlock_smaller_locked_amount(
         web3,
         token_network,
         custom_token,
-        secret_registry,
+        secret_registry_contract,
         create_settled_channel,
         get_accounts,
         reveal_secrets
@@ -169,7 +171,7 @@ def test_channel_unlock_smaller_locked_amount(
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
-        secret_registry,
+        secret_registry_contract,
         pending_transfers_tree_A.packed_transfers
     )
 
@@ -214,7 +216,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         web3,
         token_network,
         custom_token,
-        secret_registry,
+        secret_registry_contract,
         create_settled_channel,
         get_accounts,
         reveal_secrets
@@ -226,7 +228,7 @@ def test_channel_unlock_bigger_unlocked_amount(
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
-        secret_registry,
+        secret_registry_contract,
         pending_transfers_tree_A.packed_transfers
     )
     assert unlocked_amount < pending_transfers_tree_A.locked_amount
@@ -268,7 +270,7 @@ def test_channel_unlock(
         web3,
         custom_token,
         token_network,
-        secret_registry,
+        secret_registry_contract,
         create_channel,
         channel_deposit,
         get_accounts,
@@ -322,8 +324,10 @@ def test_channel_unlock(
 
     # Reveal secrets before settlement window ends
     for lock in pending_transfers_tree.unlockable:
-        secret_registry.transact({'from': A}).registerSecret(lock[3])
-        assert secret_registry.call().getSecretRevealBlockHeight(lock[2]) == web3.eth.blockNumber
+        secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
+        assert secret_registry_contract.call().getSecretRevealBlockHeight(
+            lock[2]
+        ) == web3.eth.blockNumber
 
     # Close channel and update balance proofs
     token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
@@ -362,7 +366,10 @@ def test_channel_unlock(
         pending_transfers_tree.packed_transfers
     )
 
-    unlocked_amount = get_unlocked_amount(secret_registry, pending_transfers_tree.packed_transfers)
+    unlocked_amount = get_unlocked_amount(
+        secret_registry_contract,
+        pending_transfers_tree.packed_transfers
+    )
 
     balance_A = custom_token.call().balanceOf(A)
     balance_B = custom_token.call().balanceOf(B)

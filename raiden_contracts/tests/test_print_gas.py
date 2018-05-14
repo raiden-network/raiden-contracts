@@ -43,17 +43,19 @@ def test_token_network_deployment(
 def test_token_network_create(
         print_gas,
         custom_token,
-        secret_registry,
-        token_network_registry
+        secret_registry_contract,
+        token_network_registry_contract
 ):
-    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
+    txn_hash = token_network_registry_contract.transact().createERC20TokenNetwork(
+        custom_token.address
+    )
 
     print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
-def test_secret_registry(secret_registry, print_gas):
+def test_secret_registry(secret_registry_contract, print_gas):
     secret = b'secretsecretsecretsecretsecretse'
-    txn_hash = secret_registry.transact().registerSecret(secret)
+    txn_hash = secret_registry_contract.transact().registerSecret(secret)
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
 
@@ -62,7 +64,7 @@ def test_channel_cycle(
         token_network,
         create_channel,
         channel_deposit,
-        secret_registry,
+        secret_registry_contract,
         get_accounts,
         print_gas,
         create_balance_proof,
@@ -109,9 +111,9 @@ def test_channel_cycle(
     )
 
     for lock in pending_transfers_tree1.unlockable:
-        txn_hash = secret_registry.transact({'from': A}).registerSecret(lock[3])
+        txn_hash = secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
     for lock in pending_transfers_tree2.unlockable:
-        txn_hash = secret_registry.transact({'from': A}).registerSecret(lock[3])
+        txn_hash = secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
 
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
