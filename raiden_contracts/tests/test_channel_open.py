@@ -71,22 +71,26 @@ def test_open_channel_state(token_network, get_accounts):
 
     (
         A_deposit,
+        A_withdrawn,
         A_is_the_closer,
         A_balance_hash,
         A_nonce
     ) = token_network.call().getChannelParticipantInfo(A, B)
     assert A_deposit == 0
+    assert A_withdrawn == 0
     assert A_is_the_closer is False
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
 
     (
         B_deposit,
+        B_withdrawn,
         B_is_the_closer,
         B_balance_hash,
         B_nonce
     ) = token_network.call().getChannelParticipantInfo(B, A)
     assert B_deposit == 0
+    assert B_withdrawn == 0
     assert B_is_the_closer is False
     assert B_balance_hash == fake_bytes(32)
     assert B_nonce == 0

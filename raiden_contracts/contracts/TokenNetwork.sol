@@ -37,6 +37,9 @@ contract TokenNetwork is Utils {
         // tracked and will be burned.
         uint256 deposit;
 
+        // Total amount of tokens withdrawn by the participant. This is a strictly monotonic value
+        uint256 withdrawn_amount;
+
         // This is a value set to true after the channel has been closed, only if this is the
         // participant who closed the channel.
         // This is bytes1 and it gets packed with the rest of the struct data.
@@ -89,6 +92,9 @@ contract TokenNetwork is Utils {
     );
 
     event ChannelNewDeposit(bytes32 channel_identifier, address participant, uint256 deposit);
+
+    // withdrawn_amount is the total amount withdrawn by the participant from the channel
+    event ChannelWithdraw(bytes32 channel_identifier, address participant, uint256 withdrawn_amount);
 
     event ChannelClosed(bytes32 channel_identifier, address closing_participant);
 
@@ -202,6 +208,78 @@ contract TokenNetwork is Utils {
         require(token.transferFrom(msg.sender, address(this), added_deposit));
 
         require(participant_state.deposit >= added_deposit);
+    }
+
+    /// @notice Allows `participant` to withdraw tokens from the channel that he has with
+    /// `partner`, without closing it. Can be called by anyone. Can only be called once per
+    /// each signed withdraw message.
+    /// @param participant Channel participant, who will receive the withdrawn amount.
+    /// @param total_withdraw Total amount of tokens that are marked as withdrawn from the channel
+    /// during the channel lifecycle.
+    /// @param partner Channel partner address, needed to compute the channel identifier.
+    /// @param participant_signature Participant's signature on the withdraw data.
+    /// @param partner_signature Partner's signature on the withdraw data.
+    function withdraw(
+        address participant,
+        uint256 total_withdraw,
+        address partner,
+        bytes participant_signature,
+        bytes partner_signature
+    )
+        external
+    {
+        require(total_withdraw > 0);
+
+        bytes32 channel_identifier;
+        uint256 total_deposit;
+        uint256 current_withdraw;
+
+        channel_identifier = getChannelIdentifier(participant, partner);
+        Channel storage channel = channels[channel_identifier];
+
+        Participant storage participant_state = channel.participants[participant];
+        Participant storage partner_state = channel.participants[partner];
+
+        total_deposit = participant_state.deposit + partner_state.deposit;
+
+        // Using the total_withdraw (monotonically increasing) in the signed message ensures
+        // that we do not allow reply attack to happen, by using the same withdraw proof twice.
+        current_withdraw = total_withdraw - participant_state.withdrawn_amount;
+
+        participant_state.withdrawn_amount += current_withdraw;
+
+        // Do the tokens transfer
+        require(token.transfer(participant, current_withdraw));
+
+        // Channel must be open
+        require(channel.state == 1);
+
+        verifyWithdrawSignatures(
+            channel_identifier,
+            participant,
+            partner,
+            total_withdraw,
+            participant_signature,
+            partner_signature
+        );
+
+        require(current_withdraw > 0);
+
+        // Underflow check
+        require(participant_state.withdrawn_amount >= current_withdraw);
+        require(participant_state.withdrawn_amount == total_withdraw);
+
+        // Entire withdrawn amount must not be bigger than the entire channel deposit
+        require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
+
+        require(total_deposit >= participant_state.deposit);
+        require(total_deposit >= partner_state.deposit);
+
+        // A withdraw should never happen if a participant already has a balance proof in storage
+        assert(participant_state.nonce == 0);
+        assert(partner_state.nonce == 0);
+
+        emit ChannelWithdraw(channel_identifier, participant, participant_state.withdrawn_amount);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only a participant
@@ -390,12 +468,12 @@ contract TokenNetwork is Utils {
             participant2_transferred_amount,
             participant1_transferred_amount
         ) = getSettleTransferAmounts(
-            uint256(participant1_state.deposit),
-            uint256(participant1_transferred_amount),
-            uint256(participant1_locked_amount),
-            uint256(participant2_state.deposit),
-            uint256(participant2_transferred_amount),
-            uint256(participant2_locked_amount)
+            participant1_state,
+            participant1_transferred_amount,
+            participant1_locked_amount,
+            participant2_state,
+            participant2_transferred_amount,
+            participant2_locked_amount
         );
 
         // Remove the channel data from storage
@@ -428,53 +506,57 @@ contract TokenNetwork is Utils {
     }
 
     function getSettleTransferAmounts(
-        uint256 participant1_deposit,
+        Participant storage participant1_state,
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
-        uint256 participant2_deposit,
+        Participant storage participant2_state,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount
     )
-        pure
+        view
         private
         returns (uint256, uint256)
     {
         uint256 participant1_amount;
         uint256 participant2_amount;
-        uint256 total_deposit;
+        uint256 total_available_deposit;
 
         // Direct token transfers done through the token `transfer` function
         // cannot be accounted for, these superfluous tokens will be burned,
         // this is because there is no way to tell which participant (if any)
         // had ownership over the token.
 
-        total_deposit = participant1_deposit + participant2_deposit;
+        total_available_deposit = getChannelAvailableDeposit(
+            participant1_state,
+            participant2_state
+        );
 
         participant1_amount = (
-            participant1_deposit +
+            participant1_state.deposit +
             participant2_transferred_amount -
+            participant1_state.withdrawn_amount -
             participant1_transferred_amount
         );
 
         // To account for cases when participant2 does not provide participant1's balance proof
         // Therefore, participant1's transferred_amount will be lower than in reality
-        participant1_amount = min(participant1_amount, total_deposit);
+        participant1_amount = min(participant1_amount, total_available_deposit);
 
         // To account for cases when participant1 does not provide participant2's balance proof
         // Therefore, participant2's transferred_amount will be lower than in reality
         participant1_amount = max(participant1_amount, 0);
 
-        // At this point `participant1_amount` is between [0, total_deposit_available],
+        // At this point `participant1_amount` is between [0, total_available_deposit],
         // so this is safe.
-        participant2_amount = total_deposit - participant1_amount;
+        participant2_amount = total_available_deposit - participant1_amount;
 
         // Handle old balance proofs with a high locked_amount
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
-        require(participant1_amount <= total_deposit);
-        require(participant2_amount <= total_deposit);
-        assert(total_deposit == (
+        require(participant1_amount <= total_available_deposit);
+        require(participant2_amount <= total_available_deposit);
+        assert(total_available_deposit == (
             participant1_amount +
             participant2_amount +
             participant1_locked_amount +
@@ -561,7 +643,7 @@ contract TokenNetwork is Utils {
         bytes32 channel_identifier;
         address participant1;
         address participant2;
-        uint256 total_deposit;
+        uint256 total_available_deposit;
         uint256 initial_state;
 
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
@@ -589,7 +671,10 @@ contract TokenNetwork is Utils {
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
 
-        total_deposit = participant1_state.deposit + participant2_state.deposit;
+        total_available_deposit = getChannelAvailableDeposit(
+            participant1_state,
+            participant2_state
+        );
 
         // Remove channel data from storage before doing the token transfers
         delete channel.participants[participant1];
@@ -614,8 +699,8 @@ contract TokenNetwork is Utils {
         require(participant1 == participant1_address);
         require(participant2 == participant2_address);
 
-        // The sum of the provided balances must be equal to the total deposit
-        require(total_deposit == (participant1_balance + participant2_balance));
+        // The sum of the provided balances must be equal to the total available deposit
+        require(total_available_deposit == (participant1_balance + participant2_balance));
     }
 
     /// @dev Returns the unique identifier for the channel
@@ -676,6 +761,22 @@ contract TokenNetwork is Utils {
         unlock_data.locksroot_to_locked_amount[locksroot] = locked_amount;
     }
 
+    function getChannelAvailableDeposit(
+        Participant storage participant1_state,
+        Participant storage participant2_state
+    )
+        view
+        internal
+        returns (uint256 total_available_deposit)
+    {
+        total_available_deposit = (
+            participant1_state.deposit +
+            participant2_state.deposit -
+            participant1_state.withdrawn_amount -
+            participant2_state.withdrawn_amount
+        );
+    }
+
     function verifyBalanceHashData(
         Participant storage participant,
         uint256 transferred_amount,
@@ -733,7 +834,7 @@ contract TokenNetwork is Utils {
     function getChannelParticipantInfo(address participant, address partner)
         view
         external
-        returns (uint256, bool, bytes32, uint256)
+        returns (uint256, uint256, bool, bytes32, uint256)
     {
         bytes32 channel_identifier;
         channel_identifier = getChannelIdentifier(participant, partner);
@@ -744,6 +845,7 @@ contract TokenNetwork is Utils {
 
         return (
             participant_state.deposit,
+            participant_state.withdrawn_amount,
             participant_state.is_the_closer,
             participant_state.balance_hash,
             participant_state.nonce
@@ -845,6 +947,58 @@ contract TokenNetwork is Utils {
         );
 
         signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function recoverAddressFromWithdrawMessage(
+        bytes32 channel_identifier,
+        address participant,
+        uint256 total_withdraw,
+        bytes signature
+    )
+        view
+        internal
+        returns (address signature_address)
+    {
+        bytes32 message_hash = keccak256(
+            participant,
+            total_withdraw,
+            channel_identifier,
+            address(this),
+            chain_id
+        );
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function verifyWithdrawSignatures(
+        bytes32 channel_identifier,
+        address participant,
+        address partner,
+        uint256 total_withdraw,
+        bytes participant_signature,
+        bytes partner_signature
+    )
+        view
+        internal
+    {
+        address recovered_participant_address;
+        address recovered_partner_address;
+
+        recovered_participant_address = recoverAddressFromWithdrawMessage(
+            channel_identifier,
+            participant,
+            total_withdraw,
+            participant_signature
+        );
+        recovered_partner_address = recoverAddressFromWithdrawMessage(
+            channel_identifier,
+            participant,
+            total_withdraw,
+            partner_signature
+        );
+        // Check recovered addresses from signatures
+        require(participant == recovered_participant_address);
+        require(partner == recovered_partner_address);
     }
 
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
