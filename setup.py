@@ -53,7 +53,7 @@ class CompileContracts(Command):
 
     def run(self):
         from raiden_contracts.contract_manager import CONTRACT_MANAGER
-        compiled = CONTRACT_MANAGER.precompile_contracts('contracts/', [])
+        compiled = CONTRACT_MANAGER.precompile_contracts('raiden_contracts/contracts/', [])
         with open(COMPILED_CONTRACTS, 'w') as compiled_json:
             compiled_json.write(json.dumps(compiled))
 
@@ -69,7 +69,7 @@ config = {
     'license': 'MIT',
     'keywords': 'raiden ethereum blockchain',
     'install_requires': read_requirements('requirements.txt'),
-    'packages': find_packages(exclude=['*.tests', 'contracts*']),
+    'packages': find_packages(exclude=['*.tests']),
     'include_package_data': True,
     'classifiers': [
         'Development Status :: 3 - Alpha',
