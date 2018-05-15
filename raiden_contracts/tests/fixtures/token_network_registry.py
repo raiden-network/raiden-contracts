@@ -1,6 +1,7 @@
 import pytest
 from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY
-from .utils import *  # flake8: noqa
+from web3.contract import get_event_data
+from eth_utils import is_address
 
 
 @pytest.fixture()
@@ -60,5 +61,3 @@ def add_and_register_token(
         return web3.eth.contract(abi=token_network_abi, address=token_network_address)
 
     return f
-
-

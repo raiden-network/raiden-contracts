@@ -69,7 +69,7 @@ config = {
     'license': 'MIT',
     'keywords': 'raiden ethereum blockchain',
     'install_requires': read_requirements('requirements.txt'),
-    'packages': find_packages(exclude=['*.tests*', 'contracts*']),
+    'packages': find_packages(exclude=['*.tests', 'contracts*']),
     'include_package_data': True,
     'classifiers': [
         'Development Status :: 3 - Alpha',
