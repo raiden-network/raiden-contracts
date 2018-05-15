@@ -220,11 +220,11 @@ def create_settled_channel(
 
 
 @pytest.fixture()
-def reveal_secrets(web3, secret_registry):
+def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
         for (_, _, secrethash, secret) in transfers:
-            secret_registry.transact({'from': tx_from}).registerSecret(secret)
-            assert secret_registry.call().getSecretRevealBlockHeight(secrethash) == web3.eth.blockNumber
+            secret_registry_contract.transact({'from': tx_from}).registerSecret(secret)
+            assert secret_registry_contract.call().getSecretRevealBlockHeight(secrethash) == web3.eth.blockNumber
     return get
 
 

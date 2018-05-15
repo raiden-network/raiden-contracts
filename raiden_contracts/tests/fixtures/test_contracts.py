@@ -13,9 +13,9 @@ def get_token_network_test(deploy_tester_contract):
 
 
 @pytest.fixture()
-def token_network_test(web3, get_token_network_test, custom_token, secret_registry):
+def token_network_test(web3, get_token_network_test, custom_token, secret_registry_contract):
     return get_token_network_test([
         custom_token.address,
-        secret_registry.address,
+        secret_registry_contract.address,
         int(web3.version.network)
     ])
