@@ -117,22 +117,19 @@ def hash_reward_proof(
         reward_amount,
         token_network_address,
         chain_id,
-        nonce,
-        monitor_address):
+        nonce):
     return Web3.soliditySha3([
         'bytes32',
-        'uint192',
+        'uint256',
         'address',
         'uint256',
         'uint256',
-        'address',
     ], [
         channel_identifier,
         reward_amount,
         token_network_address,
         chain_id,
         nonce,
-        monitor_address
     ])
 
 
@@ -233,15 +230,13 @@ def sign_reward_proof(
         token_network_address,
         chain_id,
         nonce,
-        monitor_address,
         v=27):
     message_hash = hash_reward_proof(
         channel_identifier,
         reward_amount,
         token_network_address,
         chain_id,
-        nonce,
-        monitor_address
+        nonce
     )
 
     return sign(privatekey, message_hash, v)

@@ -10,3 +10,4 @@ from .channel import *
 from .test_contracts import *
 from .contracts import *
 from .contract_manager import *
+from .raiden_service_bundle import *

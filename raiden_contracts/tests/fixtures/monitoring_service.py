@@ -14,8 +14,12 @@ def get_monitoring_service(deploy_tester_contract):
 
 
 @pytest.fixture()
-def monitoring_service_external(get_monitoring_service, custom_token):
+def monitoring_service_external(
+    get_monitoring_service,
+    custom_token,
+    raiden_service_bundle
+):
     return get_monitoring_service([
         custom_token.address,
-        10
+        raiden_service_bundle.address
     ])

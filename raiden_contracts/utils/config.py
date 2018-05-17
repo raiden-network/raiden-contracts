@@ -4,6 +4,7 @@ C_TOKEN_NETWORK = 'TokenNetwork'
 C_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'
 C_CUSTOM_TOKEN = 'CustomToken'
 C_MONITORING_SERVICE = 'MonitoringService'
+C_RAIDEN_SERVICE_BUNDLE = 'RaidenServiceBundle'
 
 E_CHANNEL_OPENED = 'ChannelOpened'
 E_CHANNEL_NEW_DEPOSIT = 'ChannelNewDeposit'
