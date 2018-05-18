@@ -88,20 +88,28 @@ contract MonitoringService is Utils {
         // TODO: Check that some function exists in the contract
     }
 
-    /// @notice Deposit tokens used to reward MSs
+    /// @notice Deposit tokens used to reward MSs. Idempotent function that sets the
+    /// total_deposit of tokens of the beneficiary
     /// Can be called by anyone several times and on behalf of other accounts
-    /// @param beneficiary The account benefitting from the deposit
-    /// @param amount The amount of tokens to be depositted
-    function deposit(address beneficiary, uint amount) public {
-        require(amount > 0);
+    /// @param beneficiary The account benefiting from the deposit
+    /// @param total_deposit The sum of tokens, that have been deposited
+    function deposit(address beneficiary, uint256 total_deposit) public
+    {
+        require(total_deposit > balances[beneficiary]);
+
+        uint256 added_deposit;
+
+        // Calculate the actual amount of tokens that will be transferred
+        added_deposit = total_deposit - balances[beneficiary];
 
         // This also allows for MSs to deposit and use other MSs
-        balances[beneficiary] += amount;
+        balances[beneficiary] += added_deposit;
+
+        emit NewDeposit(beneficiary, added_deposit);
 
         // Transfer the deposit to the smart contract
-        require(token.transferFrom(msg.sender, address(this), amount));
+        require(token.transferFrom(msg.sender, address(this), added_deposit));
 
-        emit NewDeposit(beneficiary, amount);
     }
 
     /// @notice Internal function that updates the Reward struct if a newer balance proof
@@ -270,7 +278,7 @@ contract MonitoringService is Utils {
         delete rewards[reward_identifier];
     }
 
-    /// @notice Withdraw depositted tokens.
+    /// @notice Withdraw deposited tokens.
     /// Can be called by addresses with a deposit as long as they have a positive balance
     /// @param amount Amount of tokens to be withdrawn
     function withdraw(uint256 amount) public {
