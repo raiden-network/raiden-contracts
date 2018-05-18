@@ -19,7 +19,7 @@ contract MonitoringService is Utils {
     mapping(bytes32 => Reward) rewards;
 
     // Keep track of balances
-    mapping(address => uint) public balances;
+    mapping(address => uint256) public balances;
 
     /*
      *  Structs
@@ -88,7 +88,7 @@ contract MonitoringService is Utils {
         // TODO: Check that some function exists in the contract
     }
 
-    /// @notice Deposit tokens used to either pay MSs or to regsiter as MS
+    /// @notice Deposit tokens used to reward MSs
     /// Can be called by anyone several times and on behalf of other accounts
     /// @param beneficiary The account benefitting from the deposit
     /// @param amount The amount of tokens to be depositted
@@ -107,8 +107,9 @@ contract MonitoringService is Utils {
     /// @notice Internal function that updates the Reward struct if a newer balance proof
     /// is provided in the monitor() function
     /// @param token_network_address Address of the TokenNetwork being monitored
-    /// @param closing_participant The address of the closing participant
-    /// @param non_closing_participant Address of the other channel participant
+    /// @param closing_participant The address of the participant who closed the channel
+    /// @param non_closing_participant Address of the other channel participant. This is
+    /// the participant on which behalf the MS acts.
     /// @param reward_amount The amount of tokens to be rewarded
     /// @param nonce The nonce of the newly provided balance_proof
     /// @param monitoring_service_address The address of the MS calling monitor()
@@ -266,8 +267,8 @@ contract MonitoringService is Utils {
     /// @notice Withdraw depositted tokens.
     /// Can be called by addresses with a deposit as long as they have a positive balance
     /// @param amount Amount of tokens to be withdrawn
-    function withdraw(uint amount) public {
-        require(balances[msg.sender] - amount >= 0);
+    function withdraw(uint256 amount) public {
+        require(balances[msg.sender] >= amount);
         balances[msg.sender] -= amount;
         require(token.transfer(msg.sender, amount));
         emit Withdrawn(msg.sender, amount);
