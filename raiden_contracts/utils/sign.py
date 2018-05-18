@@ -112,6 +112,27 @@ def hash_withdraw_message(
     ])
 
 
+def hash_reward_proof(
+        channel_identifier,
+        reward_amount,
+        token_network_address,
+        chain_id,
+        nonce):
+    return Web3.soliditySha3([
+        'bytes32',
+        'uint256',
+        'address',
+        'uint256',
+        'uint256',
+    ], [
+        channel_identifier,
+        reward_amount,
+        token_network_address,
+        chain_id,
+        nonce,
+    ])
+
+
 def sign_balance_proof(
         privatekey,
         token_network_address,
@@ -197,6 +218,25 @@ def sign_withdraw_message(
         channel_identifier,
         participant,
         amount_to_withdraw
+    )
+
+    return sign(privatekey, message_hash, v)
+
+
+def sign_reward_proof(
+        privatekey,
+        channel_identifier,
+        reward_amount,
+        token_network_address,
+        chain_id,
+        nonce,
+        v=27):
+    message_hash = hash_reward_proof(
+        channel_identifier,
+        reward_amount,
+        token_network_address,
+        chain_id,
+        nonce
     )
 
     return sign(privatekey, message_hash, v)
