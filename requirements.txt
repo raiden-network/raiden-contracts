@@ -2,4 +2,4 @@ click
 rlp>=1.0.0
 coincurve>=7.1.0,<8.0
 web3>=4.0.0
-py-solc
+py-solc==2.1.0
