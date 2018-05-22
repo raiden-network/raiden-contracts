@@ -11,6 +11,13 @@ def check_token_network_created(token_address, token_network_address):
     return get
 
 
+def check_address_registered(eth_address, socket):
+    def get(event):
+        assert event['args']['eth_address'] == eth_address
+        assert event['args']['socket'] == socket
+    return get
+
+
 def check_channel_opened(channel_identifier, participant1, participant2, settle_timeout):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier
