@@ -1,6 +1,7 @@
 C_SECRET_REGISTRY = 'SecretRegistry'
 C_TOKEN_NETWORK_REGISTRY = 'TokenNetworksRegistry'
 C_TOKEN_NETWORK = 'TokenNetwork'
+C_ENDPOINT_REGISTRY = 'EndpointRegistry'
 C_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'
 C_CUSTOM_TOKEN = 'CustomToken'
 C_MONITORING_SERVICE = 'MonitoringService'
@@ -15,6 +16,7 @@ E_TRANSFER_UPDATED = 'NonClosingBalanceProofUpdated'
 E_CHANNEL_SETTLED = 'ChannelSettled'
 E_TOKEN_NETWORK_CREATED = 'TokenNetworkCreated'
 E_SECRET_REVEALED = 'SecretRevealed'
+E_ADDRESS_REGISTERED = 'AddressRegistered'
 
 SETTLE_TIMEOUT_MIN = 6
 SETTLE_TIMEOUT_MAX = 2700000
