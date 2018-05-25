@@ -721,9 +721,9 @@ contract TokenNetwork is Utils {
         // Lexicographic order of the channel addresses
         // This limits the number of channels that can be opened between two nodes to 1.
         if (participant < partner) {
-            return keccak256(participant, partner);
+            return keccak256(abi.encodePacked(participant, partner));
         } else {
-            return keccak256(partner, participant);
+            return keccak256(abi.encodePacked(partner, participant));
         }
     }
 
@@ -798,11 +798,11 @@ contract TokenNetwork is Utils {
         }
 
         // Make sure the hash of the provided state is the same as the stored balance_hash
-        return participant.balance_hash == keccak256(
+        return participant.balance_hash == keccak256(abi.encodePacked(
             transferred_amount,
             locked_amount,
             locksroot
-        );
+        ));
     }
 
     /// @dev Returns the channel specific data.
@@ -887,14 +887,14 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        bytes32 message_hash = keccak256(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             balance_hash,
             nonce,
             additional_hash,
             channel_identifier,
             address(this),
             chain_id
-        );
+        ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
@@ -911,7 +911,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        bytes32 message_hash = keccak256(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             balance_hash,
             nonce,
             additional_hash,
@@ -919,7 +919,7 @@ contract TokenNetwork is Utils {
             address(this),
             chain_id,
             closing_signature
-        );
+        ));
 
         signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
     }
@@ -936,7 +936,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        bytes32 message_hash = keccak256(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             participant1,
             participant1_balance,
             participant2,
@@ -944,7 +944,7 @@ contract TokenNetwork is Utils {
             channel_identifier,
             address(this),
             chain_id
-        );
+        ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
@@ -959,13 +959,13 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        bytes32 message_hash = keccak256(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             participant,
             total_withdraw,
             channel_identifier,
             address(this),
             chain_id
-        );
+        ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
@@ -1038,9 +1038,9 @@ contract TokenNetwork is Utils {
                 if (merkle_layer[i] == merkle_layer[i + 1]) {
                     lockhash = merkle_layer[i];
                 } else if (merkle_layer[i] < merkle_layer[i + 1]) {
-                    lockhash = keccak256(merkle_layer[i], merkle_layer[i + 1]);
+                    lockhash = keccak256(abi.encodePacked(merkle_layer[i], merkle_layer[i + 1]));
                 } else {
-                    lockhash = keccak256(merkle_layer[i + 1], merkle_layer[i]);
+                    lockhash = keccak256(abi.encodePacked(merkle_layer[i + 1], merkle_layer[i]));
                 }
                 merkle_layer[i / 2] = lockhash;
             }
@@ -1074,7 +1074,7 @@ contract TokenNetwork is Utils {
         }
 
         // Calculate the lockhash for computing the merkle root
-        lockhash = keccak256(expiration_block, locked_amount, secrethash);
+        lockhash = keccak256(abi.encodePacked(expiration_block, locked_amount, secrethash));
 
         // Check if the lock's secret was revealed in the SecretRegistry
         // The secret must have been revealed in the SecretRegistry contract before the lock's

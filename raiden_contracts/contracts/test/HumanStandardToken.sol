@@ -62,5 +62,5 @@ contract HumanStandardToken is StandardToken {
         return true;
     }
 
-    function () public { revert(); }
+    function () external { revert(); }
 }

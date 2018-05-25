@@ -71,7 +71,7 @@ contract EndpointRegistry{
 
     function equals(string a, string b) internal pure returns (bool result)
     {
-        if (keccak256(a) == keccak256(b)) {
+        if (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b))) {
             return true;
         }
 
