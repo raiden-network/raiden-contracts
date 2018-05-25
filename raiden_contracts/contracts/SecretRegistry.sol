@@ -22,7 +22,7 @@ contract SecretRegistry {
     /// @param secret The secret used to lock the hash time lock.
     /// @return true if secret was registered, false if the secret was already registered.
     function registerSecret(bytes32 secret) public returns (bool) {
-        bytes32 secrethash = keccak256(secret);
+        bytes32 secrethash = keccak256(abi.encodePacked(secret));
         if (secret == 0x0 || secrethash_to_block[secrethash] > 0) {
             return false;
         }

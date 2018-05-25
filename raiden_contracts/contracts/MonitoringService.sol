@@ -139,7 +139,10 @@ contract MonitoringService is Utils {
         );
         require(raiden_node_address == non_closing_participant);
 
-        bytes32 reward_identifier = keccak256(channel_identifier, token_network_address);
+        bytes32 reward_identifier = keccak256(abi.encodePacked(
+            channel_identifier,
+            token_network_address
+        ));
 
         // Get the Reward struct for the correct channel
         Reward storage reward = rewards[reward_identifier];
@@ -230,7 +233,10 @@ contract MonitoringService is Utils {
             closing_participant,
             non_closing_participant
         );
-        bytes32 reward_identifier = keccak256(channel_identifier, token_network_address);
+        bytes32 reward_identifier = keccak256(abi.encodePacked(
+            channel_identifier,
+            token_network_address
+        ));
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
@@ -286,13 +292,13 @@ contract MonitoringService is Utils {
         internal
         returns (address signature_address)
     {
-        bytes32 message_hash = keccak256(
+        bytes32 message_hash = keccak256(abi.encodePacked(
             channel_identifier,
             reward_amount,
             token_network_address,
             chain_id,
             nonce
-        );
+        ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
