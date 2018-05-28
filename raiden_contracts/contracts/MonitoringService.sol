@@ -43,15 +43,15 @@ contract MonitoringService is Utils {
      *  Events
      */
 
-    event NewDeposit(address receiver, uint amount);
+    event NewDeposit(address indexed receiver, uint amount);
     event NewBalanceProofReceived(
         uint256 reward_amount,
-        uint256 nonce,
-        address ms_address,
-        address raiden_node_address
+        uint256 indexed nonce,
+        address indexed ms_address,
+        address indexed raiden_node_address
     );
-    event RewardClaimed(address ms_address, uint amount, bytes32 reward_identifier);
-    event Withdrawn(address account, uint amount);
+    event RewardClaimed(address indexed ms_address, uint amount, bytes32 indexed reward_identifier);
+    event Withdrawn(address indexed account, uint amount);
 
     /*
      *  Modifiers 

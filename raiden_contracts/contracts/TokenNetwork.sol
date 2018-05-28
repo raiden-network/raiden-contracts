@@ -85,29 +85,33 @@ contract TokenNetwork is Utils {
      */
 
     event ChannelOpened(
-        bytes32 channel_identifier,
-        address participant1,
-        address participant2,
+        bytes32 indexed channel_identifier,
+        address indexed participant1,
+        address indexed participant2,
         uint256 settle_timeout
     );
 
-    event ChannelNewDeposit(bytes32 channel_identifier, address participant, uint256 deposit);
+    event ChannelNewDeposit(bytes32 indexed channel_identifier, address indexed participant, uint256
+    deposit);
 
     // withdrawn_amount is the total amount withdrawn by the participant from the channel
-    event ChannelWithdraw(bytes32 channel_identifier, address participant, uint256 withdrawn_amount);
+    event ChannelWithdraw(bytes32 indexed channel_identifier, address indexed participant, uint256
+    withdrawn_amount);
 
-    event ChannelClosed(bytes32 channel_identifier, address closing_participant);
+    event ChannelClosed(bytes32 indexed channel_identifier, address indexed closing_participant);
 
     event ChannelUnlocked(
-        bytes32 channel_identifier,
-        address participant,
+        bytes32 indexed channel_identifier,
+        address indexed participant,
         uint256 unlocked_amount,
         uint256 returned_tokens
     );
 
-    event NonClosingBalanceProofUpdated(bytes32 channel_identifier, address closing_participant);
+    event NonClosingBalanceProofUpdated(bytes32 indexed channel_identifier, address indexed
+    closing_participant);
 
-    event ChannelSettled(bytes32 channel_identifier, uint256 participant1_amount, uint256 participant2_amount);
+    event ChannelSettled(bytes32 indexed channel_identifier, uint256 participant1_amount, uint256
+    participant2_amount);
 
     /*
      * Modifiers
