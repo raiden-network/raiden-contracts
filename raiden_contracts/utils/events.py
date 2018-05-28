@@ -66,7 +66,9 @@ def check_transfer_updated(channel_identifier, closing_participant):
     return get
 
 
-def check_channel_settled(channel_identifier):
+def check_channel_settled(channel_identifier, participant1_amount, participant2_amount):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier
+        assert event['args']['participant1_amount'] == participant1_amount
+        assert event['args']['participant2_amount'] == participant2_amount
     return get
