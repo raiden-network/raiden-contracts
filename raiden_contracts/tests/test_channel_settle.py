@@ -177,5 +177,9 @@ def test_settle_channel_event(
         locksroot
     )
 
-    ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(channel_identifier))
+    ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(
+        channel_identifier,
+        5,
+        5
+    ))
     ev_handler.check()

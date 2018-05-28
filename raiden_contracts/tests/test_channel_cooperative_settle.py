@@ -530,5 +530,9 @@ def test_cooperative_settle_channel_event(
         signature_A
     )
 
-    ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(channel_identifier))
+    ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(
+        channel_identifier,
+        balance_B,
+        balance_A
+    ))
     ev_handler.check()

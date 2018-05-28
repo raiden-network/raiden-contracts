@@ -107,7 +107,7 @@ contract TokenNetwork is Utils {
 
     event NonClosingBalanceProofUpdated(bytes32 channel_identifier, address closing_participant);
 
-    event ChannelSettled(bytes32 channel_identifier);
+    event ChannelSettled(bytes32 channel_identifier, uint256 participant1_amount, uint256 participant2_amount);
 
     /*
      * Modifiers
@@ -502,7 +502,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(participant2, participant1_transferred_amount));
         }
 
-        emit ChannelSettled(channel_identifier);
+        emit ChannelSettled(channel_identifier, participant1_transferred_amount, participant2_transferred_amount);
     }
 
     function getSettleTransferAmounts(
@@ -681,7 +681,6 @@ contract TokenNetwork is Utils {
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
-        emit ChannelSettled(channel_identifier);
 
         // Do the token transfers
         if (participant1_balance > 0) {
@@ -701,6 +700,8 @@ contract TokenNetwork is Utils {
 
         // The sum of the provided balances must be equal to the total available deposit
         require(total_available_deposit == (participant1_balance + participant2_balance));
+        emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
+
     }
 
     /// @dev Returns the unique identifier for the channel
