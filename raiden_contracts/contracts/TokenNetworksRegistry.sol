@@ -21,7 +21,7 @@ contract TokenNetworksRegistry is Utils {
      *  Events
      */
 
-    event TokenNetworkCreated(address token_address, address token_network_address);
+    event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     /*
      *  Constructor
