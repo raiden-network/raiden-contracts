@@ -104,9 +104,7 @@ def withdraw_channel(token_network, create_withdraw_signatures):
 
 @pytest.fixture()
 def close_and_update_channel(
-        web3,
         token_network,
-        create_channel_and_deposit,
         create_balance_proof,
         create_balance_proof_update_signature
 ):
@@ -232,8 +230,10 @@ def reveal_secrets(web3, secret_registry_contract):
 @pytest.fixture()
 def cooperative_settle_state_tests(custom_token, token_network):
     def get(
-            A, balance_A,
-            B, balance_B,
+            A,
+            balance_A,
+            B,
+            balance_B,
             pre_account_balance_A,
             pre_account_balance_B,
             pre_balance_contract
@@ -320,8 +320,14 @@ def updateBalanceProof_state_tests(token_network, get_block):
 @pytest.fixture()
 def settle_state_tests(token_network, cooperative_settle_state_tests):
     def get(
-            A, balance_A, locksroot_A, locked_amount_A,
-            B, balance_B, locksroot_B, locked_amount_B,
+            A,
+            balance_A,
+            locksroot_A,
+            locked_amount_A,
+            B,
+            balance_B,
+            locksroot_B,
+            locked_amount_B,
             pre_account_balance_A,
             pre_account_balance_B,
             pre_balance_contract
