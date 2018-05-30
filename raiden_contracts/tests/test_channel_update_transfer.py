@@ -3,7 +3,6 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import (
     E_TRANSFER_UPDATED,
     CHANNEL_STATE_OPEN,
-    CHANNEL_STATE_CLOSED,
     CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 )
 from raiden_contracts.utils.events import check_transfer_updated
@@ -93,8 +92,6 @@ def test_update_call(
 def test_update_nonexistent_fail(
         get_accounts,
         token_network,
-        create_channel,
-        channel_deposit,
         create_balance_proof,
         create_balance_proof_update_signature
 ):
@@ -159,9 +156,9 @@ def test_update_wrong_nonce_fail(
         create_channel,
         channel_deposit,
         get_accounts,
-        get_block,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
+        updateBalanceProof_state_tests
 ):
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
@@ -214,33 +211,12 @@ def test_update_wrong_nonce_fail(
             *balance_proof_A_lower_nonce,
             balance_proof_update_signature_B
         )
-
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
-
-    assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
-    assert state == CHANNEL_STATE_CLOSED  # state
-
-    (
-        _,
-        _,
-        A_is_the_closer,
-        A_balance_hash,
-        A_nonce
-    ) = token_network.call().getChannelParticipantInfo(A, B)
-    assert A_is_the_closer is True
-    assert A_balance_hash == balance_proof_A[0]
-    assert A_nonce == 5
-
-    (
-        _,
-        _,
-        B_is_the_closer,
-        B_balance_hash,
-        B_nonce
-    ) = token_network.call().getChannelParticipantInfo(B, A)
-    assert B_is_the_closer is False
-    assert B_balance_hash == balance_proof_B[0]
-    assert B_nonce == 3
+    updateBalanceProof_state_tests(
+        A, balance_proof_A,
+        B, balance_proof_B,
+        settle_timeout,
+        txn_hash1
+    )
 
 
 def test_update_wrong_signatures(
@@ -298,9 +274,9 @@ def test_update_channel_state(
         create_channel,
         channel_deposit,
         get_accounts,
-        get_block,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
+        updateBalanceProof_state_tests
 ):
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
@@ -324,31 +300,12 @@ def test_update_channel_state(
         balance_proof_update_signature_B
     )
 
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
-    assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
-    assert state == CHANNEL_STATE_CLOSED  # state
-
-    (
-        _,
-        _,
-        A_is_the_closer,
-        A_balance_hash,
-        A_nonce
-    ) = token_network.call().getChannelParticipantInfo(A, B)
-    assert A_is_the_closer is True
-    assert A_balance_hash == balance_proof_A[0]
-    assert A_nonce == 5
-
-    (
-        _,
-        _,
-        B_is_the_closer,
-        B_balance_hash,
-        B_nonce
-    ) = token_network.call().getChannelParticipantInfo(B, A)
-    assert B_is_the_closer is False
-    assert B_balance_hash == balance_proof_B[0]
-    assert B_nonce == 3
+    updateBalanceProof_state_tests(
+        A, balance_proof_A,
+        B, balance_proof_B,
+        settle_timeout,
+        txn_hash1
+    )
 
 
 def test_update_channel_fail_no_offchain_transfers(

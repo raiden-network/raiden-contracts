@@ -3,6 +3,7 @@ from raiden_contracts.utils.config import (
     C_TOKEN_NETWORK,
     SETTLE_TIMEOUT_MIN,
     CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_CLOSED,
     CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 )
 from raiden_contracts.utils.sign import (
@@ -276,6 +277,43 @@ def cooperative_settle_state_tests(custom_token, token_network):
         assert B_is_the_closer == 0
         assert B_balance_hash == fake_bytes(32)
         assert B_nonce == 0
+    return get
+
+
+@pytest.fixture()
+def updateBalanceProof_state_tests(token_network, get_block):
+    def get(
+            A, balance_proof_A,
+            B, balance_proof_B,
+            settle_timeout,
+            txn_hash1,
+    ):
+        (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+
+        assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
+        assert state == CHANNEL_STATE_CLOSED  # state
+
+        (
+            _,
+            _,
+            A_is_the_closer,
+            A_balance_hash,
+            A_nonce
+        ) = token_network.call().getChannelParticipantInfo(A, B)
+        assert A_is_the_closer is True
+        assert A_balance_hash == balance_proof_A[0]
+        assert A_nonce == 5
+
+        (
+            _,
+            _,
+            B_is_the_closer,
+            B_balance_hash,
+            B_nonce
+        ) = token_network.call().getChannelParticipantInfo(B, A)
+        assert B_is_the_closer is False
+        assert B_balance_hash == balance_proof_B[0]
+        assert B_nonce == 3
     return get
 
 
