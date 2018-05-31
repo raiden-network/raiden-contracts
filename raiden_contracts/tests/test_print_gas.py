@@ -78,7 +78,7 @@ def test_channel_cycle(
 
     txn_hash = channel_deposit(A, 20, B)
     txn_hash = channel_deposit(B, 10, A)
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.setDeposit')
+    print_gas(txn_hash, C_TOKEN_NETWORK + '.setTotalDeposit')
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
     locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)

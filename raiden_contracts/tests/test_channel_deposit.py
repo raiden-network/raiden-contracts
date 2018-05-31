@@ -17,74 +17,74 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
     custom_token.transact({'from': A}).approve(token_network.address, deposit_A)
 
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             -1,
             A,
             deposit_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             '',
             deposit_A,
             B
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             fake_address,
             deposit_A,
             B
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             0x0,
             deposit_A,
             B
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             deposit_A,
             ''
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             deposit_A,
             fake_address
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             deposit_A,
             0x0
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             -1,
             B
         )
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             empty_address,
             deposit_A,
             B
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             deposit_A,
             empty_address
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setDeposit(
+        token_network.transact({'from': A}).setTotalDeposit(
             A,
             0,
             B
         )
 
-    token_network.transact({'from': A}).setDeposit(
+    token_network.transact({'from': A}).setTotalDeposit(
         A,
         deposit_A,
         B
@@ -106,7 +106,7 @@ def test_deposit_notapproved(
     assert balance >= deposit_A
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setDeposit(A, deposit_A, B)
+        token_network.transact({'from': A}).setTotalDeposit(A, deposit_A, B)
 
 
 def test_small_deposit_fail(
@@ -122,9 +122,9 @@ def test_small_deposit_fail(
 
     assign_tokens(A, 1)
 
-    # setDeposit is idempotent
+    # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setDeposit(A, 1, B)
+        token_network.transact({'from': A}).setTotalDeposit(A, 1, B)
 
 
 def test_deposit_delegate(token_network, get_accounts, create_channel, channel_deposit):

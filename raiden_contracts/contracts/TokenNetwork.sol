@@ -33,7 +33,7 @@ contract TokenNetwork is Utils {
 
     struct Participant {
         // Total amount of token transferred to this smart contract through the
-        // `setDeposit` function, note that direct token transfer cannot be
+        // `setTotalDeposit` function, note that direct token transfer cannot be
         // tracked and will be burned.
         uint256 deposit;
 
@@ -92,11 +92,11 @@ contract TokenNetwork is Utils {
     );
 
     event ChannelNewDeposit(bytes32 indexed channel_identifier, address indexed participant, uint256
-    deposit);
+    total_deposit);
 
     // withdrawn_amount is the total amount withdrawn by the participant from the channel
     event ChannelWithdraw(bytes32 indexed channel_identifier, address indexed participant, uint256
-    withdrawn_amount);
+    total_withdraw);
 
     event ChannelClosed(bytes32 indexed channel_identifier, address indexed closing_participant);
 
@@ -187,7 +187,7 @@ contract TokenNetwork is Utils {
     /// @param total_deposit Idempotent function which sets the total amount of
     /// tokens that the participant will have as a deposit.
     /// @param partner Channel partner address, needed to compute the channel identifier.
-    function setDeposit(address participant, uint256 total_deposit, address partner)
+    function setTotalDeposit(address participant, uint256 total_deposit, address partner)
         isOpen(participant, partner)
         public
     {
@@ -223,7 +223,7 @@ contract TokenNetwork is Utils {
     /// @param partner Channel partner address, needed to compute the channel identifier.
     /// @param participant_signature Participant's signature on the withdraw data.
     /// @param partner_signature Partner's signature on the withdraw data.
-    function withdraw(
+    function setTotalWithdraw(
         address participant,
         uint256 total_withdraw,
         address partner,

@@ -59,7 +59,7 @@ def channel_deposit(token_network, assign_tokens):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
-        txn_hash = token_network.transact({'from': tx_from}).setDeposit(
+        txn_hash = token_network.transact({'from': tx_from}).setTotalDeposit(
             participant,
             deposit,
             partner
@@ -92,7 +92,7 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             channel_identifier,
             participant, withdraw_amount
         )
-        txn_hash = token_network.transact({'from': delegate}).withdraw(
+        txn_hash = token_network.transact({'from': delegate}).setTotalWithdraw(
             participant, withdraw_amount,
             partner,
             signature_participant,
