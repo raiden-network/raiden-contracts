@@ -4,6 +4,7 @@ import logging
 from typing import Union, List, Dict
 
 from solc import compile_files
+from web3.utils.contracts import find_matching_event_abi
 
 log = logging.getLogger(__name__)
 CONTRACTS_DIR = os.path.join(os.path.dirname(__file__), 'data/contracts.json')
@@ -14,21 +15,6 @@ CONTRACTS_SOURCE_DIRS = {
 CONTRACTS_SOURCE_DIRS = {
     k: os.path.normpath(v) for k, v in CONTRACTS_SOURCE_DIRS.items()
 }
-
-
-def get_event_from_abi(abi: List, event_name: str):
-    result = [
-        x for x in abi
-        if x['type'] == 'event' and x['name'] == event_name
-    ]
-
-    num_results = len(result)
-    if num_results == 0:
-        raise KeyError("Event '{}' not found.".format(event_name))
-    elif num_results >= 2:
-        raise KeyError("Multiple events '{}' found.".format(event_name))
-
-    return result[0]
 
 
 def fix_contract_key_names(input: Dict) -> Dict:
@@ -56,7 +42,7 @@ class ContractManager:
                     ContractManager.precompile_contracts(dir_path, self.get_mappings())
                 )
         elif os.path.isdir(path):
-            ContractManager.__init__(self, [path])
+            ContractManager.__init__(self, {'smart_contracts': path})
         else:
             self.abi = json.load(open(path, 'r'))
 
@@ -109,7 +95,7 @@ class ContractManager:
         files = []
         for contract in os.listdir(contracts_dir):
             contract_path = os.path.join(contracts_dir, contract)
-            if not os.path.isfile(contract_path) or '.sol' not in contract_path:
+            if not os.path.isfile(contract_path) or not contract_path.endswith('.sol'):
                 continue
             files.append(contract_path)
 
@@ -131,7 +117,7 @@ class ContractManager:
     def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
         """ Returns the ABI for a given event. """
         contract_abi = self.get_contract_abi(contract_name)
-        return get_event_from_abi(contract_abi, event_name)
+        return find_matching_event_abi(contract_abi, event_name)
 
 
 if os.path.isfile(CONTRACTS_DIR):
