@@ -68,7 +68,7 @@ def test_withdraw_call(
     )
 
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             0x0,
             withdraw_A,
             B,
@@ -76,7 +76,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             '',
             withdraw_A,
             B,
@@ -84,7 +84,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             0x0,
@@ -92,7 +92,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             '',
@@ -100,7 +100,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             -1,
             B,
@@ -108,7 +108,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             MAX_UINT256 + 1,
             B,
@@ -117,7 +117,7 @@ def test_withdraw_call(
         )
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             empty_address,
             withdraw_A,
             B,
@@ -125,7 +125,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             empty_address,
@@ -133,7 +133,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             0,
             B,
@@ -141,7 +141,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -149,7 +149,7 @@ def test_withdraw_call(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -157,7 +157,7 @@ def test_withdraw_call(
             fake_bytes(65)
         )
 
-    token_network.transact({'from': A}).withdraw(
+    token_network.transact({'from': A}).setTotalWithdraw(
         A,
         withdraw_A,
         B,
@@ -269,7 +269,7 @@ def test_withdraw_wrong_signers(
         withdraw_A
     )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': C}).withdraw(
+        token_network.transact({'from': C}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -277,7 +277,7 @@ def test_withdraw_wrong_signers(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': C}).withdraw(
+        token_network.transact({'from': C}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -285,7 +285,7 @@ def test_withdraw_wrong_signers(
             signature_C_for_A
         )
 
-    token_network.transact({'from': C}).withdraw(
+    token_network.transact({'from': C}).setTotalWithdraw(
         A,
         withdraw_A,
         B,
@@ -335,7 +335,7 @@ def test_withdraw_wrong_signature_content(
     )
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -343,7 +343,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -351,7 +351,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A_fake1
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -359,7 +359,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -367,7 +367,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A_fake2
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -375,7 +375,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A
         )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).withdraw(
+        token_network.transact({'from': A}).setTotalWithdraw(
             A,
             withdraw_A,
             B,
@@ -383,7 +383,7 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A_fake3
         )
 
-    token_network.transact({'from': A}).withdraw(
+    token_network.transact({'from': A}).setTotalWithdraw(
         A,
         withdraw_A,
         B,
