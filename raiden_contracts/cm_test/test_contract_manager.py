@@ -17,7 +17,7 @@ def contract_manager_meta(contracts_path):
 
     abi = manager.get_event_abi('TokenNetwork', 'ChannelClosed')
     assert isinstance(abi, dict)
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         manager.get_event_abi('TokenNetwork', 'NonExistant')
 
 

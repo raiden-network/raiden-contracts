@@ -52,6 +52,11 @@ class CompileContracts(Command):
         pass
 
     def run(self):
+        try:
+            from solc import compile_files  # noqa
+        except ModuleNotFoundError:
+            print('py-solc is not installed, skipping contracts compilation')
+            return
         from raiden_contracts.contract_manager import CONTRACT_MANAGER
         compiled = CONTRACT_MANAGER.precompile_contracts('raiden_contracts/contracts/', [])
         with open(COMPILED_CONTRACTS, 'w') as compiled_json:

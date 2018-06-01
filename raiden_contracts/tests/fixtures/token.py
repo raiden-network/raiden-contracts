@@ -39,6 +39,6 @@ def deploy_token_contract(deploy_tester_contract):
 
 
 @pytest.fixture
-def standard_token_contract(deploy_token_contract):
-    """Deployed HumanStandardToken contract"""
-    return deploy_token_contract(1000000, 10, 'TT', 'TTK')
+def standard_token_contract(custom_token):
+    """Deployed CustomToken contract"""
+    return custom_token
