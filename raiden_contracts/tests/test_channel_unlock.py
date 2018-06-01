@@ -386,3 +386,80 @@ def test_channel_unlock(
         locked_amount2 - unlocked_amount
     ))
     ev_handler.check()
+
+
+def test_channel_settle_and_unlock(
+        web3,
+        token_network,
+        get_accounts,
+        create_settled_channel,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+    token_network.transact({'from': A}).unlock(A, B, pending_transfers_tree_1.packed_transfers)
+    # Mock pending transfers data for a reopened channel
+    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_2.unlockable)
+    # Settle the channel again
+    create_settled_channel(
+        A,
+        pending_transfers_tree_2.locked_amount,
+        pending_transfers_tree_2.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+    # 2nd unlocks should go through
+    token_network.transact({'from': A}).unlock(A, B, pending_transfers_tree_2.packed_transfers)
+
+    # Edge channel life-cycle: open -> settle -> open -> settle ->  unlock1 -> unlock2
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+    # Mock pending transfers data for a reopened channel
+    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_2.unlockable)
+    # Settle the channel again
+    create_settled_channel(
+        A,
+        pending_transfers_tree_2.locked_amount,
+        pending_transfers_tree_2.merkle_root,
+        B,
+        0,
+        fake_bytes(32),
+        settle_timeout
+    )
+    # Both old and new unlocks should go through
+    token_network.transact({'from': A}).unlock(A, B, pending_transfers_tree_2.packed_transfers)
+    token_network.transact({'from': A}).unlock(A, B, pending_transfers_tree_1.packed_transfers)

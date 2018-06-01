@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.utils.config import (
     SETTLE_TIMEOUT_MIN,
     E_CHANNEL_CLOSED,
@@ -13,8 +14,6 @@ from .fixtures.config import fake_bytes, fake_hex
 
 def test_close_nonexistent_channel(
         token_network,
-        create_channel,
-        channel_deposit,
         get_accounts
 ):
     (A, B) = get_accounts(2)
