@@ -142,7 +142,7 @@ def get_unlocked_amount(secret_registry, merkle_tree_leaves):
         locked_amount = int.from_bytes(lock[32:64], byteorder='big')
         secrethash = lock[64:96]
 
-        reveal_block = secret_registry.call().getSecretRevealBlockHeight(secrethash)
+        reveal_block = secret_registry.functions.getSecretRevealBlockHeight(secrethash).call()
         if reveal_block > 0 and reveal_block < expiration_block:
             unlocked_amount += locked_amount
     return unlocked_amount

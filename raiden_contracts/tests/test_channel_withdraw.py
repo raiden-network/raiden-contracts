@@ -33,20 +33,20 @@ def test_withdraw_signature(
         token_network_test.address
     )
 
-    recovered_address_A = token_network_test.call().recoverAddressFromWithdrawMessagePublic(
+    recovered_address_A = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
         channel_identifier,
         A,
         withdraw_A,
         signature_A
-    )
+    ).call()
     assert recovered_address_A == A
 
-    recovered_address_B = token_network_test.call().recoverAddressFromWithdrawMessagePublic(
+    recovered_address_B = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
         channel_identifier,
         A,
         withdraw_A,
         signature_B
-    )
+    ).call()
     assert recovered_address_B == B
 
 
@@ -68,102 +68,102 @@ def test_withdraw_call(
     )
 
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             0x0,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             '',
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             0x0,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             '',
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             -1,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             MAX_UINT256 + 1,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             empty_address,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             empty_address,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             0,
             B,
             signature_A_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             fake_bytes(65),
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A,
             fake_bytes(65)
-        )
+        ).transact({'from': A})
 
-    token_network.transact({'from': A}).setTotalWithdraw(
+    token_network.functions.setTotalWithdraw(
         A,
         withdraw_A,
         B,
         signature_A_for_A,
         signature_B_for_A
-    )
+    ).transact({'from': A})
 
 
 def test_withdraw_wrong_state(
@@ -176,34 +176,34 @@ def test_withdraw_wrong_state(
     (A, B) = get_accounts(2)
     withdraw_A = 1
 
-    (_, _, state) = token_network.call().getChannelInfo(A, B)
+    (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
 
     create_channel_and_deposit(A, B, 10, 14, SETTLE_TIMEOUT_MIN)
-    (_, _, state) = token_network.call().getChannelInfo(A, B)
+    (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_OPEN
 
     # Channel is open, withdraw must work
     withdraw_channel(A, withdraw_A, B)
 
-    token_network.transact({'from': A}).closeChannel(
+    token_network.functions.closeChannel(
         B,
         fake_bytes(32),
         0,
         fake_bytes(32),
         fake_bytes(64)
-    )
-    (_, _, state) = token_network.call().getChannelInfo(A, B)
+    ).transact({'from': A})
+    (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_CLOSED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
 
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
-    token_network.transact({'from': A}).settleChannel(
+    token_network.functions.settleChannel(
         A,
         0,
         0,
@@ -212,8 +212,8 @@ def test_withdraw_wrong_state(
         0,
         0,
         fake_bytes(32)
-    )
-    (_, _, state) = token_network.call().getChannelInfo(A, B)
+    ).transact({'from': A})
+    (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 
     with pytest.raises(TransactionFailed):
@@ -269,29 +269,29 @@ def test_withdraw_wrong_signers(
         withdraw_A
     )
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': C}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_C_for_A,
             signature_B_for_A
-        )
+        ).transact({'from': C})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': C}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_C_for_A
-        )
+        ).transact({'from': C})
 
-    token_network.transact({'from': C}).setTotalWithdraw(
+    token_network.functions.setTotalWithdraw(
         A,
         withdraw_A,
         B,
         signature_A_for_A,
         signature_B_for_A
-    )
+    ).transact({'from': C})
 
 
 def test_withdraw_wrong_signature_content(
@@ -307,7 +307,7 @@ def test_withdraw_wrong_signature_content(
     deposit_B = 13
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
-    channel_identifier_fake = token_network.call().getChannelIdentifier(A, C)
+    channel_identifier_fake = token_network.functions.getChannelIdentifier(A, C).call()
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B],
@@ -335,61 +335,61 @@ def test_withdraw_wrong_signature_content(
     )
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A_fake1,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A_fake1
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A_fake2,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A_fake2
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A_fake3,
             signature_B_for_A
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalWithdraw(
+        token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
             B,
             signature_A_for_A,
             signature_B_for_A_fake3
-        )
+        ).transact({'from': A})
 
-    token_network.transact({'from': A}).setTotalWithdraw(
+    token_network.functions.setTotalWithdraw(
         A,
         withdraw_A,
         B,
         signature_A_for_A,
         signature_B_for_A
-    )
+    ).transact({'from': A})
 
 
 def test_withdraw_channel_state(
@@ -408,12 +408,12 @@ def test_withdraw_channel_state(
 
     create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    balance_A = custom_token.call().balanceOf(A)
-    balance_B = custom_token.call().balanceOf(B)
-    balance_C = custom_token.call().balanceOf(C)
-    balance_contract = custom_token.call().balanceOf(token_network.address)
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_C = custom_token.functions.balanceOf(C).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    (_, withdrawn_amount, _, _, _) = token_network.call().getChannelParticipantInfo(A, B)
+    (_, withdrawn_amount, _, _, _) = token_network.functions.getChannelParticipantInfo(A, B).call()
     assert withdrawn_amount == 0
 
     withdraw_channel(A, withdraw_A, B, C)
@@ -432,10 +432,10 @@ def test_withdraw_channel_state(
         C, balance_C
     )
 
-    balance_A = custom_token.call().balanceOf(A)
-    balance_B = custom_token.call().balanceOf(B)
-    balance_C = custom_token.call().balanceOf(C)
-    balance_contract = custom_token.call().balanceOf(token_network.address)
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_C = custom_token.functions.balanceOf(C).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     withdraw_channel(B, withdraw_B, A)
 
@@ -452,10 +452,10 @@ def test_withdraw_channel_state(
         balance_contract
     )
 
-    balance_A = custom_token.call().balanceOf(A)
-    balance_B = custom_token.call().balanceOf(B)
-    balance_C = custom_token.call().balanceOf(C)
-    balance_contract = custom_token.call().balanceOf(token_network.address)
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_C = custom_token.functions.balanceOf(C).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     withdraw_channel(B, withdraw_B + 3, A)
 

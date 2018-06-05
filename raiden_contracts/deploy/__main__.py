@@ -137,7 +137,7 @@ def main(**kwargs):
         receipt = check_succesful_tx(web3, txhash, txn_wait)
 
         print('TokenNetwork address: {0}. Gas used: {1}'.format(
-            token_network_registry.call().token_to_token_networks(token_address),
+            token_network_registry.functions.token_to_token_networks(token_address).call(),
             receipt['gasUsed'])
         )
 

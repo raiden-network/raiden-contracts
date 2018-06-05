@@ -26,13 +26,13 @@ def test_settle_no_bp_success(
     create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     # Close channel with no balance proof
-    token_network.transact({'from': A}).closeChannel(
+    token_network.functions.closeChannel(
         B,
         locksroot,
         0,
         additional_hash,
         fake_bytes(64)
-    )
+    ).transact({'from': A})
 
     # Do not call updateNonClosingBalanceProof
 
@@ -40,7 +40,7 @@ def test_settle_no_bp_success(
     web3.testing.mine(settle_timeout)
 
     # Settling the channel should work with no balance proofs
-    token_network.transact({'from': A}).settleChannel(
+    token_network.functions.settleChannel(
         A,
         0,
         0,
@@ -49,7 +49,7 @@ def test_settle_no_bp_success(
         0,
         0,
         locksroot
-    )
+    ).transact({'from': A})
 
 
 @pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
@@ -86,12 +86,12 @@ def test_settle_channel_state(
 
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
 
-    pre_balance_A = custom_token.call().balanceOf(A)
-    pre_balance_B = custom_token.call().balanceOf(B)
-    pre_balance_contract = custom_token.call().balanceOf(token_network.address)
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     if txn_successful is True:
-        token_network.transact({'from': A}).settleChannel(
+        token_network.functions.settleChannel(
             A,
             vals_A.transferred,
             vals_A.locked,
@@ -100,7 +100,7 @@ def test_settle_channel_state(
             vals_B.transferred,
             vals_B.locked,
             locksroot_B
-        )
+        ).transact({'from': A})
 
         (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
 
@@ -119,7 +119,7 @@ def test_settle_channel_state(
         )
     else:
         with pytest.raises(TransactionFailed):
-            token_network.transact({'from': A}).settleChannel(
+            token_network.functions.settleChannel(
                 A,
                 vals_A.transferred,
                 vals_A.locked,
@@ -128,7 +128,7 @@ def test_settle_channel_state(
                 vals_B.transferred,
                 vals_B.locked,
                 locksroot_B
-            )
+            ).transact({'from': A})
 
 
 def test_settle_channel_event(
@@ -158,15 +158,15 @@ def test_settle_channel_event(
         *balance_proof_A
     )
 
-    token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
-    token_network.transact({'from': B}).updateNonClosingBalanceProof(
+    token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+    token_network.functions.updateNonClosingBalanceProof(
         A, B,
         *balance_proof_A,
         balance_proof_update_signature_B
-    )
+    ).transact({'from': B})
 
     web3.testing.mine(settle_timeout)
-    txn_hash = token_network.transact({'from': A}).settleChannel(
+    txn_hash = token_network.functions.settleChannel(
         A,
         10,
         0,
@@ -175,7 +175,7 @@ def test_settle_channel_event(
         5,
         0,
         locksroot
-    )
+    ).transact({'from': A})
 
     ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(
         channel_identifier,

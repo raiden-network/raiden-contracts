@@ -11,84 +11,84 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
     (A, B) = get_accounts(2)
     create_channel(A, B)[0]
 
-    custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
-    deposit_A = custom_token.call().balanceOf(A)
+    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
+    deposit_A = custom_token.functions.balanceOf(A).call()
 
-    custom_token.transact({'from': A}).approve(token_network.address, deposit_A)
+    custom_token.functions.approve(token_network.address, deposit_A).transact({'from': A})
 
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             -1,
             A,
             deposit_A
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             '',
             deposit_A,
             B
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             fake_address,
             deposit_A,
             B
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             0x0,
             deposit_A,
             B
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             deposit_A,
             ''
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             deposit_A,
             fake_address
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             deposit_A,
             0x0
-        )
+        ).transact({'from': A})
     with pytest.raises(ValidationError):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             -1,
             B
-        )
+        ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             empty_address,
             deposit_A,
             B
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             deposit_A,
             empty_address
-        )
+        ).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalDeposit(
+        token_network.functions.setTotalDeposit(
             A,
             0,
             B
-        )
+        ).transact({'from': A})
 
-    token_network.transact({'from': A}).setTotalDeposit(
+    token_network.functions.setTotalDeposit(
         A,
         deposit_A,
         B
-    )
+    ).transact({'from': A})
 
 
 def test_deposit_notapproved(
@@ -101,12 +101,12 @@ def test_deposit_notapproved(
     create_channel(A, B)
     deposit_A = 1
 
-    custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
-    balance = custom_token.call().balanceOf(A)
+    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
+    balance = custom_token.functions.balanceOf(A).call()
     assert balance >= deposit_A
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalDeposit(A, deposit_A, B)
+        token_network.functions.setTotalDeposit(A, deposit_A, B).transact({'from': A})
 
 
 def test_small_deposit_fail(
@@ -124,7 +124,7 @@ def test_small_deposit_fail(
 
     # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).setTotalDeposit(A, 1, B)
+        token_network.functions.setTotalDeposit(A, 1, B).transact({'from': A})
 
 
 def test_deposit_delegate(token_network, get_accounts, create_channel, channel_deposit):
@@ -140,18 +140,18 @@ def test_deposit_channel_state(token_network, create_channel, channel_deposit, g
 
     create_channel(A, B)
 
-    A_deposit = token_network.call().getChannelParticipantInfo(A, B)[0]
+    A_deposit = token_network.functions.getChannelParticipantInfo(A, B).call()[0]
     assert A_deposit == 0
 
-    B_deposit = token_network.call().getChannelParticipantInfo(B, A)[0]
+    B_deposit = token_network.functions.getChannelParticipantInfo(B, A).call()[0]
     assert B_deposit == 0
 
     channel_deposit(A, deposit_A, B)
-    A_deposit = token_network.call().getChannelParticipantInfo(A, B)[0]
+    A_deposit = token_network.functions.getChannelParticipantInfo(A, B).call()[0]
     assert A_deposit == deposit_A
 
     channel_deposit(B, deposit_B, A)
-    B_deposit = token_network.call().getChannelParticipantInfo(B, A)[0]
+    B_deposit = token_network.functions.getChannelParticipantInfo(B, A).call()[0]
     assert B_deposit == deposit_B
 
 
