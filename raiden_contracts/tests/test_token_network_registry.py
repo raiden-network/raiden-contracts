@@ -11,7 +11,7 @@ from web3.exceptions import ValidationError
 
 
 def test_version(token_network_registry_contract):
-    assert (token_network_registry_contract.call().contract_version()[:2]
+    assert (token_network_registry_contract.functions.contract_version().call()[:2]
             == raiden_contracts_version[:2])
 
 
@@ -55,8 +55,8 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
     chain_id = int(web3.version.network)
 
     registry = get_token_network_registry([secret_registry_contract.address, chain_id])
-    assert secret_registry_contract.address == registry.call().secret_registry_address()
-    assert chain_id == registry.call().chain_id()
+    assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
+    assert chain_id == registry.functions.chain_id().call()
 
 
 def test_create_erc20_token_network_call(
@@ -67,24 +67,28 @@ def test_create_erc20_token_network_call(
     A = get_accounts(1)[0]
     fake_token_contract = token_network_registry_contract.address
     with pytest.raises(ValidationError):
-        token_network_registry_contract.transact().createERC20TokenNetwork()
+        token_network_registry_contract.functions.createERC20TokenNetwork().transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.transact().createERC20TokenNetwork(3)
+        token_network_registry_contract.functions.createERC20TokenNetwork(3).transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.transact().createERC20TokenNetwork(0)
+        token_network_registry_contract.functions.createERC20TokenNetwork(0).transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.transact().createERC20TokenNetwork('')
+        token_network_registry_contract.functions.createERC20TokenNetwork('').transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.transact().createERC20TokenNetwork(fake_address)
+        token_network_registry_contract.functions.createERC20TokenNetwork(fake_address).transact()
 
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.transact().createERC20TokenNetwork(empty_address)
+        token_network_registry_contract.functions.createERC20TokenNetwork(empty_address).transact()
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.transact().createERC20TokenNetwork(A)
+        token_network_registry_contract.functions.createERC20TokenNetwork(A).transact()
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.transact().createERC20TokenNetwork(fake_token_contract)
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            fake_token_contract
+        ).transact()
 
-    token_network_registry_contract.transact().createERC20TokenNetwork(custom_token.address)
+    token_network_registry_contract.functions.createERC20TokenNetwork(
+        custom_token.address
+    ).transact()
 
 
 def test_create_erc20_token_network(
@@ -93,15 +97,16 @@ def test_create_erc20_token_network(
         custom_token,
         get_accounts
 ):
-    assert token_network_registry_contract.call().token_to_token_networks(
-        custom_token.address) == empty_address
+    assert token_network_registry_contract.functions.token_to_token_networks(
+        custom_token.address).call() == empty_address
 
     token_network = register_token_network(custom_token.address)
 
-    assert token_network.call().token() == custom_token.address
-    secret_registry_address = token_network_registry_contract.call().secret_registry_address()
-    assert token_network.call().secret_registry() == secret_registry_address
-    assert token_network.call().chain_id() == token_network_registry_contract.call().chain_id()
+    assert token_network.functions.token().call() == custom_token.address
+    secret_registry_address = token_network_registry_contract.functions.secret_registry_address().call()  # noqa
+    assert token_network.functions.secret_registry().call() == secret_registry_address
+    assert (token_network.functions.chain_id().call()
+            == token_network_registry_contract.functions.chain_id().call())
 
 
 def test_events(

@@ -24,7 +24,7 @@ def create_reward_proof(token_network, get_private_key):
             channel_identifier,
             reward_amount,
             token_network_address,
-            int(token_network.call().chain_id()),
+            int(token_network.functions.chain_id().call()),
             nonce,
             v
         )
@@ -32,7 +32,7 @@ def create_reward_proof(token_network, get_private_key):
             channel_identifier,
             reward_amount,
             token_network_address,
-            int(token_network.call().chain_id()),
+            int(token_network.functions.chain_id().call()),
             nonce,
             signature
         )
@@ -57,16 +57,16 @@ def test_msc_happy_path(
     (A, B, MS) = get_accounts(3)
     reward_amount = 10
     # mint some tokens
-    custom_token.transact({'from': MS, 'value': 100 * denoms.finney}).mint()
-    custom_token.transact({'from': A, 'value': 100 * denoms.finney}).mint()
-    custom_token.transact({'from': B, 'value': 100 * denoms.finney}).mint()
+    custom_token.functions.mint().transact({'from': MS, 'value': 100 * denoms.finney})
+    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
+    custom_token.functions.mint().transact({'from': B, 'value': 100 * denoms.finney})
     # register MS in the RaidenServiceBundle contract
-    custom_token.transact({'from': MS}).approve(raiden_service_bundle.address, 20)
-    raiden_service_bundle.transact({'from': MS}).deposit(20)
-    ms_balance_after_deposit = monitoring_service_external.call().balances(MS)
+    custom_token.functions.approve(raiden_service_bundle.address, 20).transact({'from': MS})
+    raiden_service_bundle.functions.deposit(20).transact({'from': MS})
+    ms_balance_after_deposit = monitoring_service_external.functions.balances(MS).call()
     # raiden node deposit
-    custom_token.transact({'from': B}).approve(monitoring_service_external.address, 20)
-    monitoring_service_external.transact({'from': B}).deposit(B, 20)
+    custom_token.functions.approve(monitoring_service_external.address, 20).transact({'from': B})
+    monitoring_service_external.functions.deposit(B, 20).transact({'from': B})
 
     # 1) open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
@@ -89,12 +89,12 @@ def test_msc_happy_path(
         nonce=balance_proof_B[1],
     )
     # 3) c1 closes channel
-    txn_hash = token_network.transact({'from': A}).closeChannel(B, *balance_proof_A)
+    txn_hash = token_network.functions.closeChannel(B, *balance_proof_A).transact({'from': A})
     ev_handler.add(txn_hash, E_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
     # 4) MS calls `MSC::monitor()` using c1's BP and reward proof
 
-    txn_hash = monitoring_service_external.transact({'from': MS}).monitor(
+    txn_hash = monitoring_service_external.functions.monitor(
         A,
         B,
         balance_proof_B[0],  # balance_hash
@@ -105,11 +105,11 @@ def test_msc_happy_path(
         reward_proof[1],     # reward amount
         token_network.address,  # token network address
         reward_proof[5]      # reward proof signature
-    )
+    ).transact({'from': MS})
     # 5) MSC calls TokenNetwork updateTransfer
     # 6) channel is settled
     token_network.web3.testing.mine(8)
-    token_network.transact().settleChannel(
+    token_network.functions.settleChannel(
         A,                   # participant1
         20,                  # participant1_transferred_amount
         0,                   # participant1_locked_amount
@@ -118,12 +118,12 @@ def test_msc_happy_path(
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
         b'\x00' * 32,        # participant2_locksroot
-    )
+    ).transact()
     # 7) MS claims the reward
-    monitoring_service_external.transact({'from': MS}).claimReward(
+    monitoring_service_external.functions.claimReward(
         token_network.address,
         A,
         B,
-    )
-    ms_balance_after_reward = monitoring_service_external.call().balances(MS)
+    ).transact({'from': MS})
+    ms_balance_after_reward = monitoring_service_external.functions.balances(MS).call()
     assert ms_balance_after_reward == (ms_balance_after_deposit + reward_amount)

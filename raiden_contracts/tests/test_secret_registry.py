@@ -7,24 +7,25 @@ from .fixtures.config import fake_bytes, raiden_contracts_version
 
 
 def test_version(secret_registry_contract):
-    assert secret_registry_contract.call().contract_version()[:2] == raiden_contracts_version[:2]
+    assert (secret_registry_contract.functions.contract_version().call()[:2]
+            == raiden_contracts_version[:2])
 
 
 def test_register_secret_call(secret_registry_contract, event_handler):
     with pytest.raises(ValidationError):
-        secret_registry_contract.transact().registerSecret()
+        secret_registry_contract.functions.registerSecret().transact()
     with pytest.raises(ValidationError):
-        secret_registry_contract.transact().registerSecret(3)
+        secret_registry_contract.functions.registerSecret(3).transact()
     with pytest.raises(ValidationError):
-        secret_registry_contract.transact().registerSecret(0)
+        secret_registry_contract.functions.registerSecret(0).transact()
     with pytest.raises(ValidationError):
-        secret_registry_contract.transact().registerSecret('')
+        secret_registry_contract.functions.registerSecret('').transact()
     with pytest.raises(ValidationError):
-        secret_registry_contract.transact().registerSecret(fake_bytes(33))
+        secret_registry_contract.functions.registerSecret(fake_bytes(33)).transact()
 
-    assert secret_registry_contract.call().registerSecret(fake_bytes(32)) is False
-    assert secret_registry_contract.call().registerSecret(fake_bytes(10, '02')) is True
-    assert secret_registry_contract.call().registerSecret(fake_bytes(32, '02')) is True
+    assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is False
+    assert secret_registry_contract.functions.registerSecret(fake_bytes(10, '02')).call() is True
+    assert secret_registry_contract.functions.registerSecret(fake_bytes(32, '02')).call() is True
 
 
 def test_register_secret_return_value(secret_registry_contract, get_accounts):
@@ -33,13 +34,13 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts):
 
     # We use call here to make sure we would get the correct return value
     # even though this does not change the state
-    assert secret_registry_contract.call({'from': A}).registerSecret(secret) is True
+    assert secret_registry_contract.functions.registerSecret(secret).call({'from': A}) is True
 
-    secret_registry_contract.transact({'from': A}).registerSecret(secret)
+    secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
 
     # We use call here to get the return value
-    assert secret_registry_contract.call({'from': A}).registerSecret(secret) is False
-    assert secret_registry_contract.call({'from': B}).registerSecret(secret) is False
+    assert secret_registry_contract.functions.registerSecret(secret).call({'from': A}) is False
+    assert secret_registry_contract.functions.registerSecret(secret).call({'from': B}) is False
 
 
 def test_register_secret(secret_registry_contract, get_accounts, get_block):
@@ -48,18 +49,19 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
     secret2 = b'secretsecretsecretsecretsecretss'
     secrethash = Web3.sha3(secret)
 
-    assert secret_registry_contract.call().secrethash_to_block(secrethash) == 0
-    assert secret_registry_contract.call().getSecretRevealBlockHeight(secrethash) == 0
+    assert secret_registry_contract.functions.secrethash_to_block(secrethash).call() == 0
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
 
-    txn_hash = secret_registry_contract.transact({'from': A}).registerSecret(secret)
+    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
 
-    assert secret_registry_contract.call().secrethash_to_block(secrethash) == get_block(txn_hash)
-    assert secret_registry_contract.call().getSecretRevealBlockHeight(
+    assert (secret_registry_contract.functions.secrethash_to_block(secrethash).call()
+            == get_block(txn_hash))
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
         secrethash
-    ) == get_block(txn_hash)
+    ).call() == get_block(txn_hash)
 
     # A should be able to register any number of secrets
-    secret_registry_contract.transact({'from': A}).registerSecret(secret2)
+    secret_registry_contract.functions.registerSecret(secret2).transact({'from': A})
 
 
 def test_events(secret_registry_contract, event_handler):
@@ -67,7 +69,7 @@ def test_events(secret_registry_contract, event_handler):
     secrethash = Web3.sha3(secret)
     ev_handler = event_handler(secret_registry_contract)
 
-    txn_hash = secret_registry_contract.transact().registerSecret(secret)
+    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
 
     ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secrethash))
     ev_handler.check()

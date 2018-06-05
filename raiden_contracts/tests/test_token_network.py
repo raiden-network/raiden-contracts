@@ -4,7 +4,7 @@ from .fixtures.config import raiden_contracts_version, empty_address, fake_addre
 
 
 def test_version(token_network):
-    assert token_network.call().contract_version()[:2] == raiden_contracts_version[:2]
+    assert token_network.functions.contract_version().call()[:2] == raiden_contracts_version[:2]
 
 
 def test_constructor_call(
@@ -66,10 +66,11 @@ def test_constructor_not_registered(
         token_network_external
 ):
     token_network = token_network_external
-    assert token_network.call().token() == custom_token.address
-    assert token_network.call().secret_registry() == secret_registry_contract.address
-    assert token_network.call().chain_id() == token_network_registry_contract.call().chain_id()
+    assert token_network.functions.token().call() == custom_token.address
+    assert token_network.functions.secret_registry().call() == secret_registry_contract.address
+    assert (token_network.functions.chain_id().call()
+            == token_network_registry_contract.functions.chain_id().call())
 
-    assert token_network_registry_contract.call().token_to_token_networks(
+    assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address
-    ) == empty_address
+    ).call() == empty_address

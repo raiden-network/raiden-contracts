@@ -46,16 +46,16 @@ def test_token_network_create(
         secret_registry_contract,
         token_network_registry_contract
 ):
-    txn_hash = token_network_registry_contract.transact().createERC20TokenNetwork(
+    txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address
-    )
+    ).transact()
 
     print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
 def test_secret_registry(secret_registry_contract, print_gas):
     secret = b'secretsecretsecretsecretsecretse'
-    txn_hash = secret_registry_contract.transact().registerSecret(secret)
+    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
 
@@ -111,44 +111,44 @@ def test_channel_cycle(
     )
 
     for lock in pending_transfers_tree1.unlockable:
-        txn_hash = secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
+        txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
     for lock in pending_transfers_tree2.unlockable:
-        txn_hash = secret_registry_contract.transact({'from': A}).registerSecret(lock[3])
+        txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
 
     print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
 
-    txn_hash = token_network.transact({'from': A}).closeChannel(B, *balance_proof_B)
+    txn_hash = token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
     print_gas(txn_hash, C_TOKEN_NETWORK + '.closeChannel')
 
-    txn_hash = token_network.transact({'from': B}).updateNonClosingBalanceProof(
+    txn_hash = token_network.functions.updateNonClosingBalanceProof(
         A, B,
         *balance_proof_A,
         balance_proof_update_signature_B
-    )
+    ).transact({'from': B})
     print_gas(txn_hash, C_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
 
     web3.testing.mine(settle_timeout)
-    txn_hash = token_network.transact().settleChannel(
+    txn_hash = token_network.functions.settleChannel(
         A, 10, locked_amount1, locksroot1,
         B, 5, locked_amount2, locksroot2
-    )
+    ).transact()
     print_gas(txn_hash, C_TOKEN_NETWORK + '.settleChannel')
 
-    txn_hash = token_network.transact().unlock(
+    txn_hash = token_network.functions.unlock(
         A,
         B,
         pending_transfers_tree2.packed_transfers
-    )
+    ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         C_TOKEN_NETWORK,
         len(pending_transfers_tree2.transfers)
     ))
 
-    txn_hash = token_network.transact().unlock(
+    txn_hash = token_network.functions.unlock(
         B,
         A,
         pending_transfers_tree1.packed_transfers
-    )
+    ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         C_TOKEN_NETWORK,
         len(pending_transfers_tree1.transfers)

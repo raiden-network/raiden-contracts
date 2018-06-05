@@ -18,18 +18,18 @@ def test_close_nonexistent_channel(
 ):
     (A, B) = get_accounts(2)
 
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).closeChannel(
+        token_network.functions.closeChannel(
             B,
             fake_bytes(32),
             0,
             fake_bytes(32),
             fake_bytes(64)
-        )
+        ).transact({'from': A})
 
 
 def test_close_settled_channel(
@@ -43,18 +43,18 @@ def test_close_settled_channel(
     create_channel(A, B, SETTLE_TIMEOUT_MIN)
     channel_deposit(A, 5, B)
 
-    (_, _, state) = token_network.call().getChannelInfo(A, B)
+    (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_OPEN
 
-    token_network.transact({'from': A}).closeChannel(
+    token_network.functions.closeChannel(
         B,
         fake_bytes(32),
         0,
         fake_bytes(32),
         fake_bytes(64)
-    )
+    ).transact({'from': A})
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
-    token_network.transact({'from': A}).settleChannel(
+    token_network.functions.settleChannel(
         A,
         0,
         0,
@@ -63,20 +63,20 @@ def test_close_settled_channel(
         0,
         0,
         fake_bytes(32)
-    )
+    ).transact({'from': A})
 
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).closeChannel(
+        token_network.functions.closeChannel(
             B,
             fake_bytes(32),
             0,
             fake_bytes(32),
             fake_bytes(64)
-        )
+        ).transact({'from': A})
 
 
 def test_close_wrong_signature(
@@ -106,7 +106,7 @@ def test_close_wrong_signature(
     )
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).closeChannel(B, *balance_proof)
+        token_network.functions.closeChannel(B, *balance_proof).transact({'from': A})
 
 
 def test_close_call_twice_fail(
@@ -119,22 +119,22 @@ def test_close_call_twice_fail(
     create_channel(A, B)
     channel_deposit(A, 5, B)
 
-    token_network.transact({'from': A}).closeChannel(
+    token_network.functions.closeChannel(
         B,
         fake_bytes(32),
         0,
         fake_bytes(32),
         fake_bytes(64)
-    )
+    ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': A}).closeChannel(
+        token_network.functions.closeChannel(
             B,
             fake_bytes(32),
             0,
             fake_bytes(32),
             fake_bytes(64)
-        )
+        ).transact({'from': A})
 
 
 def test_close_wrong_sender(
@@ -148,13 +148,13 @@ def test_close_wrong_sender(
     channel_deposit(A, 5, B)
 
     with pytest.raises(TransactionFailed):
-        token_network.transact({'from': C}).closeChannel(
+        token_network.functions.closeChannel(
             B,
             fake_bytes(32),
             0,
             fake_bytes(32),
             fake_bytes(64)
-        )
+        ).transact({'from': C})
 
 
 def test_close_channel_state(
@@ -186,7 +186,7 @@ def test_close_channel_state(
         locksroot
     )
 
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout
     assert state == CHANNEL_STATE_OPEN
 
@@ -195,14 +195,14 @@ def test_close_channel_state(
         A_is_the_closer,
         A_balance_hash,
         A_nonce
-    ) = token_network.call().getChannelParticipantInfo(A, B)
+    ) = token_network.functions.getChannelParticipantInfo(A, B).call()
     assert A_is_the_closer is False
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
 
-    txn_hash = token_network.transact({'from': A}).closeChannel(B, *balance_proof)
+    txn_hash = token_network.functions.closeChannel(B, *balance_proof).transact({'from': A})
 
-    (_, settle_block_number, state) = token_network.call().getChannelInfo(A, B)
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout + get_block(txn_hash)
     assert state == CHANNEL_STATE_CLOSED
 
@@ -211,7 +211,7 @@ def test_close_channel_state(
         A_is_the_closer,
         A_balance_hash,
         A_nonce
-    ) = token_network.call().getChannelParticipantInfo(A, B)
+    ) = token_network.functions.getChannelParticipantInfo(A, B).call()
     assert A_is_the_closer is True
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
@@ -221,7 +221,7 @@ def test_close_channel_state(
         B_is_the_closer,
         B_balance_hash,
         B_nonce
-    ) = token_network.call().getChannelParticipantInfo(B, A)
+    ) = token_network.functions.getChannelParticipantInfo(B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == balance_proof[0]
     assert B_nonce == nonce
@@ -241,13 +241,13 @@ def test_close_channel_event_no_offchain_transfers(
 
     # No off-chain transfers have occured
     # There is no signature data here, because it was never provided to A
-    txn_hash = token_network.transact({'from': A}).closeChannel(
+    txn_hash = token_network.functions.closeChannel(
         B,
         fake_bytes(32),
         0,
         fake_bytes(32),
         fake_bytes(64)
-    )
+    ).transact({'from': A})
 
     ev_handler.add(txn_hash, E_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
@@ -269,7 +269,7 @@ def test_close_channel_event(
     channel_deposit(A, deposit_A, B)
     balance_proof = create_balance_proof(channel_identifier, B, 5, 0, 3)
 
-    txn_hash = token_network.transact({'from': A}).closeChannel(B, *balance_proof)
+    txn_hash = token_network.functions.closeChannel(B, *balance_proof).transact({'from': A})
 
     ev_handler.add(txn_hash, E_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()

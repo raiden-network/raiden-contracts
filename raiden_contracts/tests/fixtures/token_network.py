@@ -25,11 +25,9 @@ def register_token_network(
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
     def get(token_address):
-        tx_hash = token_network_registry_contract.transact(
-            {'from': owner}
-        ).createERC20TokenNetwork(
+        tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_address
-        )
+        ).transact({'from': owner})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             C_TOKEN_NETWORK_REGISTRY,
