@@ -1,5 +1,4 @@
 import pytest
-from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import (
     E_CHANNEL_SETTLED,
     SETTLE_TIMEOUT_MIN
@@ -90,45 +89,32 @@ def test_settle_channel_state(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    if txn_successful is True:
-        token_network.functions.settleChannel(
-            A,
-            vals_A.transferred,
-            vals_A.locked,
-            locksroot_A,
-            B,
-            vals_B.transferred,
-            vals_B.locked,
-            locksroot_B
-        ).transact({'from': A})
+    token_network.functions.settleChannel(
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        locksroot_A,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        locksroot_B
+    ).transact({'from': A})
 
-        (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
+    (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
 
-        settle_state_tests(
-            A,
-            A_amount,
-            locksroot_A,
-            vals_A.locked,
-            B,
-            B_amount,
-            locksroot_B,
-            vals_B.locked,
-            pre_balance_A,
-            pre_balance_B,
-            pre_balance_contract
-        )
-    else:
-        with pytest.raises(TransactionFailed):
-            token_network.functions.settleChannel(
-                A,
-                vals_A.transferred,
-                vals_A.locked,
-                locksroot_A,
-                B,
-                vals_B.transferred,
-                vals_B.locked,
-                locksroot_B
-            ).transact({'from': A})
+    settle_state_tests(
+        A,
+        A_amount,
+        locksroot_A,
+        vals_A.locked,
+        B,
+        B_amount,
+        locksroot_B,
+        vals_B.locked,
+        pre_balance_A,
+        pre_balance_B,
+        pre_balance_contract
+    )
 
 
 def test_settle_channel_event(
