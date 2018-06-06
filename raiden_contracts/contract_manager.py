@@ -44,7 +44,8 @@ class ContractManager:
         elif os.path.isdir(path):
             ContractManager.__init__(self, {'smart_contracts': path})
         else:
-            self.abi = json.load(open(path, 'r'))
+            with open(path, 'r') as json_file:
+                self.abi = json.load(json_file)
 
     def compile_contract(self, contract_name: str, libs=None, *args):
         """Compile contract and return JSON containing abi and bytecode"""
