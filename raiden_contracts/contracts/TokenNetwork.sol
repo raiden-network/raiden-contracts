@@ -448,6 +448,8 @@ contract TokenNetwork is Utils {
         public
     {
         bytes32 channel_identifier;
+        uint256 participant1_balance;
+        uint256 participant2_balance;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
@@ -475,12 +477,9 @@ contract TokenNetwork is Utils {
             participant2_locksroot
         ));
 
-        // `participant2_transferred_amount` is the amount of tokens that `participant1`
-        // needs to receive. `participant1_transferred_amount` is the amount of tokens that
-        // `participant2` needs to receive
         (
-            participant2_transferred_amount,
-            participant1_transferred_amount
+            participant1_balance,
+            participant2_balance
         ) = getSettleTransferAmounts(
             participant1_state,
             participant1_transferred_amount,
@@ -508,15 +507,15 @@ contract TokenNetwork is Utils {
         );
 
         // Do the actual token transfers
-        if (participant2_transferred_amount > 0) {
-            require(token.transfer(participant1, participant2_transferred_amount));
+        if (participant1_balance > 0) {
+            require(token.transfer(participant1, participant1_balance));
         }
 
-        if (participant1_transferred_amount > 0) {
-            require(token.transfer(participant2, participant1_transferred_amount));
+        if (participant2_balance > 0) {
+            require(token.transfer(participant2, participant2_balance));
         }
 
-        emit ChannelSettled(channel_identifier, participant1_transferred_amount, participant2_transferred_amount);
+        emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
     }
 
     function getSettleTransferAmounts(
@@ -552,21 +551,51 @@ contract TokenNetwork is Utils {
             participant1_transferred_amount
         );
 
-        // To account for cases when participant2 does not provide participant1's balance proof
-        // Therefore, participant1's transferred_amount will be lower than in reality
-        participant1_amount = min(participant1_amount, total_available_deposit);
+        // There are 2 cases that require attention here:
+        // case1. If participant1 does NOT provide a balance proof or provides an old balance proof
+        // case2. If participant2 does NOT provide a balance proof or provides an old balance proof
+        // The issue is that we need to react differently in both cases. However, both cases have
+        // an end result of participant1_amount > total_available_deposit. Therefore:
 
-        // To account for cases when participant1 does not provide participant2's balance proof
-        // Therefore, participant2's transferred_amount will be lower than in reality
-        participant1_amount = max(participant1_amount, 0);
+        // case1: participant2_transferred_amount can be [0, real_participant2_transferred_amount)
+        // This can trigger an underflow -> participant1_amount > total_available_deposit
+        // We need to make participant1_amount = 0 in this case, otherwise it can be
+        // an attack vector. participant1 must lose all/some of its tokens if it does not
+        // provide a valid balance proof.
+        if (
+            (participant1_state.deposit + participant2_transferred_amount) <
+            (participant1_state.withdrawn_amount + participant1_transferred_amount)
+        ) {
+            participant1_amount = 0;
+        }
+
+        // case2: participant1_transferred_amount can be [0, real_participant1_transferred_amount)
+        // This means participant1_amount > total_available_deposit.
+        // We need to limit participant1_amount to total_available_deposit. It is fine if
+        // participant1 gets all the available tokens if participant2 has not provided a
+        // valid balance proof.
+        participant1_amount = min(participant1_amount, total_available_deposit);
 
         // At this point `participant1_amount` is between [0, total_available_deposit],
         // so this is safe.
         participant2_amount = total_available_deposit - participant1_amount;
 
         // Handle old balance proofs with a high locked_amount
-        participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
-        participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
+        if (participant1_locked_amount <= participant1_amount) {
+            participant1_amount = participant1_amount - participant1_locked_amount;
+        }
+        else {
+            participant1_locked_amount = participant1_amount;
+            participant1_amount = 0;
+        }
+
+        if (participant2_locked_amount <= participant2_amount) {
+            participant2_amount = participant2_amount - participant2_locked_amount;
+        }
+        else {
+            participant2_locked_amount = participant2_amount;
+            participant2_amount = 0;
+        }
 
         require(participant1_amount <= total_available_deposit);
         require(participant2_amount <= total_available_deposit);
