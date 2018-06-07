@@ -91,12 +91,17 @@ contract TokenNetwork is Utils {
         uint256 settle_timeout
     );
 
-    event ChannelNewDeposit(bytes32 indexed channel_identifier, address indexed participant, uint256
-    total_deposit);
+    event ChannelNewDeposit(
+        bytes32 indexed channel_identifier,
+        address indexed participant,
+        uint256 total_deposit
+    );
 
     // withdrawn_amount is the total amount withdrawn by the participant from the channel
-    event ChannelWithdraw(bytes32 indexed channel_identifier, address indexed participant, uint256
-    total_withdraw);
+    event ChannelWithdraw(
+        bytes32 indexed channel_identifier,
+        address indexed participant, uint256 total_withdraw
+    );
 
     event ChannelClosed(bytes32 indexed channel_identifier, address indexed closing_participant);
 
@@ -107,11 +112,16 @@ contract TokenNetwork is Utils {
         uint256 returned_tokens
     );
 
-    event NonClosingBalanceProofUpdated(bytes32 indexed channel_identifier, address indexed
-    closing_participant);
+    event NonClosingBalanceProofUpdated(
+        bytes32 indexed channel_identifier,
+        address indexed closing_participant
+    );
 
-    event ChannelSettled(bytes32 indexed channel_identifier, uint256 participant1_amount, uint256
-    participant2_amount);
+    event ChannelSettled(
+        bytes32 indexed channel_identifier,
+        uint256 participant1_amount,
+        uint256 participant2_amount
+    );
 
     /*
      * Modifiers
