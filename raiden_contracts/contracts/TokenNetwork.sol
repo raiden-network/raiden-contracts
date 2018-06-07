@@ -597,8 +597,9 @@ contract TokenNetwork is Utils {
             participant2_amount = 0;
         }
 
-        require(participant1_amount <= total_available_deposit);
-        require(participant2_amount <= total_available_deposit);
+        // This should never happen:
+        assert(participant1_amount <= total_available_deposit);
+        assert(participant2_amount <= total_available_deposit);
         assert(total_available_deposit == (
             participant1_amount +
             participant2_amount +
