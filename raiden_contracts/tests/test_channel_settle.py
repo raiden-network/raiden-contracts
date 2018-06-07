@@ -1,5 +1,4 @@
 import pytest
-from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
     EVENT_CHANNEL_SETTLED,
     SETTLE_TIMEOUT_MIN,
