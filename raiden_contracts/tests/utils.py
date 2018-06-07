@@ -103,8 +103,8 @@ def get_packed_transfers(pending_transfers, types):
 
 
 def get_settlement_amounts(
-        participant1,
-        participant2
+        closing_participant,
+        non_closing_participant
 ):
     """ Settlement algorithm
 
@@ -112,25 +112,32 @@ def get_settlement_amounts(
     a channel is settled
     """
     total_available_deposit = (
-        participant1.deposit +
-        participant2.deposit -
-        participant1.withdrawn -
-        participant2.withdrawn
+        non_closing_participant.deposit +
+        closing_participant.deposit -
+        non_closing_participant.withdrawn -
+        closing_participant.withdrawn
     )
-    participant1_amount = (
-        participant1.deposit +
-        participant2.transferred -
-        participant1.withdrawn -
-        participant1.transferred
+    non_closing_participant_amount = (
+        non_closing_participant.deposit +
+        closing_participant.transferred -
+        non_closing_participant.withdrawn -
+        non_closing_participant.transferred
     )
-    participant1_amount = min(participant1_amount, total_available_deposit)
-    participant1_amount = max(participant1_amount, 0)
-    participant2_amount = total_available_deposit - participant1_amount
+    non_closing_participant_amount = min(non_closing_participant_amount, total_available_deposit)
+    non_closing_participant_amount = max(non_closing_participant_amount, 0)
+    closing_participant_amount = total_available_deposit - non_closing_participant_amount
 
-    participant1_amount = max(participant1_amount - participant1.locked, 0)
-    participant2_amount = max(participant2_amount - participant2.locked, 0)
+    non_closing_participant_amount = max(
+        non_closing_participant_amount - non_closing_participant.locked,
+        0
+    )
+    closing_participant_amount = max(closing_participant_amount - closing_participant.locked, 0)
 
-    return (participant1_amount, participant2_amount, participant1.locked + participant2.locked)
+    return (
+        closing_participant_amount,
+        non_closing_participant_amount,
+        closing_participant.locked + non_closing_participant.locked
+    )
 
 
 def get_unlocked_amount(secret_registry, merkle_tree_leaves):

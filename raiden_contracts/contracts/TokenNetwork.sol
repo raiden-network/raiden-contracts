@@ -91,12 +91,18 @@ contract TokenNetwork is Utils {
         uint256 settle_timeout
     );
 
-    event ChannelNewDeposit(bytes32 indexed channel_identifier, address indexed participant, uint256
-    total_deposit);
+    event ChannelNewDeposit(
+        bytes32 indexed channel_identifier,
+        address indexed participant,
+        uint256 total_deposit
+    );
 
     // withdrawn_amount is the total amount withdrawn by the participant from the channel
-    event ChannelWithdraw(bytes32 indexed channel_identifier, address indexed participant, uint256
-    total_withdraw);
+    event ChannelWithdraw(
+        bytes32 indexed channel_identifier,
+        address indexed participant,
+        uint256 total_withdraw
+    );
 
     event ChannelClosed(bytes32 indexed channel_identifier, address indexed closing_participant);
 
@@ -107,11 +113,16 @@ contract TokenNetwork is Utils {
         uint256 returned_tokens
     );
 
-    event NonClosingBalanceProofUpdated(bytes32 indexed channel_identifier, address indexed
-    closing_participant);
+    event NonClosingBalanceProofUpdated(
+        bytes32 indexed channel_identifier,
+        address indexed closing_participant
+    );
 
-    event ChannelSettled(bytes32 indexed channel_identifier, uint256 participant1_amount, uint256
-    participant2_amount);
+    event ChannelSettled(
+        bytes32 indexed channel_identifier,
+        uint256 participant1_amount,
+        uint256 participant2_amount
+    );
 
     /*
      * Modifiers
@@ -409,37 +420,37 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Settles the balance between the two parties.
-    /// @param participant1 Channel participant.
-    /// @param participant1_transferred_amount The latest known amount of tokens transferred
-    /// from `participant1` to `participant2`.
-    /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
-    /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
-    /// after the channel is settled.
-    /// @param participant1_locksroot The latest known merkle root of the pending hash-time locks
-    /// of `participant1`, used to validate the unlocked proofs.
-    /// @param participant2 Other channel participant.
-    /// @param participant2_transferred_amount The latest known amount of tokens transferred
-    /// from `participant2` to `participant1`.
-    /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
-    /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
-    /// after the channel is settled.
-    /// @param participant2_locksroot The latest known merkle root of the pending hash-time locks
-    /// of `participant2`, used to validate the unlocked proofs.
+    /// @param closing_participant Channel participant who closed the channel.
+    /// @param closing_transferred_amount The latest known amount of tokens transferred
+    /// from `closing_participant` to `non_closing_participant`.
+    /// @param closing_locked_amount Amount of tokens locked in pending transfers, from
+    /// `closing_participant` to `non_closing_participant`.
+    /// @param closing_locksroot The latest known merkle root of the pending hash-time locks
+    /// of `closing_participant`, used to validate the locks to be unlocked.
+    /// @param non_closing_participant Other channel participant.
+    /// @param non_closing_transferred_amount The latest known amount of tokens transferred
+    /// from `non_closing_participant` to `closing_participant`.
+    /// @param non_closing_locked_amount Amount of tokens locked in pending transfers, from
+    /// `non_closing_participant` to `closing_participant`.
+    /// @param non_closing_locksroot The latest known merkle root of the pending hash-time locks
+    /// of `non_closing_participant`, used to validate the locks to be unlocked.
     function settleChannel(
-        address participant1,
-        uint256 participant1_transferred_amount,
-        uint256 participant1_locked_amount,
-        bytes32 participant1_locksroot,
-        address participant2,
-        uint256 participant2_transferred_amount,
-        uint256 participant2_locked_amount,
-        bytes32 participant2_locksroot
+        address closing_participant,
+        uint256 closing_transferred_amount,
+        uint256 closing_locked_amount,
+        bytes32 closing_locksroot,
+        address non_closing_participant,
+        uint256 non_closing_transferred_amount,
+        uint256 non_closing_locked_amount,
+        bytes32 non_closing_locksroot
     )
         public
     {
         bytes32 channel_identifier;
+        uint256 closing_participant_amount;
+        uint256 non_closing_participant_amount;
 
-        channel_identifier = getChannelIdentifier(participant1, participant2);
+        channel_identifier = getChannelIdentifier(closing_participant, non_closing_participant);
         Channel storage channel = channels[channel_identifier];
 
         // Channel must be closed
@@ -448,81 +459,86 @@ contract TokenNetwork is Utils {
         // Settlement window must be over
         require(channel.settle_block_number < block.number);
 
-        Participant storage participant1_state = channel.participants[participant1];
-        Participant storage participant2_state = channel.participants[participant2];
+        Participant storage closing_participant_state = channel.participants[closing_participant];
+        Participant storage non_closing_participant_state = channel.participants[non_closing_participant];
+
+        // It is very important to know who closed the channel in order to compute
+        // the settlement amounts fairly.
+        require(closing_participant_state.is_the_closer);
 
         require(verifyBalanceHashData(
-            participant1_state,
-            participant1_transferred_amount,
-            participant1_locked_amount,
-            participant1_locksroot
+            closing_participant_state,
+            closing_transferred_amount,
+            closing_locked_amount,
+            closing_locksroot
         ));
 
         require(verifyBalanceHashData(
-            participant2_state,
-            participant2_transferred_amount,
-            participant2_locked_amount,
-            participant2_locksroot
+            non_closing_participant_state,
+            non_closing_transferred_amount,
+            non_closing_locked_amount,
+            non_closing_locksroot
         ));
 
-        // `participant2_transferred_amount` is the amount of tokens that `participant1`
-        // needs to receive. `participant1_transferred_amount` is the amount of tokens that
-        // `participant2` needs to receive
         (
-            participant2_transferred_amount,
-            participant1_transferred_amount
+            closing_participant_amount,
+            non_closing_participant_amount
         ) = getSettleTransferAmounts(
-            participant1_state,
-            participant1_transferred_amount,
-            participant1_locked_amount,
-            participant2_state,
-            participant2_transferred_amount,
-            participant2_locked_amount
+            closing_participant_state,
+            closing_transferred_amount,
+            closing_locked_amount,
+            non_closing_participant_state,
+            non_closing_transferred_amount,
+            non_closing_locked_amount
         );
 
         // Remove the channel data from storage
-        delete channel.participants[participant1];
-        delete channel.participants[participant2];
+        delete channel.participants[closing_participant];
+        delete channel.participants[non_closing_participant];
         delete channels[channel_identifier];
 
         // Store balance data needed for `unlock`
         updateUnlockData(
             channel_identifier,
-            participant1_locked_amount,
-            participant1_locksroot
+            closing_locked_amount,
+            closing_locksroot
         );
         updateUnlockData(
             channel_identifier,
-            participant2_locked_amount,
-            participant2_locksroot
+            non_closing_locked_amount,
+            non_closing_locksroot
         );
 
         // Do the actual token transfers
-        if (participant2_transferred_amount > 0) {
-            require(token.transfer(participant1, participant2_transferred_amount));
+        if (non_closing_participant_amount > 0) {
+            require(token.transfer(non_closing_participant, non_closing_participant_amount));
         }
 
-        if (participant1_transferred_amount > 0) {
-            require(token.transfer(participant2, participant1_transferred_amount));
+        if (closing_participant_amount > 0) {
+            require(token.transfer(closing_participant, closing_participant_amount));
         }
 
-        emit ChannelSettled(channel_identifier, participant1_transferred_amount, participant2_transferred_amount);
+        emit ChannelSettled(
+            channel_identifier,
+            closing_participant_amount,
+            non_closing_participant_amount
+        );
     }
 
     function getSettleTransferAmounts(
-        Participant storage participant1_state,
-        uint256 participant1_transferred_amount,
-        uint256 participant1_locked_amount,
-        Participant storage participant2_state,
-        uint256 participant2_transferred_amount,
-        uint256 participant2_locked_amount
+        Participant storage closing_participant_state,
+        uint256 closing_transferred_amount,
+        uint256 closing_locked_amount,
+        Participant storage non_closing_participant_state,
+        uint256 non_closing_transferred_amount,
+        uint256 non_closing_locked_amount
     )
         view
         private
         returns (uint256, uint256)
     {
-        uint256 participant1_amount;
-        uint256 participant2_amount;
+        uint256 closing_amount;
+        uint256 non_closing_amount;
         uint256 total_available_deposit;
 
         // Direct token transfers done through the token `transfer` function
@@ -531,43 +547,64 @@ contract TokenNetwork is Utils {
         // had ownership over the token.
 
         total_available_deposit = getChannelAvailableDeposit(
-            participant1_state,
-            participant2_state
+            closing_participant_state,
+            non_closing_participant_state
         );
 
-        participant1_amount = (
-            participant1_state.deposit +
-            participant2_transferred_amount -
-            participant1_state.withdrawn_amount -
-            participant1_transferred_amount
+        // !!! It is very important to calculate this first for the participant who did NOT close
+        // the channel. Otherwise, the closing participant can close without providing a
+        // balance proof, causing an underflow due to non_closing_transferred_amount being 0 if we
+        // compute the closing_amount instead of the non_closing_amount first. This undeflow would
+        // permit the closing participant to get the total available deposit.
+        non_closing_amount = (
+            non_closing_participant_state.deposit +
+            closing_transferred_amount -
+            non_closing_participant_state.withdrawn_amount -
+            non_closing_transferred_amount
         );
 
-        // To account for cases when participant2 does not provide participant1's balance proof
-        // Therefore, participant1's transferred_amount will be lower than in reality
-        participant1_amount = min(participant1_amount, total_available_deposit);
+        // In case the non_closing_participant does not provide closing_participant's
+        // correct balance proof, the closing_transferred_amount will be lower than in
+        // reality, possibly causing an underflow.
+        // This is why we limit by the total available deposit.
 
-        // To account for cases when participant1 does not provide participant2's balance proof
-        // Therefore, participant2's transferred_amount will be lower than in reality
-        participant1_amount = max(participant1_amount, 0);
+        // In case the closing participant does not provide the non_closing_participant's
+        // correct balance proof, the non_closing_transferred_amount will be lower than in reality.
+        // Limiting by the total available deposit also helps in this case. Even if the nonclosing
+        // participant receives more tokens than it should, it is the closing participant's fault.
+        non_closing_amount = min(non_closing_amount, total_available_deposit);
 
-        // At this point `participant1_amount` is between [0, total_available_deposit],
+        // At this point `closing_amount` is between [0, total_available_deposit],
         // so this is safe.
-        participant2_amount = total_available_deposit - participant1_amount;
+        closing_amount = total_available_deposit - non_closing_amount;
 
         // Handle old balance proofs with a high locked_amount
-        participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
-        participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
+        if (closing_locked_amount <= closing_amount) {
+            closing_amount = closing_amount - closing_locked_amount;
+        }
+        else {
+            closing_locked_amount = closing_amount;
+            closing_amount = 0;
+        }
 
-        require(participant1_amount <= total_available_deposit);
-        require(participant2_amount <= total_available_deposit);
+        if (non_closing_locked_amount <= non_closing_amount) {
+            non_closing_amount = non_closing_amount - non_closing_locked_amount;
+        }
+        else {
+            non_closing_locked_amount = non_closing_amount;
+            non_closing_amount = 0;
+        }
+
+        require(closing_amount <= total_available_deposit);
+        require(non_closing_amount <= total_available_deposit);
         assert(total_available_deposit == (
-            participant1_amount +
-            participant2_amount +
-            participant1_locked_amount +
-            participant2_locked_amount
+            closing_amount +
+            non_closing_amount +
+            closing_locked_amount +
+            non_closing_locked_amount
         ));
 
-        return (participant1_amount, participant2_amount);
+        return (closing_amount, non_closing_amount);
     }
 
     /// @notice Unlocks all locked off-chain transfers and sends the locked tokens to the
