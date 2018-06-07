@@ -109,7 +109,9 @@ def get_settlement_amounts(
     """ Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
-    a channel is settled
+    a channel is settled.
+
+    !!! Don't change this unless you really know what you are doing.
     """
     total_available_deposit = (
         participant1.deposit +
@@ -123,8 +125,8 @@ def get_settlement_amounts(
         participant1.withdrawn -
         participant1.transferred
     )
-    participant1_amount = min(participant1_amount, total_available_deposit)
     participant1_amount = max(participant1_amount, 0)
+    participant1_amount = min(participant1_amount, total_available_deposit)
     participant2_amount = total_available_deposit - participant1_amount
 
     participant1_amount = max(participant1_amount - participant1.locked, 0)
