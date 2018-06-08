@@ -1,5 +1,4 @@
 import pytest
-from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.config import (
     E_CHANNEL_SETTLED,
     SETTLE_TIMEOUT_MIN
@@ -65,7 +64,7 @@ def test_settle_channel_state(
         channel_test_values
 ):
     (A, B) = get_accounts(2)
-    (vals_A, vals_B, txn_successful) = channel_test_values
+    (vals_A, vals_B) = channel_test_values
     locksroot_A = fake_bytes(32, '02')
     locksroot_B = fake_bytes(32, '03')
     create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
@@ -90,45 +89,33 @@ def test_settle_channel_state(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    if txn_successful is True:
-        token_network.functions.settleChannel(
-            A,
-            vals_A.transferred,
-            vals_A.locked,
-            locksroot_A,
-            B,
-            vals_B.transferred,
-            vals_B.locked,
-            locksroot_B
-        ).transact({'from': A})
+    token_network.functions.settleChannel(
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        locksroot_A,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        locksroot_B
+    ).transact({'from': A})
 
-        (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
+    # Calculate how much A and B should receive
+    (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
 
-        settle_state_tests(
-            A,
-            A_amount,
-            locksroot_A,
-            vals_A.locked,
-            B,
-            B_amount,
-            locksroot_B,
-            vals_B.locked,
-            pre_balance_A,
-            pre_balance_B,
-            pre_balance_contract
-        )
-    else:
-        with pytest.raises(TransactionFailed):
-            token_network.functions.settleChannel(
-                A,
-                vals_A.transferred,
-                vals_A.locked,
-                locksroot_A,
-                B,
-                vals_B.transferred,
-                vals_B.locked,
-                locksroot_B
-            ).transact({'from': A})
+    settle_state_tests(
+        A,
+        A_amount,
+        locksroot_A,
+        vals_A.locked,
+        B,
+        B_amount,
+        locksroot_B,
+        vals_B.locked,
+        pre_balance_A,
+        pre_balance_B,
+        pre_balance_contract
+    )
 
 
 def test_settle_channel_event(
