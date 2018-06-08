@@ -13,6 +13,7 @@ from raiden_contracts.utils.sign import (
     sign_cooperative_settle_message,
     sign_withdraw_message
 )
+from raiden_contracts.tests.utils import get_settlement_amounts
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
@@ -321,32 +322,59 @@ def updateBalanceProof_state_tests(token_network, get_block):
 def settle_state_tests(token_network, cooperative_settle_state_tests):
     def get(
             A,
-            balance_A,
-            locksroot_A,
-            locked_amount_A,
+            values_A,
             B,
-            balance_B,
-            locksroot_B,
-            locked_amount_B,
+            values_B,
             pre_account_balance_A,
             pre_account_balance_B,
             pre_balance_contract
     ):
+        # Calculate how much A and B should receive
+        settlement = get_settlement_amounts(values_A, values_B)
+
         cooperative_settle_state_tests(
-            A, balance_A,
-            B, balance_B,
+            A,
+            settlement.participant1_balance,
+            B,
+            settlement.participant2_balance,
             pre_account_balance_A,
             pre_account_balance_B,
             pre_balance_contract
         )
 
-        locked_amount1 = token_network.functions.getParticipantLockedAmount(A, B, locksroot_A).call()
-        assert locked_amount1 == locked_amount_A
+        locked_amount1 = token_network.functions.getParticipantLockedAmount(A, B, values_A.locksroot).call()
+        assert locked_amount1 == settlement.participant1_locked
 
-        locked_amount2 = token_network.functions.getParticipantLockedAmount(A, B, locksroot_B).call()
-        assert locked_amount2 == locked_amount_B
+        locked_amount2 = token_network.functions.getParticipantLockedAmount(A, B, values_B.locksroot).call()
+        assert locked_amount2 == settlement.participant2_locked
     return get
 
+
+@pytest.fixture()
+def unlock_state_tests(token_network):
+    def get(
+            A,
+            locked_A,
+            locksroot_A,
+            B,
+            locked_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+    ):
+        account_balance_A = custom_token.functions.balanceOf(A).call()
+        account_balance_B = custom_token.functions.balanceOf(B).call()
+        balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+        assert account_balance_A == pre_account_balance_A + locked_A
+        assert account_balance_B == pre_account_balance_B + locked_B
+        assert balance_contract == pre_balance_contract - locked_A - locked_B
+
+        assert token_network.functions.getParticipantLockedAmount(
+            A,
+            B,
+            locksroot_A
+        ).call() == 0
+    return get
 
 @pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):

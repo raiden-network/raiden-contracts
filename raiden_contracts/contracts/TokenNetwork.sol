@@ -448,8 +448,6 @@ contract TokenNetwork is Utils {
         public
     {
         bytes32 channel_identifier;
-        uint256 participant1_balance;
-        uint256 participant2_balance;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
@@ -477,9 +475,18 @@ contract TokenNetwork is Utils {
             participant2_locksroot
         ));
 
+        // We are calculating the final token amounts that need to be transferred to the
+        // participants and the amount of tokens that need to remain locked in the contract. These
+        // tokens can be unlocked by calling `unlock`.
+        // participant1_transferred_amount is the amount of tokens that participant1 will receive
+        // participant2_transferred_amount is the amount of tokens that participant2 will receive
+        // We are reusing variables due to the local variables number limit. For better readability
+        // this can be refactored further.
         (
-            participant1_balance,
-            participant2_balance
+            participant1_transferred_amount,
+            participant2_transferred_amount,
+            participant1_locked_amount,
+            participant2_locked_amount
         ) = getSettleTransferAmounts(
             participant1_state,
             participant1_transferred_amount,
@@ -507,15 +514,15 @@ contract TokenNetwork is Utils {
         );
 
         // Do the actual token transfers
-        if (participant1_balance > 0) {
-            require(token.transfer(participant1, participant1_balance));
+        if (participant1_transferred_amount > 0) {
+            require(token.transfer(participant1, participant1_transferred_amount));
         }
 
-        if (participant2_balance > 0) {
-            require(token.transfer(participant2, participant2_balance));
+        if (participant2_transferred_amount > 0) {
+            require(token.transfer(participant2, participant2_transferred_amount));
         }
 
-        emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
+        emit ChannelSettled(channel_identifier, participant1_transferred_amount, participant2_transferred_amount);
     }
 
     function getSettleTransferAmounts(
@@ -528,7 +535,7 @@ contract TokenNetwork is Utils {
     )
         view
         private
-        returns (uint256, uint256)
+        returns (uint256, uint256, uint256, uint256)
     {
         uint256 participant1_amount;
         uint256 participant2_amount;
@@ -607,7 +614,12 @@ contract TokenNetwork is Utils {
             participant2_locked_amount
         ));
 
-        return (participant1_amount, participant2_amount);
+        return (
+            participant1_amount,
+            participant2_amount,
+            participant1_locked_amount,
+            participant2_locked_amount
+        );
     }
 
     /// @notice Unlocks all locked off-chain transfers and sends the locked tokens to the
