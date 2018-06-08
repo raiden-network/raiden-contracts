@@ -118,7 +118,7 @@ def main(**kwargs):
         token_network_registry_address = deploy_contract(
             web3,
             contracts_compiled_data,
-            'TokenNetworksRegistry',
+            'TokenNetworkRegistry',
             transaction,
             txn_wait,
             [secret_registry_address, int(web3.version.network)]
@@ -127,7 +127,7 @@ def main(**kwargs):
         token_network_registry = instantiate_contract(
             web3,
             contracts_compiled_data,
-            'TokenNetworksRegistry',
+            'TokenNetworkRegistry',
             token_network_registry_address
         )
 

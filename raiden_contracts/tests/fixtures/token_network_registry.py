@@ -17,9 +17,9 @@ def get_token_network_registry(deploy_tester_contract):
 
 @pytest.fixture
 def token_network_registry_contract(deploy_tester_contract, secret_registry_contract, web3):
-    """Deployed TokenNetworksRegistry contract"""
+    """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
-        'TokenNetworksRegistry',
+        'TokenNetworkRegistry',
         [],
         [secret_registry_contract.address, int(web3.version.network)]
     )
@@ -27,7 +27,7 @@ def token_network_registry_contract(deploy_tester_contract, secret_registry_cont
 
 @pytest.fixture
 def token_network_registry_address(token_network_registry_contract):
-    """Address of TokenNetworksRegistry contract"""
+    """Address of TokenNetworkRegistry contract"""
     return token_network_registry_contract.address
 
 
@@ -40,7 +40,7 @@ def add_and_register_token(
         contract_deployer_address,
         contracts_manager
 ):
-    """Deploy a token and register it in TokenNetworksRegistry"""
+    """Deploy a token and register it in TokenNetworkRegistry"""
     def f(initial_amount: int, decimals: int, token_name: str, token_symbol: str):
         token_contract = deploy_token_contract(initial_amount, decimals, token_name, token_symbol)
         txid = token_network_registry_contract.functions.createERC20TokenNetwork(
@@ -49,7 +49,7 @@ def add_and_register_token(
         tx_receipt = wait_for_transaction(txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(
-            'TokenNetworksRegistry',
+            'TokenNetworkRegistry',
             'TokenNetworkCreated'
         )
         decoded_event = get_event_data(event_abi, tx_receipt['logs'][0])
