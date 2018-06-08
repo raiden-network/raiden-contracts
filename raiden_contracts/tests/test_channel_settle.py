@@ -5,7 +5,6 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
-from .utils import get_settlement_amounts
 from .fixtures.config import fake_hex, fake_bytes
 
 
@@ -65,8 +64,8 @@ def test_settle_channel_state(
 ):
     (A, B) = get_accounts(2)
     (vals_A, vals_B) = channel_test_values
-    locksroot_A = fake_bytes(32, '02')
-    locksroot_B = fake_bytes(32, '03')
+    vals_A.locksroot = fake_bytes(32, '02')
+    vals_B.locksroot = fake_bytes(32, '03')
     create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
 
     withdraw_channel(A, vals_A.withdrawn, B)
@@ -76,11 +75,11 @@ def test_settle_channel_state(
         A,
         vals_A.transferred,
         vals_A.locked,
-        locksroot_A,
+        vals_A.locksroot,
         B,
         vals_B.transferred,
         vals_B.locked,
-        locksroot_B
+        vals_B.locksroot
     )
 
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
@@ -93,25 +92,18 @@ def test_settle_channel_state(
         A,
         vals_A.transferred,
         vals_A.locked,
-        locksroot_A,
+        vals_A.locksroot,
         B,
         vals_B.transferred,
         vals_B.locked,
-        locksroot_B
+        vals_B.locksroot
     ).transact({'from': A})
-
-    # Calculate how much A and B should receive
-    (A_amount, B_amount, locked_amount) = get_settlement_amounts(vals_A, vals_B)
 
     settle_state_tests(
         A,
-        A_amount,
-        locksroot_A,
-        vals_A.locked,
+        vals_A,
         B,
-        B_amount,
-        locksroot_B,
-        vals_B.locked,
+        vals_B,
         pre_balance_A,
         pre_balance_B,
         pre_balance_contract

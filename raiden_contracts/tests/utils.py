@@ -21,6 +21,13 @@ PendingTransfersTree = namedtuple('PendingTransfersTree', [
     'locked_amount'
 ])
 
+SettlementValues = namedtuple('SettlementValues', [
+    'participant1_balance',
+    'participant2_balance',
+    'participant1_locked',
+    'participant2_locked',
+])
+
 
 def random_secret():
     secret = os.urandom(32)
@@ -129,10 +136,25 @@ def get_settlement_amounts(
     participant1_amount = min(participant1_amount, total_available_deposit)
     participant2_amount = total_available_deposit - participant1_amount
 
+    participant1_locked = min(participant1_amount, participant1.locked)
+    participant2_locked = min(participant2_amount, participant2.locked)
+
     participant1_amount = max(participant1_amount - participant1.locked, 0)
     participant2_amount = max(participant2_amount - participant2.locked, 0)
 
-    return (participant1_amount, participant2_amount, participant1.locked + participant2.locked)
+    assert total_available_deposit == (
+        participant1_amount +
+        participant2_amount +
+        participant1_locked +
+        participant2_locked
+    )
+
+    return SettlementValues(
+        participant1_balance=participant1_amount,
+        participant2_balance=participant2_amount,
+        participant1_locked=participant1_locked,
+        participant2_locked=participant2_locked,
+    )
 
 
 def get_unlocked_amount(secret_registry, merkle_tree_leaves):
