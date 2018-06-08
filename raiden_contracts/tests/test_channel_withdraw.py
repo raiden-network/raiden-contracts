@@ -3,12 +3,13 @@ from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
 from raiden_contracts.utils.events import check_withdraw
 from .fixtures.config import empty_address, fake_bytes
-from raiden_contracts.utils.config import (
-    E_CHANNEL_WITHDRAW,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED,
+from raiden_contracts.constants import (
+    EVENT_CHANNEL_WITHDRAW,
+    CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPEN,
     CHANNEL_STATE_CLOSED,
-    SETTLE_TIMEOUT_MIN
+    CHANNEL_STATE_SETTLED,
+    SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
 
@@ -177,7 +178,7 @@ def test_withdraw_wrong_state(
     withdraw_A = 1
 
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_NONEXISTENT
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
@@ -214,7 +215,7 @@ def test_withdraw_wrong_state(
         fake_bytes(32)
     ).transact({'from': A})
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_SETTLED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
@@ -486,9 +487,9 @@ def test_withdraw_event(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
 
     txn_hash = withdraw_channel(A, 5, B)
-    ev_handler.add(txn_hash, E_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, A, 5))
+    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, A, 5))
 
     txn_hash = withdraw_channel(B, 2, A, C)
-    ev_handler.add(txn_hash, E_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, B, 2))
+    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, B, 2))
 
     ev_handler.check()

@@ -1,9 +1,9 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.config import (
-    E_TRANSFER_UPDATED,
+from raiden_contracts.constants import (
+    EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
     CHANNEL_STATE_OPEN,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    CHANNEL_STATE_NONEXISTENT,
 )
 from raiden_contracts.utils.events import check_transfer_updated
 from .fixtures.config import fake_bytes, empty_address
@@ -99,7 +99,7 @@ def test_update_nonexistent_fail(
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == 0
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_NONEXISTENT
 
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
@@ -386,5 +386,9 @@ def test_update_channel_event(
         balance_proof_update_signature_B
     ).transact({'from': B})
 
-    ev_handler.add(txn_hash, E_TRANSFER_UPDATED, check_transfer_updated(channel_identifier, A))
+    ev_handler.add(
+        txn_hash,
+        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        check_transfer_updated(channel_identifier, A)
+    )
     ev_handler.check()

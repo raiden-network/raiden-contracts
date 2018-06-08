@@ -1,12 +1,12 @@
 import pytest
-from raiden_contracts.utils.config import C_RAIDEN_SERVICE_BUNDLE
+from raiden_contracts.constants import CONTRACT_RAIDEN_SERVICE_BUNDLE
 
 
 @pytest.fixture()
 def get_raiden_service_bundle(deploy_tester_contract):
     def get(arguments, transaction=None):
         return deploy_tester_contract(
-            C_RAIDEN_SERVICE_BUNDLE,
+            CONTRACT_RAIDEN_SERVICE_BUNDLE,
             {},
             arguments
         )

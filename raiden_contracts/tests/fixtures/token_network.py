@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.utils.config import C_TOKEN_NETWORK, C_TOKEN_NETWORK_REGISTRY
+from raiden_contracts.constants import CONTRACT_TOKEN_NETWORK, CONTRACT_TOKEN_NETWORK_REGISTRY
 from web3.contract import get_event_data
 
 
@@ -8,7 +8,7 @@ def get_token_network(web3, deploy_tester_contract):
     """Deploy a token network as a separate contract (registry is not used)"""
     def get(arguments):
         return deploy_tester_contract(
-            C_TOKEN_NETWORK,
+            CONTRACT_TOKEN_NETWORK,
             {},
             arguments
         )
@@ -30,13 +30,13 @@ def register_token_network(
         ).transact({'from': owner})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
-            C_TOKEN_NETWORK_REGISTRY,
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
             'TokenNetworkCreated'
         )
         event_data = get_event_data(event_abi, tx_receipt['logs'][0])
         contract_address = event_data['args']['token_network_address']
         contract = web3.eth.contract(
-            abi=contracts_manager.get_contract_abi(C_TOKEN_NETWORK),
+            abi=contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK),
             address=contract_address
         )
         return contract

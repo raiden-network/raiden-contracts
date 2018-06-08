@@ -1,12 +1,13 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.utils.config import (
+from raiden_contracts.constants import (
     SETTLE_TIMEOUT_MIN,
-    E_CHANNEL_CLOSED,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED,
+    EVENT_CHANNEL_CLOSED,
+    CHANNEL_STATE_NONEXISTENT,
+    CHANNEL_STATE_SETTLED,
     CHANNEL_STATE_OPEN,
-    CHANNEL_STATE_CLOSED
+    CHANNEL_STATE_CLOSED,
 )
 from raiden_contracts.utils.events import check_channel_closed
 from .fixtures.config import fake_bytes, fake_hex
@@ -19,7 +20,7 @@ def test_close_nonexistent_channel(
     (A, B) = get_accounts(2)
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_NONEXISTENT
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -66,7 +67,7 @@ def test_close_settled_channel(
     ).transact({'from': A})
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_SETTLED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -249,7 +250,7 @@ def test_close_channel_event_no_offchain_transfers(
         fake_bytes(64)
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, E_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
 
 
@@ -271,5 +272,5 @@ def test_close_channel_event(
 
     txn_hash = token_network.functions.closeChannel(B, *balance_proof).transact({'from': A})
 
-    ev_handler.add(txn_hash, E_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()

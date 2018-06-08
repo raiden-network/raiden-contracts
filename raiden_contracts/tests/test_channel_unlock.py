@@ -1,11 +1,11 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.config import E_CHANNEL_UNLOCKED
+from raiden_contracts.constants import EVENT_CHANNEL_UNLOCKED
 from raiden_contracts.utils.events import check_channel_unlocked
 from .utils import (
     get_pending_transfers_tree,
     get_unlocked_amount,
-    get_locked_amount
+    get_locked_amount,
 )
 from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
 from .fixtures.config import fake_hex, fake_bytes
@@ -379,7 +379,7 @@ def test_channel_unlock(
     assert balance_contract == pre_balance_contract - locked_amount2
 
     # TODO to be moved to a separate test
-    ev_handler.add(txn_hash, E_CHANNEL_UNLOCKED, check_channel_unlocked(
+    ev_handler.add(txn_hash, EVENT_CHANNEL_UNLOCKED, check_channel_unlocked(
         channel_identifier,
         A,
         unlocked_amount,

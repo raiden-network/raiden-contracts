@@ -1,8 +1,8 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.config import (
-    E_CHANNEL_SETTLED,
-    SETTLE_TIMEOUT_MIN
+from raiden_contracts.constants import (
+    EVENT_CHANNEL_SETTLED,
+    SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
@@ -177,7 +177,7 @@ def test_settle_channel_event(
         locksroot
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, E_CHANNEL_SETTLED, check_channel_settled(
+    ev_handler.add(txn_hash, EVENT_CHANNEL_SETTLED, check_channel_settled(
         channel_identifier,
         5,
         5

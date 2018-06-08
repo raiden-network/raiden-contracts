@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.utils.config import C_CUSTOM_TOKEN
+from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN
 from .utils import *  # flake8: noqa
 
 token_args = [
@@ -16,7 +16,7 @@ def custom_token_params(request):
 def custom_token(deploy_tester_contract, custom_token_params):
     """Deploy CustomToken contract"""
     return deploy_tester_contract(
-        C_CUSTOM_TOKEN,
+        CONTRACT_CUSTOM_TOKEN,
         [],
         custom_token_params
     )

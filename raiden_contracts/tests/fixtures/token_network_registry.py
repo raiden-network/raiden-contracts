@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.utils.config import C_TOKEN_NETWORK_REGISTRY
+from raiden_contracts.constants import CONTRACT_TOKEN_NETWORK_REGISTRY
 from web3.contract import get_event_data
 from eth_utils import is_address
 
@@ -8,7 +8,7 @@ from eth_utils import is_address
 def get_token_network_registry(deploy_tester_contract):
     def get(arguments, transaction=None):
         return deploy_tester_contract(
-            C_TOKEN_NETWORK_REGISTRY,
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
             {},
             arguments
         )

@@ -1,7 +1,7 @@
-from raiden_contracts.utils.config import (
-    C_TOKEN_NETWORK_REGISTRY,
-    C_TOKEN_NETWORK,
-    C_SECRET_REGISTRY
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACT_SECRET_REGISTRY,
 )
 from .utils import get_pending_transfers_tree, get_locked_amount
 from raiden_contracts.utils.merkle import get_merkle_root
@@ -15,11 +15,11 @@ def test_token_network_registry(
         print_gas
 ):
     txhash = deploy_tester_contract_txhash(
-        C_TOKEN_NETWORK_REGISTRY,
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
         [secret_registry_contract.address, int(web3.version.network)]
     )
-    print_gas(txhash, C_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
+    print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
 #    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
 #    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
@@ -33,11 +33,11 @@ def test_token_network_deployment(
         deploy_tester_contract_txhash
 ):
     txhash = deploy_tester_contract_txhash(
-        C_TOKEN_NETWORK,
+        CONTRACT_TOKEN_NETWORK,
         [],
         [custom_token.address, secret_registry_contract.address, int(web3.version.network)]
     )
-    print_gas(txhash, C_TOKEN_NETWORK + ' DEPLOYMENT')
+    print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
 def test_token_network_create(
@@ -50,13 +50,13 @@ def test_token_network_create(
         custom_token.address
     ).transact()
 
-    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
 def test_secret_registry(secret_registry_contract, print_gas):
     secret = b'secretsecretsecretsecretsecretse'
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
-    print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
+    print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
 
 def test_channel_cycle(
@@ -74,11 +74,11 @@ def test_channel_cycle(
     settle_timeout = 11
 
     (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.openChannel')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
 
     txn_hash = channel_deposit(A, 20, B)
     txn_hash = channel_deposit(B, 10, A)
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.setTotalDeposit')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.setTotalDeposit')
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
     locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)
@@ -115,24 +115,24 @@ def test_channel_cycle(
     for lock in pending_transfers_tree2.unlockable:
         txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
 
-    print_gas(txn_hash, C_SECRET_REGISTRY + '.registerSecret')
+    print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
     txn_hash = token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.closeChannel')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.closeChannel')
 
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
         A, B,
         *balance_proof_A,
         balance_proof_update_signature_B
     ).transact({'from': B})
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.functions.settleChannel(
         A, 10, locked_amount1, locksroot1,
         B, 5, locked_amount2, locksroot2
     ).transact()
-    print_gas(txn_hash, C_TOKEN_NETWORK + '.settleChannel')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.settleChannel')
 
     txn_hash = token_network.functions.unlock(
         A,
@@ -140,7 +140,7 @@ def test_channel_cycle(
         pending_transfers_tree2.packed_transfers
     ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
-        C_TOKEN_NETWORK,
+        CONTRACT_TOKEN_NETWORK,
         len(pending_transfers_tree2.transfers)
     ))
 
@@ -150,6 +150,6 @@ def test_channel_cycle(
         pending_transfers_tree1.packed_transfers
     ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
-        C_TOKEN_NETWORK,
+        CONTRACT_TOKEN_NETWORK,
         len(pending_transfers_tree1.transfers)
     ))
