@@ -1,5 +1,5 @@
 C_SECRET_REGISTRY = 'SecretRegistry'
-C_TOKEN_NETWORK_REGISTRY = 'TokenNetworksRegistry'
+C_TOKEN_NETWORK_REGISTRY = 'TokenNetworkRegistry'
 C_TOKEN_NETWORK = 'TokenNetwork'
 C_ENDPOINT_REGISTRY = 'EndpointRegistry'
 C_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'

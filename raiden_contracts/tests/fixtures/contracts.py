@@ -85,7 +85,7 @@ def standard_token_network_contract(
     tx_receipt = wait_for_transaction(txid)
     assert len(tx_receipt['logs']) == 1
     event_abi = contracts_manager.get_event_abi(
-        'TokenNetworksRegistry',
+        'TokenNetworkRegistry',
         'TokenNetworkCreated'
     )
     decoded_event = get_event_data(event_abi, tx_receipt['logs'][0])
