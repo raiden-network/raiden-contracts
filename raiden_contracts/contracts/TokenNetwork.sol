@@ -552,22 +552,25 @@ contract TokenNetwork is Utils {
 
         // At this point `participant1_amount` is between [0, total_available_deposit],
         // so this is safe.
-        participant2_amount = total_available_deposit - participant1_amount;
 
+        participant2_amount = total_available_deposit - participant1_amount;
         // Handle old balance proofs with a high locked_amount
         participant1_amount = max(participant1_amount - participant1_locked_amount, 0);
         participant2_amount = max(participant2_amount - participant2_locked_amount, 0);
 
-        require(participant1_amount <= total_available_deposit);
-        require(participant2_amount <= total_available_deposit);
-        assert(total_available_deposit == (
-            participant1_amount +
-            participant2_amount +
-            participant1_locked_amount +
-            participant2_locked_amount
-        ));
-
-        return (participant1_amount, participant2_amount);
+        if (participant1_amount <= total_available_deposit &&
+            participant2_amount <= total_available_deposit
+            ) {
+            assert(total_available_deposit == (
+                participant1_amount +
+                participant2_amount +
+                participant1_locked_amount +
+                participant2_locked_amount
+            ));
+            return (participant1_amount, participant2_amount);
+        } else {
+            return (0, 0);
+        }
     }
 
     /// @notice Unlocks all locked off-chain transfers and sends the locked tokens to the
