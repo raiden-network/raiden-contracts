@@ -111,6 +111,10 @@ class ContractManager:
         except FileNotFoundError:
             raise Exception('Could not compile the contract. Check that solc is available.')
 
+    def get_contract(self, contract_name: str) -> Dict:
+        """Return bin+abi of the contract"""
+        return self.abi[contract_name]
+
     def get_contract_abi(self, contract_name: str) -> Dict:
         """ Returns the ABI for a given contract. """
         return self.abi[contract_name]['abi']
