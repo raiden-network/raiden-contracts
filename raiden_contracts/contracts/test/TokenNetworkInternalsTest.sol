@@ -10,6 +10,10 @@ contract TokenNetworkInternalsTest is TokenNetwork {
 
     }
 
+    function get_max_safe_uint256() pure public returns (uint256) {
+        return uint256(0 - 1);
+    }
+
     function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree)
         view
         public

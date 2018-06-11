@@ -342,14 +342,14 @@ def test_channel_unlock(
 
     # Settle the channel
     token_network.functions.settleChannel(
+        B,
+        5,
+        locked_amount2,
+        locksroot2,
         A,
         10,
         locked_amount1,
         locksroot1,
-        B,
-        5,
-        locked_amount2,
-        locksroot2
     ).transact({'from': A})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()

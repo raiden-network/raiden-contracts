@@ -5,7 +5,16 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
-from .fixtures.config import fake_hex, fake_bytes
+from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.tests.fixtures.config import fake_hex, fake_bytes
+from raiden_contracts.tests.utils import MAX_UINT256
+
+
+def test_max_safe_uint256(token_network, token_network_test):
+    max_safe_uint256 = token_network_test.functions.get_max_safe_uint256().call()
+
+    assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
+    assert max_safe_uint256 == MAX_UINT256
 
 
 def test_settle_no_bp_success(
@@ -88,16 +97,7 @@ def test_settle_channel_state(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    token_network.functions.settleChannel(
-        A,
-        vals_A.transferred,
-        vals_A.locked,
-        vals_A.locksroot,
-        B,
-        vals_B.transferred,
-        vals_B.locked,
-        vals_B.locksroot
-    ).transact({'from': A})
+    call_settle(token_network, A, vals_A, B, vals_B)
 
     settle_state_tests(
         A,
@@ -146,14 +146,14 @@ def test_settle_channel_event(
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.functions.settleChannel(
+        B,
+        5,
+        0,
+        locksroot,
         A,
         10,
         0,
         locksroot,
-        B,
-        5,
-        0,
-        locksroot
     ).transact({'from': A})
 
     ev_handler.add(txn_hash, EVENT_CHANNEL_SETTLED, check_channel_settled(

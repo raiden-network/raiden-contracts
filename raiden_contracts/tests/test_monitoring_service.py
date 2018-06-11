@@ -107,14 +107,14 @@ def test_msc_happy_path(
     # 6) channel is settled
     token_network.web3.testing.mine(8)
     token_network.functions.settleChannel(
-        A,                   # participant1
-        20,                  # participant1_transferred_amount
-        0,                   # participant1_locked_amount
-        b'\x00' * 32,        # participant1_locksroot
         B,                   # participant2
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
         b'\x00' * 32,        # participant2_locksroot
+        A,                   # participant1
+        20,                  # participant1_transferred_amount
+        0,                   # participant1_locked_amount
+        b'\x00' * 32,        # participant1_locksroot
     ).transact()
     # 7) MS claims the reward
     monitoring_service_external.functions.claimReward(

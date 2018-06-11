@@ -1,4 +1,6 @@
 import pytest
+from eth_tester.exceptions import TransactionFailed
+from collections import namedtuple
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     SETTLE_TIMEOUT_MIN,
@@ -18,6 +20,13 @@ from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
 from eth_utils import denoms
+
+
+ChannelBalanceHashData = namedtuple('ChannelBalanceHashData', [
+    'transferred',
+    'locked',
+    'locksroot',
+])
 
 
 @pytest.fixture()
@@ -213,16 +222,11 @@ def create_settled_channel(
         )
 
         web3.testing.mine(settle_timeout)
-        token_network.functions.settleChannel(
-            participant1,
-            transferred_amount1,
-            locked_amount1,
-            locksroot1,
-            participant2,
-            transferred_amount2,
-            locked_amount2,
-            locksroot2
-        ).transact({'from': participant1})
+        participant1_values = ChannelBalanceHashData(transferred=transferred_amount1, locked=locked_amount1, locksroot=locksroot1)
+        participant2_values = ChannelBalanceHashData(transferred=transferred_amount2, locked=locked_amount2, locksroot=locksroot2)
+
+        call_settle(token_network, participant1, participant1_values, participant2, participant2_values)
+
         return channel_identifier
 
     return get
@@ -568,3 +572,33 @@ def create_withdraw_signatures(token_network, get_private_key):
             signatures.append(signature)
         return signatures
     return get
+
+
+def call_settle(token_network, A, vals_A, B, vals_B):
+    if vals_B.transferred < vals_A.transferred:
+        return call_settle(token_network, B, vals_B, A, vals_A)
+
+    assert vals_B.transferred >= vals_A.transferred
+    if vals_B.transferred != vals_A.transferred:
+        with pytest.raises(TransactionFailed):
+            token_network.functions.settleChannel(
+                B,
+                vals_B.transferred,
+                vals_B.locked,
+                vals_B.locksroot,
+                A,
+                vals_A.transferred,
+                vals_A.locked,
+                vals_A.locksroot,
+            ).transact({'from': A})
+
+    token_network.functions.settleChannel(
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        vals_A.locksroot,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        vals_B.locksroot
+    ).transact({'from': A})
