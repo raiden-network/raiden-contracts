@@ -11,6 +11,11 @@ from eth_utils import (
 from raiden_contracts.utils.utils import (
     check_succesful_tx
 )
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_SECRET_REGISTRY,
+    CONTRACT_CUSTOM_TOKEN,
+)
 
 
 @click.command()
@@ -35,7 +40,7 @@ from raiden_contracts.utils.utils import (
 )
 @click.option(
     '--token-name',
-    default='CustomToken',
+    default=CONTRACT_CUSTOM_TOKEN,
     help='Token contract name.'
 )
 @click.option(
@@ -110,7 +115,7 @@ def main(**kwargs):
         secret_registry_address = deploy_contract(
             web3,
             contracts_compiled_data,
-            'SecretRegistry',
+            CONTRACT_SECRET_REGISTRY,
             transaction,
             txn_wait
         )
@@ -118,7 +123,7 @@ def main(**kwargs):
         token_network_registry_address = deploy_contract(
             web3,
             contracts_compiled_data,
-            'TokenNetworkRegistry',
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
             transaction,
             txn_wait,
             [secret_registry_address, int(web3.version.network)]
@@ -127,7 +132,7 @@ def main(**kwargs):
         token_network_registry = instantiate_contract(
             web3,
             contracts_compiled_data,
-            'TokenNetworkRegistry',
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
             token_network_registry_address
         )
 

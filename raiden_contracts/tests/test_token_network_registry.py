@@ -1,10 +1,10 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.config import E_TOKEN_NETWORK_CREATED
+from raiden_contracts.constants import EVENT_TOKEN_NETWORK_CREATED
 from .fixtures.config import (
     raiden_contracts_version,
     empty_address,
-    fake_address
+    fake_address,
 )
 from raiden_contracts.utils.events import check_token_network_created
 from web3.exceptions import ValidationError
@@ -121,7 +121,7 @@ def test_events(
 
     ev_handler.add(
         None,
-        E_TOKEN_NETWORK_CREATED,
+        EVENT_TOKEN_NETWORK_CREATED,
         check_token_network_created(custom_token.address, new_token_network.address)
     )
     ev_handler.check()

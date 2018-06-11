@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
-from raiden_contracts.utils.config import E_CHANNEL_NEW_DEPOSIT
+from raiden_contracts.constants import EVENT_CHANNEL_DEPOSIT
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import empty_address, fake_address
 from eth_utils import denoms
@@ -173,14 +173,14 @@ def test_deposit_channel_event(
 
     ev_handler.add(
         txn_hash,
-        E_CHANNEL_NEW_DEPOSIT,
+        EVENT_CHANNEL_DEPOSIT,
         check_new_deposit(channel_identifier, A, deposit_A)
     )
 
     txn_hash = channel_deposit(B, deposit_B, A)
     ev_handler.add(
         txn_hash,
-        E_CHANNEL_NEW_DEPOSIT,
+        EVENT_CHANNEL_DEPOSIT,
         check_new_deposit(channel_identifier, B, deposit_B)
     )
 

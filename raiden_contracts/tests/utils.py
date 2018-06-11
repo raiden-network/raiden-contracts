@@ -3,7 +3,7 @@ import random
 from functools import reduce
 from collections import namedtuple
 from web3 import Web3
-from raiden_contracts.utils.config import SETTLE_TIMEOUT_MIN
+from raiden_contracts.constants import SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
 from eth_abi import encode_abi
 

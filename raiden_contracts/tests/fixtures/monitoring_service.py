@@ -1,12 +1,12 @@
 import pytest
-from raiden_contracts.utils.config import C_MONITORING_SERVICE
+from raiden_contracts.constants import CONTRACT_MONITORING_SERVICE
 
 
 @pytest.fixture()
 def get_monitoring_service(deploy_tester_contract):
     def get(arguments, transaction=None):
         return deploy_tester_contract(
-            C_MONITORING_SERVICE,
+            CONTRACT_MONITORING_SERVICE,
             {},
             arguments
         )

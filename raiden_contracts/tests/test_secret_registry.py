@@ -1,7 +1,7 @@
 import pytest
 from web3 import Web3
 from web3.exceptions import ValidationError
-from raiden_contracts.utils.config import E_SECRET_REVEALED
+from raiden_contracts.constants import EVENT_SECRET_REVEALED
 from raiden_contracts.utils.events import check_secret_revealed
 from .fixtures.config import fake_bytes, raiden_contracts_version
 
@@ -71,5 +71,5 @@ def test_events(secret_registry_contract, event_handler):
 
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
 
-    ev_handler.add(txn_hash, E_SECRET_REVEALED, check_secret_revealed(secrethash))
+    ev_handler.add(txn_hash, EVENT_SECRET_REVEALED, check_secret_revealed(secrethash))
     ev_handler.check()

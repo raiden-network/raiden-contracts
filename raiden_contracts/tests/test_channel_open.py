@@ -1,11 +1,11 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.config import (
-    E_CHANNEL_OPENED,
+from raiden_contracts.constants import (
+    EVENT_CHANNEL_OPENED,
     SETTLE_TIMEOUT_MIN,
     SETTLE_TIMEOUT_MAX,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED,
-    CHANNEL_STATE_OPEN
+    CHANNEL_STATE_NONEXISTENT,
+    CHANNEL_STATE_OPEN,
 )
 from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import empty_address, fake_address, fake_bytes
@@ -61,7 +61,7 @@ def test_open_channel_state(token_network, get_accounts):
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == 0
-    assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+    assert state == CHANNEL_STATE_NONEXISTENT
 
     token_network.functions.openChannel(A, B, settle_timeout).transact()
 
@@ -105,7 +105,7 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
 
     ev_handler.add(
         txn_hash,
-        E_CHANNEL_OPENED,
+        EVENT_CHANNEL_OPENED,
         check_channel_opened(channel_identifier, A, B, SETTLE_TIMEOUT_MIN)
     )
     ev_handler.check()

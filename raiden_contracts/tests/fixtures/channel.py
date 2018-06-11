@@ -1,10 +1,10 @@
 import pytest
-from raiden_contracts.utils.config import (
-    C_TOKEN_NETWORK,
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK,
     SETTLE_TIMEOUT_MIN,
+    CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPEN,
     CHANNEL_STATE_CLOSED,
-    CHANNEL_STATE_NONEXISTENT_OR_SETTLED
 )
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
@@ -25,7 +25,7 @@ def create_channel(token_network):
         # Make sure there is no channel data on chain
         (_, channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(A, B).call()
         assert channel_settle_timeout == 0
-        assert channel_state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED
+        assert channel_state == CHANNEL_STATE_NONEXISTENT
 
         # Open the channel and retrieve the channel identifier
         txn_hash = token_network.functions.openChannel(A, B, settle_timeout).transact()
@@ -249,7 +249,7 @@ def cooperative_settle_state_tests(custom_token, token_network):
         # Make sure channel data has been removed
         (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
         assert settle_block_number == 0  # settle_block_number
-        assert state == CHANNEL_STATE_NONEXISTENT_OR_SETTLED  # state
+        assert state == CHANNEL_STATE_NONEXISTENT  # state
 
         # Make sure participant data has been removed
         (
