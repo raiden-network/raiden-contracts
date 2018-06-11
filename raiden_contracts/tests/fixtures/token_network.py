@@ -1,5 +1,10 @@
 import pytest
-from raiden_contracts.constants import CONTRACT_TOKEN_NETWORK, CONTRACT_TOKEN_NETWORK_REGISTRY
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_SECRET_REGISTRY,
+    EVENT_TOKEN_NETWORK_CREATED,
+)
 from web3.contract import get_event_data
 
 
@@ -31,7 +36,7 @@ def register_token_network(
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
-            'TokenNetworkCreated'
+            EVENT_TOKEN_NETWORK_CREATED,
         )
         event_data = get_event_data(event_abi, tx_receipt['logs'][0])
         contract_address = event_data['args']['token_network_address']
@@ -60,10 +65,10 @@ def token_network_contract(
 ):
     network_id = int(secret_registry_contract.web3.version.network)
     return deploy_tester_contract(
-        'TokenNetwork',
+        CONTRACT_TOKEN_NETWORK,
         {
             'Token': standard_token_contract.address.encode(),
-            'SecretRegistry': secret_registry_contract.address.encode()
+            CONTRACT_SECRET_REGISTRY: secret_registry_contract.address.encode()
         },
         [standard_token_contract.address, secret_registry_contract.address, network_id]
     )

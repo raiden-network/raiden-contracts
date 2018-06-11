@@ -3,6 +3,12 @@ import logging
 from web3.utils.events import get_event_data
 from eth_utils import is_address
 
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    EVENT_TOKEN_NETWORK_CREATED,
+)
+
 log = logging.getLogger(__name__)
 
 
@@ -85,13 +91,13 @@ def standard_token_network_contract(
     tx_receipt = wait_for_transaction(txid)
     assert len(tx_receipt['logs']) == 1
     event_abi = contracts_manager.get_event_abi(
-        'TokenNetworkRegistry',
-        'TokenNetworkCreated'
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        EVENT_TOKEN_NETWORK_CREATED,
     )
     decoded_event = get_event_data(event_abi, tx_receipt['logs'][0])
     assert decoded_event is not None
     assert is_address(decoded_event['args']['token_address'])
     assert is_address(decoded_event['args']['token_network_address'])
     token_network_address = decoded_event['args']['token_network_address']
-    token_network_abi = contracts_manager.get_contract_abi('TokenNetwork')
+    token_network_abi = contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
     return web3.eth.contract(abi=token_network_abi, address=token_network_address)

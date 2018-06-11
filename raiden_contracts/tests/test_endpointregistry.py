@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from raiden_contracts.utils.events import check_address_registered
+from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED
 
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
@@ -20,5 +21,5 @@ def test_events(endpoint_registry_contract, get_accounts, event_handler):
     PORT = '127.0.0.1:38647'
     txn_hash = endpoint_registry_contract.functions.registerEndpoint(PORT).transact({'from': A})
 
-    ev_handler.add(txn_hash, 'AddressRegistered', check_address_registered(A, PORT))
+    ev_handler.add(txn_hash, EVENT_ADDRESS_REGISTERED, check_address_registered(A, PORT))
     ev_handler.check()

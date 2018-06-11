@@ -1,9 +1,13 @@
 import pytest
-from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN
+from raiden_contracts.constants import (
+    CONTRACT_CUSTOM_TOKEN,
+    CONTRACT_HUMAN_STANDARD_TOKEN,
+    CONTRACT_CUSTOM_TOKEN,
+)
 from .utils import *  # flake8: noqa
 
 token_args = [
-    (10 ** 26, 18, 'CustomToken', 'TKN')
+    (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
 ]
 
 
@@ -29,7 +33,7 @@ def deploy_token_contract(deploy_tester_contract):
         assert initial_amount > 0
         assert decimals > 0
         return deploy_tester_contract(
-            'HumanStandardToken',
+            CONTRACT_HUMAN_STANDARD_TOKEN,
             [],
             [initial_amount, decimals, token_name, token_symbol]
         )
