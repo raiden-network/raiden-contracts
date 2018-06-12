@@ -45,7 +45,7 @@ def assign_tokens(owner, token_network, custom_token):
     def get(participant, deposit):
         balance = custom_token.functions.balanceOf(participant).call()
         owner_balance = custom_token.functions.balanceOf(owner).call()
-        amount = deposit - balance
+        amount = max(deposit - balance, 0)
         transfer_from_owner = min(amount, owner_balance)
 
         custom_token.functions.transfer(participant, transfer_from_owner).transact({'from': owner})

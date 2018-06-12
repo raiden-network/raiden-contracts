@@ -2,7 +2,6 @@ import pytest
 from raiden_contracts.constants import EVENT_CHANNEL_CLOSED
 from raiden_contracts.utils.events import check_channel_closed
 from raiden_contracts.utils.sign import sign_reward_proof
-from eth_utils import denoms
 
 
 @pytest.fixture()
@@ -55,9 +54,9 @@ def test_msc_happy_path(
     (A, B, MS) = get_accounts(3)
     reward_amount = 10
     # mint some tokens
-    custom_token.functions.mint().transact({'from': MS, 'value': 100 * denoms.finney})
-    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
-    custom_token.functions.mint().transact({'from': B, 'value': 100 * denoms.finney})
+    custom_token.functions.mint(50).transact({'from': MS})
+    custom_token.functions.mint(50).transact({'from': A})
+    custom_token.functions.mint(50).transact({'from': B})
     # register MS in the RaidenServiceBundle contract
     custom_token.functions.approve(raiden_service_bundle.address, 20).transact({'from': MS})
     raiden_service_bundle.functions.deposit(20).transact({'from': MS})
