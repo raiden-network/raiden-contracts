@@ -4,15 +4,15 @@ from web3.exceptions import ValidationError
 from raiden_contracts.constants import EVENT_CHANNEL_DEPOSIT
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import empty_address, fake_address
-from eth_utils import denoms
+from raiden_contracts.tests.utils import MAX_UINT256
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
     (A, B) = get_accounts(2)
+    deposit_A = 200
     create_channel(A, B)[0]
 
-    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
-    deposit_A = custom_token.functions.balanceOf(A).call()
+    custom_token.functions.mint(deposit_A).transact({'from': A})
 
     custom_token.functions.approve(token_network.address, deposit_A).transact({'from': A})
 
@@ -101,7 +101,7 @@ def test_deposit_notapproved(
     create_channel(A, B)
     deposit_A = 1
 
-    custom_token.functions.mint().transact({'from': A, 'value': 100 * denoms.finney})
+    custom_token.functions.mint(deposit_A).transact({'from': A})
     balance = custom_token.functions.balanceOf(A).call()
     assert balance >= deposit_A
 
@@ -131,6 +131,21 @@ def test_deposit_delegate(token_network, get_accounts, create_channel, channel_d
     (A, B, C) = get_accounts(3)
     create_channel(A, B)
     channel_deposit(A, 2, B, tx_from=C)
+
+
+def test_channel_deposit_overflow(token_network, get_accounts, create_channel, channel_deposit):
+    (A, B) = get_accounts(2)
+    deposit_A = 50
+    deposit_B_ok = MAX_UINT256 - deposit_A
+    deposit_B_fail = deposit_B_ok + 1
+
+    create_channel(A, B)
+    channel_deposit(A, deposit_A, B)
+
+    with pytest.raises(TransactionFailed):
+        channel_deposit(B, deposit_B_fail, A)
+
+    channel_deposit(B, deposit_B_ok, A)
 
 
 def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):

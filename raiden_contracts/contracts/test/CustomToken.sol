@@ -66,12 +66,7 @@ contract CustomToken is StandardToken {
     }
 
     /// @notice Allows tokens to be minted and assigned to `msg.sender`
-    /// For `msg.value >= 100 finney`, the sender receives 50 tokens
-    function mint() public payable {
-        require(msg.value >= 100 finney);
-
-        // Assign 50 tokens to msg.sender
-        uint256 num = 50 * multiplier;
+    function mint(uint256 num) public {
         balances[msg.sender] += num;
         _total_supply += num;
 
