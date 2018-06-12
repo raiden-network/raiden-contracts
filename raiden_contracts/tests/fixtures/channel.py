@@ -41,16 +41,25 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def assign_tokens(token_network, custom_token):
+def assign_tokens(owner, token_network, custom_token):
     def get(participant, deposit):
         balance = custom_token.functions.balanceOf(participant).call()
-        deposit = deposit or balance
+        owner_balance = custom_token.functions.balanceOf(owner).call()
+        amount = deposit - balance
+        transfer_from_owner = min(amount, owner_balance)
 
-        while balance < deposit:
-            custom_token.functions.mint().transact({'from': participant, 'value': 100 * denoms.finney})
-            balance = custom_token.functions.balanceOf(participant).call()
+        custom_token.functions.transfer(participant, transfer_from_owner).transact({'from': owner})
+        assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
+        if amount > owner_balance:
+            minted = amount - owner_balance
+            custom_token.functions.mint(minted).transact({'from': participant})
+        assert custom_token.functions.balanceOf(participant).call() >= deposit
         custom_token.functions.approve(token_network.address, deposit).transact({'from': participant})
+        assert custom_token.functions.allowance(
+            participant,
+            token_network.address
+        ).call() >= deposit
     return get
 
 

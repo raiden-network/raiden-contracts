@@ -205,10 +205,12 @@ contract TokenNetwork is Utils {
 
         bytes32 channel_identifier;
         uint256 added_deposit;
+        uint256 channel_deposit;
 
         channel_identifier = getChannelIdentifier(participant, partner);
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
+        Participant storage partner_state = channel.participants[partner];
 
         // Calculate the actual amount of tokens that will be transferred
         added_deposit = total_deposit - participant_state.deposit;
@@ -216,12 +218,17 @@ contract TokenNetwork is Utils {
         // Update the participant's channel deposit
         participant_state.deposit += added_deposit;
 
+        // Calculate the entire channel deposit, to avoid overflow
+        channel_deposit = participant_state.deposit + partner_state.deposit;
+
         emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
 
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
 
         require(participant_state.deposit >= added_deposit);
+        require(channel_deposit >= participant_state.deposit);
+        require(channel_deposit >= partner_state.deposit);
     }
 
     /// @notice Allows `participant` to withdraw tokens from the channel that he has with
