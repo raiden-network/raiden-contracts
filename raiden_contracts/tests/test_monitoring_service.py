@@ -2,6 +2,7 @@ import pytest
 from raiden_contracts.constants import EVENT_CHANNEL_CLOSED
 from raiden_contracts.utils.events import check_channel_closed
 from raiden_contracts.utils.sign import sign_reward_proof
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 
 
 @pytest.fixture()
@@ -110,11 +111,11 @@ def test_msc_happy_path(
         B,                   # participant2
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
-        b'\x00' * 32,        # participant2_locksroot
+        EMPTY_MERKLE_ROOT,        # participant2_locksroot
         A,                   # participant1
         20,                  # participant1_transferred_amount
         0,                   # participant1_locked_amount
-        b'\x00' * 32,        # participant1_locksroot
+        EMPTY_MERKLE_ROOT,        # participant1_locksroot
     ).transact()
     # 7) MS claims the reward
     monitoring_service_external.functions.claimReward(

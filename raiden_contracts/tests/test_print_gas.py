@@ -129,8 +129,14 @@ def test_channel_cycle(
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.functions.settleChannel(
-        B, 5, locked_amount2, locksroot2,
-        A, 10, locked_amount1, locksroot1,
+        B,
+        5,
+        locked_amount2,
+        locksroot2,
+        A,
+        10,
+        locked_amount1,
+        locksroot1,
     ).transact()
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.settleChannel')
 

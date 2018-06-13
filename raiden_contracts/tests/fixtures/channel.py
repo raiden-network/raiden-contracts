@@ -222,8 +222,16 @@ def create_settled_channel(
         )
 
         web3.testing.mine(settle_timeout)
-        participant1_values = ChannelBalanceHashData(transferred=transferred_amount1, locked=locked_amount1, locksroot=locksroot1)
-        participant2_values = ChannelBalanceHashData(transferred=transferred_amount2, locked=locked_amount2, locksroot=locksroot2)
+        participant1_values = ChannelBalanceHashData(
+            transferred=transferred_amount1,
+            locked=locked_amount1,
+            locksroot=locksroot1,
+        )
+        participant2_values = ChannelBalanceHashData(
+            transferred=transferred_amount2,
+            locked=locked_amount2,
+            locksroot=locksroot2,
+        )
 
         call_settle(token_network, participant1, participant1_values, participant2, participant2_values)
 

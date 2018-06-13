@@ -550,7 +550,7 @@ contract TokenNetwork is Utils {
         private
         returns (uint256, uint256, uint256, uint256)
     {
-        // Cases require attention:
+        // Cases that require attention:
         // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
         // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
         // We need to punish participant1.
@@ -564,7 +564,7 @@ contract TokenNetwork is Utils {
         // we have the following check in settleChannel:
         // require(participant2_transferred_amount >= participant1_transferred_amount)
 
-        uint256 participant1_netted_transferred_amount;
+        uint256 participant1_net_transferred_amount;
         uint256 participant1_amount;
         uint256 participant2_amount;
         uint256 total_available_deposit;
@@ -579,18 +579,18 @@ contract TokenNetwork is Utils {
             participant2_state
         );
 
-        // Calculate the netted transferred amounts
+        // Calculate the net transferred amounts
         // We are sure this does not underflow
-        participant1_netted_transferred_amount = (
+        participant1_net_transferred_amount = (
             participant2_transferred_amount -
             participant1_transferred_amount
         );
 
         // case2. participant1_transferred_amount can be [0, real_participant1_transferred_amount)
-        // participant1_netted_transferred_amount is bigger than expected and can cause an overflow.
+        // participant1_net_transferred_amount is bigger than expected and can cause an overflow.
         // We just take the biggest amount that we can in this case.
         participant1_amount = failsafe_addition(
-            participant1_netted_transferred_amount,
+            participant1_net_transferred_amount,
             participant1_state.deposit
         );
 
