@@ -434,6 +434,7 @@ contract TokenNetwork is Utils {
     /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
     /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
+    /// `participant1_locked_amount` MUST be <= `participant2_locked_amount`
     /// @param participant1_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant1`, used to validate the unlocked proofs.
     /// @param participant2 Other channel participant.
@@ -442,6 +443,7 @@ contract TokenNetwork is Utils {
     /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
     /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
+    /// `participant2_locked_amount` MUST be >= `participant1_locked_amount`
     /// @param participant2_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant2`, used to validate the unlocked proofs.
     function settleChannel(
@@ -559,7 +561,8 @@ contract TokenNetwork is Utils {
         // withdrawn amounts from their deposits.
 
         // case1 is solved by making sure we only have to handle case2 or case3:
-        require(participant2_transferred_amount >= participant1_transferred_amount);
+        // we have the following check in settleChannel:
+        // require(participant2_transferred_amount >= participant1_transferred_amount)
 
         uint256 participant1_netted_transferred_amount;
         uint256 participant1_amount;
@@ -1187,11 +1190,6 @@ contract TokenNetwork is Utils {
         returns (uint256)
     {
         uint256 sum = a + b;
-        if (sum >= a && sum >= b) {
-            return sum;
-        }
-        else {
-            return MAX_SAFE_UINT256;
-        }
+        return sum >= a ? sum : MAX_SAFE_UINT256;
     }
 }
