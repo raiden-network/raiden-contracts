@@ -22,6 +22,8 @@ contract TokenNetwork is Utils {
     // Chain ID as specified by EIP155 used in balance proof signatures to avoid replay attacks
     uint256 public chain_id;
 
+    uint256 constant public MAX_SAFE_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
+
     // channel_identifier => Channel, where the channel identifier is the keccak256 of the
     // addresses of the two participants
     mapping (bytes32 => Channel) public channels;
@@ -432,6 +434,7 @@ contract TokenNetwork is Utils {
     /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
     /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
+    /// `participant1_locked_amount` MUST be <= `participant2_locked_amount`
     /// @param participant1_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant1`, used to validate the unlocked proofs.
     /// @param participant2 Other channel participant.
@@ -440,6 +443,7 @@ contract TokenNetwork is Utils {
     /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
     /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
+    /// `participant2_locked_amount` MUST be >= `participant1_locked_amount`
     /// @param participant2_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant2`, used to validate the unlocked proofs.
     function settleChannel(
@@ -454,6 +458,8 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        // Convention required in getSettleTransferAmounts
+        require(participant2_transferred_amount >= participant1_transferred_amount);
         bytes32 channel_identifier;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
@@ -544,6 +550,21 @@ contract TokenNetwork is Utils {
         private
         returns (uint256, uint256, uint256, uint256)
     {
+        // Cases that require attention:
+        // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
+        // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
+        // We need to punish participant1.
+        // case2. If participant2 does NOT provide a balance proof or provides an old balance proof.
+        // participant1_transferred_amount can be [0, real_participant1_transferred_amount)
+        // We need to punish participant2.
+        // case3. If neither participants provide a balance proof, we just subtract their
+        // withdrawn amounts from their deposits.
+
+        // case1 is solved by making sure we only have to handle case2 or case3:
+        // we have the following check in settleChannel:
+        // require(participant2_transferred_amount >= participant1_transferred_amount)
+
+        uint256 participant1_net_transferred_amount;
         uint256 participant1_amount;
         uint256 participant2_amount;
         uint256 total_available_deposit;
@@ -558,36 +579,28 @@ contract TokenNetwork is Utils {
             participant2_state
         );
 
-        participant1_amount = (
-            participant1_state.deposit +
+        // Calculate the net transferred amounts
+        // We are sure this does not underflow
+        participant1_net_transferred_amount = (
             participant2_transferred_amount -
-            participant1_state.withdrawn_amount -
             participant1_transferred_amount
         );
 
-        // There are 2 cases that require attention here:
-        // case1. If participant1 does NOT provide a balance proof or provides an old balance proof
-        // case2. If participant2 does NOT provide a balance proof or provides an old balance proof
-        // The issue is that we need to react differently in both cases. However, both cases have
-        // an end result of participant1_amount > total_available_deposit. Therefore:
+        // case2. participant1_transferred_amount can be [0, real_participant1_transferred_amount)
+        // participant1_net_transferred_amount is bigger than expected and can cause an overflow.
+        // We just take the biggest amount that we can in this case.
+        participant1_amount = failsafe_addition(
+            participant1_net_transferred_amount,
+            participant1_state.deposit
+        );
 
-        // case1: participant2_transferred_amount can be [0, real_participant2_transferred_amount)
-        // This can trigger an underflow -> participant1_amount > total_available_deposit
-        // We need to make participant1_amount = 0 in this case, otherwise it can be
-        // an attack vector. participant1 must lose all/some of its tokens if it does not
-        // provide a valid balance proof.
-        if (
-            (participant1_state.deposit + participant2_transferred_amount) <
-            (participant1_state.withdrawn_amount + participant1_transferred_amount)
-        ) {
-            participant1_amount = 0;
-        }
+        // Subtract already withdrawn amount
+        (participant1_amount, ) = failsafe_subtract(
+            participant1_amount,
+            participant1_state.withdrawn_amount
+        );
 
-        // case2: participant1_transferred_amount can be [0, real_participant1_transferred_amount)
-        // This means participant1_amount > total_available_deposit.
-        // We need to limit participant1_amount to total_available_deposit. It is fine if
-        // participant1 gets all the available tokens if participant2 has not provided a
-        // valid balance proof.
+        // case2. This means participant1_amount might be > total_available_deposit.
         participant1_amount = min(participant1_amount, total_available_deposit);
 
         // At this point `participant1_amount` is between [0, total_available_deposit],
@@ -595,21 +608,15 @@ contract TokenNetwork is Utils {
         participant2_amount = total_available_deposit - participant1_amount;
 
         // Handle old balance proofs with a high locked_amount
-        if (participant1_locked_amount <= participant1_amount) {
-            participant1_amount = participant1_amount - participant1_locked_amount;
-        }
-        else {
-            participant1_locked_amount = participant1_amount;
-            participant1_amount = 0;
-        }
+        (participant1_amount, participant1_locked_amount) = failsafe_subtract(
+            participant1_amount,
+            participant1_locked_amount
+        );
 
-        if (participant2_locked_amount <= participant2_amount) {
-            participant2_amount = participant2_amount - participant2_locked_amount;
-        }
-        else {
-            participant2_locked_amount = participant2_amount;
-            participant2_amount = 0;
-        }
+        (participant2_amount, participant2_locked_amount) = failsafe_subtract(
+            participant2_amount,
+            participant2_locked_amount
+        );
 
         // This should never happen:
         assert(participant1_amount <= total_available_deposit);
@@ -1159,5 +1166,30 @@ contract TokenNetwork is Utils {
     function max(uint256 a, uint256 b) pure internal returns (uint256)
     {
         return a > b ? a : b;
+    }
+
+    /// @dev Special subtraction function that does not fail when underflowing.
+    /// @param a Minuend
+    /// @param b Subtrahend
+    /// @return Minimum between the result of the subtraction and 0, the maximum subtrahend for which no underflow occurs.
+    function failsafe_subtract(uint256 a, uint256 b)
+        pure
+        internal
+        returns (uint256, uint256)
+    {
+        return a > b ? (a - b, b) : (0, a);
+    }
+
+    /// @dev Special addition function that does not fail when overflowing.
+    /// @param a Addend
+    /// @param b Addend
+    /// @return Maximum between the result of the addition or the maximum uint256 value.
+    function failsafe_addition(uint256 a, uint256 b)
+        pure
+        internal
+        returns (uint256)
+    {
+        uint256 sum = a + b;
+        return sum >= a ? sum : MAX_SAFE_UINT256;
     }
 }

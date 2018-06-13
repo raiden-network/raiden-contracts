@@ -1,3 +1,6 @@
+from raiden_contracts.tests.utils import MAX_UINT256
+
+
 class ChannelValues():
     def __init__(self, deposit=0, withdrawn=0, transferred=0, locked=0, locksroot=b''):
         self.deposit = deposit
@@ -68,5 +71,30 @@ channel_settle_test_values = [
     (
         ChannelValues(deposit=10, withdrawn=10, transferred=30, locked=6),
         ChannelValues(deposit=5, withdrawn=5, transferred=20, locked=4)
-    )
+    ),
+    # overflow on transferred amounts
+    (
+        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5, locked=6),
+        ChannelValues(deposit=35, withdrawn=5, transferred=MAX_UINT256 - 15, locked=4)
+    ),
+    # overflow on transferred amount
+    (
+        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5, locked=6),
+        ChannelValues(deposit=35, withdrawn=5, transferred=0, locked=4)
+    ),
+    # overflow on transferred amount
+    (
+        ChannelValues(deposit=40, withdrawn=10, transferred=0, locked=6),
+        ChannelValues(deposit=35, withdrawn=5, transferred=MAX_UINT256 - 15, locked=4)
+    ),
+    # overflow on transferred amount + old balance proof
+    (
+        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5, locked=0),
+        ChannelValues(deposit=35, withdrawn=5, transferred=20020, locked=200200)
+    ),
+    # overflow on transferred amount + old balance proof, overflow on netted transfer + deposit
+    (
+        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5, locked=0),
+        ChannelValues(deposit=35, withdrawn=5, transferred=20, locked=200200)
+    ),
 ]
