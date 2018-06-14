@@ -15,7 +15,7 @@ from raiden_contracts.utils.sign import (
     sign_cooperative_settle_message,
     sign_withdraw_message
 )
-from raiden_contracts.tests.utils import get_settlement_amounts
+from raiden_contracts.tests.utils import get_settlement_amounts, get_onchain_settlement_amounts
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
@@ -352,6 +352,8 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
     ):
         # Calculate how much A and B should receive
         settlement = get_settlement_amounts(values_A, values_B)
+        # Calculate how much A and B receive according to onchain computation
+        on_chain_settlement = get_onchain_settlement_amounts(values_A, values_B)
 
         cooperative_settle_state_tests(
             A,
@@ -362,12 +364,24 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
             pre_account_balance_B,
             pre_balance_contract
         )
+        cooperative_settle_state_tests(
+            A,
+            on_chain_settlement.participant1_balance,
+            B,
+            on_chain_settlement.participant2_balance,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+        )
 
         locked_amount1 = token_network.functions.getParticipantLockedAmount(A, B, values_A.locksroot).call()
         assert locked_amount1 == settlement.participant1_locked
+        assert locked_amount1 == on_chain_settlement.participant1_locked
 
         locked_amount2 = token_network.functions.getParticipantLockedAmount(A, B, values_B.locksroot).call()
         assert locked_amount2 == settlement.participant2_locked
+        assert locked_amount2 == on_chain_settlement.participant2_locked
+
     return get
 
 
@@ -583,9 +597,6 @@ def create_withdraw_signatures(token_network, get_private_key):
 
 
 def call_settle(token_network, A, vals_A, B, vals_B):
-    if vals_B.transferred < vals_A.transferred:
-        return call_settle(token_network, B, vals_B, A, vals_A)
-
     assert vals_B.transferred >= vals_A.transferred
     if vals_B.transferred != vals_A.transferred:
         with pytest.raises(TransactionFailed):
