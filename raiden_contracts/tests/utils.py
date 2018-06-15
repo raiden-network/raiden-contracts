@@ -29,6 +29,26 @@ SettlementValues = namedtuple('SettlementValues', [
 ])
 
 
+class ChannelValues():
+    def __init__(self, deposit=0, withdrawn=0, transferred=0, locked=0, locksroot=b''):
+        self.deposit = deposit
+        self.withdrawn = withdrawn
+        self.transferred = transferred
+        self.locked = locked
+        self.locksroot = locksroot
+
+    def __repr__(self):
+        return (
+            'ChannelValues deposit:{} withdrawn:{} transferred:{} locked:{} locksroot:{}'
+        ).format(
+            self.deposit,
+            self.withdrawn,
+            self.transferred,
+            self.locked,
+            self.locksroot,
+        )
+
+
 def random_secret():
     secret = os.urandom(32)
     return (Web3.soliditySha3(['bytes32'], [secret]), secret)

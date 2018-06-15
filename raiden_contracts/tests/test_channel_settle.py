@@ -82,13 +82,9 @@ def test_settle_channel_state(
 
     close_and_update_channel(
         A,
-        vals_A.transferred,
-        vals_A.locked,
-        vals_A.locksroot,
+        vals_A,
         B,
-        vals_B.transferred,
-        vals_B.locked,
-        vals_B.locksroot
+        vals_B,
     )
 
     web3.testing.mine(SETTLE_TIMEOUT_MIN)
