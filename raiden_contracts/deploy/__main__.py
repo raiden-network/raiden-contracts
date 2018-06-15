@@ -165,7 +165,7 @@ def deploy_contract(
         contract_name,
         transaction,
         txn_wait=200,
-        args=[]
+        args=None
 ):
     contract_interface = contracts_compiled_data[contract_name]
 

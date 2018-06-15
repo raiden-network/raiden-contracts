@@ -71,6 +71,8 @@ def get_pending_transfers(
         max_expiration_delta
 ):
     current_block = web3.eth.blockNumber
+    if expired_amounts is None:
+        expired_amounts = []
     min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
     max_expiration_delta = max_expiration_delta or (min_expiration_delta + SETTLE_TIMEOUT_MIN)
     unlockable_locks = [
@@ -90,8 +92,8 @@ def get_pending_transfers(
 
 def get_pending_transfers_tree(
         web3,
-        unlockable_amounts=[],
-        expired_amounts=[],
+        unlockable_amounts=None,
+        expired_amounts=None,
         min_expiration_delta=None,
         max_expiration_delta=None
 ):

@@ -19,7 +19,7 @@ def owner(faucet_address):
 def create_accounts(web3):
     def get(number):
         new_accounts = []
-        for i in range(0, number):
+        for _ in range(0, number):
             new_account = web3.personal.newAccount(passphrase)
             amount = int(web3.eth.getBalance(web3.eth.accounts[0]) / 2 / number)
             web3.eth.sendTransaction({
