@@ -593,7 +593,8 @@ def create_withdraw_signatures(token_network, get_private_key):
 
 
 def call_settle(token_network, A, vals_A, B, vals_B):
-    assert vals_B.transferred >= vals_A.transferred
+    assert vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked
+
     if vals_B.transferred != vals_A.transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(

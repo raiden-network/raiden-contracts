@@ -82,6 +82,13 @@ contract TokenNetwork is Utils {
         mapping(address => Participant) participants;
     }
 
+    struct SettlementData {
+        uint256 deposit;
+        uint256 withdrawn;
+        uint256 transferred;
+        uint256 locked;
+    }
+
     /*
      *  Events
      */
@@ -431,19 +438,19 @@ contract TokenNetwork is Utils {
     /// @param participant1 Channel participant.
     /// @param participant1_transferred_amount The latest known amount of tokens transferred
     /// from `participant1` to `participant2`.
+    /// `participant1_transferred_amount + participant1_locked_amount` MUST be <= `participant2_transferred_amount + participant2_locked_amount`
     /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
     /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
-    /// `participant1_locked_amount` MUST be <= `participant2_locked_amount`
     /// @param participant1_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant1`, used to validate the unlocked proofs.
     /// @param participant2 Other channel participant.
     /// @param participant2_transferred_amount The latest known amount of tokens transferred
     /// from `participant2` to `participant1`.
+    /// `participant1_transferred_amount + participant1_locked_amount` MUST be <= `participant2_transferred_amount + participant2_locked_amount`
     /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
     /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
-    /// `participant2_locked_amount` MUST be >= `participant1_locked_amount`
     /// @param participant2_locksroot The latest known merkle root of the pending hash-time locks
     /// of `participant2`, used to validate the unlocked proofs.
     function settleChannel(
@@ -458,8 +465,6 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        // Convention required in getSettleTransferAmounts
-        require(participant2_transferred_amount >= participant1_transferred_amount);
         bytes32 channel_identifier;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
@@ -535,7 +540,11 @@ contract TokenNetwork is Utils {
             require(token.transfer(participant2, participant2_transferred_amount));
         }
 
-        emit ChannelSettled(channel_identifier, participant1_transferred_amount, participant2_transferred_amount);
+        emit ChannelSettled(
+            channel_identifier,
+            participant1_transferred_amount,
+            participant2_transferred_amount
+        );
     }
 
     function getSettleTransferAmounts(
@@ -550,6 +559,11 @@ contract TokenNetwork is Utils {
         private
         returns (uint256, uint256, uint256, uint256)
     {
+        // Direct token transfers done through the token `transfer` function
+        // cannot be accounted for, these superfluous tokens will be burned,
+        // this is because there is no way to tell which participant (if any)
+        // had ownership over the token.
+
         // Cases that require attention:
         // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
         // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
@@ -560,62 +574,52 @@ contract TokenNetwork is Utils {
         // case3. If neither participants provide a balance proof, we just subtract their
         // withdrawn amounts from their deposits.
 
-        // case1 is solved by making sure we only have to handle case2 or case3:
-        // we have the following check in settleChannel:
-        // require(participant2_transferred_amount >= participant1_transferred_amount)
-
-        uint256 participant1_net_transferred_amount;
         uint256 participant1_amount;
         uint256 participant2_amount;
         uint256 total_available_deposit;
 
-        // Direct token transfers done through the token `transfer` function
-        // cannot be accounted for, these superfluous tokens will be burned,
-        // this is because there is no way to tell which participant (if any)
-        // had ownership over the token.
+        SettlementData memory participant1_settlement;
+        SettlementData memory participant2_settlement;
+
+        participant1_settlement.deposit = participant1_state.deposit;
+        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
+        participant1_settlement.transferred = participant1_transferred_amount;
+        participant1_settlement.locked = participant1_locked_amount;
+
+        participant2_settlement.deposit = participant2_state.deposit;
+        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
+        participant2_settlement.transferred = participant2_transferred_amount;
+        participant2_settlement.locked = participant2_locked_amount;
 
         total_available_deposit = getChannelAvailableDeposit(
             participant1_state,
             participant2_state
         );
 
-        // Calculate the net transferred amounts
-        // We are sure this does not underflow
-        participant1_net_transferred_amount = (
-            participant2_transferred_amount -
-            participant1_transferred_amount
+        // This amount is the maximum possible amount that participant1 can receive
+        // and also contains the entire locked amount of the pending transfers
+        // from participant2 to participant1.
+        participant1_amount = getMaxPossibleReceivableAmount(
+            participant1_settlement,
+            participant2_settlement
         );
 
-        // case2. participant1_transferred_amount can be [0, real_participant1_transferred_amount)
-        // participant1_net_transferred_amount is bigger than expected and can cause an overflow.
-        // We just take the biggest amount that we can in this case.
-        participant1_amount = failsafe_addition(
-            participant1_net_transferred_amount,
-            participant1_state.deposit
-        );
-
-        // Subtract already withdrawn amount
-        (participant1_amount, ) = failsafe_subtract(
-            participant1_amount,
-            participant1_state.withdrawn_amount
-        );
-
-        // case2. This means participant1_amount might be > total_available_deposit.
+        // We need to bound this to the available channel deposit
         participant1_amount = min(participant1_amount, total_available_deposit);
 
-        // At this point `participant1_amount` is between [0, total_available_deposit],
-        // so this is safe.
+        // Now it is safe to subtract without underflow
         participant2_amount = total_available_deposit - participant1_amount;
 
-        // Handle old balance proofs with a high locked_amount
-        (participant1_amount, participant1_locked_amount) = failsafe_subtract(
+        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
+        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
             participant1_amount,
-            participant1_locked_amount
+            participant2_locked_amount
         );
 
-        (participant2_amount, participant2_locked_amount) = failsafe_subtract(
+        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
+        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
             participant2_amount,
-            participant2_locked_amount
+            participant1_locked_amount
         );
 
         // This should never happen:
@@ -846,6 +850,61 @@ contract TokenNetwork is Utils {
             participant1_state.withdrawn_amount -
             participant2_state.withdrawn_amount
         );
+    }
+
+    function getMaxPossibleReceivableAmount(
+        SettlementData participant1_settlement,
+        SettlementData participant2_settlement
+    )
+        view
+        internal
+        returns (uint256)
+    {
+        uint256 participant1_max_transferred;
+        uint256 participant2_max_transferred;
+        uint256 participant1_net_max_transferred;
+        uint256 participant1_max_amount;
+
+        // This is the maximum possible amount that participant1 could transfer to participant2,
+        // if all the pending lock secrets have been registered
+        participant1_max_transferred = failsafe_addition(
+            participant1_settlement.transferred,
+            participant1_settlement.locked
+        );
+
+        // This is the maximum possible amount that participant2 could transfer to participant1,
+        // if all the pending lock secrets have been registered
+        participant2_max_transferred = failsafe_addition(
+            participant2_settlement.transferred,
+            participant2_settlement.locked
+        );
+
+        // We enforce this check artificially, in order to get rid of some hard to deal with cases
+        // This means settleChannel must be called with ordered values
+        require(participant2_max_transferred >= participant1_max_transferred);
+
+        assert(participant1_max_transferred >= participant1_settlement.transferred);
+        assert(participant2_max_transferred >= participant2_settlement.transferred);
+
+        // This is the maximum amount that participant2 can receive from participant1, after
+        // we take into account all the transferred or pending amounts
+        participant1_net_max_transferred = (
+            participant2_max_transferred -
+            participant1_max_transferred
+        );
+
+        // Next, we add the participant1's deposit and subtract the already withdrawn amount
+        participant1_max_amount = failsafe_addition(
+            participant1_net_max_transferred,
+            participant1_settlement.deposit
+        );
+
+        // Subtract already withdrawn amount
+        (participant1_max_amount, ) = failsafe_subtract(
+            participant1_max_amount,
+            participant1_settlement.withdrawn
+        );
+        return participant1_max_amount;
     }
 
     function verifyBalanceHashData(
