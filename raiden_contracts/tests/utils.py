@@ -30,12 +30,21 @@ SettlementValues = namedtuple('SettlementValues', [
 
 
 class ChannelValues():
-    def __init__(self, deposit=0, withdrawn=0, transferred=0, locked=0, locksroot=b''):
+    def __init__(
+            self,
+            deposit=0,
+            withdrawn=0,
+            transferred=0,
+            locked=0,
+            locksroot=b'',
+            additional_hash=b''
+    ):
         self.deposit = deposit
         self.withdrawn = withdrawn
         self.transferred = transferred
         self.locked = locked
         self.locksroot = locksroot
+        self.additional_hash = additional_hash
 
     def __repr__(self):
         return (

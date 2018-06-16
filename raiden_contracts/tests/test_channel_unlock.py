@@ -8,7 +8,8 @@ from .utils import (
     get_locked_amount,
 )
 from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
-from .fixtures.config import fake_hex, fake_bytes
+from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.tests.fixtures.channel import call_settle
 
 
 def test_merkle_root_0_items(token_network_test):
@@ -87,7 +88,7 @@ def test_unlock_wrong_locksroot(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
 
@@ -127,7 +128,7 @@ def test_channel_unlock_bigger_locked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
 
@@ -183,7 +184,7 @@ def test_channel_unlock_smaller_locked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
 
@@ -240,7 +241,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
 
@@ -274,53 +275,33 @@ def test_channel_unlock(
         create_channel,
         channel_deposit,
         get_accounts,
-        create_balance_proof,
-        create_balance_proof_update_signature,
+        close_and_update_channel,
         event_handler
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
-    deposit_A = 20
-    deposit_B = 30
-    additional_hash = fake_hex(32, '02')
-    locksroot1 = fake_hex(32, '00')
-    locked_amount1 = 0
+
+    values_A = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=30,
+        transferred=40,
+    )
 
     # Create channel and deposit
     channel_identifier = create_channel(A, B, settle_timeout)[0]
-    channel_deposit(A, deposit_A, B)
-    channel_deposit(B, deposit_B, A)
+    channel_deposit(A, values_A.deposit, B)
+    channel_deposit(B, values_B.deposit, A)
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     locksroot_bytes = get_merkle_root(pending_transfers_tree.merkle_tree)
-    locksroot2 = '0x' + locksroot_bytes.hex()
-    locked_amount2 = get_locked_amount(pending_transfers_tree.transfers)
-
-    # Create balance proofs
-    balance_proof_A = create_balance_proof(
-        channel_identifier,
-        A,
-        10,
-        locked_amount1,
-        5,
-        locksroot1,
-        additional_hash
-    )
-    balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B,
-        5,
-        locked_amount2,
-        3,
-        locksroot2,
-        additional_hash
-    )
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
-        B,
-        channel_identifier,
-        *balance_proof_A
-    )
+    values_B.locksroot = '0x' + locksroot_bytes.hex()
+    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
     # Reveal secrets before settlement window ends
     for lock in pending_transfers_tree.unlockable:
@@ -329,28 +310,17 @@ def test_channel_unlock(
             lock[2]
         ).call() == web3.eth.blockNumber
 
-    # Close channel and update balance proofs
-    token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
-    token_network.functions.updateNonClosingBalanceProof(
-        A, B,
-        *balance_proof_A,
-        balance_proof_update_signature_B
-    ).transact({'from': B})
+    close_and_update_channel(
+        A,
+        values_A,
+        B,
+        values_B,
+    )
 
     # Settlement window must be over before settling the channel
     web3.testing.mine(settle_timeout)
 
-    # Settle the channel
-    token_network.functions.settleChannel(
-        B,
-        5,
-        locked_amount2,
-        locksroot2,
-        A,
-        10,
-        locked_amount1,
-        locksroot1,
-    ).transact({'from': A})
+    call_settle(token_network, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -376,14 +346,14 @@ def test_channel_unlock(
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
     assert balance_A == pre_balance_A + 9
     assert balance_B == pre_balance_B + 6
-    assert balance_contract == pre_balance_contract - locked_amount2
+    assert balance_contract == pre_balance_contract - values_B.locked
 
     # TODO to be moved to a separate test
     ev_handler.add(txn_hash, EVENT_CHANNEL_UNLOCKED, check_channel_unlocked(
         channel_identifier,
         A,
         unlocked_amount,
-        locked_amount2 - unlocked_amount
+        values_B.locked - unlocked_amount
     ))
     ev_handler.check()
 
@@ -411,7 +381,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_1.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
     token_network.functions.unlock(
@@ -429,7 +399,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_2.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
     # 2nd unlocks should go through
@@ -452,7 +422,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_1.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
     # Mock pending transfers data for a reopened channel
@@ -465,7 +435,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_2.merkle_root,
         B,
         0,
-        fake_bytes(32),
+        EMPTY_MERKLE_ROOT,
         settle_timeout
     )
     # Both old and new unlocks should go through
