@@ -14,43 +14,6 @@ from raiden_contracts.constants import (
 from .utils import MAX_UINT256
 
 
-def test_withdraw_signature(
-        token_network_test,
-        create_channel_and_deposit,
-        get_accounts,
-        create_withdraw_signatures,
-):
-    (A, B) = get_accounts(2)
-    deposit_A = 5
-    deposit_B = 7
-    withdraw_A = 3
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
-
-    (signature_A, signature_B) = create_withdraw_signatures(
-        [A, B],
-        channel_identifier,
-        A,
-        withdraw_A,
-        token_network_test.address,
-    )
-
-    recovered_address_A = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier,
-        A,
-        withdraw_A,
-        signature_A,
-    ).call()
-    assert recovered_address_A == A
-
-    recovered_address_B = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier,
-        A,
-        withdraw_A,
-        signature_B,
-    ).call()
-    assert recovered_address_B == B
-
-
 def test_withdraw_call(
         token_network,
         create_channel_and_deposit,

@@ -477,8 +477,10 @@ def create_balance_proof(token_network, get_private_key):
             locksroot=None,
             additional_hash=None,
             v=27,
-            signer=None
+            signer=None,
+            other_token_network=None
     ):
+        _token_network = other_token_network or token_network
         private_key = get_private_key(signer or participant)
         locksroot = locksroot or b'\x00' * 32
         additional_hash = additional_hash or b'\x00' * 32
@@ -487,8 +489,8 @@ def create_balance_proof(token_network, get_private_key):
 
         signature = sign_balance_proof(
             private_key,
-            token_network.address,
-            int(token_network.functions.chain_id().call()),
+            _token_network.address,
+            int(_token_network.functions.chain_id().call()),
             channel_identifier,
             balance_hash,
             nonce,
@@ -513,14 +515,16 @@ def create_balance_proof_update_signature(token_network, get_private_key):
             nonce,
             additional_hash,
             closing_signature,
-            v=27
+            v=27,
+            other_token_network=None
     ):
+        _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
         non_closing_signature = sign_balance_proof_update_message(
             private_key,
-            token_network.address,
-            int(token_network.functions.chain_id().call()),
+            _token_network.address,
+            int(_token_network.functions.chain_id().call()),
             channel_identifier,
             balance_hash,
             nonce,
@@ -541,15 +545,17 @@ def create_cooperative_settle_signatures(token_network, get_private_key):
             participant1_balance,
             participant2_address,
             participant2_balance,
-            v=27
+            v=27,
+            other_token_network=None
     ):
+        _token_network = other_token_network or token_network
         signatures = []
         for participant in participants_to_sign:
             private_key = get_private_key(participant)
             signature = sign_cooperative_settle_message(
                 private_key,
-                token_network.address,
-                int(token_network.functions.chain_id().call()),
+                _token_network.address,
+                int(_token_network.functions.chain_id().call()),
                 channel_identifier,
                 participant1_address,
                 participant1_balance,
