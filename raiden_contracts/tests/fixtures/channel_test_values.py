@@ -1,24 +1,4 @@
-from raiden_contracts.tests.utils import MAX_UINT256
-
-
-class ChannelValues():
-    def __init__(self, deposit=0, withdrawn=0, transferred=0, locked=0, locksroot=b''):
-        self.deposit = deposit
-        self.withdrawn = withdrawn
-        self.transferred = transferred
-        self.locked = locked
-        self.locksroot = locksroot
-
-    def __repr__(self):
-        return (
-            'ChannelValues deposit:{} withdrawn:{} transferred:{} locked:{} locksroot:{}'
-        ).format(
-            self.deposit,
-            self.withdrawn,
-            self.transferred,
-            self.locked,
-            self.locksroot,
-        )
+from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues
 
 
 channel_settle_test_values = [

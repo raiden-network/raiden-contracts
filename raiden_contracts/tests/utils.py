@@ -29,6 +29,35 @@ SettlementValues = namedtuple('SettlementValues', [
 ])
 
 
+class ChannelValues():
+    def __init__(
+            self,
+            deposit=0,
+            withdrawn=0,
+            transferred=0,
+            locked=0,
+            locksroot=b'',
+            additional_hash=b''
+    ):
+        self.deposit = deposit
+        self.withdrawn = withdrawn
+        self.transferred = transferred
+        self.locked = locked
+        self.locksroot = locksroot
+        self.additional_hash = additional_hash
+
+    def __repr__(self):
+        return (
+            'ChannelValues deposit:{} withdrawn:{} transferred:{} locked:{} locksroot:{}'
+        ).format(
+            self.deposit,
+            self.withdrawn,
+            self.transferred,
+            self.locked,
+            self.locksroot,
+        )
+
+
 def random_secret():
     secret = os.urandom(32)
     return (Web3.soliditySha3(['bytes32'], [secret]), secret)
@@ -126,21 +155,36 @@ def get_settlement_amounts(
         participant1.withdrawn -
         participant2.withdrawn
     )
-    participant1_amount = (
-        participant1.deposit +
-        participant2.transferred -
-        participant1.withdrawn -
-        participant1.transferred
+    participant1_max_transferred = min(
+        participant1.transferred + participant1.locked,
+        MAX_UINT256
     )
-    participant1_amount = max(participant1_amount, 0)
-    participant1_amount = min(participant1_amount, total_available_deposit)
-    participant2_amount = total_available_deposit - participant1_amount
+    participant2_max_transferred = min(
+        participant2.transferred + participant2.locked,
+        MAX_UINT256
+    )
+    participant1_max_amount_receivable = (
+        participant1.deposit +
+        participant2_max_transferred -
+        participant1_max_transferred -
+        participant1.withdrawn
+    )
 
-    participant1_locked = min(participant1_amount, participant1.locked)
-    participant2_locked = min(participant2_amount, participant2.locked)
+    participant1_max_amount_receivable = max(participant1_max_amount_receivable, 0)
+    participant1_max_amount_receivable = min(
+        participant1_max_amount_receivable,
+        total_available_deposit
+    )
+    participant2_max_amount_receivable = (
+        total_available_deposit -
+        participant1_max_amount_receivable
+    )
 
-    participant1_amount = max(participant1_amount - participant1.locked, 0)
-    participant2_amount = max(participant2_amount - participant2.locked, 0)
+    participant2_locked = min(participant2.locked, participant1_max_amount_receivable)
+    participant1_locked = min(participant1.locked, participant2_max_amount_receivable)
+
+    participant1_amount = participant1_max_amount_receivable - participant2_locked
+    participant2_amount = participant2_max_amount_receivable - participant1_locked
 
     assert total_available_deposit == (
         participant1_amount +
@@ -167,7 +211,7 @@ def failsafe_add(a, b):
     a = a % (MAX_UINT256 + 1)
     b = b % (MAX_UINT256 + 1)
     sum = (a + b) % (MAX_UINT256 + 1)
-    if sum > a:
+    if sum >= a:
         return sum
     else:
         return MAX_UINT256
@@ -198,7 +242,10 @@ def get_onchain_settlement_amounts(
     !!! Don't change this unless you really know what you are doing.
     """
 
-    assert(participant2.transferred >= participant1.transferred)
+    assert(
+        participant2.transferred + participant2.locked >=
+        participant1.transferred + participant1.locked
+    )
 
     total_available_deposit = (
         participant1.deposit +
@@ -209,23 +256,29 @@ def get_onchain_settlement_amounts(
     # we assume that total_available_deposit does not overflow in settleChannel
     assert total_available_deposit <= MAX_UINT256
 
-    participant1_netted_amount = (participant2.transferred - participant1.transferred)
-    participant1_amount = failsafe_add(participant1_netted_amount, participant1.deposit)
+    participant1_max_transferred = failsafe_add(participant1.transferred, participant1.locked)
+    participant2_max_transferred = failsafe_add(participant2.transferred, participant2.locked)
 
-    (participant1_amount, _) = failsafe_sub(
-        participant1_amount,
-        participant1.withdrawn)
-    participant1_amount = min(participant1_amount, total_available_deposit)
-    participant2_amount = total_available_deposit - participant1_amount
+    assert participant1_max_transferred <= MAX_UINT256
+    assert participant2_max_transferred <= MAX_UINT256
 
-    (participant1_amount, participant1_locked_amount) = failsafe_sub(
-        participant1_amount,
-        participant1.locked
+    participant1_net_max_transferred = participant2_max_transferred - participant1_max_transferred
+
+    participant1_max_amount = failsafe_add(participant1_net_max_transferred, participant1.deposit)
+    (participant1_max_amount, _) = failsafe_sub(participant1_max_amount, participant1.withdrawn)
+
+    participant1_max_amount = min(participant1_max_amount, total_available_deposit)
+
+    participant2_max_amount = total_available_deposit - participant1_max_amount
+
+    (participant1_amount, participant2_locked_amount) = failsafe_sub(
+        participant1_max_amount,
+        participant2.locked
     )
 
-    (participant2_amount, participant2_locked_amount) = failsafe_sub(
-        participant2_amount,
-        participant2.locked
+    (participant2_amount, participant1_locked_amount) = failsafe_sub(
+        participant2_max_amount,
+        participant1.locked
     )
 
     assert total_available_deposit == (

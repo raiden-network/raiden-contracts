@@ -15,18 +15,14 @@ from raiden_contracts.utils.sign import (
     sign_cooperative_settle_message,
     sign_withdraw_message
 )
-from raiden_contracts.tests.utils import get_settlement_amounts, get_onchain_settlement_amounts
+from raiden_contracts.tests.utils import (
+    get_settlement_amounts,
+    get_onchain_settlement_amounts,
+    ChannelValues,
+)
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
-from eth_utils import denoms
-
-
-ChannelBalanceHashData = namedtuple('ChannelBalanceHashData', [
-    'transferred',
-    'locked',
-    'locksroot',
-])
 
 
 @pytest.fixture()
@@ -129,13 +125,9 @@ def close_and_update_channel(
 ):
     def get(
             participant1,
-            transferred_amount1,
-            locked_amount1,
-            locksroot1,
+            participant1_values,
             participant2,
-            transferred_amount2,
-            locked_amount2,
-            locksroot2,
+            participant2_values,
     ):
         nonce1 = 5
         nonce2 = 7
@@ -147,19 +139,19 @@ def close_and_update_channel(
         balance_proof_1 = create_balance_proof(
             channel_identifier,
             participant1,
-            transferred_amount1,
-            locked_amount1,
+            participant1_values.transferred,
+            participant1_values.locked,
             nonce1,
-            locksroot1,
+            participant1_values.locksroot,
             additional_hash1
         )
         balance_proof_2 = create_balance_proof(
             channel_identifier,
             participant2,
-            transferred_amount2,
-            locked_amount2,
+            participant2_values.transferred,
+            participant2_values.locked,
             nonce2,
-            locksroot2,
+            participant2_values.locksroot,
             additional_hash2
         )
         balance_proof_update_signature_2 = create_balance_proof_update_signature(
@@ -174,7 +166,8 @@ def close_and_update_channel(
         ).transact({'from': participant1})
 
         token_network.functions.updateNonClosingBalanceProof(
-            participant1, participant2,
+            participant1,
+            participant2,
             *balance_proof_1,
             balance_proof_update_signature_2
         ).transact({'from': participant2})
@@ -197,41 +190,44 @@ def create_settled_channel(
             locksroot2,
             settle_timeout=SETTLE_TIMEOUT_MIN,
     ):
-        transferred_amount1 = 5
-        transferred_amount2 = 40
-        deposit1 = locked_amount1 + transferred_amount1 - 5
-        deposit2 = locked_amount2 + transferred_amount2 + 5
+        participant1_values = ChannelValues(
+            transferred=5,
+            locked=locked_amount1,
+            locksroot=locksroot1,
+        )
+        participant2_values = ChannelValues(
+            transferred=40,
+            locked=locked_amount2,
+            locksroot=locksroot2,
+        )
+
+        participant1_values.deposit = (
+            participant1_values.locked +
+            participant1_values.transferred -
+            5
+        )
+        participant2_values.deposit = (
+            participant2_values.locked +
+            participant2_values.transferred +
+            5
+        )
 
         channel_identifier = create_channel_and_deposit(
             participant1,
             participant2,
-            deposit1,
-            deposit2,
+            participant1_values.deposit,
+            participant2_values.deposit,
             settle_timeout
         )
 
         close_and_update_channel(
             participant1,
-            transferred_amount1,
-            locked_amount1,
-            locksroot1,
+            participant1_values,
             participant2,
-            transferred_amount2,
-            locked_amount2,
-            locksroot2
+            participant2_values,
         )
 
         web3.testing.mine(settle_timeout)
-        participant1_values = ChannelBalanceHashData(
-            transferred=transferred_amount1,
-            locked=locked_amount1,
-            locksroot=locksroot1,
-        )
-        participant2_values = ChannelBalanceHashData(
-            transferred=transferred_amount2,
-            locked=locked_amount2,
-            locksroot=locksroot2,
-        )
 
         call_settle(token_network, participant1, participant1_values, participant2, participant2_values)
 
@@ -597,7 +593,8 @@ def create_withdraw_signatures(token_network, get_private_key):
 
 
 def call_settle(token_network, A, vals_A, B, vals_B):
-    assert vals_B.transferred >= vals_A.transferred
+    assert vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked
+
     if vals_B.transferred != vals_A.transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(
