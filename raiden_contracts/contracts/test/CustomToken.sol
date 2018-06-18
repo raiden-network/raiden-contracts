@@ -12,7 +12,7 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 .*/
 
-import "./StandardToken.sol";
+import "test/StandardToken.sol";
 
 /// @title CustomToken
 contract CustomToken is StandardToken {

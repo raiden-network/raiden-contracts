@@ -1,10 +1,10 @@
 pragma solidity ^0.4.23;
 
-import "./Token.sol";
-import "./Utils.sol";
-import "./lib/ECVerify.sol";
-import "./TokenNetwork.sol";
-import "./RaidenServiceBundle.sol";
+import "raiden/Token.sol";
+import "raiden/Utils.sol";
+import "raiden/lib/ECVerify.sol";
+import "raiden/TokenNetwork.sol";
+import "raiden/RaidenServiceBundle.sol";
 
 contract MonitoringService is Utils {
 

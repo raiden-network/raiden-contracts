@@ -1,9 +1,9 @@
 pragma solidity ^0.4.23;
 
-import "./Token.sol";
-import "./Utils.sol";
-import "./lib/ECVerify.sol";
-import "./SecretRegistry.sol";
+import "raiden/Token.sol";
+import "raiden/Utils.sol";
+import "raiden/lib/ECVerify.sol";
+import "raiden/SecretRegistry.sol";
 
 contract TokenNetwork is Utils {
 

@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
-import "./Token.sol";
-import "./Utils.sol";
+import "raiden/Token.sol";
+import "raiden/Utils.sol";
 
 contract RaidenServiceBundle is Utils {
     Token public token;
