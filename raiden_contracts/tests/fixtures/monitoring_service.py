@@ -8,7 +8,7 @@ def get_monitoring_service(deploy_tester_contract):
         return deploy_tester_contract(
             CONTRACT_MONITORING_SERVICE,
             {},
-            arguments
+            arguments,
         )
     return get
 
@@ -17,9 +17,9 @@ def get_monitoring_service(deploy_tester_contract):
 def monitoring_service_external(
     get_monitoring_service,
     custom_token,
-    raiden_service_bundle
+    raiden_service_bundle,
 ):
     return get_monitoring_service([
         custom_token.address,
-        raiden_service_bundle.address
+        raiden_service_bundle.address,
     ])

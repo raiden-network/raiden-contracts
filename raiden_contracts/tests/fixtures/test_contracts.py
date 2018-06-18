@@ -7,7 +7,7 @@ def get_token_network_test(deploy_tester_contract):
         return deploy_tester_contract(
             'TokenNetworkInternalsTest',
             {},
-            arguments
+            arguments,
         )
     return get
 
@@ -17,5 +17,5 @@ def token_network_test(web3, get_token_network_test, custom_token, secret_regist
     return get_token_network_test([
         custom_token.address,
         secret_registry_contract.address,
-        int(web3.version.network)
+        int(web3.version.network),
     ])

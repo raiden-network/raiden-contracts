@@ -20,74 +20,74 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
         token_network.functions.setTotalDeposit(
             -1,
             A,
-            deposit_A
+            deposit_A,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             '',
             deposit_A,
-            B
+            B,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             fake_address,
             deposit_A,
-            B
+            B,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             0x0,
             deposit_A,
-            B
+            B,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            ''
+            '',
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            fake_address
+            fake_address,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            0x0
+            0x0,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             A,
             -1,
-            B
+            B,
         ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             empty_address,
             deposit_A,
-            B
+            B,
         ).transact({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            empty_address
+            empty_address,
         ).transact({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             A,
             0,
-            B
+            B,
         ).transact({'from': A})
 
     token_network.functions.setTotalDeposit(
         A,
         deposit_A,
-        B
+        B,
     ).transact({'from': A})
 
 
@@ -95,7 +95,7 @@ def test_deposit_notapproved(
         token_network,
         custom_token,
         create_channel,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     create_channel(A, B)
@@ -114,7 +114,7 @@ def test_small_deposit_fail(
         create_channel,
         channel_deposit,
         assign_tokens,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     create_channel(A, B)
@@ -175,7 +175,7 @@ def test_deposit_channel_event(
         token_network,
         create_channel,
         channel_deposit,
-        event_handler
+        event_handler,
 ):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
@@ -189,14 +189,14 @@ def test_deposit_channel_event(
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_DEPOSIT,
-        check_new_deposit(channel_identifier, A, deposit_A)
+        check_new_deposit(channel_identifier, A, deposit_A),
     )
 
     txn_hash = channel_deposit(B, deposit_B, A)
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_DEPOSIT,
-        check_new_deposit(channel_identifier, B, deposit_B)
+        check_new_deposit(channel_identifier, B, deposit_B),
     )
 
     ev_handler.check()

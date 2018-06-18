@@ -13,7 +13,7 @@ def create_reward_proof(token_network, get_private_key):
             reward_amount,
             token_network_address,
             nonce=0,
-            v=27
+            v=27,
     ):
         private_key = get_private_key(signer)
 
@@ -24,7 +24,7 @@ def create_reward_proof(token_network, get_private_key):
             token_network_address,
             int(token_network.functions.chain_id().call()),
             nonce,
-            v
+            v,
         )
         return (
             channel_identifier,
@@ -32,7 +32,7 @@ def create_reward_proof(token_network, get_private_key):
             token_network_address,
             int(token_network.functions.chain_id().call()),
             nonce,
-            signature
+            signature,
         )
     return get
 
@@ -48,7 +48,7 @@ def test_msc_happy_path(
     create_reward_proof,
     event_handler,
     raiden_service_bundle,
-    custom_token
+    custom_token,
 ):
     # setup: two parties + MS
     ev_handler = event_handler(token_network)
@@ -76,7 +76,7 @@ def test_msc_happy_path(
     non_closing_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_B
+        *balance_proof_B,
     )
     # 2a) create reward proof
     reward_proof = create_reward_proof(
@@ -102,7 +102,7 @@ def test_msc_happy_path(
         non_closing_signature_B,  # non-closing signature
         reward_proof[1],     # reward amount
         token_network.address,  # token network address
-        reward_proof[5]      # reward proof signature
+        reward_proof[5],      # reward proof signature
     ).transact({'from': MS})
     # 5) MSC calls TokenNetwork updateTransfer
     # 6) channel is settled

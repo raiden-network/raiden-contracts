@@ -6,7 +6,7 @@ from raiden_contracts.contract_manager import (
 )
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
-    EVENT_CHANNEL_CLOSED
+    EVENT_CHANNEL_CLOSED,
 )
 
 PRECOMPILED_CONTRACTS_PATH = 'raiden_contracts/data/contracts.json'

@@ -39,7 +39,7 @@ class ContractManager:
             self.contracts_source_dirs = path
             for dir_path in path.values():
                 self.abi.update(
-                    ContractManager.precompile_contracts(dir_path, self.get_mappings())
+                    ContractManager.precompile_contracts(dir_path, self.get_mappings()),
                 )
         elif os.path.isdir(path):
             ContractManager.__init__(self, {'smart_contracts': path})
@@ -53,7 +53,7 @@ class ContractManager:
             [self.get_contract_path(contract_name)[0]],
             output_values=('abi', 'bin', 'ast'),
             import_remappings=self.get_mappings(),
-            optimize=False
+            optimize=False,
         )
         contract_json = {
             os.path.basename(key).split('.', 1)[0]: value
@@ -65,7 +65,7 @@ class ContractManager:
         return sum(
             (self.list_contract_path(contract_name, x)
              for x in self.contracts_source_dirs.values()),
-            []
+            [],
         )
 
     @staticmethod
@@ -105,7 +105,7 @@ class ContractManager:
                 files,
                 output_values=('abi', 'bin', 'ast'),
                 import_remappings=map_dirs,
-                optimize=False
+                optimize=False,
             )
             return fix_contract_key_names(res)
         except FileNotFoundError:

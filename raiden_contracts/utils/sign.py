@@ -5,7 +5,7 @@ from .sign_utils import sign
 def hash_balance_data(transferred_amount, locked_amount, locksroot):
     return Web3.soliditySha3(
         ['uint256', 'uint256', 'bytes32'],
-        [transferred_amount, locked_amount, locksroot]
+        [transferred_amount, locked_amount, locksroot],
     )
 
 
@@ -15,7 +15,7 @@ def hash_balance_proof(
         channel_identifier,
         balance_hash,
         nonce,
-        additional_hash
+        additional_hash,
 ):
     return Web3.soliditySha3([
         'bytes32',
@@ -23,14 +23,14 @@ def hash_balance_proof(
         'bytes32',
         'bytes32',
         'address',
-        'uint256'
+        'uint256',
     ], [
         balance_hash,
         nonce,
         additional_hash,
         channel_identifier,
         token_network_address,
-        chain_identifier
+        chain_identifier,
     ])
 
 
@@ -41,7 +41,7 @@ def hash_balance_proof_update_message(
         balance_hash,
         nonce,
         additional_hash,
-        closing_signature
+        closing_signature,
 ):
     return Web3.soliditySha3([
         'bytes32',
@@ -50,7 +50,7 @@ def hash_balance_proof_update_message(
         'bytes32',
         'address',
         'uint256',
-        'bytes'
+        'bytes',
     ], [
         balance_hash,
         nonce,
@@ -58,7 +58,7 @@ def hash_balance_proof_update_message(
         channel_identifier,
         token_network_address,
         chain_identifier,
-        closing_signature
+        closing_signature,
     ])
 
 
@@ -69,7 +69,7 @@ def hash_cooperative_settle_message(
         participant1_address,
         participant1_balance,
         participant2_address,
-        participant2_balance
+        participant2_balance,
 ):
     return Web3.soliditySha3([
         'address',
@@ -78,7 +78,7 @@ def hash_cooperative_settle_message(
         'uint256',
         'bytes32',
         'address',
-        'uint256'
+        'uint256',
     ], [
         participant1_address,
         participant1_balance,
@@ -86,7 +86,7 @@ def hash_cooperative_settle_message(
         participant2_balance,
         channel_identifier,
         token_network_address,
-        chain_identifier
+        chain_identifier,
     ])
 
 
@@ -95,20 +95,20 @@ def hash_withdraw_message(
         chain_identifier,
         channel_identifier,
         participant,
-        amount_to_withdraw
+        amount_to_withdraw,
 ):
     return Web3.soliditySha3([
         'address',
         'uint256',
         'bytes32',
         'address',
-        'uint256'
+        'uint256',
     ], [
         participant,
         amount_to_withdraw,
         channel_identifier,
         token_network_address,
-        chain_identifier
+        chain_identifier,
     ])
 
 
@@ -141,7 +141,7 @@ def sign_balance_proof(
         balance_hash,
         nonce,
         additional_hash,
-        v=27
+        v=27,
 ):
     message_hash = hash_balance_proof(
         token_network_address,
@@ -149,7 +149,7 @@ def sign_balance_proof(
         channel_identifier,
         balance_hash,
         nonce,
-        additional_hash
+        additional_hash,
     )
 
     return sign(privatekey, message_hash, v)
@@ -164,7 +164,7 @@ def sign_balance_proof_update_message(
         nonce,
         additional_hash,
         closing_signature,
-        v=27
+        v=27,
 ):
     message_hash = hash_balance_proof_update_message(
         token_network_address,
@@ -173,7 +173,7 @@ def sign_balance_proof_update_message(
         balance_hash,
         nonce,
         additional_hash,
-        closing_signature
+        closing_signature,
     )
 
     return sign(privatekey, message_hash, v)
@@ -188,7 +188,7 @@ def sign_cooperative_settle_message(
         participant1_balance,
         participant2_address,
         participant2_balance,
-        v=27
+        v=27,
 ):
     message_hash = hash_cooperative_settle_message(
         token_network_address,
@@ -197,7 +197,7 @@ def sign_cooperative_settle_message(
         participant1_address,
         participant1_balance,
         participant2_address,
-        participant2_balance
+        participant2_balance,
     )
 
     return sign(privatekey, message_hash, v)
@@ -210,14 +210,14 @@ def sign_withdraw_message(
         channel_identifier,
         participant,
         amount_to_withdraw,
-        v=27
+        v=27,
 ):
     message_hash = hash_withdraw_message(
         token_network_address,
         chain_identifier,
         channel_identifier,
         participant,
-        amount_to_withdraw
+        amount_to_withdraw,
     )
 
     return sign(privatekey, message_hash, v)
@@ -236,7 +236,7 @@ def sign_reward_proof(
         reward_amount,
         token_network_address,
         chain_id,
-        nonce
+        nonce,
     )
 
     return sign(privatekey, message_hash, v)
