@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
 
-import "./Utils.sol";
-import "./Token.sol";
-import "./TokenNetwork.sol";
+import "raiden/Utils.sol";
+import "raiden/Token.sol";
+import "raiden/TokenNetwork.sol";
 
 contract TokenNetworkRegistry is Utils {
 
