@@ -58,7 +58,10 @@ class CompileContracts(Command):
             print('py-solc is not installed, skipping contracts compilation')
             return
         from raiden_contracts.contract_manager import CONTRACT_MANAGER
-        compiled = CONTRACT_MANAGER.precompile_contracts('raiden_contracts/contracts/', [])
+        compiled = CONTRACT_MANAGER.precompile_contracts(
+            'raiden_contracts/contracts/',
+            CONTRACT_MANAGER.get_mappings(),
+        )
         with open(COMPILED_CONTRACTS, 'w') as compiled_json:
             compiled_json.write(json.dumps(compiled))
 
