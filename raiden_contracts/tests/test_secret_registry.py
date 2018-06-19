@@ -71,5 +71,5 @@ def test_events(secret_registry_contract, event_handler):
 
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
 
-    ev_handler.add(txn_hash, EVENT_SECRET_REVEALED, check_secret_revealed(secrethash))
+    ev_handler.add(txn_hash, EVENT_SECRET_REVEALED, check_secret_revealed(secrethash, secret))
     ev_handler.check()
