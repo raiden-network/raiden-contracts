@@ -32,7 +32,10 @@ def deploy_tester_contract(
 ):
     """Returns a function that can be used to deploy a named contract,
     using conract manager to compile the bytecode and get the ABI"""
-    def f(contract_name, libs=None, args=list()):
+    def f(contract_name, libs=None, args=None):
+        if args is None:
+            args = []
+
         json_contract = contracts_manager.compile_contract(contract_name, libs)
         contract = deploy_contract(
             web3,
@@ -56,7 +59,10 @@ def deploy_tester_contract_txhash(
 ):
     """Returns a function that can be used to deploy a named contract,
     but returning txhash only"""
-    def f(contract_name, libs=None, args=list()):
+    def f(contract_name, libs=None, args=None):
+        if args is None:
+            args = []
+
         json_contract = contracts_manager.compile_contract(contract_name, libs)
         txhash = deploy_contract_txhash(
             web3,
