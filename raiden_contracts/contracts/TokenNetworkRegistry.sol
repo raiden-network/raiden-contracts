@@ -16,6 +16,7 @@ contract TokenNetworkRegistry is Utils {
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
+    address[] public tokens;
 
     /*
      *  Events
@@ -54,8 +55,20 @@ contract TokenNetworkRegistry is Utils {
         );
 
         token_to_token_networks[_token_address] = token_network_address;
+        tokens.push(_token_address);
         emit TokenNetworkCreated(_token_address, token_network_address);
 
         return token_network_address;
     }
+
+     /// @notice Get all registered tokens
+    /// @return addresses of all registered tokens
+    function tokenAddresses()
+        public
+        constant
+        returns (address[])
+    {
+        return tokens;
+    }
+
 }
