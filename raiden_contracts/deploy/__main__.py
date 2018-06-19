@@ -9,7 +9,7 @@ from eth_utils import (
     to_checksum_address,
 )
 from raiden_contracts.utils.utils import (
-    check_succesful_tx
+    check_succesful_tx,
 )
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -22,50 +22,50 @@ from raiden_contracts.constants import (
 @click.option(
     '--rpc-provider',
     default='http://127.0.0.1:8545',
-    help='Address of the Ethereum RPC provider'
+    help='Address of the Ethereum RPC provider',
 )
 @click.option(
     '--json',
     default='raiden_contracts/data/contracts.json',
-    help='Path to compiled contracts data'
+    help='Path to compiled contracts data',
 )
 @click.option(
     '--owner',
-    help='Contracts owner, default: web3.eth.accounts[0]'
+    help='Contracts owner, default: web3.eth.accounts[0]',
 )
 @click.option(
     '--supply',
     default=10000000,
-    help='Token contract supply (number of total issued tokens).'
+    help='Token contract supply (number of total issued tokens).',
 )
 @click.option(
     '--token-name',
     default=CONTRACT_CUSTOM_TOKEN,
-    help='Token contract name.'
+    help='Token contract name.',
 )
 @click.option(
     '--token-decimals',
     default=18,
-    help='Token contract number of decimals.'
+    help='Token contract number of decimals.',
 )
 @click.option(
     '--token-symbol',
     default='TKN',
-    help='Token contract symbol.'
+    help='Token contract symbol.',
 )
 @click.option(
     '--token-address',
-    help='Already deployed token address.'
+    help='Already deployed token address.',
 )
 @click.option(
     '--wait',
     default=300,
-    help='Token contract number of decimals.'
+    help='Token contract number of decimals.',
 )
 @click.option(
     '--gas-price',
     default=0,
-    help='Token contract number of decimals.'
+    help='Token contract number of decimals.',
 )
 def main(**kwargs):
     rpc_provider = kwargs['rpc_provider']
@@ -106,7 +106,7 @@ def main(**kwargs):
                 'CustomToken',
                 transaction,
                 txn_wait,
-                [supply, token_decimals, token_name, token_symbol]
+                [supply, token_decimals, token_name, token_symbol],
             )
 
         assert token_address and is_address(token_address)
@@ -117,7 +117,7 @@ def main(**kwargs):
             contracts_compiled_data,
             CONTRACT_SECRET_REGISTRY,
             transaction,
-            txn_wait
+            txn_wait,
         )
 
         token_network_registry_address = deploy_contract(
@@ -126,24 +126,24 @@ def main(**kwargs):
             CONTRACT_TOKEN_NETWORK_REGISTRY,
             transaction,
             txn_wait,
-            [secret_registry_address, int(web3.version.network)]
+            [secret_registry_address, int(web3.version.network)],
         )
 
         token_network_registry = instantiate_contract(
             web3,
             contracts_compiled_data,
             CONTRACT_TOKEN_NETWORK_REGISTRY,
-            token_network_registry_address
+            token_network_registry_address,
         )
 
         txhash = token_network_registry.transact(transaction).createERC20TokenNetwork(
-            token_address
+            token_address,
         )
         receipt = check_succesful_tx(web3, txhash, txn_wait)
 
         print('TokenNetwork address: {0}. Gas used: {1}'.format(
             token_network_registry.functions.token_to_token_networks(token_address).call(),
-            receipt['gasUsed'])
+            receipt['gasUsed']),
         )
 
 
@@ -153,7 +153,7 @@ def instantiate_contract(web3, contracts_compiled_data, contract_name, contract_
     contract = web3.eth.contract(
         abi=contract_interface['abi'],
         bytecode=contract_interface['bin'],
-        address=contract_address
+        address=contract_address,
     )
 
     return contract
@@ -165,14 +165,17 @@ def deploy_contract(
         contract_name,
         transaction,
         txn_wait=200,
-        args=[]
+        args=None,
 ):
+    if args is None:
+        args = []
+
     contract_interface = contracts_compiled_data[contract_name]
 
     # Instantiate and deploy contract
     contract = web3.eth.contract(
         abi=contract_interface['abi'],
-        bytecode=contract_interface['bin']
+        bytecode=contract_interface['bin'],
     )
 
     # Get transaction hash from deployed contract
@@ -183,7 +186,7 @@ def deploy_contract(
     print('{0} address: {1}. Gas used: {2}'.format(
         contract_name,
         receipt['contractAddress'],
-        receipt['gasUsed'])
+        receipt['gasUsed']),
     )
     return receipt['contractAddress']
 

@@ -8,7 +8,7 @@ def get_raiden_service_bundle(deploy_tester_contract):
         return deploy_tester_contract(
             CONTRACT_RAIDEN_SERVICE_BUNDLE,
             {},
-            arguments
+            arguments,
         )
     return get
 

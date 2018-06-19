@@ -12,7 +12,7 @@ def test_constructor_call(
         get_token_network,
         custom_token,
         secret_registry_contract,
-        get_accounts
+        get_accounts,
 ):
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
@@ -45,7 +45,7 @@ def test_constructor_call(
         get_token_network([A, secret_registry_contract.address, chain_id])
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [secret_registry_contract.address, secret_registry_contract.address, chain_id]
+            [secret_registry_contract.address, secret_registry_contract.address, chain_id],
         )
 
     with pytest.raises(TransactionFailed):
@@ -63,7 +63,7 @@ def test_constructor_not_registered(
         custom_token,
         secret_registry_contract,
         token_network_registry_contract,
-        token_network_external
+        token_network_external,
 ):
     token_network = token_network_external
     assert token_network.functions.token().call() == custom_token.address
@@ -72,5 +72,5 @@ def test_constructor_not_registered(
             == token_network_registry_contract.functions.chain_id().call())
 
     assert token_network_registry_contract.functions.token_to_token_networks(
-        custom_token.address
+        custom_token.address,
     ).call() == empty_address

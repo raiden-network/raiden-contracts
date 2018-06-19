@@ -11,7 +11,7 @@ def signature_test_contract(deploy_tester_contract):
     return deploy_tester_contract(
         'SignatureVerifyTest',
         {},
-        []
+        [],
     )
 
 
@@ -21,7 +21,7 @@ def test_verify(
         signature_test_contract,
         get_accounts,
         create_channel,
-        create_balance_proof
+        create_balance_proof,
 ):
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -32,7 +32,7 @@ def test_verify(
         token_network.address,
         int(web3.version.network),
         channel_identifier,
-        *balance_proof_A[:3]
+        *balance_proof_A[:3],
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
     assert address == A
@@ -43,7 +43,7 @@ def test_verify(
         token_network.address,
         int(web3.version.network),
         channel_identifier,
-        *balance_proof_B[:3]
+        *balance_proof_B[:3],
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
     assert address == B
@@ -69,7 +69,7 @@ def test_ecrecover_output(
         token_network,
         signature_test_contract,
         get_accounts, create_channel,
-        create_balance_proof
+        create_balance_proof,
 ):
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -82,14 +82,14 @@ def test_ecrecover_output(
         token_network.address,
         int(web3.version.network),
         channel_identifier,
-        *balance_proof_A[:3]
+        *balance_proof_A[:3],
     )
 
     address = signature_test_contract.functions.verifyEcrecoverOutput(
         balance_proof_hash,
         r,
         s,
-        int.from_bytes(v, byteorder='big')
+        int.from_bytes(v, byteorder='big'),
     ).call()
     assert address == A
 
@@ -105,7 +105,7 @@ def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_privat
         message_hash,
         signature[:32],
         signature[32:64],
-        2
+        2,
     ).call() == empty_address
 
 
@@ -119,7 +119,7 @@ def test_ecrecover_output_fail(signature_test_contract, get_accounts, get_privat
         message_hash,
         signature[:32],
         signature[32:64],
-        int.from_bytes(signature[64:], byteorder='big')
+        int.from_bytes(signature[64:], byteorder='big'),
     ).call() == A
 
     message_hash2 = Web3.soliditySha3(['string', 'uint256'], ['hello', 6])
@@ -127,5 +127,5 @@ def test_ecrecover_output_fail(signature_test_contract, get_accounts, get_privat
         message_hash2,
         signature[:32],
         signature[32:64],
-        int.from_bytes(signature[64:], byteorder='big')
+        int.from_bytes(signature[64:], byteorder='big'),
     ).call() != A

@@ -14,7 +14,7 @@ def get_token_network_registry(deploy_tester_contract):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
             {},
-            arguments
+            arguments,
         )
     return get
 
@@ -25,7 +25,7 @@ def token_network_registry_contract(deploy_tester_contract, secret_registry_cont
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
-        [secret_registry_contract.address, int(web3.version.network)]
+        [secret_registry_contract.address, int(web3.version.network)],
     )
 
 
@@ -42,13 +42,13 @@ def add_and_register_token(
         token_network_registry_contract,
         deploy_token_contract,
         contract_deployer_address,
-        contracts_manager
+        contracts_manager,
 ):
     """Deploy a token and register it in TokenNetworkRegistry"""
     def f(initial_amount: int, decimals: int, token_name: str, token_symbol: str):
         token_contract = deploy_token_contract(initial_amount, decimals, token_name, token_symbol)
         txid = token_network_registry_contract.functions.createERC20TokenNetwork(
-            token_contract.address
+            token_contract.address,
         ).transact({'from': contract_deployer_address})
         tx_receipt = wait_for_transaction(txid)
         assert len(tx_receipt['logs']) == 1

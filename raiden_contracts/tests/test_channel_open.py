@@ -74,7 +74,7 @@ def test_open_channel_state(token_network, get_accounts):
         A_withdrawn,
         A_is_the_closer,
         A_balance_hash,
-        A_nonce
+        A_nonce,
     ) = token_network.functions.getChannelParticipantInfo(A, B).call()
     assert A_deposit == 0
     assert A_withdrawn == 0
@@ -87,7 +87,7 @@ def test_open_channel_state(token_network, get_accounts):
         B_withdrawn,
         B_is_the_closer,
         B_balance_hash,
-        B_nonce
+        B_nonce,
     ) = token_network.functions.getChannelParticipantInfo(B, A).call()
     assert B_deposit == 0
     assert B_withdrawn == 0
@@ -106,6 +106,6 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_OPENED,
-        check_channel_opened(channel_identifier, A, B, SETTLE_TIMEOUT_MIN)
+        check_channel_opened(channel_identifier, A, B, SETTLE_TIMEOUT_MIN),
     )
     ev_handler.check()

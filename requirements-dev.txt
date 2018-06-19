@@ -1,5 +1,8 @@
 -r requirements.txt
 eth-tester[py-evm]==0.1.0-beta.24,<1.0
 pytest
-flake8
+flake8==3.5.0
+flake8-bugbear==18.2.0
+flake8-commas==2.0.0
+flake8-tuple==0.2.13
 git+https://github.com/raiden-network/raiden-libs.git
