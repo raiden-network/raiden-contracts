@@ -15,7 +15,7 @@ from raiden_contracts.tests.fixtures.channel import call_settle
 def test_merkle_root_0_items(token_network_test):
     (
         locksroot,
-        unlocked_amount
+        unlocked_amount,
     ) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(b'').call()
     assert locksroot == EMPTY_MERKLE_ROOT
     assert unlocked_amount == 0
@@ -25,20 +25,20 @@ def test_merkle_root_1_item_unlockable(
         web3,
         get_accounts,
         token_network_test,
-        secret_registry_contract
+        secret_registry_contract,
 ):
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][3]
+        pending_transfers_tree.unlockable[0][3],
     ).transact({'from': A})
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-        pending_transfers_tree.unlockable[0][2]
+        pending_transfers_tree.unlockable[0][2],
     ).call() == web3.eth.blockNumber
 
     (locksroot, unlocked_amount) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
-        pending_transfers_tree.packed_transfers
+        pending_transfers_tree.packed_transfers,
     ).call()
 
     merkle_root = get_merkle_root(pending_transfers_tree.merkle_tree)
@@ -50,7 +50,7 @@ def test_merkle_root(
         web3,
         get_accounts,
         token_network_test,
-        secret_registry_contract
+        secret_registry_contract,
 ):
     (A, B) = get_accounts(2)
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
@@ -58,11 +58,11 @@ def test_merkle_root(
     for lock in pending_transfers_tree.unlockable:
         secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2]
+            lock[2],
         ).call() == web3.eth.blockNumber
 
     (locksroot, unlocked_amount) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
-        pending_transfers_tree.packed_transfers
+        pending_transfers_tree.packed_transfers,
     ).call()
     merkle_root = get_merkle_root(pending_transfers_tree.merkle_tree)
 
@@ -74,7 +74,7 @@ def test_unlock_wrong_locksroot(
         web3,
         token_network,
         create_settled_channel,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -89,14 +89,14 @@ def test_unlock_wrong_locksroot(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
 
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
             A,
             B,
-            pending_transfers_tree_A_fake.packed_transfers
+            pending_transfers_tree_A_fake.packed_transfers,
         ).call()
 
 
@@ -107,7 +107,7 @@ def test_channel_unlock_bigger_locked_amount(
         secret_registry_contract,
         create_settled_channel,
         get_accounts,
-        reveal_secrets
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -117,7 +117,7 @@ def test_channel_unlock_bigger_locked_amount(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
         secret_registry_contract,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     )
 
     # We settle the channel with a bigger locked amount than we will need for the
@@ -129,7 +129,7 @@ def test_channel_unlock_bigger_locked_amount(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -142,7 +142,7 @@ def test_channel_unlock_bigger_locked_amount(
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     ).transact()
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -163,7 +163,7 @@ def test_channel_unlock_smaller_locked_amount(
         secret_registry_contract,
         create_settled_channel,
         get_accounts,
-        reveal_secrets
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -173,7 +173,7 @@ def test_channel_unlock_smaller_locked_amount(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
         secret_registry_contract,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     )
 
     # We settle the channel with a smaller locked amount than we will need for the
@@ -185,7 +185,7 @@ def test_channel_unlock_smaller_locked_amount(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -198,7 +198,7 @@ def test_channel_unlock_smaller_locked_amount(
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     ).transact()
 
     balance_A = custom_token.functions.balanceOf(A).call()
@@ -220,7 +220,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         secret_registry_contract,
         create_settled_channel,
         get_accounts,
-        reveal_secrets
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -230,7 +230,7 @@ def test_channel_unlock_bigger_unlocked_amount(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
     unlocked_amount = get_unlocked_amount(
         secret_registry_contract,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     )
     assert unlocked_amount < pending_transfers_tree_A.locked_amount
 
@@ -242,7 +242,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -256,7 +256,7 @@ def test_channel_unlock_bigger_unlocked_amount(
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_A.packed_transfers
+        pending_transfers_tree_A.packed_transfers,
     ).transact()
 
     balance_A = custom_token.functions.balanceOf(A).call()
@@ -276,7 +276,7 @@ def test_channel_unlock(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
-        event_handler
+        event_handler,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -307,7 +307,7 @@ def test_channel_unlock(
     for lock in pending_transfers_tree.unlockable:
         secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2]
+            lock[2],
         ).call() == web3.eth.blockNumber
 
     close_and_update_channel(
@@ -333,12 +333,12 @@ def test_channel_unlock(
     txn_hash = token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree.packed_transfers
+        pending_transfers_tree.packed_transfers,
     ).transact()
 
     unlocked_amount = get_unlocked_amount(
         secret_registry_contract,
-        pending_transfers_tree.packed_transfers
+        pending_transfers_tree.packed_transfers,
     )
 
     balance_A = custom_token.functions.balanceOf(A).call()
@@ -353,7 +353,7 @@ def test_channel_unlock(
         channel_identifier,
         A,
         unlocked_amount,
-        values_B.locked - unlocked_amount
+        values_B.locked - unlocked_amount,
     ))
     ev_handler.check()
 
@@ -382,12 +382,12 @@ def test_channel_settle_and_unlock(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_1.packed_transfers
+        pending_transfers_tree_1.packed_transfers,
     ).transact({'from': A})
     # Mock pending transfers data for a reopened channel
     pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -400,13 +400,13 @@ def test_channel_settle_and_unlock(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
     # 2nd unlocks should go through
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_2.packed_transfers
+        pending_transfers_tree_2.packed_transfers,
     ).transact({'from': A})
 
     # Edge channel life-cycle: open -> settle -> open -> settle ->  unlock1 -> unlock2
@@ -423,7 +423,7 @@ def test_channel_settle_and_unlock(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
     # Mock pending transfers data for a reopened channel
     pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -436,16 +436,16 @@ def test_channel_settle_and_unlock(
         B,
         0,
         EMPTY_MERKLE_ROOT,
-        settle_timeout
+        settle_timeout,
     )
     # Both old and new unlocks should go through
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_2.packed_transfers
+        pending_transfers_tree_2.packed_transfers,
     ).transact({'from': A})
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_1.packed_transfers
+        pending_transfers_tree_1.packed_transfers,
     ).transact({'from': A})

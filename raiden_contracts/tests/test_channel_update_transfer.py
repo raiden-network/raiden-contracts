@@ -15,7 +15,7 @@ def test_update_call(
         create_channel,
         channel_deposit,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -25,14 +25,14 @@ def test_update_call(
         fake_bytes(32),
         0,
         fake_bytes(32),
-        fake_bytes(64)
+        fake_bytes(64),
     ).transact({'from': A})
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
     (balance_hash, nonce, additional_hash, closing_signature) = balance_proof_A
 
@@ -41,21 +41,21 @@ def test_update_call(
             empty_address,
             B,
             *balance_proof_A,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             A,
             empty_address,
             *balance_proof_A,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             A,
             B,
             *balance_proof_A,
-            fake_bytes(64)
+            fake_bytes(64),
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -65,7 +65,7 @@ def test_update_call(
             nonce,
             additional_hash,
             closing_signature,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -75,7 +75,7 @@ def test_update_call(
             0,
             additional_hash,
             closing_signature,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -85,7 +85,7 @@ def test_update_call(
             nonce,
             additional_hash,
             fake_bytes(64),
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
 
 
@@ -93,7 +93,7 @@ def test_update_nonexistent_fail(
         get_accounts,
         token_network,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B, C) = get_accounts(3)
 
@@ -107,7 +107,7 @@ def test_update_nonexistent_fail(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     with pytest.raises(TransactionFailed):
@@ -115,7 +115,7 @@ def test_update_nonexistent_fail(
             A,
             B,
             *balance_proof_A,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
 
 
@@ -125,7 +125,7 @@ def test_update_notclosed_fail(
         create_channel,
         channel_deposit,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -135,7 +135,7 @@ def test_update_notclosed_fail(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
@@ -147,7 +147,7 @@ def test_update_notclosed_fail(
             A,
             B,
             *balance_proof_A,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
 
 
@@ -158,7 +158,7 @@ def test_update_wrong_nonce_fail(
         get_accounts,
         create_balance_proof,
         create_balance_proof_update_signature,
-        updateBalanceProof_state_tests
+        updateBalanceProof_state_tests,
 ):
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
@@ -170,7 +170,7 @@ def test_update_wrong_nonce_fail(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
     txn_hash1 = token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
 
@@ -178,7 +178,7 @@ def test_update_wrong_nonce_fail(
         A,
         B,
         *balance_proof_A,
-        balance_proof_update_signature_B
+        balance_proof_update_signature_B,
     ).transact({'from': Delegate})
 
     balance_proof_A_same_nonce = balance_proof_A
@@ -187,7 +187,7 @@ def test_update_wrong_nonce_fail(
             A,
             B,
             *balance_proof_A_same_nonce,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': Delegate})
 
     balance_proof_A_lower_nonce = create_balance_proof(
@@ -196,26 +196,26 @@ def test_update_wrong_nonce_fail(
         10,
         0,
         4,
-        fake_bytes(32, '02')
+        fake_bytes(32, '02'),
     )
 
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A_lower_nonce
+        *balance_proof_A_lower_nonce,
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             A,
             B,
             *balance_proof_A_lower_nonce,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': A})
     updateBalanceProof_state_tests(
         A, balance_proof_A,
         B, balance_proof_B,
         settle_timeout,
-        txn_hash1
+        txn_hash1,
     )
 
 
@@ -225,7 +225,7 @@ def test_update_wrong_signatures(
         channel_deposit,
         get_accounts,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -239,18 +239,18 @@ def test_update_wrong_signatures(
         0,
         5,
         fake_bytes(32, '02'),
-        signer=C
+        signer=C,
     )
 
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
     balance_proof_update_signature_B_fake = create_balance_proof_update_signature(
         C,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     with pytest.raises(TransactionFailed):
@@ -258,14 +258,14 @@ def test_update_wrong_signatures(
             A,
             B,
             *balance_proof_A_fake,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             A,
             B,
             *balance_proof_A,
-            balance_proof_update_signature_B_fake
+            balance_proof_update_signature_B_fake,
         ).transact({'from': C})
 
 
@@ -276,7 +276,7 @@ def test_update_channel_state(
         get_accounts,
         create_balance_proof,
         create_balance_proof_update_signature,
-        updateBalanceProof_state_tests
+        updateBalanceProof_state_tests,
 ):
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
@@ -288,7 +288,7 @@ def test_update_channel_state(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     txn_hash1 = token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
@@ -297,14 +297,14 @@ def test_update_channel_state(
         A,
         B,
         *balance_proof_A,
-        balance_proof_update_signature_B
+        balance_proof_update_signature_B,
     ).transact({'from': Delegate})
 
     updateBalanceProof_state_tests(
         A, balance_proof_A,
         B, balance_proof_B,
         settle_timeout,
-        txn_hash1
+        txn_hash1,
     )
 
 
@@ -313,7 +313,7 @@ def test_update_channel_fail_no_offchain_transfers(
         token_network,
         create_channel,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B) = get_accounts(2)
 
@@ -322,7 +322,7 @@ def test_update_channel_fail_no_offchain_transfers(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     token_network.functions.closeChannel(
@@ -330,7 +330,7 @@ def test_update_channel_fail_no_offchain_transfers(
         fake_bytes(32),
         0,
         fake_bytes(32),
-        fake_bytes(64)
+        fake_bytes(64),
     ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
@@ -341,7 +341,7 @@ def test_update_channel_fail_no_offchain_transfers(
             0,
             fake_bytes(32),
             fake_bytes(64),
-            fake_bytes(64)
+            fake_bytes(64),
         ).transact({'from': B})
 
     with pytest.raises(TransactionFailed):
@@ -349,7 +349,7 @@ def test_update_channel_fail_no_offchain_transfers(
             A,
             B,
             *balance_proof_A,
-            balance_proof_update_signature_B
+            balance_proof_update_signature_B,
         ).transact({'from': B})
 
 
@@ -360,7 +360,7 @@ def test_update_channel_event(
         channel_deposit,
         create_balance_proof,
         create_balance_proof_update_signature,
-        event_handler
+        event_handler,
 ):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
@@ -375,7 +375,7 @@ def test_update_channel_event(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
@@ -383,12 +383,12 @@ def test_update_channel_event(
         A,
         B,
         *balance_proof_A,
-        balance_proof_update_signature_B
+        balance_proof_update_signature_B,
     ).transact({'from': B})
 
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
-        check_transfer_updated(channel_identifier, A)
+        check_transfer_updated(channel_identifier, A),
     )
     ev_handler.check()

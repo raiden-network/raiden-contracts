@@ -17,7 +17,7 @@ def contract_deployer_address(faucet_address) -> str:
     """Reimplement this - fixture should return an address of the account
     that has enough eth to deploy the contracts."""
     raise NotImplementedError(
-        'Address of a deployer account must be overriden.'
+        'Address of a deployer account must be overriden.',
     )
 
 
@@ -28,7 +28,7 @@ def deploy_tester_contract(
         deploy_contract,
         contract_deployer_address,
         wait_for_transaction,
-        get_random_address
+        get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
     using conract manager to compile the bytecode and get the ABI"""
@@ -42,7 +42,7 @@ def deploy_tester_contract(
             contract_deployer_address,
             json_contract['abi'],
             json_contract['bin'],
-            args
+            args,
         )
         return contract
     return f
@@ -55,7 +55,7 @@ def deploy_tester_contract_txhash(
         deploy_contract_txhash,
         contract_deployer_address,
         wait_for_transaction,
-        get_random_address
+        get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
     but returning txhash only"""
@@ -69,7 +69,7 @@ def deploy_tester_contract_txhash(
             contract_deployer_address,
             json_contract['abi'],
             json_contract['bin'],
-            args
+            args,
         )
         return txhash
     return f
@@ -88,11 +88,11 @@ def standard_token_network_contract(
         wait_for_transaction,
         token_network_registry_contract,
         standard_token_contract,
-        contract_deployer_address
+        contract_deployer_address,
 ):
     """Return instance of a deployed TokenNetwork for HumanStandardToken."""
     txid = token_network_registry_contract.functions.createERC20TokenNetwork(
-        standard_token_contract.address
+        standard_token_contract.address,
     ).transact({'from': contract_deployer_address})
     tx_receipt = wait_for_transaction(txid)
     assert len(tx_receipt['logs']) == 1

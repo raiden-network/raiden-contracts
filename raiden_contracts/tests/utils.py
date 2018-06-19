@@ -18,7 +18,7 @@ PendingTransfersTree = namedtuple('PendingTransfersTree', [
     'packed_transfers',
     'merkle_tree',
     'merkle_root',
-    'locked_amount'
+    'locked_amount',
 ])
 
 SettlementValues = namedtuple('SettlementValues', [
@@ -37,7 +37,7 @@ class ChannelValues():
             transferred=0,
             locked=0,
             locksroot=b'',
-            additional_hash=b''
+            additional_hash=b'',
     ):
         self.deposit = deposit
         self.withdrawn = withdrawn
@@ -68,7 +68,7 @@ def get_pending_transfers(
         unlockable_amounts,
         expired_amounts,
         min_expiration_delta,
-        max_expiration_delta
+        max_expiration_delta,
 ):
     current_block = web3.eth.blockNumber
     min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
@@ -77,7 +77,7 @@ def get_pending_transfers(
         [
             current_block + random.randint(min_expiration_delta, max_expiration_delta),
             amount,
-            *random_secret()
+            *random_secret(),
         ]
         for amount in unlockable_amounts
     ]
@@ -93,7 +93,7 @@ def get_pending_transfers_tree(
         unlockable_amounts=None,
         expired_amounts=None,
         min_expiration_delta=None,
-        max_expiration_delta=None
+        max_expiration_delta=None,
 ):
     types = ['uint256', 'uint256', 'bytes32']
 
@@ -108,7 +108,7 @@ def get_pending_transfers_tree(
         unlockable_amounts,
         expired_amounts,
         min_expiration_delta,
-        max_expiration_delta
+        max_expiration_delta,
     )
 
     pending_transfers = unlockable_locks + expired_locks
@@ -120,7 +120,7 @@ def get_pending_transfers_tree(
 
     hashed_pending_transfers, pending_transfers = zip(*sorted(zip(
         hashed_pending_transfers,
-        pending_transfers
+        pending_transfers,
     )))
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
@@ -136,7 +136,7 @@ def get_pending_transfers_tree(
         packed_transfers=packed_transfers,
         merkle_tree=merkle_tree,
         merkle_root=merkle_root,
-        locked_amount=locked_amount
+        locked_amount=locked_amount,
     )
 
 
@@ -147,7 +147,7 @@ def get_packed_transfers(pending_transfers, types):
 
 def get_settlement_amounts(
         participant1,
-        participant2
+        participant2,
 ):
     """ Settlement algorithm
 
@@ -164,11 +164,11 @@ def get_settlement_amounts(
     )
     participant1_max_transferred = min(
         participant1.transferred + participant1.locked,
-        MAX_UINT256
+        MAX_UINT256,
     )
     participant2_max_transferred = min(
         participant2.transferred + participant2.locked,
-        MAX_UINT256
+        MAX_UINT256,
     )
     participant1_max_amount_receivable = (
         participant1.deposit +
@@ -180,7 +180,7 @@ def get_settlement_amounts(
     participant1_max_amount_receivable = max(participant1_max_amount_receivable, 0)
     participant1_max_amount_receivable = min(
         participant1_max_amount_receivable,
-        total_available_deposit
+        total_available_deposit,
     )
     participant2_max_amount_receivable = (
         total_available_deposit -
@@ -239,7 +239,7 @@ def failsafe_sub(a, b):
 
 def get_onchain_settlement_amounts(
         participant1,
-        participant2
+        participant2,
 ):
     """ Settlement algorithm
 
@@ -280,12 +280,12 @@ def get_onchain_settlement_amounts(
 
     (participant1_amount, participant2_locked_amount) = failsafe_sub(
         participant1_max_amount,
-        participant2.locked
+        participant2.locked,
     )
 
     (participant2_amount, participant1_locked_amount) = failsafe_sub(
         participant2_max_amount,
-        participant1.locked
+        participant1.locked,
     )
 
     assert total_available_deposit == (

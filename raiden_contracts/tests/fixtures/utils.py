@@ -25,7 +25,7 @@ def create_accounts(web3):
             web3.eth.sendTransaction({
                 'from': web3.eth.accounts[0],
                 'to': new_account,
-                'value': amount
+                'value': amount,
             })
             web3.personal.unlockAccount(new_account, passphrase)
             new_accounts.append(new_account)
@@ -42,7 +42,7 @@ def create_account(web3, faucet_address, ethereum_tester, get_random_privkey):
         web3.eth.sendTransaction({
             'from': faucet_address,
             'to': address,
-            'value': 1 * denoms.ether
+            'value': 1 * denoms.ether,
         })
         return address
     return get
@@ -66,7 +66,7 @@ def get_private_key(web3, ethereum_tester):
             key.to_hex() for key in ethereum_tester.backend.account_keys
             if is_same_address(
                 key.public_key.to_address(),
-                account_address
+                account_address,
             )
         ]
         assert len(keys) == 1

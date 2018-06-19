@@ -28,7 +28,7 @@ def test_settle_no_bp_success(
         token_network,
         create_channel_and_deposit,
         get_accounts,
-        create_balance_proof
+        create_balance_proof,
 ):
     (A, B) = get_accounts(2)
     deposit_A = 10
@@ -44,7 +44,7 @@ def test_settle_no_bp_success(
         locksroot,
         0,
         additional_hash,
-        fake_bytes(64)
+        fake_bytes(64),
     ).transact({'from': A})
 
     # Do not call updateNonClosingBalanceProof
@@ -61,7 +61,7 @@ def test_settle_no_bp_success(
         B,
         0,
         0,
-        locksroot
+        locksroot,
     ).transact({'from': A})
 
 
@@ -75,7 +75,7 @@ def test_settle_channel_state(
         withdraw_channel,
         close_and_update_channel,
         settle_state_tests,
-        channel_test_values
+        channel_test_values,
 ):
     number_of_channels = 5
     accounts = get_accounts(2 * number_of_channels)
@@ -88,7 +88,7 @@ def test_settle_channel_state(
         new_balance_proof = deepcopy(balance_proof)
         new_balance_proof.locked = randint(
             balance_proof.locked,
-            balance_proof.transferred + balance_proof.locked
+            balance_proof.transferred + balance_proof.locked,
         )
         new_balance_proof.transferred = (
             balance_proof.transferred +
@@ -112,10 +112,10 @@ def test_settle_channel_state(
         sorted(
             [
                 equivalent_transfers(vals_A0),
-                equivalent_transfers(vals_B0)
+                equivalent_transfers(vals_B0),
             ],
             key=lambda x: x.transferred + x.locked,
-            reverse=False
+            reverse=False,
         ) for no in range(0, number_of_channels - 1)
     ]
 
@@ -160,7 +160,7 @@ def test_settle_channel_state(
             vals_B,
             pre_balance_A,
             pre_balance_B,
-            pre_balance_contract
+            pre_balance_contract,
         )
 
         # We compute again the settlement amounts here to compare with the other channel
@@ -201,7 +201,7 @@ def test_settle_channel_event(
         channel_deposit,
         create_balance_proof,
         create_balance_proof_update_signature,
-        event_handler
+        event_handler,
 ):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
@@ -217,14 +217,14 @@ def test_settle_channel_event(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
     token_network.functions.updateNonClosingBalanceProof(
         A, B,
         *balance_proof_A,
-        balance_proof_update_signature_B
+        balance_proof_update_signature_B,
     ).transact({'from': B})
 
     web3.testing.mine(settle_timeout)
@@ -242,6 +242,6 @@ def test_settle_channel_event(
     ev_handler.add(txn_hash, EVENT_CHANNEL_SETTLED, check_channel_settled(
         channel_identifier,
         5,
-        5
+        5,
     ))
     ev_handler.check()

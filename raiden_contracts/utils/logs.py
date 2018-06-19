@@ -28,7 +28,7 @@ class LogHandler:
                 self.abi,
                 self.address,
                 event_name,
-                callback=self.handle_log
+                callback=self.handle_log,
             )
 
         self.event_waiting[event_name][txn_hash] = [message, callback]
@@ -105,7 +105,7 @@ class LogFilter:
         filter_kwargs = {
             'fromBlock': from_block,
             'toBlock': to_block,
-            'address': address
+            'address': address,
         }
 
         event_abi = [i for i in abi if i['type'] == 'event' and i['name'] == event_name]
@@ -120,7 +120,7 @@ class LogFilter:
         data_filter_set, filter_params = construct_event_filter_params(
             self.event_abi,
             argument_filters=filters,
-            **filter_kwargs
+            **filter_kwargs,
         )
         log_data_extract_fn = functools.partial(get_event_data, event_abi)
 
