@@ -10,16 +10,178 @@ contract TokenNetworkInternalsTest is TokenNetwork {
 
     }
 
-    function get_max_safe_uint256() pure public returns (uint256) {
-        return uint256(0 - 1);
+    function updateBalanceProofDataPublic(
+        bytes32 channel_identifier,
+        address participant,
+        uint256 nonce,
+        bytes32 balance_hash
+    )
+        public
+    {
+        Channel storage channel = channels[channel_identifier];
+        return updateBalanceProofData(
+            channel,
+            participant,
+            nonce,
+            balance_hash
+        );
     }
 
-    function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree)
+    function updateUnlockDataPublic(
+        bytes32 channel_identifier,
+        uint256 locked_amount,
+        bytes32 locksroot
+    )
+        public
+    {
+       return updateUnlockData(
+            channel_identifier,
+            locked_amount,
+            locksroot
+        );
+    }
+
+    function getMaxPossibleReceivableAmountPublic(
+        address participant1,
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        address participant2,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount
+    )
         view
         public
-        returns (bytes32, uint256)
+        returns (uint256)
     {
-        return getMerkleRootAndUnlockedAmount(merkle_tree);
+
+        bytes32 channel_identifier;
+
+        channel_identifier = getChannelIdentifier(participant1, participant2);
+        Channel storage channel = channels[channel_identifier];
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
+        SettlementData memory participant1_settlement;
+        SettlementData memory participant2_settlement;
+
+        participant1_settlement.deposit = participant1_state.deposit;
+        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
+        participant1_settlement.transferred = participant1_transferred_amount;
+        participant1_settlement.locked = participant1_locked_amount;
+
+        participant2_settlement.deposit = participant2_state.deposit;
+        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
+        participant2_settlement.transferred = participant2_transferred_amount;
+        participant2_settlement.locked = participant2_locked_amount;
+        return getMaxPossibleReceivableAmount(
+            participant1_settlement,
+            participant2_settlement
+        );
+    }
+
+    function verifyBalanceHashDataPublic(
+        address to_verify,
+        address partner,
+        uint256 transferred_amount,
+        uint256 locked_amount,
+        bytes32 locksroot
+    )
+        view
+        public
+        returns (bool)
+    {
+        bytes32 channel_identifier;
+        channel_identifier = getChannelIdentifier(to_verify, partner);
+        Channel storage channel = channels[channel_identifier];
+        Participant storage to_verify_state = channel.participants[to_verify];
+        return verifyBalanceHashData(
+            to_verify_state,
+            transferred_amount,
+            locked_amount,
+            locksroot
+        );
+    }
+
+    function getChannelAvailableDepositPublic(
+        address participant1,
+        address participant2
+    )
+        view
+        public
+        returns (uint256 total_available_deposit)
+    {
+        bytes32 channel_identifier = getChannelIdentifier(participant1,
+        participant2);
+        Channel storage channel = channels[channel_identifier];
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
+        return getChannelAvailableDeposit(
+           participant1_state,
+           participant2_state
+        );
+    }
+
+    function recoverAddressFromBalanceProofPublic(
+        bytes32 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes signature
+    )
+        view
+        public
+        returns (address signature_address)
+    {
+        return recoverAddressFromBalanceProof(
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            signature
+        );
+    }
+
+    function recoverAddressFromBalanceProofUpdateMessagePublic(
+        bytes32 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes closing_signature,
+        bytes non_closing_signature
+    )
+        view
+        public
+        returns (address signature_address)
+    {
+        return recoverAddressFromBalanceProofUpdateMessage(
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature,
+            non_closing_signature
+        );
+    }
+
+    function recoverAddressFromCooperativeSettleSignaturePublic(
+        bytes32 channel_identifier,
+        address participant1,
+        uint256 participant1_balance,
+        address participant2,
+        uint256 participant2_balance,
+        bytes signature
+    )
+        view
+        public
+        returns (address signature_address)
+    {
+        return recoverAddressFromCooperativeSettleSignature(
+            channel_identifier,
+            participant1,
+            participant1_balance,
+            participant2,
+            participant2_balance,
+            signature
+        );
     }
 
     function recoverAddressFromWithdrawMessagePublic(
@@ -38,5 +200,66 @@ contract TokenNetworkInternalsTest is TokenNetwork {
             amount_to_withdraw,
             signature
         );
+    }
+
+    function verifyWithdrawSignaturesPublic(
+        bytes32 channel_identifier,
+        address participant,
+        address partner,
+        uint256 total_withdraw,
+        bytes participant_signature,
+        bytes partner_signature
+    )
+        view
+        public
+    {
+        return verifyWithdrawSignatures(
+            channel_identifier,
+            participant,
+            partner,
+            total_withdraw,
+            participant_signature,
+            partner_signature
+        );
+    }
+
+    function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree_leaves)
+        view
+        public
+        returns (bytes32, uint256)
+    {
+        return getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
+    }
+
+    function getLockDataFromMerkleTreePublic(bytes merkle_tree_leaves, uint256 offset)
+        view
+        public
+        returns (bytes32, uint256)
+    {
+        return getLockDataFromMerkleTree(merkle_tree_leaves, offset);
+    }
+
+    function minPublic(uint256 a, uint256 b) view public returns (uint256)
+    {
+        return min(a,b);
+    }
+
+    function maxPublic(uint256 a, uint256 b) view public returns (uint256)
+    {
+        return max(a,b);
+    }
+
+    function failsafe_subtractPublic(uint256 a, uint256 b) view public returns (uint256, uint256)
+    {
+        return failsafe_subtract(a,b);
+    }
+
+    function failsafe_additionPublic(uint256 a, uint256 b) view public returns (uint256)
+    {
+        return failsafe_addition(a, b);
+    }
+
+    function get_max_safe_uint256() pure public returns (uint256) {
+        return uint256(0 - 1);
     }
 }
