@@ -58,7 +58,7 @@ def test_max(token_network_test):
 def test_verifyWithdrawSignatures(
         token_network_test,
         create_withdraw_signatures,
-        get_accounts
+        get_accounts,
 ):
 
     (A, B) = get_accounts(2)
@@ -69,7 +69,7 @@ def test_verifyWithdrawSignatures(
         channel_identifier,
         A,
         1,
-        token_network_test.address
+        token_network_test.address,
     )
     token_network_test.functions.verifyWithdrawSignaturesPublic(
         channel_identifier,
@@ -77,7 +77,7 @@ def test_verifyWithdrawSignatures(
         B,
         1,
         signature_A,
-        signature_B
+        signature_B,
     ).call()
 
     with pytest.raises(TransactionFailed):
@@ -87,7 +87,7 @@ def test_verifyWithdrawSignatures(
             B,
             3,
             signature_B,
-            signature_A
+            signature_A,
         ).call()
     with pytest.raises(TransactionFailed):
         token_network_test.functions.verifyWithdrawSignaturesPublic(
@@ -96,7 +96,7 @@ def test_verifyWithdrawSignatures(
             B,
             3,
             signature_A,
-            fake_signature
+            fake_signature,
         ).call()
     with pytest.raises(TransactionFailed):
         token_network_test.functions.verifyWithdrawSignaturesPublic(
@@ -105,7 +105,7 @@ def test_verifyWithdrawSignatures(
             B,
             3,
             fake_signature,
-            signature_B
+            signature_B,
         ).call()
 
 
@@ -113,7 +113,7 @@ def test_recoverAddressFromWithdrawMessage(
         token_network_test,
         create_withdraw_signatures,
         create_channel_and_deposit,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     fake_signature = fake_bytes(64)
@@ -126,14 +126,14 @@ def test_recoverAddressFromWithdrawMessage(
         channel_identifier,
         A,
         withdraw_A,
-        token_network_test.address
+        token_network_test.address,
     )
 
     recovered_address_A = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
         channel_identifier,
         A,
         withdraw_A,
-        signature_A
+        signature_A,
     ).call()
     assert recovered_address_A == A
 
@@ -141,7 +141,7 @@ def test_recoverAddressFromWithdrawMessage(
         channel_identifier,
         A,
         withdraw_A,
-        signature_B
+        signature_B,
     ).call()
     assert recovered_address_B == B
 
@@ -150,14 +150,14 @@ def test_recoverAddressFromWithdrawMessage(
             channel_identifier,
             A,
             withdraw_A,
-            fake_signature
+            fake_signature,
         ).call()
 
     wrong_participant = token_network_test.functions.recoverAddressFromWithdrawMessagePublic(
         channel_identifier,
         B,
         withdraw_A,
-        signature_A
+        signature_A,
     ).call()
     assert recovered_address_A != wrong_participant
 
@@ -165,7 +165,7 @@ def test_recoverAddressFromWithdrawMessage(
         channel_identifier,
         A,
         1,
-        signature_A
+        signature_A,
     ).call()
 
     assert recovered_address_A != wrong_withdraw_value
@@ -174,7 +174,7 @@ def test_recoverAddressFromWithdrawMessage(
         channel_identifier,
         A,
         withdraw_A,
-        signature_B
+        signature_B,
     ).call()
 
     assert recovered_address_A != wrong_signature
@@ -183,7 +183,7 @@ def test_recoverAddressFromWithdrawMessage(
 def test_recoverAddressFromBalanceProof(
         token_network_test,
         create_balance_proof,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
 
@@ -191,7 +191,7 @@ def test_recoverAddressFromBalanceProof(
     balance_proof = create_balance_proof(
         channel_identifier,
         A,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
 
     balance_proof_wrong_token_network = create_balance_proof(
@@ -199,30 +199,30 @@ def test_recoverAddressFromBalanceProof(
         A,
     )
 
-    balance_proof_wrong_signer = create_balance_proof(
+    balance_proof_other_signer = create_balance_proof(
         channel_identifier,
         A,
         signer=B,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
 
     assert A == token_network_test.functions.recoverAddressFromBalanceProofPublic(
         channel_identifier, *balance_proof).call()
 
-    assert A != token_network_test.functions.recoverAddressFromBalanceProofPublic(
-        channel_identifier, *balance_proof_wrong_token_network).call()
-
     assert B == token_network_test.functions.recoverAddressFromBalanceProofPublic(
         channel_identifier,
-        *balance_proof_wrong_signer
+        *balance_proof_other_signer,
     ).call()
+
+    assert A != token_network_test.functions.recoverAddressFromBalanceProofPublic(
+        channel_identifier, *balance_proof_wrong_token_network).call()
 
 
 def test_recoverAddressFromBalanceProofUpdate(
         token_network_test,
         create_balance_proof,
         create_balance_proof_update_signature,
-        get_accounts
+        get_accounts,
 ):
 
     (A, B) = get_accounts(2)
@@ -231,13 +231,13 @@ def test_recoverAddressFromBalanceProofUpdate(
     balance_proof = create_balance_proof(
         channel_identifier,
         A,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
     balance_proof_update_signature = create_balance_proof_update_signature(
         B,
         channel_identifier,
         *balance_proof,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
 
     balance_proof_update_signature_wrong_token_network = create_balance_proof_update_signature(
@@ -249,7 +249,7 @@ def test_recoverAddressFromBalanceProofUpdate(
     balance_proof_signed_B = create_balance_proof(
         channel_identifier,
         B,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
     balance_proof_update_signature_wrong_signer = create_balance_proof_update_signature(
         B,
@@ -263,20 +263,20 @@ def test_recoverAddressFromBalanceProofUpdate(
     assert B != token_network_test.functions.recoverAddressFromBalanceProofUpdateMessagePublic(
         channel_identifier,
         *balance_proof,
-        balance_proof_update_signature_wrong_token_network
+        balance_proof_update_signature_wrong_token_network,
     ).call()
 
     assert B != token_network_test.functions.recoverAddressFromBalanceProofUpdateMessagePublic(
         channel_identifier,
         *balance_proof,
-        balance_proof_update_signature_wrong_signer
+        balance_proof_update_signature_wrong_signer,
     ).call()
 
 
 def test_recoverAddressFromCooperativeSettleSignature(
         token_network_test,
         create_cooperative_settle_signatures,
-        get_accounts
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     channel_identifier = fake_bytes(32)
@@ -289,7 +289,7 @@ def test_recoverAddressFromCooperativeSettleSignature(
         0,
         B,
         0,
-        other_token_network=token_network_test
+        other_token_network=token_network_test,
     )
     assert A == token_network_test.functions.recoverAddressFromCooperativeSettleSignaturePublic(
         channel_identifier,
@@ -297,7 +297,7 @@ def test_recoverAddressFromCooperativeSettleSignature(
         0,
         B,
         0,
-        signature_A
+        signature_A,
     ).call()
 
     assert B == token_network_test.functions.recoverAddressFromCooperativeSettleSignaturePublic(
@@ -306,7 +306,7 @@ def test_recoverAddressFromCooperativeSettleSignature(
         0,
         B,
         0,
-        signature_B
+        signature_B,
     ).call()
 
     assert B != token_network_test.functions.recoverAddressFromCooperativeSettleSignaturePublic(
@@ -315,7 +315,7 @@ def test_recoverAddressFromCooperativeSettleSignature(
         0,
         B,
         0,
-        signature_A
+        signature_A,
     ).call()
 
     assert A != token_network_test.functions.recoverAddressFromCooperativeSettleSignaturePublic(
@@ -324,7 +324,7 @@ def test_recoverAddressFromCooperativeSettleSignature(
         0,
         B,
         0,
-        signature_B
+        signature_B,
     ).call()
 
     with pytest.raises(TransactionFailed):
@@ -334,5 +334,5 @@ def test_recoverAddressFromCooperativeSettleSignature(
             0,
             B,
             0,
-            fake_signature
+            fake_signature,
         ).call()
