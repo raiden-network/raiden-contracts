@@ -57,7 +57,7 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
     assert (secret_registry_contract.functions.secrethash_to_block(secrethash).call()
             == get_block(txn_hash))
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-        secrethash
+        secrethash,
     ).call() == get_block(txn_hash)
 
     # A should be able to register any number of secrets

@@ -19,7 +19,7 @@ def test_constructor_call(
         web3,
         get_token_network_registry,
         secret_registry_contract,
-        get_accounts
+        get_accounts,
 ):
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
@@ -62,7 +62,7 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
 def test_create_erc20_token_network_call(
         token_network_registry_contract,
         custom_token,
-        get_accounts
+        get_accounts,
 ):
     A = get_accounts(1)[0]
     fake_token_contract = token_network_registry_contract.address
@@ -83,11 +83,11 @@ def test_create_erc20_token_network_call(
         token_network_registry_contract.functions.createERC20TokenNetwork(A).transact()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            fake_token_contract
+            fake_token_contract,
         ).transact()
 
     token_network_registry_contract.functions.createERC20TokenNetwork(
-        custom_token.address
+        custom_token.address,
     ).transact()
 
 
@@ -95,7 +95,7 @@ def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
         custom_token,
-        get_accounts
+        get_accounts,
 ):
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address).call() == empty_address
@@ -113,7 +113,7 @@ def test_events(
         register_token_network,
         token_network_registry_contract,
         custom_token,
-        event_handler
+        event_handler,
 ):
     ev_handler = event_handler(token_network_registry_contract)
 
@@ -122,6 +122,6 @@ def test_events(
     ev_handler.add(
         None,
         EVENT_TOKEN_NETWORK_CREATED,
-        check_token_network_created(custom_token.address, new_token_network.address)
+        check_token_network_created(custom_token.address, new_token_network.address),
     )
     ev_handler.check()

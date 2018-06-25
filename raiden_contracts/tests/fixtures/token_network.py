@@ -15,7 +15,7 @@ def get_token_network(web3, deploy_tester_contract):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK,
             {},
-            arguments
+            arguments,
         )
     return get
 
@@ -25,13 +25,13 @@ def register_token_network(
     owner,
     web3,
     token_network_registry_contract,
-    contracts_manager
+    contracts_manager,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
     def get(token_address):
         tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
-            token_address
+            token_address,
         ).transact({'from': owner})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
@@ -42,7 +42,7 @@ def register_token_network(
         contract_address = event_data['args']['token_network_address']
         contract = web3.eth.contract(
             abi=contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK),
-            address=contract_address
+            address=contract_address,
         )
         return contract
     return get
@@ -61,16 +61,16 @@ def token_network(
 def token_network_contract(
         deploy_tester_contract,
         secret_registry_contract,
-        standard_token_contract
+        standard_token_contract,
 ):
     network_id = int(secret_registry_contract.web3.version.network)
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
         {
             'Token': standard_token_contract.address.encode(),
-            CONTRACT_SECRET_REGISTRY: secret_registry_contract.address.encode()
+            CONTRACT_SECRET_REGISTRY: secret_registry_contract.address.encode(),
         },
-        [standard_token_contract.address, secret_registry_contract.address, network_id]
+        [standard_token_contract.address, secret_registry_contract.address, network_id],
     )
 
 
@@ -79,5 +79,5 @@ def token_network_external(web3, get_token_network, custom_token, secret_registr
     return get_token_network([
         custom_token.address,
         secret_registry_contract.address,
-        int(web3.version.network)
+        int(web3.version.network),
     ])

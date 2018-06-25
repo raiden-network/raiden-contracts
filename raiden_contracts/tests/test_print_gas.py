@@ -12,12 +12,12 @@ def test_token_network_registry(
         deploy_tester_contract_txhash,
         secret_registry_contract,
         custom_token,
-        print_gas
+        print_gas,
 ):
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
-        [secret_registry_contract.address, int(web3.version.network)]
+        [secret_registry_contract.address, int(web3.version.network)],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
@@ -30,12 +30,12 @@ def test_token_network_deployment(
         print_gas,
         custom_token,
         secret_registry_contract,
-        deploy_tester_contract_txhash
+        deploy_tester_contract_txhash,
 ):
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
         [],
-        [custom_token.address, secret_registry_contract.address, int(web3.version.network)]
+        [custom_token.address, secret_registry_contract.address, int(web3.version.network)],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 
@@ -44,10 +44,10 @@ def test_token_network_create(
         print_gas,
         custom_token,
         secret_registry_contract,
-        token_network_registry_contract
+        token_network_registry_contract,
 ):
     txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
-        custom_token.address
+        custom_token.address,
     ).transact()
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
@@ -68,7 +68,7 @@ def test_channel_cycle(
         get_accounts,
         print_gas,
         create_balance_proof,
-        create_balance_proof_update_signature
+        create_balance_proof_update_signature,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 11
@@ -94,7 +94,7 @@ def test_channel_cycle(
         10,
         locked_amount1,
         5,
-        locksroot1
+        locksroot1,
     )
     balance_proof_B = create_balance_proof(
         channel_identifier,
@@ -102,12 +102,12 @@ def test_channel_cycle(
         5,
         locked_amount2,
         3,
-        locksroot2
+        locksroot2,
     )
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
-        *balance_proof_A
+        *balance_proof_A,
     )
 
     for lock in pending_transfers_tree1.unlockable:
@@ -123,7 +123,7 @@ def test_channel_cycle(
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
         A, B,
         *balance_proof_A,
-        balance_proof_update_signature_B
+        balance_proof_update_signature_B,
     ).transact({'from': B})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
 
@@ -143,19 +143,19 @@ def test_channel_cycle(
     txn_hash = token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree2.packed_transfers
+        pending_transfers_tree2.packed_transfers,
     ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         CONTRACT_TOKEN_NETWORK,
-        len(pending_transfers_tree2.transfers)
+        len(pending_transfers_tree2.transfers),
     ))
 
     txn_hash = token_network.functions.unlock(
         B,
         A,
-        pending_transfers_tree1.packed_transfers
+        pending_transfers_tree1.packed_transfers,
     ).transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         CONTRACT_TOKEN_NETWORK,
-        len(pending_transfers_tree1.transfers)
+        len(pending_transfers_tree1.transfers),
     ))
