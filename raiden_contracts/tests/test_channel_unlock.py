@@ -12,6 +12,99 @@ from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
 
 
+def test_channel_settle_and_unlock(
+        web3,
+        token_network,
+        get_accounts,
+        create_settled_channel,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.merkle_root,
+        B,
+        0,
+        EMPTY_MERKLE_ROOT,
+        settle_timeout,
+    )
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_1.packed_transfers,
+    ).transact({'from': A})
+    # Mock pending transfers data for a reopened channel
+    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_2.unlockable)
+    # Settle the channel again
+    create_settled_channel(
+        A,
+        pending_transfers_tree_2.locked_amount,
+        pending_transfers_tree_2.merkle_root,
+        B,
+        0,
+        EMPTY_MERKLE_ROOT,
+        settle_timeout,
+    )
+    # 2nd unlocks should go through
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_2.packed_transfers,
+    ).transact({'from': A})
+
+    # Edge channel life-cycle: open -> settle -> open -> settle ->  unlock1 -> unlock2
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.merkle_root,
+        B,
+        0,
+        EMPTY_MERKLE_ROOT,
+        settle_timeout,
+    )
+    # Mock pending transfers data for a reopened channel
+    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_2.unlockable)
+    # Settle the channel again
+    create_settled_channel(
+        A,
+        pending_transfers_tree_2.locked_amount,
+        pending_transfers_tree_2.merkle_root,
+        B,
+        0,
+        EMPTY_MERKLE_ROOT,
+        settle_timeout,
+    )
+    # Both old and new unlocks should go through
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_2.packed_transfers,
+    ).transact({'from': A})
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_1.packed_transfers,
+    ).transact({'from': A})
+
+
 def test_merkle_root_0_items(token_network_test):
     (
         locksroot,
@@ -358,94 +451,90 @@ def test_channel_unlock(
     ev_handler.check()
 
 
-def test_channel_settle_and_unlock(
+def test_channel_unlock_before_settlement_fails(
         web3,
+        custom_token,
         token_network,
+        secret_registry_contract,
+        create_channel,
+        channel_deposit,
         get_accounts,
-        create_settled_channel,
-        reveal_secrets,
+        close_and_update_channel,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
-    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
+    values_A = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=30,
+        transferred=40,
+    )
+
+    # Create channel and deposit
+    create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, values_A.deposit, B)
+    channel_deposit(B, values_B.deposit, A)
 
     # Mock pending transfers data
-    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    locksroot_bytes = get_merkle_root(pending_transfers_tree.merkle_tree)
+    values_B.locksroot = '0x' + locksroot_bytes.hex()
+    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
-    # Settle the channel
-    create_settled_channel(
+    # Reveal secrets before settlement window ends
+    for lock in pending_transfers_tree.unlockable:
+        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            lock[2],
+        ).call() == web3.eth.blockNumber
+
+    close_and_update_channel(
         A,
-        pending_transfers_tree_1.locked_amount,
-        pending_transfers_tree_1.merkle_root,
+        values_A,
         B,
-        0,
-        EMPTY_MERKLE_ROOT,
-        settle_timeout,
+        values_B,
     )
+
+    # Unlock fails before settlement window is over and channel is not settled
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            A,
+            B,
+            pending_transfers_tree.packed_transfers,
+        ).transact()
+
+    # Settlement window must be over before settling the channel
+    web3.testing.mine(settle_timeout)
+    # Unlock fails before settle is called
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            A,
+            B,
+            pending_transfers_tree.packed_transfers,
+        ).transact()
+
+    # settle channel
+    call_settle(token_network, A, values_A, B, values_B)
+
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # Unlock works after channel is settled
     token_network.functions.unlock(
         A,
         B,
-        pending_transfers_tree_1.packed_transfers,
-    ).transact({'from': A})
-    # Mock pending transfers data for a reopened channel
-    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_2.unlockable)
-    # Settle the channel again
-    create_settled_channel(
-        A,
-        pending_transfers_tree_2.locked_amount,
-        pending_transfers_tree_2.merkle_root,
-        B,
-        0,
-        EMPTY_MERKLE_ROOT,
-        settle_timeout,
-    )
-    # 2nd unlocks should go through
-    token_network.functions.unlock(
-        A,
-        B,
-        pending_transfers_tree_2.packed_transfers,
-    ).transact({'from': A})
+        pending_transfers_tree.packed_transfers,
+    ).transact()
 
-    # Edge channel life-cycle: open -> settle -> open -> settle ->  unlock1 -> unlock2
-
-    # Mock pending transfers data
-    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_1.unlockable)
-
-    # Settle the channel
-    create_settled_channel(
-        A,
-        pending_transfers_tree_1.locked_amount,
-        pending_transfers_tree_1.merkle_root,
-        B,
-        0,
-        EMPTY_MERKLE_ROOT,
-        settle_timeout,
-    )
-    # Mock pending transfers data for a reopened channel
-    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_2.unlockable)
-    # Settle the channel again
-    create_settled_channel(
-        A,
-        pending_transfers_tree_2.locked_amount,
-        pending_transfers_tree_2.merkle_root,
-        B,
-        0,
-        EMPTY_MERKLE_ROOT,
-        settle_timeout,
-    )
-    # Both old and new unlocks should go through
-    token_network.functions.unlock(
-        A,
-        B,
-        pending_transfers_tree_2.packed_transfers,
-    ).transact({'from': A})
-    token_network.functions.unlock(
-        A,
-        B,
-        pending_transfers_tree_1.packed_transfers,
-    ).transact({'from': A})
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    assert balance_A == pre_balance_A + 9
+    assert balance_B == pre_balance_B + 6
+    assert balance_contract == pre_balance_contract - values_B.locked
