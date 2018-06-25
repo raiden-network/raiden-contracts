@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*-
+import pytest
+from eth_tester.exceptions import TransactionFailed
+
+from raiden_contracts.constants import SETTLE_TIMEOUT_MIN, SETTLE_TIMEOUT_MAX
+from raiden_contracts.tests.fixtures import fake_bytes
+
+
+def test_settle_timeout_inrange(
+        token_network,
+        get_accounts,
+        web3,
+):
+    """ The TokenNetwork constructor must enforce that settle timeout is in
+    the valid range.
+
+    Also asserts that the constants.py and the netting channel contract values
+    are synched.
+    """
+    (A, B) = get_accounts(2)
+
+    small_settle_timeout = SETTLE_TIMEOUT_MIN - 1
+    large_settle_timeout = SETTLE_TIMEOUT_MAX + 1
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.openChannel(A, B, small_settle_timeout).transact()
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.openChannel(A, B, large_settle_timeout).transact()
+
+    token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MIN).transact()
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+
+    assert settle_block_number == SETTLE_TIMEOUT_MIN
+
+    token_network.functions.closeChannel(
+        B,
+        fake_bytes(32),
+        0,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': A})
+    web3.testing.mine(SETTLE_TIMEOUT_MIN)
+    token_network.functions.settleChannel(
+        A,
+        0,
+        0,
+        fake_bytes(32),
+        B,
+        0,
+        0,
+        fake_bytes(32),
+    ).transact({'from': A})
+    token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MAX).transact()
+    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+
+    assert settle_block_number == SETTLE_TIMEOUT_MAX
