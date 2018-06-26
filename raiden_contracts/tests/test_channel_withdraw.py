@@ -6,7 +6,7 @@ from .fixtures.config import empty_address, fake_bytes
 from raiden_contracts.constants import (
     EVENT_CHANNEL_WITHDRAW,
     CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
     CHANNEL_STATE_SETTLED,
     SETTLE_TIMEOUT_MIN,
@@ -148,7 +148,7 @@ def test_withdraw_wrong_state(
 
     create_channel_and_deposit(A, B, 10, 14, SETTLE_TIMEOUT_MIN)
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_OPEN
+    assert state == CHANNEL_STATE_OPENED
 
     # Channel is open, withdraw must work
     withdraw_channel(A, withdraw_A, B)

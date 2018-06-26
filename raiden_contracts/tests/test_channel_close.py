@@ -6,7 +6,7 @@ from raiden_contracts.constants import (
     EVENT_CHANNEL_CLOSED,
     CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_SETTLED,
-    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
 )
 from raiden_contracts.utils.events import check_channel_closed
@@ -45,7 +45,7 @@ def test_close_settled_channel(
     channel_deposit(A, 5, B)
 
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert state == CHANNEL_STATE_OPEN
+    assert state == CHANNEL_STATE_OPENED
 
     token_network.functions.closeChannel(
         B,
@@ -189,7 +189,7 @@ def test_close_channel_state(
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout
-    assert state == CHANNEL_STATE_OPEN
+    assert state == CHANNEL_STATE_OPENED
 
     (
         _, _,
