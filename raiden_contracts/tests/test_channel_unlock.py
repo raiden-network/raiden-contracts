@@ -6,7 +6,7 @@ from .utils import (
     get_pending_transfers_tree,
     get_unlocked_amount,
     get_locked_amount,
-)
+    get_packed_transfers)
 from raiden_contracts.utils.merkle import get_merkle_root, EMPTY_MERKLE_ROOT
 from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
@@ -161,6 +161,52 @@ def test_merkle_root(
 
     assert locksroot == merkle_root
     assert unlocked_amount == 9
+
+
+def test_unlock_fails_with_partial_merkle_proof(
+        web3,
+        token_network,
+        get_accounts,
+        create_settled_channel,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree.locked_amount,
+        pending_transfers_tree.merkle_root,
+        B,
+        0,
+        EMPTY_MERKLE_ROOT,
+        settle_timeout,
+    )
+
+    # Unlock with one leave missing does not work
+    types = ['uint256', 'uint256', 'bytes32']
+    for index in range(len(pending_transfers_tree.transfers)):
+        pending_transfers = list(pending_transfers_tree.transfers)
+        del pending_transfers[index]
+        packed_transfers_tampered = get_packed_transfers(tuple(pending_transfers), types)
+        with pytest.raises(TransactionFailed):
+            token_network.functions.unlock(
+                A,
+                B,
+                packed_transfers_tampered,
+            ).transact({'from': A})
+
+    # Unlock with full merkle tree does work
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree.packed_transfers,
+    ).transact({'from': A})
 
 
 def test_unlock_twice_fails(
