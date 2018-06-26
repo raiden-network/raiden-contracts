@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
     EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
-    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_OPENED,
     CHANNEL_STATE_NONEXISTENT,
 )
 from raiden_contracts.utils.events import check_transfer_updated
@@ -140,7 +140,7 @@ def test_update_notclosed_fail(
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number > 0
-    assert state == CHANNEL_STATE_OPEN
+    assert state == CHANNEL_STATE_OPENED
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(

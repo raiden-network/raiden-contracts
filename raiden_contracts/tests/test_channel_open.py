@@ -5,7 +5,7 @@ from raiden_contracts.constants import (
     SETTLE_TIMEOUT_MIN,
     SETTLE_TIMEOUT_MAX,
     CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_OPENED,
 )
 from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import empty_address, fake_address, fake_bytes
@@ -67,7 +67,7 @@ def test_open_channel_state(token_network, get_accounts):
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout
-    assert state == CHANNEL_STATE_OPEN
+    assert state == CHANNEL_STATE_OPENED
 
     (
         A_deposit,

@@ -5,7 +5,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     SETTLE_TIMEOUT_MIN,
     CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_OPEN,
+    CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
 )
 from raiden_contracts.utils.sign import (
@@ -39,7 +39,7 @@ def create_channel(token_network):
         # Test the channel state on chain
         (channel_identifier, channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(A, B).call()
         assert channel_settle_timeout == settle_timeout
-        assert channel_state == CHANNEL_STATE_OPEN
+        assert channel_state == CHANNEL_STATE_OPENED
 
         return (channel_identifier, txn_hash)
     return get
@@ -425,7 +425,7 @@ def withdraw_state_tests(custom_token, token_network):
     ):
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
         (_, _, state) = token_network.functions.getChannelInfo(participant, partner).call()
-        assert state == CHANNEL_STATE_OPEN
+        assert state == CHANNEL_STATE_OPENED
 
         (
             deposit,
