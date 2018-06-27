@@ -505,7 +505,6 @@ def test_channel_unlock(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
-        event_handler,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -522,7 +521,7 @@ def test_channel_unlock(
     )
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    create_channel(A, B, settle_timeout)[0]
     channel_deposit(A, values_A.deposit, B)
     channel_deposit(B, values_B.deposit, A)
 
@@ -555,7 +554,76 @@ def test_channel_unlock(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    # TODO to be moved to a separate test
+    # Unlock the tokens
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree.packed_transfers,
+    ).transact()
+
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    assert balance_A == pre_balance_A + 9
+    assert balance_B == pre_balance_B + 6
+    assert balance_contract == pre_balance_contract - values_B.locked
+
+
+def test_unlock_channel_event(
+        web3,
+        token_network,
+        secret_registry_contract,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        close_and_update_channel,
+        event_handler,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    values_A = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=30,
+        transferred=40,
+    )
+
+    # Create channel and deposit
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, values_A.deposit, B)
+    channel_deposit(B, values_B.deposit, A)
+
+    # Mock pending transfers data
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4],
+                                                        settle_timeout + 100)
+    locksroot_bytes = get_merkle_root(pending_transfers_tree.merkle_tree)
+    values_B.locksroot = '0x' + locksroot_bytes.hex()
+    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+
+    # Reveal secrets before settlement window ends
+    for lock in pending_transfers_tree.unlockable:
+        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            lock[2],
+        ).call() == web3.eth.blockNumber
+
+    close_and_update_channel(
+        A,
+        values_A,
+        B,
+        values_B,
+    )
+
+    # Settlement window must be over before settling the channel
+    web3.testing.mine(settle_timeout)
+
+    call_settle(token_network, A, values_A, B, values_B)
+
     ev_handler = event_handler(token_network)
 
     # Unlock the tokens
@@ -570,20 +638,15 @@ def test_channel_unlock(
         pending_transfers_tree.packed_transfers,
     )
 
-    balance_A = custom_token.functions.balanceOf(A).call()
-    balance_B = custom_token.functions.balanceOf(B).call()
-    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-    assert balance_A == pre_balance_A + 9
-    assert balance_B == pre_balance_B + 6
-    assert balance_contract == pre_balance_contract - values_B.locked
-
-    # TODO to be moved to a separate test
+    # Add event
     ev_handler.add(txn_hash, EVENT_CHANNEL_UNLOCKED, check_channel_unlocked(
         channel_identifier,
         A,
         unlocked_amount,
         values_B.locked - unlocked_amount,
     ))
+
+    # Check that event was properly emitted
     ev_handler.check()
 
 
@@ -757,4 +820,78 @@ def test_channel_unlock_expired_lock_refunds(
     # check that all tokens have been refunded, as locks have expired already
     assert balance_A == pre_balance_A
     assert balance_B == pre_balance_B + values_B.locked
+    assert balance_contract == pre_balance_contract - values_B.locked
+
+
+def test_channel_unlock_with_a_large_expiration(
+        web3,
+        custom_token,
+        token_network,
+        secret_registry_contract,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        close_and_update_channel,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    values_A = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=30,
+        transferred=40,
+    )
+
+    # Create channel and deposit
+    create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, values_A.deposit, B)
+    channel_deposit(B, values_B.deposit, A)
+
+    # Mock pending transfers data with large expiration date
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4],
+                                                        settle_timeout + 100)
+    locksroot_bytes = get_merkle_root(pending_transfers_tree.merkle_tree)
+    values_B.locksroot = '0x' + locksroot_bytes.hex()
+    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+
+    # Reveal secrets before settlement window ends
+    for lock in pending_transfers_tree.unlockable:
+        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            lock[2],
+        ).call() == web3.eth.blockNumber
+
+    close_and_update_channel(
+        A,
+        values_A,
+        B,
+        values_B,
+    )
+
+    # Settle channel after a "long" time
+    web3.testing.mine(settle_timeout + 1000)
+
+    call_settle(token_network, A, values_A, B, values_B)
+
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # Unlock the tokens must still work
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree.packed_transfers,
+    ).transact()
+
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    assert balance_A == pre_balance_A + 9
+    assert balance_B == pre_balance_B + 6
     assert balance_contract == pre_balance_contract - values_B.locked
