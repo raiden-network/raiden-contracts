@@ -105,6 +105,104 @@ def test_channel_settle_and_unlock(
     ).transact({'from': A})
 
 
+def test_channel_unlock_both_participants(
+        web3,
+        custom_token,
+        token_network,
+        secret_registry_contract,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        close_and_update_channel,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    values_A = ChannelValues(
+        deposit=100,
+        transferred=5,
+    )
+    values_B = ChannelValues(
+        deposit=100,
+        transferred=40,
+    )
+
+    # Create channel and deposit
+    create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, values_A.deposit, B)
+    channel_deposit(B, values_B.deposit, A)
+
+    # Mock pending transfers data for A
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    locksroot_bytes = get_merkle_root(pending_transfers_tree_A.merkle_tree)
+    values_B.locksroot = '0x' + locksroot_bytes.hex()
+    values_B.locked = get_locked_amount(pending_transfers_tree_A.transfers)
+
+    # Reveal A's secrets before settlement window ends
+    for lock in pending_transfers_tree_A.unlockable:
+        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            lock[2],
+        ).call() == web3.eth.blockNumber
+
+    # Mock pending transfers data for B
+    pending_transfers_tree_B = get_pending_transfers_tree(web3, [2, 4, 6], [5, 10], settle_timeout)
+    locksroot_bytes = get_merkle_root(pending_transfers_tree_B.merkle_tree)
+    values_A.locksroot = '0x' + locksroot_bytes.hex()
+    values_A.locked = get_locked_amount(pending_transfers_tree_B.transfers)
+
+    # Reveal B's secrets before settlement window ends
+    for lock in pending_transfers_tree_B.unlockable:
+        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': B})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            lock[2],
+        ).call() == web3.eth.blockNumber
+
+    close_and_update_channel(
+
+        A,
+        values_A,
+        B,
+        values_B,
+    )
+
+    # Settle channel
+    web3.testing.mine(settle_timeout)
+
+    call_settle(token_network, A, values_A, B, values_B)
+
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # A unlock's
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_A.packed_transfers,
+    ).transact()
+
+    # B unlock's
+    token_network.functions.unlock(
+        B,
+        A,
+        pending_transfers_tree_B.packed_transfers,
+    ).transact()
+
+    balance_A = custom_token.functions.balanceOf(A).call()
+    balance_B = custom_token.functions.balanceOf(B).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    unlockable_A = get_locked_amount(pending_transfers_tree_A.unlockable)
+    expired_A = get_locked_amount(pending_transfers_tree_A.expired)
+    unlockable_B = get_locked_amount(pending_transfers_tree_B.unlockable)
+    expired_B = get_locked_amount(pending_transfers_tree_B.expired)
+
+    # check that A and B both received the expected amounts
+    assert balance_contract == pre_balance_contract - values_B.locked - values_A.locked
+    assert balance_A == pre_balance_A + unlockable_A + expired_B
+    assert balance_B == pre_balance_B + unlockable_B + expired_A
+
+
 def test_merkle_root_0_items(token_network_test):
     (
         locksroot,
