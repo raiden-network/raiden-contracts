@@ -158,6 +158,65 @@ def test_close_wrong_sender(
         ).transact({'from': C})
 
 
+def test_close_first_argument_is_for_partner_transfer(
+        token_network,
+        create_channel,
+        get_accounts,
+        create_balance_proof,
+):
+    (A, B) = get_accounts(2)
+
+    # Create channel
+    channel_identifier = create_channel(A, B, settle_timeout=6)[0]
+
+    # Create balance proofs
+    balance_proof = create_balance_proof(
+        channel_identifier,
+        B,
+    )
+
+    # closeChannel fails, if the provided balance proof is from the same participant who closes
+    with pytest.raises(TransactionFailed):
+        token_network.functions.closeChannel(B, *balance_proof).transact({'from': B})
+
+    # Else, closeChannel works with this balance proof
+    token_network.functions.closeChannel(B, *balance_proof).transact({'from': A})
+
+
+def test_close_first_participant_can_close(
+        token_network,
+        create_channel,
+        get_accounts,
+):
+    (A, B) = get_accounts(2)
+    create_channel(A, B)
+
+    token_network.functions.closeChannel(
+        B,
+        fake_bytes(32),
+        0,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': A})
+
+
+def test_close_second_participant_can_close(
+        token_network,
+        create_channel,
+        get_accounts,
+):
+    (A, B) = get_accounts(2)
+    create_channel(A, B)
+
+    token_network.functions.closeChannel(
+        A,
+        fake_bytes(32),
+        0,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': B})
+
+
 def test_close_channel_state(
         token_network,
         create_channel,
@@ -232,7 +291,6 @@ def test_close_channel_event_no_offchain_transfers(
         get_accounts,
         token_network,
         create_channel,
-        create_balance_proof,
         event_handler,
 ):
     ev_handler = event_handler(token_network)
