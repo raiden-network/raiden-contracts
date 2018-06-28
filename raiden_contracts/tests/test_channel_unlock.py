@@ -140,21 +140,21 @@ def test_channel_unlock_bigger_locked_amount(
     assert balance_contract == pending_transfers_tree_A.locked_amount + 1
 
     # This should pass, even though the locked amount in storage is bigger. The rest of the
-    # tokens is sent to B, as tokens corresponding to the locks that could not be unlocked.
+    # tokens is sent to A, as tokens corresponding to the locks that could not be unlocked.
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_A.packed_transfers,
     ).transact()
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-    assert balance_A == pre_balance_A + unlocked_amount
-    assert balance_B == (
-        pre_balance_B +
+    assert balance_A == (
+        pre_balance_A +
         pending_transfers_tree_A.locked_amount -
         unlocked_amount + 1
     )
+    assert balance_B == pre_balance_B + unlocked_amount
     assert balance_contract == 0
 
 
@@ -198,20 +198,20 @@ def test_channel_unlock_smaller_locked_amount(
     # This should pass, even though the locked amount in storage is smaller.
     # B will receive less tokens.
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_A.packed_transfers,
     ).transact()
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-    assert balance_A == pre_balance_A + unlocked_amount
-    assert balance_B == (
-        pre_balance_B +
+    assert balance_A == (
+        pre_balance_A +
         pending_transfers_tree_A.locked_amount -
         unlocked_amount - 1
     )
+    assert balance_B == pre_balance_B + unlocked_amount
     assert balance_contract == 0
 
 
@@ -256,16 +256,16 @@ def test_channel_unlock_bigger_unlocked_amount(
     # A will receive the entire locked amount, corresponding to the locks that have been unlocked
     # and B will receive nothing.
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_A.packed_transfers,
     ).transact()
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-    assert balance_A == pre_balance_A + unlocked_amount - 1
-    assert balance_B == pre_balance_B
+    assert balance_A == pre_balance_A
+    assert balance_B == pre_balance_B + unlocked_amount - 1
     assert balance_contract == 0
 
 
@@ -370,8 +370,8 @@ def test_channel_settle_and_unlock(
         settle_timeout,
     )
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_1.packed_transfers,
     ).transact({'from': A})
     # Mock pending transfers data for a reopened channel
@@ -389,8 +389,8 @@ def test_channel_settle_and_unlock(
     )
     # 2nd unlocks should go through
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_2.packed_transfers,
     ).transact({'from': A})
 
@@ -425,13 +425,13 @@ def test_channel_settle_and_unlock(
     )
     # Both old and new unlocks should go through
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_2.packed_transfers,
     ).transact({'from': A})
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_1.packed_transfers,
     ).transact({'from': A})
 
@@ -916,6 +916,83 @@ def test_channel_unlock_with_a_large_expiration(
     assert balance_A == pre_balance_A + 9
     assert balance_B == pre_balance_B + 6
     assert balance_contract == pre_balance_contract - values_B.locked
+
+
+def test_reverse_participants_unlock(
+        web3,
+        token_network,
+        get_accounts,
+        create_settled_channel,
+        reveal_secrets,
+):
+    (A, B, C) = get_accounts(3)
+    settle_timeout = 12
+
+    # Mock pending transfers data
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    pending_transfers_tree_B = get_pending_transfers_tree(web3, [3, 4, 6], [4], settle_timeout)
+    assert pending_transfers_tree_A.merkle_root != pending_transfers_tree_B.merkle_root
+
+    # Reveal secrets
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+    reveal_secrets(B, pending_transfers_tree_B.unlockable)
+
+    # Settle the channel
+    create_settled_channel(
+        A,
+        pending_transfers_tree_A.locked_amount,
+        pending_transfers_tree_A.merkle_root,
+        B,
+        pending_transfers_tree_B.locked_amount,
+        pending_transfers_tree_B.merkle_root,
+        settle_timeout,
+    )
+
+    # A trying to unlock its own locksroot & locked amount MUST fail
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            A,
+            B,
+            pending_transfers_tree_A.packed_transfers,
+        ).transact({'from': A})
+
+    # Delegate trying to unlock A's own locksroot & locked amount on behalf of A MUST fail
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            A,
+            B,
+            pending_transfers_tree_A.packed_transfers,
+        ).transact({'from': C})
+
+    # B trying to unlock its own locksroot & locked amount MUST fail
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            B,
+            A,
+            pending_transfers_tree_B.packed_transfers,
+        ).transact({'from': B})
+
+    # Delegate trying to unlock B's own locksroot & locked amount on behalf of B MUST fail
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            B,
+            A,
+            pending_transfers_tree_B.packed_transfers,
+        ).transact({'from': B})
+
+    # Someone trying to unlock B's locksroot & locked amount on behalf of A MUST succeed
+    token_network.functions.unlock(
+        A,
+        B,
+        pending_transfers_tree_B.packed_transfers,
+    ).transact({'from': C})
+
+    # Someone trying to unlock A's locksroot & locked amount on behalf of B MUST succeed
+    token_network.functions.unlock(
+        B,
+        A,
+        pending_transfers_tree_A.packed_transfers,
+    ).transact({'from': C})
 
 
 def test_unlock_channel_event(
