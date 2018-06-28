@@ -58,6 +58,11 @@ class CompileContracts(Command):
             print('py-solc is not installed, skipping contracts compilation')
             return
         from raiden_contracts.contract_manager import CONTRACT_MANAGER
+        if CONTRACT_MANAGER.contracts_source_dirs is None:
+            print(
+                'skipping compilation - contract manager is using precompiled contracts',
+            )
+            return
         compiled = CONTRACT_MANAGER.precompile_contracts(
             'raiden_contracts/contracts/',
             CONTRACT_MANAGER.get_mappings(),
@@ -93,8 +98,8 @@ config = {
     'cmdclass': {
         'compile_contracts': CompileContracts,
         'build_py': BuildPyCommand,
-        'sdist': SdistCommand
-    }
+        'sdist': SdistCommand,
+    },
 }
 
 setup(**config)
