@@ -2,6 +2,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_SECRET_REGISTRY,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
 )
 from .utils import get_pending_transfers_tree, get_locked_amount
 from raiden_contracts.utils.merkle import get_merkle_root
@@ -17,7 +19,12 @@ def test_token_network_registry(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
-        [secret_registry_contract.address, int(web3.version.network)],
+        [
+            secret_registry_contract.address,
+            int(web3.version.network),
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
@@ -35,7 +42,13 @@ def test_token_network_deployment(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
         [],
-        [custom_token.address, secret_registry_contract.address, int(web3.version.network)],
+        [
+            custom_token.address,
+            secret_registry_contract.address,
+            int(web3.version.network),
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 

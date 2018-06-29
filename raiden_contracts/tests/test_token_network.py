@@ -2,6 +2,11 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from .fixtures.config import raiden_contracts_version, empty_address, fake_address
 
+from raiden_contracts.constants import (
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
+)
+
 
 def test_version(token_network):
     assert token_network.functions.contract_version().call()[:2] == raiden_contracts_version[:2]
@@ -16,47 +21,166 @@ def test_constructor_call(
 ):
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
+    settle_min = TEST_SETTLE_TIMEOUT_MIN
+    settle_max = TEST_SETTLE_TIMEOUT_MAX
     with pytest.raises(TypeError):
         get_token_network([])
     with pytest.raises(TypeError):
-        get_token_network([3, secret_registry_contract.address, chain_id])
+        get_token_network([3, secret_registry_contract.address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([0, secret_registry_contract.address, chain_id])
+        get_token_network([0, secret_registry_contract.address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network(['', secret_registry_contract.address, chain_id])
+        get_token_network(['', secret_registry_contract.address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([fake_address, secret_registry_contract.address, chain_id])
+        get_token_network([
+            fake_address,
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            settle_max,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, 3, chain_id])
+        get_token_network([custom_token.address, 3, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, 0, chain_id])
+        get_token_network([custom_token.address, 0, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, '', chain_id])
+        get_token_network([custom_token.address, '', chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, fake_address, chain_id])
+        get_token_network([custom_token.address, fake_address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, secret_registry_contract.address, ''])
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            '',
+            settle_min,
+            settle_max,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, secret_registry_contract.address, -3])
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            -3,
+            settle_min,
+            settle_max,
+        ])
+    with pytest.raises(TypeError):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            '',
+            settle_max,
+        ])
+    with pytest.raises(TypeError):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            -3,
+            settle_max,
+        ])
+    with pytest.raises(TypeError):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            '',
+        ])
+    with pytest.raises(TypeError):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            -3,
+        ])
 
     with pytest.raises(TransactionFailed):
-        get_token_network([empty_address, secret_registry_contract.address, chain_id])
+        get_token_network([
+            empty_address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
     with pytest.raises(TransactionFailed):
-        get_token_network([A, secret_registry_contract.address, chain_id])
+        get_token_network([
+            A,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
     with pytest.raises(TransactionFailed):
-        get_token_network(
-            [secret_registry_contract.address, secret_registry_contract.address, chain_id],
-        )
+        get_token_network([
+            secret_registry_contract.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
 
     with pytest.raises(TransactionFailed):
-        get_token_network([custom_token.address, empty_address, chain_id])
+        get_token_network([
+            custom_token.address,
+            empty_address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
     with pytest.raises(TransactionFailed):
-        get_token_network([custom_token.address, A, chain_id])
+        get_token_network([
+            custom_token.address,
+            A,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
 
     with pytest.raises(TransactionFailed):
-        get_token_network([custom_token.address, secret_registry_contract.address, 0])
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            0,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ])
 
-    get_token_network([custom_token.address, secret_registry_contract.address, chain_id])
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MAX,
+            TEST_SETTLE_TIMEOUT_MIN,
+        ])
+
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            0,
+            TEST_SETTLE_TIMEOUT_MIN,
+        ])
+
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            0,
+        ])
+
+    get_token_network([
+        custom_token.address,
+        secret_registry_contract.address,
+        chain_id,
+        TEST_SETTLE_TIMEOUT_MIN,
+        TEST_SETTLE_TIMEOUT_MAX,
+    ])
 
 
 def test_constructor_not_registered(
