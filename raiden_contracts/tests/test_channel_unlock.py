@@ -986,6 +986,20 @@ def test_reverse_participants_unlock(
             pending_transfers_tree_B.packed_transfers,
         ).transact({'from': B})
 
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            A,
+            A,
+            pending_transfers_tree_A.packed_transfers,
+        ).transact({'from': A})
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            B,
+            B,
+            pending_transfers_tree_B.packed_transfers,
+        ).transact({'from': B})
+
     # Someone trying to unlock B's locksroot & locked amount on behalf of A MUST succeed
     token_network.functions.unlock(
         A,
