@@ -22,6 +22,9 @@ contract TokenNetwork is Utils {
     // Chain ID as specified by EIP155 used in balance proof signatures to avoid replay attacks
     uint256 public chain_id;
 
+    uint256 public settlement_timeout_min;
+    uint256 public settlement_timeout_max;
+
     uint256 constant public MAX_SAFE_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
     // channel_identifier => Channel, where the channel identifier is the keccak256 of the
@@ -143,7 +146,7 @@ contract TokenNetwork is Utils {
     }
 
     modifier settleTimeoutValid(uint256 timeout) {
-        require(timeout >= 6 && timeout <= 2700000);
+        require(timeout >= settlement_timeout_min && timeout <= settlement_timeout_max);
         _;
     }
 
@@ -151,12 +154,21 @@ contract TokenNetwork is Utils {
      *  Constructor
      */
 
-    constructor(address _token_address, address _secret_registry, uint256 _chain_id)
+    constructor(
+        address _token_address,
+        address _secret_registry,
+        uint256 _chain_id,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
+    )
         public
     {
         require(_token_address != 0x0);
         require(_secret_registry != 0x0);
         require(_chain_id > 0);
+        require(_settlement_timeout_min > 0);
+        require(_settlement_timeout_max > 0);
+        require(_settlement_timeout_max > _settlement_timeout_min);
         require(contractExists(_token_address));
         require(contractExists(_secret_registry));
 
@@ -164,6 +176,8 @@ contract TokenNetwork is Utils {
 
         secret_registry = SecretRegistry(_secret_registry);
         chain_id = _chain_id;
+        settlement_timeout_min = _settlement_timeout_min;
+        settlement_timeout_max = _settlement_timeout_max;
 
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);

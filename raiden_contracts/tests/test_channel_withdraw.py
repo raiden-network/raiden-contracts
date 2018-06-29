@@ -9,7 +9,7 @@ from raiden_contracts.constants import (
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
     CHANNEL_STATE_SETTLED,
-    SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
 
@@ -146,7 +146,7 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
 
-    create_channel_and_deposit(A, B, 10, 14, SETTLE_TIMEOUT_MIN)
+    create_channel_and_deposit(A, B, 10, 14, TEST_SETTLE_TIMEOUT_MIN)
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
     assert state == CHANNEL_STATE_OPENED
 
@@ -166,7 +166,7 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed):
         withdraw_channel(A, withdraw_A, B)
 
-    web3.testing.mine(SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
         A,
         0,

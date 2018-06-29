@@ -3,7 +3,7 @@ from eth_tester.exceptions import TransactionFailed
 from collections import namedtuple
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
-    SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MIN,
     CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
@@ -27,7 +27,7 @@ from .config import fake_bytes
 
 @pytest.fixture()
 def create_channel(token_network):
-    def get(A, B, settle_timeout=SETTLE_TIMEOUT_MIN):
+    def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel data on chain
         (_, channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(A, B).call()
         assert channel_settle_timeout == 0
@@ -85,7 +85,7 @@ def channel_deposit(token_network, assign_tokens):
 
 @pytest.fixture()
 def create_channel_and_deposit(create_channel, channel_deposit):
-    def get(participant1, participant2, deposit1=0, deposit2=0, settle_timeout=SETTLE_TIMEOUT_MIN):
+    def get(participant1, participant2, deposit1=0, deposit2=0, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
 
         if deposit1 > 0:
@@ -188,7 +188,7 @@ def create_settled_channel(
             participant2,
             locked_amount2,
             locksroot2,
-            settle_timeout=SETTLE_TIMEOUT_MIN,
+            settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
     ):
         participant1_values = ChannelValues(
             transferred=5,

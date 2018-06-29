@@ -1,5 +1,10 @@
 import pytest
 
+from raiden_contracts.constants import (
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
+)
+
 
 @pytest.fixture()
 def get_token_network_test(deploy_tester_contract):
@@ -18,4 +23,6 @@ def token_network_test(web3, get_token_network_test, custom_token, secret_regist
         custom_token.address,
         secret_registry_contract.address,
         int(web3.version.network),
+        TEST_SETTLE_TIMEOUT_MIN,
+        TEST_SETTLE_TIMEOUT_MAX,
     ])
