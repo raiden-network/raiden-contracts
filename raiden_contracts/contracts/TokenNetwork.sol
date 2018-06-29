@@ -829,8 +829,6 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32 key)
     {
-        require(channel_identifier != 0x0);
-        require(participant != 0x0);
         require(locksroot != 0x0);
 
         key = keccak256(abi.encodePacked(channel_identifier, participant, locksroot));
