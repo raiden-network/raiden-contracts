@@ -96,10 +96,16 @@ def test_unlock_wrong_locksroot(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
-            A,
             B,
+            A,
             pending_transfers_tree_A_fake.packed_transfers,
         ).call()
+
+    token_network.functions.unlock(
+        B,
+        A,
+        pending_transfers_tree_A.packed_transfers,
+    ).call()
 
 
 def test_channel_unlock_bigger_locked_amount(
@@ -642,15 +648,15 @@ def test_unlock_fails_with_partial_merkle_proof(
         packed_transfers_tampered = get_packed_transfers(tuple(pending_transfers), types)
         with pytest.raises(TransactionFailed):
             token_network.functions.unlock(
-                A,
                 B,
+                A,
                 packed_transfers_tampered,
             ).transact({'from': A})
 
     # Unlock with full merkle tree does work
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree.packed_transfers,
     ).transact({'from': A})
 
@@ -690,15 +696,15 @@ def test_unlock_tampered_merkle_proof_fails(
         packed_transfers_tampered = get_packed_transfers(tuple(pending_transfers), types)
         with pytest.raises(TransactionFailed):
             token_network.functions.unlock(
-                A,
                 B,
+                A,
                 packed_transfers_tampered,
             ).transact({'from': A})
 
     # Unlock with correct merkle tree does work
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree.packed_transfers,
     ).transact({'from': A})
 
@@ -830,16 +836,16 @@ def test_unlock_twice_fails(
         settle_timeout,
     )
     token_network.functions.unlock(
-        A,
         B,
+        A,
         pending_transfers_tree_1.packed_transfers,
     ).transact({'from': A})
 
     # Calling unlock twice does not work
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
-            A,
             B,
+            A,
             pending_transfers_tree_1.packed_transfers,
         ).transact({'from': A})
 
