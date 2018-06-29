@@ -4,6 +4,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
 )
 from web3.contract import get_event_data
 
@@ -80,4 +82,6 @@ def token_network_external(web3, get_token_network, custom_token, secret_registr
         custom_token.address,
         secret_registry_contract.address,
         int(web3.version.network),
+        TEST_SETTLE_TIMEOUT_MIN,
+        TEST_SETTLE_TIMEOUT_MAX,
     ])
