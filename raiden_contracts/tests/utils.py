@@ -3,7 +3,7 @@ import random
 from functools import reduce
 from collections import namedtuple
 from web3 import Web3
-from raiden_contracts.constants import SETTLE_TIMEOUT_MIN
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
 from eth_abi import encode_abi
 
@@ -74,7 +74,7 @@ def get_pending_transfers(
     if expired_amounts is None:
         expired_amounts = []
     min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
-    max_expiration_delta = max_expiration_delta or (min_expiration_delta + SETTLE_TIMEOUT_MIN)
+    max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT_MIN)
     unlockable_locks = [
         [
             current_block + random.randint(min_expiration_delta, max_expiration_delta),

@@ -15,6 +15,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_CUSTOM_TOKEN,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
+    DEPLOY_SETTLE_TIMEOUT_MAX,
 )
 
 
@@ -126,7 +128,12 @@ def main(**kwargs):
             CONTRACT_TOKEN_NETWORK_REGISTRY,
             transaction,
             txn_wait,
-            [secret_registry_address, int(web3.version.network)],
+            [
+                secret_registry_address,
+                int(web3.version.network),
+                DEPLOY_SETTLE_TIMEOUT_MIN,
+                DEPLOY_SETTLE_TIMEOUT_MAX,
+            ],
         )
 
         token_network_registry = instantiate_contract(

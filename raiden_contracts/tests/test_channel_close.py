@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import (
-    SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MIN,
     EVENT_CHANNEL_CLOSED,
     CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_SETTLED,
@@ -41,7 +41,7 @@ def test_close_settled_channel(
         get_accounts,
 ):
     (A, B) = get_accounts(2)
-    create_channel(A, B, SETTLE_TIMEOUT_MIN)
+    create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
     channel_deposit(A, 5, B)
 
     (_, _, state) = token_network.functions.getChannelInfo(A, B).call()
@@ -54,7 +54,7 @@ def test_close_settled_channel(
         fake_bytes(32),
         fake_bytes(64),
     ).transact({'from': A})
-    web3.testing.mine(SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
         A,
         0,
@@ -167,7 +167,7 @@ def test_close_first_argument_is_for_partner_transfer(
     (A, B) = get_accounts(2)
 
     # Create channel
-    channel_identifier = create_channel(A, B, settle_timeout=6)[0]
+    channel_identifier = create_channel(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN)[0]
 
     # Create balance proofs
     balance_proof = create_balance_proof(
@@ -226,7 +226,7 @@ def test_close_channel_state(
         create_balance_proof,
 ):
     (A, B) = get_accounts(2)
-    settle_timeout = 6
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
     transferred_amount = 5
     nonce = 3

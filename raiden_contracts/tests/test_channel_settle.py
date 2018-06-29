@@ -3,7 +3,7 @@ from copy import deepcopy
 from random import randint
 from raiden_contracts.constants import (
     EVENT_CHANNEL_SETTLED,
-    SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
@@ -33,7 +33,7 @@ def test_settle_no_bp_success(
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
-    settle_timeout = SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     locksroot = fake_bytes(32)
     additional_hash = fake_bytes(32)
     create_channel_and_deposit(A, B, deposit_A, deposit_B)
@@ -143,7 +143,7 @@ def test_settle_channel_state(
             vals_B,
         )
 
-        web3.testing.mine(SETTLE_TIMEOUT_MIN)
+        web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
         pre_balance_A = custom_token.functions.balanceOf(A).call()
         pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -206,7 +206,7 @@ def test_settle_channel_event(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
-    settle_timeout = SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     locksroot = fake_hex(32, '00')
 
     channel_identifier = create_channel(A, B)[0]
