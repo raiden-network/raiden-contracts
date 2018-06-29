@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from raiden_contracts.utils.sign import hash_balance_proof
-from .fixtures.config import empty_address
+from raiden_contracts.tests.fixtures.config import empty_address
 from raiden_contracts.utils.sign_utils import sign
 
 
