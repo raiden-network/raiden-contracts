@@ -374,7 +374,7 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
         assert locked_amount1 == settlement.participant1_locked
         assert locked_amount1 == on_chain_settlement.participant1_locked
 
-        locked_amount2 = token_network.functions.getParticipantLockedAmount(A, B, values_B.locksroot).call()
+        locked_amount2 = token_network.functions.getParticipantLockedAmount(B, A, values_B.locksroot).call()
         assert locked_amount2 == settlement.participant2_locked
         assert locked_amount2 == on_chain_settlement.participant2_locked
 
