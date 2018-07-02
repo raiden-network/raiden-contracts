@@ -13,6 +13,8 @@ contract TokenNetworkRegistry is Utils {
     string constant public contract_version = "0.3._";
     address public secret_registry_address;
     uint256 public chain_id;
+    uint256 public settlement_timeout_min;
+    uint256 public settlement_timeout_max;
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
@@ -27,12 +29,24 @@ contract TokenNetworkRegistry is Utils {
      *  Constructor
      */
 
-    constructor(address _secret_registry_address, uint256 _chain_id) public {
+    constructor(
+        address _secret_registry_address,
+        uint256 _chain_id,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
+    )
+        public
+    {
         require(_chain_id > 0);
+        require(_settlement_timeout_min > 0);
+        require(_settlement_timeout_max > 0);
+        require(_settlement_timeout_max > _settlement_timeout_min);
         require(_secret_registry_address != 0x0);
         require(contractExists(_secret_registry_address));
         secret_registry_address = _secret_registry_address;
         chain_id = _chain_id;
+        settlement_timeout_min = _settlement_timeout_min;
+        settlement_timeout_max = _settlement_timeout_max;
     }
 
     /*
@@ -50,7 +64,9 @@ contract TokenNetworkRegistry is Utils {
         token_network_address = new TokenNetwork(
             _token_address,
             secret_registry_address,
-            chain_id
+            chain_id,
+            settlement_timeout_min,
+            settlement_timeout_max
         );
 
         token_to_token_networks[_token_address] = token_network_address;

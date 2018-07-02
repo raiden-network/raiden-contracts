@@ -2,8 +2,8 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
     EVENT_CHANNEL_OPENED,
-    SETTLE_TIMEOUT_MIN,
-    SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
     CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPENED,
 )
@@ -14,7 +14,7 @@ from web3.exceptions import ValidationError
 
 def test_open_channel_call(token_network, get_accounts):
     (A, B) = get_accounts(2)
-    settle_timeout = SETTLE_TIMEOUT_MIN + 10
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
     with pytest.raises(ValidationError):
         token_network.functions.openChannel(A, B, -3).transact()
     with pytest.raises(ValidationError):
@@ -40,24 +40,24 @@ def test_open_channel_call(token_network, get_accounts):
         token_network.functions.openChannel(A, A, settle_timeout).transact()
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MIN - 1).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN - 1).transact()
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MAX + 1).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).transact()
 
 
 def test_max_1_channel(token_network, get_accounts, create_channel):
     (A, B) = get_accounts(2)
-    create_channel(A, B, SETTLE_TIMEOUT_MIN)
+    create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MIN).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(B, A, SETTLE_TIMEOUT_MIN).transact()
+        token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).transact()
 
 
 def test_open_channel_state(token_network, get_accounts):
     (A, B) = get_accounts(2)
-    settle_timeout = SETTLE_TIMEOUT_MIN + 10
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == 0
@@ -100,12 +100,12 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
-    txn_hash = token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MIN).transact()
+    txn_hash = token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_OPENED,
-        check_channel_opened(channel_identifier, A, B, SETTLE_TIMEOUT_MIN),
+        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT_MIN),
     )
     ev_handler.check()

@@ -1,6 +1,10 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.constants import EVENT_TOKEN_NETWORK_CREATED
+from raiden_contracts.constants import (
+    EVENT_TOKEN_NETWORK_CREATED,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
+)
 from .fixtures.config import (
     raiden_contracts_version,
     empty_address,
@@ -23,38 +27,69 @@ def test_constructor_call(
 ):
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
+    settle_min = TEST_SETTLE_TIMEOUT_MIN
+    settle_max = TEST_SETTLE_TIMEOUT_MAX
     with pytest.raises(TypeError):
         get_token_network_registry([])
     with pytest.raises(TypeError):
-        get_token_network_registry([3, chain_id])
+        get_token_network_registry([3, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([0, chain_id])
+        get_token_network_registry([0, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry(['', chain_id])
+        get_token_network_registry(['', chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([fake_address, chain_id])
+        get_token_network_registry([fake_address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, ''])
+        get_token_network_registry([secret_registry_contract.address, '', settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, '1'])
+        get_token_network_registry([secret_registry_contract.address, '1', settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, -3])
+        get_token_network_registry([secret_registry_contract.address, -3, settle_min, settle_max])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, '', settle_max])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, '1', settle_max])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, -3, settle_max])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, ''])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, 'settle_min, 1'])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, -3])
 
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([empty_address, chain_id])
+        get_token_network_registry([empty_address, chain_id, settle_min, settle_max])
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([A, chain_id])
+        get_token_network_registry([A, chain_id, settle_min, settle_max])
 
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0])
+        get_token_network_registry([secret_registry_contract.address, 0, settle_min, settle_max])
 
-    get_token_network_registry([secret_registry_contract.address, chain_id])
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, 0, 0, settle_max])
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, 0, settle_min, 0])
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, 0, settle_max, settle_min])
+
+    get_token_network_registry([
+        secret_registry_contract.address,
+        chain_id,
+        settle_min,
+        settle_max,
+    ])
 
 
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
     chain_id = int(web3.version.network)
 
-    registry = get_token_network_registry([secret_registry_contract.address, chain_id])
+    registry = get_token_network_registry([
+        secret_registry_contract.address,
+        chain_id,
+        TEST_SETTLE_TIMEOUT_MIN,
+        TEST_SETTLE_TIMEOUT_MAX,
+    ])
     assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
     assert chain_id == registry.functions.chain_id().call()
 

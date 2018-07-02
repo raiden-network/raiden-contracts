@@ -3,6 +3,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
 )
 from web3.contract import get_event_data
 from eth_utils import is_address
@@ -25,7 +27,12 @@ def token_network_registry_contract(deploy_tester_contract, secret_registry_cont
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
-        [secret_registry_contract.address, int(web3.version.network)],
+        [
+            secret_registry_contract.address,
+            int(web3.version.network),
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+        ],
     )
 
 

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.constants import SETTLE_TIMEOUT_MIN, SETTLE_TIMEOUT_MAX
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, TEST_SETTLE_TIMEOUT_MAX
 from raiden_contracts.tests.fixtures import fake_bytes
 
 
@@ -19,8 +18,8 @@ def test_settle_timeout_inrange(
     """
     (A, B) = get_accounts(2)
 
-    small_settle_timeout = SETTLE_TIMEOUT_MIN - 1
-    large_settle_timeout = SETTLE_TIMEOUT_MAX + 1
+    small_settle_timeout = TEST_SETTLE_TIMEOUT_MIN - 1
+    large_settle_timeout = TEST_SETTLE_TIMEOUT_MAX + 1
 
     with pytest.raises(TransactionFailed):
         token_network.functions.openChannel(A, B, small_settle_timeout).transact()
@@ -28,10 +27,10 @@ def test_settle_timeout_inrange(
     with pytest.raises(TransactionFailed):
         token_network.functions.openChannel(A, B, large_settle_timeout).transact()
 
-    token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MIN).transact()
+    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
 
-    assert settle_block_number == SETTLE_TIMEOUT_MIN
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
     token_network.functions.closeChannel(
         B,
@@ -40,7 +39,7 @@ def test_settle_timeout_inrange(
         fake_bytes(32),
         fake_bytes(64),
     ).transact({'from': A})
-    web3.testing.mine(SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
         A,
         0,
@@ -51,7 +50,7 @@ def test_settle_timeout_inrange(
         0,
         fake_bytes(32),
     ).transact({'from': A})
-    token_network.functions.openChannel(A, B, SETTLE_TIMEOUT_MAX).transact()
+    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).transact()
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
 
-    assert settle_block_number == SETTLE_TIMEOUT_MAX
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MAX

@@ -3,8 +3,20 @@ pragma solidity ^0.4.23;
 import "raiden/TokenNetwork.sol";
 
 contract TokenNetworkInternalsTest is TokenNetwork {
-    constructor (address _token_address, address _secret_registry, uint256 _chain_id)
-        TokenNetwork(_token_address, _secret_registry, _chain_id)
+    constructor (
+        address _token_address,
+        address _secret_registry,
+        uint256 _chain_id,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
+    )
+        TokenNetwork(
+            _token_address,
+            _secret_registry,
+            _chain_id,
+            _settlement_timeout_min,
+            _settlement_timeout_max
+        )
         public
     {
 
@@ -29,6 +41,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
 
     function updateUnlockDataPublic(
         bytes32 channel_identifier,
+        address participant,
         uint256 locked_amount,
         bytes32 locksroot
     )
@@ -36,6 +49,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     {
        return updateUnlockData(
             channel_identifier,
+            participant,
             locked_amount,
             locksroot
         );
