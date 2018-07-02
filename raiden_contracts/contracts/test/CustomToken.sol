@@ -23,7 +23,7 @@ contract CustomToken is StandardToken {
     string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
     string public name;
     string public symbol;
-    uint8 public decimals;
+    uint8 public _decimals;
     uint256 public multiplier;
 
     address public owner_address;
@@ -53,7 +53,7 @@ contract CustomToken is StandardToken {
         name = token_name;
 
         // Amount of decimals for display purposes
-        decimals = decimal_units;
+        _decimals = decimal_units;
         multiplier = 10**(uint256(decimal_units));
 
         // Set the symbol for display purposes
@@ -83,5 +83,9 @@ contract CustomToken is StandardToken {
 
         owner_address.transfer(address(this).balance);
         assert(address(this).balance == 0);
+    }
+
+    function decimals() public view returns (uint8 decimals) {
+        return _decimals;
     }
 }
