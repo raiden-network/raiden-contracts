@@ -27,6 +27,9 @@ contract TokenNetwork is Utils {
 
     uint256 constant public MAX_SAFE_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
+    uint256 public deposit_limit;
+    uint8 public decimals;
+
     // channel_identifier => Channel, where the channel identifier is the keccak256 of the
     // addresses of the two participants
     mapping (bytes32 => Channel) public channels;
@@ -177,6 +180,15 @@ contract TokenNetwork is Utils {
 
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);
+
+        // Try to get token decimals, otherwise assume 18
+        bool exists = address(token).call(bytes4(keccak256("decimals()")));
+        decimals = 18;
+        if (exists) {
+            decimals = token.decimals();
+        }
+
+        deposit_limit = 100 * (10 ** uint256(decimals));
     }
 
     /*
@@ -213,14 +225,15 @@ contract TokenNetwork is Utils {
     /// @notice Sets the channel participant total deposit value.
     /// Can be called by anyone.
     /// @param participant Channel participant whose deposit is being set.
-    /// @param total_deposit Idempotent function which sets the total amount of
-    /// tokens that the participant will have as a deposit.
+    /// @param total_deposit The total amount of tokens that the participant will have
+    /// as a deposit.
     /// @param partner Channel partner address, needed to compute the channel identifier.
     function setTotalDeposit(address participant, uint256 total_deposit, address partner)
         isOpen(participant, partner)
         public
     {
         require(total_deposit > 0);
+        require(total_deposit <= deposit_limit);
 
         bytes32 channel_identifier;
         uint256 added_deposit;

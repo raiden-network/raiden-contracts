@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
-from raiden_contracts.constants import EVENT_CHANNEL_DEPOSIT
+from raiden_contracts.constants import EVENT_CHANNEL_DEPOSIT, MAX_TOKENS_DEPLOY
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import empty_address, fake_address
 from raiden_contracts.tests.utils import MAX_UINT256
@@ -133,6 +133,7 @@ def test_deposit_delegate(token_network, get_accounts, create_channel, channel_d
     channel_deposit(A, 2, B, tx_from=C)
 
 
+@pytest.mark.skip('Not necessary with limited deposits fo the test release.')
 def test_channel_deposit_overflow(token_network, get_accounts, create_channel, channel_deposit):
     (A, B) = get_accounts(2)
     deposit_A = 50
@@ -146,6 +147,19 @@ def test_channel_deposit_overflow(token_network, get_accounts, create_channel, c
         channel_deposit(B, deposit_B_fail, A)
 
     channel_deposit(B, deposit_B_ok, A)
+
+
+def test_channel_deposit_limit(token_network, get_accounts, create_channel, channel_deposit):
+    (A, B) = get_accounts(2)
+    deposit_B_ok = MAX_TOKENS_DEPLOY * (10 ** 18)
+    deposit_B_fail = deposit_B_ok + 1
+
+    create_channel(A, B)
+
+    channel_deposit(B, deposit_B_ok, A)
+
+    with pytest.raises(TransactionFailed):
+        channel_deposit(B, deposit_B_fail, A)
 
 
 def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):
