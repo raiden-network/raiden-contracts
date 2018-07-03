@@ -1,4 +1,5 @@
 import functools
+from collections import defaultdict
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from inspect import getframeinfo, stack
@@ -14,10 +15,10 @@ class LogHandler:
         self.abi = abi
         self.event_waiting = {}
         self.event_filters = {}
-        self.event_verified = []
-        self.event_unkown = []
+        self.event_count = defaultdict(lambda: defaultdict(lambda: 0))
+        self.event_unknown = []
 
-    def add(self, txn_hash, event_name, callback=None):
+    def add(self, txn_hash, event_name, callback=None, count=1):
         caller = getframeinfo(stack()[1][0])
         message = "%s:%d" % (caller.filename, caller.lineno)
 
@@ -31,7 +32,7 @@ class LogHandler:
                 callback=self.handle_log,
             )
 
-        self.event_waiting[event_name][txn_hash] = [message, callback]
+        self.event_waiting[event_name][txn_hash] = [message, callback, count]
 
     def check(self, timeout=5):
         for event in list(self.event_filters.keys()):
@@ -45,15 +46,18 @@ class LogHandler:
 
         if event_name in self.event_waiting:
             if txn_hash in self.event_waiting[event_name]:
-                self.event_verified.append(event)
-                event_entry = self.event_waiting[event_name].pop(txn_hash, None)
+                self.event_count[event_name][txn_hash] += 1
+                event_entry = self.event_waiting[event_name][txn_hash]
 
-                # Call callback function with event and remove
+                if event_entry[2] == self.event_count[event_name][txn_hash]:
+                    self.event_waiting[event_name].pop(txn_hash)
+
+                # Call callback function with event
                 if event_entry[1]:
                     event_entry[1](event)
 
             else:
-                self.event_unkown.append(event)
+                self.event_unknown.append(event)
             if not len(list(self.event_waiting[event_name].keys())):
                 self.event_waiting.pop(event_name, None)
                 self.event_filters.pop(event_name, None)
@@ -66,8 +70,8 @@ class LogHandler:
         except Exception as e:
             print(e)
             message = 'NO EVENTS WERE TRIGGERED FOR: ' + str(self.event_waiting)
-            if len(self.event_unkown) > 0:
-                message += '\n UNKOWN EVENTS: ' + str(self.event_unkown)
+            if len(self.event_unknown) > 0:
+                message += '\n UNKOWN EVENTS: ' + str(self.event_unknown)
 
             # FIXME Events triggered in an internal transaction
             # don't have the transactionHash we are looking for here
@@ -77,13 +81,13 @@ class LogHandler:
             for ev in list(self.event_waiting.keys()):
                 waiting_events += len(list(self.event_waiting[ev].keys()))
 
-            if waiting_events == len(self.event_unkown):
+            if waiting_events == len(self.event_unknown):
                 print('----------------------------------')
                 print(message)
                 print('----------------------------------')
             else:
                 raise Exception(message + ' waiting_events ' + str(waiting_events),
-                                ' len(self.event_unkown) ' + str(len(self.event_unkown)))
+                                ' len(self.event_unkown) ' + str(len(self.event_unknown)))
 
 
 class LogFilter:
