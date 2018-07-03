@@ -247,6 +247,78 @@ def test_settle_single_direct_transfer_for_closing_party(
     assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
 
 
+def test_settle_single_direct_transfer_for_counterparty(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+):
+    """ Test settle of a channel with one direct transfer to the participant
+    that did not call close.
+    """
+    (A, B) = get_accounts(2)
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
+        ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
+    )
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    locksroot = fake_bytes(32)
+    additional_hash = fake_bytes(32)
+
+    channel_identifier = create_channel(A, B)[0]
+    channel_deposit(A, vals_A.deposit, B)
+    channel_deposit(B, vals_B.deposit, A)
+    token_network.functions.closeChannel(
+        B,
+        locksroot,
+        0,
+        additional_hash,
+        fake_bytes(64),
+    ).transact({'from': A})
+
+    balance_proof_A = create_balance_proof(
+        channel_identifier,
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        1,
+        locksroot)
+
+    balance_proof_update_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_A,
+    )
+    token_network.functions.updateNonClosingBalanceProof(
+        A, B,
+        *balance_proof_A,
+        balance_proof_update_signature_B,
+    ).transact({'from': B})
+
+    web3.testing.mine(settle_timeout)
+    token_network.functions.settleChannel(
+        B,
+        0,
+        0,
+        locksroot,
+        A,
+        vals_A.transferred,
+        0,
+        locksroot,
+    ).transact({'from': B})
+
+    # Calculate how much A and B should receive
+    expected_settlement = get_settlement_amounts(vals_B, vals_A)
+    # Calculate how much A and B receive according to onchain computation
+    onchain_settlement = get_onchain_settlement_amounts(vals_B, vals_A)
+
+    assert (expected_settlement.participant1_balance == onchain_settlement.participant1_balance)
+    assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
+
+
 def test_settle_channel_event(
         web3,
         get_accounts,
