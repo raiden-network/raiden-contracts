@@ -389,6 +389,62 @@ def test_update_not_allowed_after_settlement_period(
         ).transact({'from': A})
 
 
+def test_update_not_allowed_for_the_closing_address(
+        token_network,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+):
+
+    """ Closing address cannot call updateNonClosingBalanceProof. """
+    (A, B, M) = get_accounts(3)
+    settle_timeout = SETTLE_TIMEOUT_MIN
+    deposit_A = 20
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, deposit_A, B)
+
+    # Some balance proof from B
+    balance_proof_B_0 = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, '02'))
+
+    # Later balance proof, higher transferred amount, higher nonce
+    balance_proof_B_1 = create_balance_proof(channel_identifier, B, 10, 0, 4, fake_bytes(32, '02'))
+
+    # B's signature on the update message is valid
+    balance_proof_update_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_B_1,
+    )
+
+    # A closes with the fist balance proof
+    token_network.functions.closeChannel(B, *balance_proof_B_0).transact({'from': A})
+
+    # Someone wants to update with later balance proof - not possible
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *balance_proof_B_1,
+            balance_proof_update_signature_B,
+        ).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *balance_proof_B_1,
+            balance_proof_update_signature_B,
+        ).transact({'from': B})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *balance_proof_B_1,
+            balance_proof_update_signature_B,
+        ).transact({'from': M})
+
+
 def test_update_channel_event(
         get_accounts,
         token_network,
