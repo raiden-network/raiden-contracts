@@ -130,7 +130,6 @@ def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
         custom_token,
-        get_accounts,
 ):
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address).call() == empty_address
@@ -142,6 +141,27 @@ def test_create_erc20_token_network(
     assert token_network.functions.secret_registry().call() == secret_registry_address
     assert (token_network.functions.chain_id().call()
             == token_network_registry_contract.functions.chain_id().call())
+
+
+def test_create_erc20_token_network_twice_fails(
+        owner,
+        token_network_registry_contract,
+        custom_token,
+
+):
+
+    token_network_registry_contract.transact(
+        {'from': owner},
+    ).createERC20TokenNetwork(
+        custom_token.address,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.transact(
+            {'from': owner},
+        ).createERC20TokenNetwork(
+            custom_token.address,
+        )
 
 
 def test_events(
