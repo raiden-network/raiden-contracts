@@ -39,5 +39,5 @@ CHANNEL_STATE_SETTLED = 0
 CHANNEL_STATE_OPENED = 1
 CHANNEL_STATE_CLOSED = 2
 
-# Temporary deposit limits
+# Temporary token deposit limits for the Red Eyes release
 MAX_TOKENS_DEPLOY = 100
