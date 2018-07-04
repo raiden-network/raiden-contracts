@@ -133,7 +133,7 @@ def test_deposit_delegate(token_network, get_accounts, create_channel, channel_d
     channel_deposit(A, 2, B, tx_from=C)
 
 
-@pytest.mark.skip('Not necessary with limited deposits fo the test release.')
+@pytest.mark.skip('Not necessary with limited deposits for the test release.')
 def test_channel_deposit_overflow(token_network, get_accounts, create_channel, channel_deposit):
     (A, B) = get_accounts(2)
     deposit_A = 50
