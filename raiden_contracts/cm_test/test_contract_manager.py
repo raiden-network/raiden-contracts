@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from raiden_contracts.contract_manager import (
@@ -8,8 +10,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     EVENT_CHANNEL_CLOSED,
 )
-
-PRECOMPILED_CONTRACTS_PATH = 'raiden_contracts/data/contracts.json'
 
 
 def contract_manager_meta(contracts_path):
@@ -30,6 +30,8 @@ def test_contract_manager_compile():
     contract_manager_meta(CONTRACTS_SOURCE_DIRS)
 
 
-def test_contract_manager_json():
+def test_contract_manager_json(tmpdir):
+    precompiled_path = Path(str(tmpdir)).joinpath('contracts.json')
+    ContractManager(CONTRACTS_SOURCE_DIRS).store_compiled_contracts(precompiled_path)
     # try to load contracts from a precompiled file
-    contract_manager_meta(PRECOMPILED_CONTRACTS_PATH)
+    contract_manager_meta(precompiled_path)
