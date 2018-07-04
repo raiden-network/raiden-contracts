@@ -31,6 +31,19 @@ contract SecretRegistry {
         return true;
     }
 
+    /// @notice Registers multiple hash time lock secrets and saves the block number.
+    /// @param secrets The array of secrets to be registered.
+    /// @return true if all secrets could be registered, false otherwise.
+    function registerSecretBatch(bytes32[] secrets) public returns (bool) {
+        bool completeSuccess = true;
+        for(uint i = 0; i < secrets.length; i++) {
+            if(!registerSecret(secrets[i])) {
+                completeSuccess = false;
+            }
+        }
+        return completeSuccess;
+    }
+
     function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256) {
         return secrethash_to_block[secrethash];
     }
