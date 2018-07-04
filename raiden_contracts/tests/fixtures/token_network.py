@@ -60,6 +60,24 @@ def token_network(
 
 
 @pytest.fixture
+def token_network_7_decimals(
+    register_token_network,
+    custom_token_7_decimals,
+):
+    """Register a new token network for a custom token"""
+    return register_token_network(custom_token_7_decimals.address)
+
+
+@pytest.fixture
+def token_network_no_decimals(
+    register_token_network,
+    custom_token_no_decimals,
+):
+    """Register a new token network for a custom token"""
+    return register_token_network(custom_token_no_decimals.address)
+
+
+@pytest.fixture
 def token_network_contract(
         deploy_tester_contract,
         secret_registry_contract,

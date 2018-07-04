@@ -12,10 +12,10 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 
 .*/
 
-import "test/StandardToken.sol";
+import "test/StandardTokenNoDecimals.sol";
 
 /// @title CustomToken
-contract CustomToken is StandardToken {
+contract CustomTokenNoDecimals is StandardTokenNoDecimals {
 
     /*
      *  Token metadata
@@ -38,12 +38,10 @@ contract CustomToken is StandardToken {
      */
     /// @dev Contract constructor function.
     /// @param initial_supply Initial supply of tokens.
-    /// @param decimal_units Number of token decimals.
     /// @param token_name Token name for display.
     /// @param token_symbol Token symbol.
     constructor(
         uint256 initial_supply,
-        uint8 decimal_units,
         string token_name,
         string token_symbol
     )
@@ -53,8 +51,8 @@ contract CustomToken is StandardToken {
         name = token_name;
 
         // Amount of decimals for display purposes
-        _decimals = decimal_units;
-        multiplier = 10**(uint256(decimal_units));
+        _decimals = 0;
+        multiplier = 1;
 
         // Set the symbol for display purposes
         symbol = token_symbol;
@@ -83,9 +81,5 @@ contract CustomToken is StandardToken {
 
         owner_address.transfer(address(this).balance);
         assert(address(this).balance == 0);
-    }
-
-    function decimals() public view returns (uint8 decimals) {
-        return _decimals;
     }
 }

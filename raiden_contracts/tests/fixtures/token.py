@@ -3,6 +3,7 @@ from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_HUMAN_STANDARD_TOKEN,
     CONTRACT_CUSTOM_TOKEN,
+    CONTRACT_CUSTOM_TOKEN_NO_DECIMALS,
 )
 from .utils import *  # flake8: noqa
 
@@ -10,9 +11,27 @@ token_args = [
     (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
 ]
 
+token_args_7_decimals = [
+    (10 ** 26, 7, CONTRACT_CUSTOM_TOKEN, 'TD6')
+]
+
+token_args_no_decimals = [
+    (10 ** 26, CONTRACT_CUSTOM_TOKEN_NO_DECIMALS, 'TNO')
+]
+
 
 @pytest.fixture(params=token_args)
 def custom_token_params(request):
+    return request.param
+
+
+@pytest.fixture(params=token_args_7_decimals)
+def custom_token_7_decimals_params(request):
+    return request.param
+
+
+@pytest.fixture(params=token_args_no_decimals)
+def custom_token_no_decimals_params(request):
     return request.param
 
 
@@ -23,6 +42,26 @@ def custom_token(deploy_tester_contract, custom_token_params):
         CONTRACT_CUSTOM_TOKEN,
         [],
         custom_token_params
+    )
+
+
+@pytest.fixture()
+def custom_token_7_decimals(deploy_tester_contract, custom_token_7_decimals_params):
+    """Deploy CustomToken contract"""
+    return deploy_tester_contract(
+        CONTRACT_CUSTOM_TOKEN,
+        [],
+        custom_token_7_decimals_params
+    )
+
+
+@pytest.fixture()
+def custom_token_no_decimals(deploy_tester_contract, custom_token_no_decimals_params):
+    """Deploy CustomToken contract"""
+    return deploy_tester_contract(
+        CONTRACT_CUSTOM_TOKEN_NO_DECIMALS,
+        [],
+        custom_token_no_decimals_params
     )
 
 
