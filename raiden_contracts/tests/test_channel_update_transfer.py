@@ -1,5 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+
+from build.lib.raiden_contracts.utils import SETTLE_TIMEOUT_MIN
 from raiden_contracts.constants import (
     EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
     CHANNEL_STATE_OPENED,
@@ -351,6 +353,40 @@ def test_update_channel_fail_no_offchain_transfers(
             *balance_proof_A,
             balance_proof_update_signature_B,
         ).transact({'from': B})
+
+
+def test_update_not_allowed_after_settlement_period(
+        token_network,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+        web3,
+):
+
+    """ updateNonClosingBalanceProof cannot be called after the settlement period. """
+    (A, B) = get_accounts(2)
+    settle_timeout = SETTLE_TIMEOUT_MIN
+    deposit_A = 20
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, deposit_A, B)
+    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
+    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, '02'))
+    balance_proof_update_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_A,
+    )
+    token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+    web3.testing.mine(settle_timeout)
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *balance_proof_A,
+            balance_proof_update_signature_B,
+        ).transact({'from': A})
 
 
 def test_update_channel_event(
