@@ -28,7 +28,6 @@ contract TokenNetwork is Utils {
     uint256 constant public MAX_SAFE_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
     uint256 public deposit_limit;
-    uint8 public decimals;
 
     // channel_identifier => Channel, where the channel identifier is the keccak256 of the
     // addresses of the two participants
@@ -183,7 +182,7 @@ contract TokenNetwork is Utils {
 
         // Try to get token decimals, otherwise assume 18
         bool exists = address(token).call(bytes4(keccak256("decimals()")));
-        decimals = 18;
+        uint8 decimals = 18;
         if (exists) {
             decimals = token.decimals();
         }
