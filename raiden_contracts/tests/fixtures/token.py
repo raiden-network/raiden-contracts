@@ -65,6 +65,12 @@ def custom_token_no_decimals(deploy_tester_contract, custom_token_no_decimals_pa
     )
 
 
+@pytest.fixture()
+def human_standard_token(deploy_token_contract, custom_token_params):
+    """Deploy HumanStandardToken contract"""
+    return deploy_token_contract(*custom_token_params)
+
+
 @pytest.fixture
 def deploy_token_contract(deploy_tester_contract):
     """Returns a function that deploys a generic HumanStandardToken contract"""
