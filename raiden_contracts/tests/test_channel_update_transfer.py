@@ -1,12 +1,13 @@
+from collections import namedtuple
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from build.lib.raiden_contracts.utils import SETTLE_TIMEOUT_MIN
 from raiden_contracts.constants import (
     EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_NONEXISTENT,
-)
+    TEST_SETTLE_TIMEOUT_MIN)
 from raiden_contracts.utils.events import check_transfer_updated
 from .fixtures.config import fake_bytes, empty_address
 
@@ -367,7 +368,7 @@ def test_update_not_allowed_after_settlement_period(
 
     """ updateNonClosingBalanceProof cannot be called after the settlement period. """
     (A, B) = get_accounts(2)
-    settle_timeout = SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
     channel_identifier = create_channel(A, B, settle_timeout)[0]
     channel_deposit(A, deposit_A, B)
@@ -400,7 +401,7 @@ def test_update_not_allowed_for_the_closing_address(
 
     """ Closing address cannot call updateNonClosingBalanceProof. """
     (A, B, M) = get_accounts(3)
-    settle_timeout = SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
     channel_identifier = create_channel(A, B, settle_timeout)[0]
     channel_deposit(A, deposit_A, B)
@@ -443,6 +444,219 @@ def test_update_not_allowed_for_the_closing_address(
             *balance_proof_B_1,
             balance_proof_update_signature_B,
         ).transact({'from': M})
+
+
+def test_updateNonClosingBalanceProof_invalid_BP_arguments(
+        token_network,
+        token_network_test,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+):
+    (A, B, C) = get_accounts(3)
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    deposit_A = 20
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_deposit(A, deposit_A, B)
+
+    token_network.functions.closeChannel(
+        B,
+        fake_bytes(32),
+        0,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': A})
+
+    BP = namedtuple('BP', ['balance_hash', 'nonce', 'additional_hash', 'signature'])
+
+    #  Create valid balance_proof
+    BP_valid = BP(*create_balance_proof(
+        channel_identifier,
+        A,
+        10,
+        0,
+        2,
+        fake_bytes(32, '02'),
+    ))
+
+    # And a valid nonclosing_signature
+    valid_balance_proof_update_signature = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *BP_valid,
+    )
+
+    #  We test invalid balance proof arguments with valid signatures
+
+    #  Create balance_proof for invalid token_network
+    BP_invalid_token_network = BP(*create_balance_proof(
+        channel_identifier,
+        A,
+        10,
+        0,
+        2,
+        fake_bytes(32, '02'),
+        other_token_network=token_network_test,
+    ))
+
+    signature_invalid_token_network = create_balance_proof_update_signature(
+        B,
+        channel_identifier[::-1],
+        BP_valid.balance_hash,
+        BP_valid.nonce,
+        BP_valid.additional_hash,
+        BP_valid.signature,
+        other_token_network=token_network_test,
+    )
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *BP_invalid_token_network,
+            signature_invalid_token_network,
+        ).transact({'from': B})
+
+    #  Create balance_proof for invalid channel participant
+    BP_invalid_channel_participant = BP(*create_balance_proof(
+        channel_identifier,
+        C,
+        10,
+        0,
+        2,
+        fake_bytes(32, '02'),
+    ))
+
+    signature_invalid_channel_participant = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        BP_valid.balance_hash,
+        BP_valid.nonce,
+        BP_valid.additional_hash,
+        BP_valid.signature,
+    )
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *BP_invalid_channel_participant,
+            signature_invalid_channel_participant,
+        ).transact({'from': B})
+
+    #  Create balance_proof for invalid channel identifier
+    BP_invalid_channel_identifier = BP(*create_balance_proof(
+        channel_identifier[::-1],
+        A,
+        10,
+        0,
+        2,
+        fake_bytes(32, '02'),
+    ))
+
+    signature_invalid_channel_identifier = create_balance_proof_update_signature(
+        B,
+        channel_identifier[::-1],
+        BP_valid.balance_hash,
+        BP_valid.nonce,
+        BP_valid.additional_hash,
+        BP_valid.signature,
+    )
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            *BP_invalid_channel_identifier,
+            signature_invalid_channel_identifier,
+        ).transact({'from': B})
+
+    signature_invalid_balance_hash = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        BP_valid.balance_hash[::-1],
+        BP_valid.nonce,
+        BP_valid.additional_hash,
+        BP_valid.signature,
+    )
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            BP_valid.balance_hash[::-1],  # invalid balance_hash
+            BP_valid.nonce,
+            BP_valid.additional_hash,
+            BP_valid.signature,
+            signature_invalid_balance_hash,
+        ).transact({'from': B})
+
+    signature_invalid_nonce = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        BP_valid.balance_hash,
+        1,
+        BP_valid.additional_hash,
+        BP_valid.signature,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            BP_valid.balance_hash,
+            1,  # invalid nonce
+            BP_valid.additional_hash,
+            BP_valid.signature,
+            signature_invalid_nonce,
+        ).transact({'from': B})
+
+    signature_invalid_additional_hash = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        BP_valid.balance_hash,
+        BP_valid.nonce,
+        BP_valid.additional_hash[::-1],
+        BP_valid.signature,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            BP_valid.balance_hash,
+            BP_valid.nonce,
+            fake_bytes(32, '02'),  # invalid additional_hash
+            BP_valid.signature,
+            signature_invalid_additional_hash,
+        ).transact({'from': B})
+
+    signature_invalid_closing_signature = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        BP_valid.balance_hash,
+        BP_valid.nonce,
+        BP_valid.additional_hash,
+        BP_valid.signature[::-1],
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            A,
+            B,
+            BP_valid.balance_hash,
+            BP_valid.nonce,
+            BP_valid.additional_hash,
+            BP_valid.signature,
+            signature_invalid_closing_signature[::-1],  # invalid non-closing signature
+        ).transact({'from': B})
+
+    # Call with same BP and signature on valid arguments still works
+
+    token_network.functions.updateNonClosingBalanceProof(
+        A,
+        B,
+        *BP_valid,
+        valid_balance_proof_update_signature,
+    ).transact({'from': B})
 
 
 def test_update_channel_event(
