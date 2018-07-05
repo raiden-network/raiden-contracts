@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
 from raiden_contracts.utils.events import check_withdraw
-from .fixtures.config import empty_address, fake_bytes
+from .fixtures.config import EMPTY_ADDRESS, fake_bytes
 from raiden_contracts.constants import (
     EVENT_CHANNEL_WITHDRAW,
     CHANNEL_STATE_NONEXISTENT,
@@ -82,7 +82,7 @@ def test_withdraw_call(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            empty_address,
+            EMPTY_ADDRESS,
             withdraw_A,
             B,
             signature_A_for_A,
@@ -92,7 +92,7 @@ def test_withdraw_call(
         token_network.functions.setTotalWithdraw(
             A,
             withdraw_A,
-            empty_address,
+            EMPTY_ADDRESS,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})

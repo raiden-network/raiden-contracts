@@ -8,7 +8,7 @@ from raiden_contracts.constants import (
     CHANNEL_STATE_OPENED,
 )
 from raiden_contracts.utils.events import check_channel_opened
-from .fixtures.config import empty_address, fake_address, fake_bytes
+from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS, fake_bytes
 from web3.exceptions import ValidationError
 
 
@@ -22,18 +22,18 @@ def test_open_channel_call(token_network, get_accounts):
     with pytest.raises(ValidationError):
         token_network.functions.openChannel('', B, settle_timeout).transact()
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(fake_address, B, settle_timeout).transact()
+        token_network.functions.openChannel(FAKE_ADDRESS, B, settle_timeout).transact()
     with pytest.raises(ValidationError):
         token_network.functions.openChannel(A, 0x0, settle_timeout).transact()
     with pytest.raises(ValidationError):
         token_network.functions.openChannel(A, '', settle_timeout).transact()
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, fake_address, settle_timeout).transact()
+        token_network.functions.openChannel(A, FAKE_ADDRESS, settle_timeout).transact()
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(empty_address, B, settle_timeout).transact()
+        token_network.functions.openChannel(EMPTY_ADDRESS, B, settle_timeout).transact()
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, empty_address, settle_timeout).transact()
+        token_network.functions.openChannel(A, EMPTY_ADDRESS, settle_timeout).transact()
 
     # Cannot open a channel between 2 participants with the same address
     with pytest.raises(TransactionFailed):

@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_transfer_updated
-from .fixtures.config import fake_bytes, empty_address
+from .fixtures.config import fake_bytes, EMPTY_ADDRESS
 
 
 def test_update_call(
@@ -42,7 +42,7 @@ def test_update_call(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
-            empty_address,
+            EMPTY_ADDRESS,
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
@@ -50,7 +50,7 @@ def test_update_call(
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             A,
-            empty_address,
+            EMPTY_ADDRESS,
             *balance_proof_A,
             balance_proof_update_signature_B,
         ).transact({'from': C})

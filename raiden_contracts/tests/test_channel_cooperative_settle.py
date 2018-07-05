@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.events import check_channel_settled
-from .fixtures.config import empty_address
+from .fixtures.config import EMPTY_ADDRESS
 from raiden_contracts.constants import EVENT_CHANNEL_SETTLED
 from web3.exceptions import ValidationError
 
@@ -88,7 +88,7 @@ def test_cooperative_settle_channel_call(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            empty_address,
+            EMPTY_ADDRESS,
             balance_A,
             B,
             balance_B,
@@ -99,7 +99,7 @@ def test_cooperative_settle_channel_call(
         token_network.functions.cooperativeSettle(
             A,
             balance_A,
-            empty_address,
+            EMPTY_ADDRESS,
             balance_B,
             signature_A,
             signature_B,
