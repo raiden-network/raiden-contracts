@@ -53,15 +53,12 @@ def test_merkle_root(
         get_accounts,
         token_network_test,
         secret_registry_contract,
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
 
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     (locksroot, unlocked_amount) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
         pending_transfers_tree.packed_transfers,
@@ -284,6 +281,7 @@ def test_channel_unlock(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
+        reveal_secrets,
         event_handler,
 ):
     (A, B) = get_accounts(2)
@@ -311,11 +309,7 @@ def test_channel_unlock(
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
     # Reveal secrets before settlement window ends
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     close_and_update_channel(
         A,
@@ -449,6 +443,7 @@ def test_channel_unlock_expired_lock_refunds(
         create_channel,
         channel_deposit,
         get_accounts,
+        reveal_secrets,
         close_and_update_channel,
 ):
     (A, B) = get_accounts(2)
@@ -486,11 +481,7 @@ def test_channel_unlock_expired_lock_refunds(
     web3.testing.mine(max_lock_expiration)
 
     # Secrets are revealed before settlement window, but after expiration
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     close_and_update_channel(
         A,
@@ -533,6 +524,7 @@ def test_channel_unlock_before_settlement_fails(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -559,11 +551,7 @@ def test_channel_unlock_before_settlement_fails(
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
     # Reveal secrets before settlement window ends
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     close_and_update_channel(
         A,
@@ -748,11 +736,7 @@ def test_channel_unlock_both_participants(
     values_B.locked = get_locked_amount(pending_transfers_tree_B.transfers)
 
     # Reveal B's secrets before settlement window ends
-    for lock in pending_transfers_tree_B.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': B})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
     close_and_update_channel(
         A,
@@ -862,6 +846,7 @@ def test_channel_unlock_with_a_large_expiration(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
+        reveal_secrets,
 ):
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -893,11 +878,7 @@ def test_channel_unlock_with_a_large_expiration(
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
     # Reveal secrets before settlement window ends
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     close_and_update_channel(
         A,
@@ -1029,6 +1010,7 @@ def test_unlock_channel_event(
         channel_deposit,
         get_accounts,
         close_and_update_channel,
+        reveal_secrets,
         event_handler,
 ):
     (A, B) = get_accounts(2)
@@ -1061,11 +1043,7 @@ def test_unlock_channel_event(
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
 
     # Reveal secrets before settlement window ends
-    for lock in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-            lock[2],
-        ).call() == web3.eth.blockNumber
+    reveal_secrets(A, pending_transfers_tree.unlockable)
 
     close_and_update_channel(
         A,
