@@ -319,6 +319,68 @@ def test_settle_single_direct_transfer_for_counterparty(
     assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
 
 
+def test_settlement_with_unauthorized_token_transfer(
+        web3,
+        get_accounts,
+        custom_token,
+        token_network,
+        create_channel_and_deposit,
+        withdraw_channel,
+        close_and_update_channel,
+):
+    externally_transferred_amount = 5
+    (A, B) = get_accounts(2)
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=0),
+        ChannelValues(deposit=40, withdrawn=10, transferred=0, locked=0),
+    )
+    vals_A.locksroot = fake_bytes(32, '02')
+    vals_B.locksroot = fake_bytes(32, '03')
+
+    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+
+    withdraw_channel(A, vals_A.withdrawn, B)
+    withdraw_channel(B, vals_B.withdrawn, A)
+
+    close_and_update_channel(
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    # A does a transfer to the token_network without appropriate function call - tokens are lost
+    custom_token.functions.transfer(
+        token_network.address,
+        externally_transferred_amount,
+    ).transact({'from': A})
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+
+    # Compute expected settlement amounts
+    settlement = get_settlement_amounts(vals_A, vals_B)
+
+    # Channel is settled
+    call_settle(token_network, A, vals_A, B, vals_B)
+
+    # Fetch onchain balances after settlement
+    post_balance_A = custom_token.functions.balanceOf(A).call()
+    post_balance_B = custom_token.functions.balanceOf(B).call()
+    post_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # A has lost the externally_transferred_amount
+    assert (
+        vals_A.withdrawn + settlement.participant1_balance - externally_transferred_amount
+        == post_balance_A
+    )
+
+    # B's settlement works correctly
+    assert (settlement.participant2_balance + vals_B.withdrawn == post_balance_B)
+
+    # The externally_transferred_amount stays in the contract
+    assert (post_balance_contract == externally_transferred_amount)
+
+
 def test_settle_channel_event(
         web3,
         get_accounts,
