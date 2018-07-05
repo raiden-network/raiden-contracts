@@ -152,11 +152,10 @@ def test_channel_deposit_overflow(token_network, get_accounts, create_channel, c
 def test_channel_deposit_limit(token_network, get_accounts, create_channel, channel_deposit):
     (A, B) = get_accounts(2)
 
-    expected_max_deploy = MAX_TOKENS_DEPLOY * (10 ** 18)
-    assert token_network.functions.decimals().call() == 18
-    assert token_network.functions.deposit_limit().call() == expected_max_deploy
+    contract_deposit_limit = MAX_TOKENS_DEPLOY * (10 ** 18)
+    assert token_network.functions.deposit_limit().call() == contract_deposit_limit
 
-    deposit_B_ok = expected_max_deploy
+    deposit_B_ok = contract_deposit_limit
     deposit_B_fail = deposit_B_ok + 1
 
     create_channel(A, B)
@@ -170,7 +169,6 @@ def test_channel_deposit_limit(token_network, get_accounts, create_channel, chan
 def test_channel_deposit_limit_7_decimals_token(
         token_network_7_decimals,
 ):
-    assert token_network_7_decimals.functions.decimals().call() == 7
     contract_deposit_limit = token_network_7_decimals.functions.deposit_limit().call()
     assert contract_deposit_limit == MAX_TOKENS_DEPLOY * (10 ** 7)
 
@@ -179,7 +177,6 @@ def test_channel_deposit_limit_no_decimals_token(
         token_network_no_decimals,
 ):
     # When no decimals function is available assume 18
-    assert token_network_no_decimals.functions.decimals().call() == 18
     contract_deposit_limit = token_network_no_decimals.functions.deposit_limit().call()
     assert contract_deposit_limit == MAX_TOKENS_DEPLOY * (10 ** 18)
 
