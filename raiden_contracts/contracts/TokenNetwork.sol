@@ -768,15 +768,18 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        bytes32 pair_hash;
         bytes32 channel_identifier;
         address participant1;
         address participant2;
         uint256 total_available_deposit;
-        uint256 initial_state;
 
+        pair_hash = getParticipantsHash(participant1_address, participant2_address);
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
-        initial_state = channel.state;
+
+        // The channel must be open
+        require(channel.state == 1);
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -809,6 +812,9 @@ contract TokenNetwork is Utils {
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
+        // Remove the pair's channel counter
+        delete participants_hash_to_channel_counter[pair_hash];
+
 
         // Do the token transfers
         if (participant1_balance > 0) {
@@ -818,9 +824,6 @@ contract TokenNetwork is Utils {
         if (participant2_balance > 0) {
             require(token.transfer(participant2, participant2_balance));
         }
-
-        // The channel must be open
-        require(initial_state == 1);
 
         // The provided addresses must be the same as the recovered ones
         require(participant1 == participant1_address);
