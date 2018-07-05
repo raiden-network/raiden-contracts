@@ -10,6 +10,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS, fake_bytes
 from web3.exceptions import ValidationError
+from .utils import get_channel_identifier, get_participants_hash
 
 
 def test_open_channel_call(token_network, get_accounts):
@@ -53,6 +54,59 @@ def test_max_1_channel(token_network, get_accounts, create_channel):
         token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     with pytest.raises(TransactionFailed):
         token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).transact()
+
+
+def test_participants_hash(token_network, get_accounts):
+    (A, B) = get_accounts(2)
+
+    AB_hash = get_participants_hash(A, B)
+    assert token_network.functions.getParticipantsHash(A, B).call() == AB_hash
+
+
+def test_counter(token_network, get_accounts, create_channel):
+    (A, B, C, D) = get_accounts(4)
+
+    AB_hash = token_network.functions.getParticipantsHash(A, B).call()
+    BC_hash = token_network.functions.getParticipantsHash(B, C).call()
+    CD_hash = token_network.functions.getParticipantsHash(C, D).call()
+
+    assert token_network.functions.channel_counter().call() == 0
+    assert token_network.functions.participants_hash_to_channel_counter(AB_hash).call() == 0
+    assert token_network.functions.participants_hash_to_channel_counter(BC_hash).call() == 0
+    assert token_network.functions.participants_hash_to_channel_counter(CD_hash).call() == 0
+
+    channel_identifier_no_channel = get_channel_identifier(A, B, 0)
+    assert token_network.functions.getChannelIdentifier(
+        A,
+        B,
+    ).call() == channel_identifier_no_channel
+    create_channel(A, B)
+    channel_identifier = get_channel_identifier(A, B, 1)
+    assert token_network.functions.channel_counter().call() == 1
+    assert token_network.functions.participants_hash_to_channel_counter(AB_hash).call() == 1
+    assert token_network.functions.getChannelIdentifier(A, B).call() == channel_identifier
+
+    channel_identifier_no_channel = get_channel_identifier(B, C, 0)
+    assert token_network.functions.getChannelIdentifier(
+        B,
+        C,
+    ).call() == channel_identifier_no_channel
+    create_channel(B, C)
+    channel_identifier = get_channel_identifier(B, C, 2)
+    assert token_network.functions.channel_counter().call() == 2
+    assert token_network.functions.participants_hash_to_channel_counter(BC_hash).call() == 2
+    assert token_network.functions.getChannelIdentifier(B, C).call() == channel_identifier
+
+    channel_identifier_no_channel = get_channel_identifier(C, D, 0)
+    assert token_network.functions.getChannelIdentifier(
+        C,
+        D,
+    ).call() == channel_identifier_no_channel
+    create_channel(C, D)
+    channel_identifier = get_channel_identifier(C, D, 3)
+    assert token_network.functions.channel_counter().call() == 3
+    assert token_network.functions.participants_hash_to_channel_counter(CD_hash).call() == 3
+    assert token_network.functions.getChannelIdentifier(C, D).call() == channel_identifier
 
 
 def test_open_channel_state(token_network, get_accounts):

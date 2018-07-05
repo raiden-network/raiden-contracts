@@ -5,7 +5,8 @@ from collections import namedtuple
 from web3 import Web3
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
-from eth_abi import encode_abi
+from eth_abi import encode_abi, encode_single
+from eth_utils import keccak, to_canonical_address
 
 
 MAX_UINT256 = 2 ** 256 - 1
@@ -314,3 +315,15 @@ def get_unlocked_amount(secret_registry, merkle_tree_leaves):
 
 def get_locked_amount(pending_transfers):
     return reduce((lambda x, y: x + y[1]), pending_transfers, 0)
+
+
+def get_channel_identifier(A, B, counter):
+    pair_hash = get_participants_hash(A, B)
+    counter = encode_single('uint256', counter)
+    return keccak(pair_hash + counter)
+
+
+def get_participants_hash(A, B):
+    A = to_canonical_address(A)
+    B = to_canonical_address(B)
+    return keccak(A + B) if A < B else keccak(B + A)
