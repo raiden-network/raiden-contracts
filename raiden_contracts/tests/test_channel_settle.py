@@ -1,6 +1,9 @@
 import pytest
 from copy import deepcopy
 from random import randint
+
+from raiden_contracts.utils.merkle import get_merkle_root
+
 from raiden_contracts.constants import (
     EVENT_CHANNEL_SETTLED,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -13,6 +16,8 @@ from raiden_contracts.tests.utils import (
     MAX_UINT256,
     get_settlement_amounts,
     get_onchain_settlement_amounts,
+    ChannelValues,
+    get_pending_transfers_tree,
 )
 
 
@@ -28,7 +33,6 @@ def test_settle_no_bp_success(
         token_network,
         create_channel_and_deposit,
         get_accounts,
-        create_balance_proof,
 ):
     (A, B) = get_accounts(2)
     deposit_A = 10
@@ -191,6 +195,244 @@ def test_settle_channel_state(
             settlement2.participant1_locked == settlement2_equivalent.participant2_balance +
             settlement2_equivalent.participant1_locked
         )
+
+
+def test_settle_single_direct_transfer_for_closing_party(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+):
+    """ Test settle of a channel with one direct transfer to the participant
+    that called close.
+    """
+    (A, B) = get_accounts(2)
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
+        ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
+    )
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    locksroot = fake_bytes(32)
+
+    channel_identifier = create_channel(A, B)[0]
+    channel_deposit(A, vals_A.deposit, B)
+    channel_deposit(B, vals_B.deposit, A)
+
+    balance_proof_B = create_balance_proof(
+        channel_identifier,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        1,
+        locksroot,
+    )
+    token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+
+    web3.testing.mine(settle_timeout)
+    token_network.functions.settleChannel(
+        A,
+        0,
+        0,
+        locksroot,
+        B,
+        vals_B.transferred,
+        0,
+        locksroot,
+    ).transact({'from': A})
+
+    # Calculate how much A and B should receive
+    expected_settlement = get_settlement_amounts(vals_A, vals_B)
+    # Calculate how much A and B receive according to onchain computation
+    onchain_settlement = get_onchain_settlement_amounts(vals_A, vals_B)
+
+    assert (expected_settlement.participant1_balance == onchain_settlement.participant1_balance)
+    assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
+
+
+def test_settle_single_direct_transfer_for_counterparty(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+):
+    """ Test settle of a channel with one direct transfer to the participant
+    that did not call close.
+    """
+    (A, B) = get_accounts(2)
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
+        ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
+    )
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    locksroot = fake_bytes(32)
+    additional_hash = fake_bytes(32)
+
+    channel_identifier = create_channel(A, B)[0]
+    channel_deposit(A, vals_A.deposit, B)
+    channel_deposit(B, vals_B.deposit, A)
+    token_network.functions.closeChannel(
+        B,
+        locksroot,
+        0,
+        additional_hash,
+        fake_bytes(64),
+    ).transact({'from': A})
+
+    balance_proof_A = create_balance_proof(
+        channel_identifier,
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        1,
+        locksroot)
+
+    balance_proof_update_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_A,
+    )
+    token_network.functions.updateNonClosingBalanceProof(
+        A, B,
+        *balance_proof_A,
+        balance_proof_update_signature_B,
+    ).transact({'from': B})
+
+    web3.testing.mine(settle_timeout)
+    token_network.functions.settleChannel(
+        B,
+        0,
+        0,
+        locksroot,
+        A,
+        vals_A.transferred,
+        0,
+        locksroot,
+    ).transact({'from': B})
+
+    # Calculate how much A and B should receive
+    expected_settlement = get_settlement_amounts(vals_B, vals_A)
+    # Calculate how much A and B receive according to onchain computation
+    onchain_settlement = get_onchain_settlement_amounts(vals_B, vals_A)
+
+    assert (expected_settlement.participant1_balance == onchain_settlement.participant1_balance)
+    assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
+
+
+def test_settlement_with_unauthorized_token_transfer(
+        web3,
+        get_accounts,
+        custom_token,
+        token_network,
+        create_channel_and_deposit,
+        withdraw_channel,
+        close_and_update_channel,
+):
+    externally_transferred_amount = 5
+    (A, B) = get_accounts(2)
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=0),
+        ChannelValues(deposit=40, withdrawn=10, transferred=0, locked=0),
+    )
+    vals_A.locksroot = fake_bytes(32, '02')
+    vals_B.locksroot = fake_bytes(32, '03')
+
+    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+
+    withdraw_channel(A, vals_A.withdrawn, B)
+    withdraw_channel(B, vals_B.withdrawn, A)
+
+    close_and_update_channel(
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    # A does a transfer to the token_network without appropriate function call - tokens are lost
+    custom_token.functions.transfer(
+        token_network.address,
+        externally_transferred_amount,
+    ).transact({'from': A})
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+
+    # Compute expected settlement amounts
+    settlement = get_settlement_amounts(vals_A, vals_B)
+
+    # Channel is settled
+    call_settle(token_network, A, vals_A, B, vals_B)
+
+    # Fetch onchain balances after settlement
+    post_balance_A = custom_token.functions.balanceOf(A).call()
+    post_balance_B = custom_token.functions.balanceOf(B).call()
+    post_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # A has lost the externally_transferred_amount
+    assert (
+        vals_A.withdrawn + settlement.participant1_balance - externally_transferred_amount
+        == post_balance_A
+    )
+
+    # B's settlement works correctly
+    assert (settlement.participant2_balance + vals_B.withdrawn == post_balance_B)
+
+    # The externally_transferred_amount stays in the contract
+    assert (post_balance_contract == externally_transferred_amount)
+
+
+def test_settle_with_locked_but_unregistered(
+        web3,
+        token_network,
+        get_accounts,
+        create_channel_and_deposit,
+        withdraw_channel,
+        close_and_update_channel,
+        custom_token,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    locked_A = pending_transfers_tree.locked_amount
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=locked_A),
+        ChannelValues(deposit=40, withdrawn=10, transferred=20, locked=0),
+    )
+
+    vals_A.locksroot = '0x' + get_merkle_root(pending_transfers_tree.merkle_tree).hex()
+    vals_B.locksroot = fake_bytes(32, '03')
+    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    withdraw_channel(A, vals_A.withdrawn, B)
+    withdraw_channel(B, vals_B.withdrawn, A)
+
+    close_and_update_channel(
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    # Secret hasn't been registered before settlement timeout
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    call_settle(token_network, A, vals_A, B, vals_B)
+
+    # A calls unlock - all tokens should be refunded
+    token_network.functions.unlock(
+        B,
+        A,
+        pending_transfers_tree.packed_transfers,
+    ).transact({'from': A})
+
+    # A gets back locked tokens
+    assert (
+        custom_token.functions.balanceOf(A).call() ==
+        vals_A.deposit - vals_A.transferred + vals_B.transferred
+    )
 
 
 def test_settle_channel_event(
