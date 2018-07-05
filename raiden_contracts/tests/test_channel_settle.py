@@ -1,6 +1,9 @@
 import pytest
 from copy import deepcopy
 from random import randint
+
+from raiden_contracts.utils.merkle import get_merkle_root
+
 from raiden_contracts.constants import (
     EVENT_CHANNEL_SETTLED,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -14,6 +17,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
+    get_pending_transfers_tree,
 )
 
 
@@ -379,6 +383,56 @@ def test_settlement_with_unauthorized_token_transfer(
 
     # The externally_transferred_amount stays in the contract
     assert (post_balance_contract == externally_transferred_amount)
+
+
+def test_settle_with_locked_but_unregistered(
+        web3,
+        token_network,
+        get_accounts,
+        create_channel_and_deposit,
+        withdraw_channel,
+        close_and_update_channel,
+        custom_token,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    locked_A = pending_transfers_tree.locked_amount
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=locked_A),
+        ChannelValues(deposit=40, withdrawn=10, transferred=20, locked=0),
+    )
+
+    vals_A.locksroot = '0x' + get_merkle_root(pending_transfers_tree.merkle_tree).hex()
+    vals_B.locksroot = fake_bytes(32, '03')
+    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    withdraw_channel(A, vals_A.withdrawn, B)
+    withdraw_channel(B, vals_B.withdrawn, A)
+
+    close_and_update_channel(
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    # Secret hasn't been registered before settlement timeout
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    call_settle(token_network, A, vals_A, B, vals_B)
+
+    # A calls unlock - all tokens should be refunded
+    token_network.functions.unlock(
+        B,
+        A,
+        pending_transfers_tree.packed_transfers,
+    ).transact({'from': A})
+
+    # A gets back locked tokens
+    assert (
+        custom_token.functions.balanceOf(A).call() ==
+        vals_A.deposit - vals_A.transferred + vals_B.transferred
+    )
 
 
 def test_settle_channel_event(
