@@ -872,7 +872,7 @@ def test_channel_unlock_with_a_large_expiration(
         web3,
         [1, 3, 5],
         [2, 4],
-        settle_timeout + 100
+        settle_timeout + 100,
     )
     values_B.locksroot = pending_transfers_tree.merkle_root
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
@@ -1028,7 +1028,7 @@ def test_unlock_channel_event(
     )
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    create_channel(A, B, settle_timeout)[0]
     channel_deposit(A, values_A.deposit, B)
     channel_deposit(B, values_B.deposit, A)
 
@@ -1037,7 +1037,7 @@ def test_unlock_channel_event(
         web3,
         [1, 3, 5],
         [2, 4],
-        settle_timeout + 100
+        settle_timeout + 100,
     )
     values_B.locksroot = pending_transfers_tree.merkle_root
     values_B.locked = get_locked_amount(pending_transfers_tree.transfers)

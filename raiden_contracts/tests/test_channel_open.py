@@ -174,9 +174,8 @@ def test_reopen_channel(
     token_network.functions.openChannel(A, B, settle_timeout).transact()
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_counter(
-        get_participants_hash(A, B)
+        get_participants_hash(A, B),
     ).call()
-
 
     # Opening twice fails
     with pytest.raises(TransactionFailed):
@@ -214,7 +213,7 @@ def test_reopen_channel(
     token_network.functions.openChannel(A, B, settle_timeout).transact()
     assert token_network.functions.getChannelIdentifier(A, B).call() != channel_identifier1
     assert token_network.functions.participants_hash_to_channel_counter(
-        get_participants_hash(A, B)
+        get_participants_hash(A, B),
     ).call() == channel_counter1 + 1
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()

@@ -19,6 +19,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
+    get_participants_hash
 )
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
@@ -377,6 +378,10 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
         locked_amount2 = token_network.functions.getParticipantLockedAmount(B, A, values_B.locksroot).call()
         assert locked_amount2 == settlement.participant2_locked
         assert locked_amount2 == on_chain_settlement.participant2_locked
+
+        assert token_network.functions.participants_hash_to_channel_counter(
+            get_participants_hash(A, B)
+        ).call() == 0
 
     return get
 
