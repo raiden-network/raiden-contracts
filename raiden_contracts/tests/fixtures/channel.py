@@ -266,6 +266,10 @@ def cooperative_settle_state_tests(custom_token, token_network):
         assert balance_contract == pre_balance_contract - balance_A - balance_B
 
         # Make sure channel data has been removed
+        assert token_network.functions.participants_hash_to_channel_counter(
+            get_participants_hash(A, B)
+        ).call() == 0
+
         (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
         assert settle_block_number == 0  # settle_block_number
         assert state == CHANNEL_STATE_NONEXISTENT  # state
@@ -378,10 +382,6 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
         locked_amount2 = token_network.functions.getParticipantLockedAmount(B, A, values_B.locksroot).call()
         assert locked_amount2 == settlement.participant2_locked
         assert locked_amount2 == on_chain_settlement.participant2_locked
-
-        assert token_network.functions.participants_hash_to_channel_counter(
-            get_participants_hash(A, B)
-        ).call() == 0
 
     return get
 
