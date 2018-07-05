@@ -120,7 +120,6 @@ def get_pending_transfers_tree(
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
     merkle_root = get_merkle_root(merkle_tree)
-    merkle_root = '0x' + merkle_root.hex()
     packed_transfers = get_packed_transfers(pending_transfers, types)
     locked_amount = get_locked_amount(pending_transfers)
 

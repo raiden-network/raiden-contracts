@@ -58,10 +58,11 @@ def check_channel_closed(channel_identifier, closing_participant):
     return get
 
 
-def check_channel_unlocked(channel_identifier, participant, unlocked_amount, returned_tokens):
+def check_channel_unlocked(participant, partner, locksroot, unlocked_amount, returned_tokens):
     def get(event):
-        assert event['args']['channel_identifier'] == channel_identifier
         assert event['args']['participant'] == participant
+        assert event['args']['partner'] == partner
+        assert event['args']['locksroot'] == locksroot
         assert event['args']['unlocked_amount'] == unlocked_amount
         assert event['args']['returned_tokens'] == returned_tokens
     return get
