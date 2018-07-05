@@ -12,6 +12,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 
 
 def test_withdraw_call(
@@ -435,6 +436,68 @@ def test_withdraw_channel_state(
         balance_A,
         balance_contract,
     )
+
+
+def test_withdraw_replay_reopened_channel(
+        web3,
+        token_network,
+        create_channel,
+        channel_deposit,
+        get_accounts,
+        create_withdraw_signatures,
+):
+    (A, B) = get_accounts(2)
+    deposit_A = 20
+    withdraw_A = 5
+
+    channel_identifier1 = create_channel(A, B)[0]
+    channel_deposit(A, deposit_A, B)
+    (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
+        [A, B],
+        channel_identifier1,
+        A,
+        withdraw_A,
+    )
+    token_network.functions.setTotalWithdraw(
+        A,
+        withdraw_A,
+        B,
+        signature_A_for_A,
+        signature_B_for_A,
+    ).transact({'from': A})
+
+    token_network.functions.closeChannel(
+        A,
+        fake_bytes(32),
+        0,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': B})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    token_network.functions.settleChannel(
+        A,
+        0,
+        0,
+        EMPTY_MERKLE_ROOT,
+        B,
+        0,
+        0,
+        EMPTY_MERKLE_ROOT,
+    ).transact({'from': A})
+
+    # Reopen the channel and make sure we cannot use the old withdraw proof
+    channel_identifier2 = create_channel(A, B)[0]
+    channel_deposit(A, deposit_A, B)
+
+    assert channel_identifier1 != channel_identifier2
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalWithdraw(
+            A,
+            withdraw_A,
+            B,
+            signature_A_for_A,
+            signature_B_for_A,
+        ).transact({'from': A})
 
 
 def test_withdraw_event(
