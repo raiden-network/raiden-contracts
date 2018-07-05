@@ -113,11 +113,23 @@ def test_open_channel_state(token_network, get_accounts):
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
+    channel_counter = token_network.functions.channel_counter().call()
+    participants_hash = token_network.functions.getParticipantsHash(A, B).call()
+
+    assert token_network.functions.participants_hash_to_channel_counter(
+        participants_hash,
+    ).call() == 0
+
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == 0
     assert state == CHANNEL_STATE_NONEXISTENT
 
     token_network.functions.openChannel(A, B, settle_timeout).transact()
+
+    assert token_network.functions.channel_counter().call() == channel_counter + 1
+    assert token_network.functions.participants_hash_to_channel_counter(
+        participants_hash,
+    ).call() == channel_counter + 1
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout
@@ -160,6 +172,11 @@ def test_reopen_channel(
     locksroot = fake_bytes(32)
 
     token_network.functions.openChannel(A, B, settle_timeout).transact()
+    channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
+    channel_counter1 = token_network.functions.participants_hash_to_channel_counter(
+        get_participants_hash(A, B)
+    ).call()
+
 
     # Opening twice fails
     with pytest.raises(TransactionFailed):
@@ -193,8 +210,12 @@ def test_reopen_channel(
         locksroot,
     ).transact({'from': A})
 
-    # Reopening the channel should work iff channel is settled
+    # Reopening the channel should work if channel is settled
     token_network.functions.openChannel(A, B, settle_timeout).transact()
+    assert token_network.functions.getChannelIdentifier(A, B).call() != channel_identifier1
+    assert token_network.functions.participants_hash_to_channel_counter(
+        get_participants_hash(A, B)
+    ).call() == channel_counter1 + 1
 
     (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
     assert settle_block_number == settle_timeout
