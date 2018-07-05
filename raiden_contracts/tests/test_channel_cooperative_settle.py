@@ -11,7 +11,7 @@ def test_cooperative_settle_channel_call(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -182,7 +182,7 @@ def test_cooperative_settle_channel_0(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -214,7 +214,7 @@ def test_cooperative_settle_channel_0(
         signature_B,
     ).transact({'from': C})
 
-    cooperative_settle_state_tests(
+    common_settle_state_tests(
         A,
         balance_A,
         B,
@@ -231,7 +231,7 @@ def test_cooperative_settle_channel_00(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 0
@@ -263,7 +263,7 @@ def test_cooperative_settle_channel_00(
         signature_B,
     ).transact({'from': C})
 
-    cooperative_settle_state_tests(
+    common_settle_state_tests(
         A,
         balance_A,
         B,
@@ -280,7 +280,7 @@ def test_cooperative_settle_channel_state(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -313,7 +313,7 @@ def test_cooperative_settle_channel_state(
         signature_B,
     ).transact({'from': C})
 
-    cooperative_settle_state_tests(
+    common_settle_state_tests(
         A,
         balance_A,
         B,
@@ -331,7 +331,7 @@ def test_cooperative_settle_channel_state_withdraw(
         withdraw_channel,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -368,7 +368,7 @@ def test_cooperative_settle_channel_state_withdraw(
         signature_B,
     ).transact({'from': C})
 
-    cooperative_settle_state_tests(
+    common_settle_state_tests(
         A,
         balance_A,
         B,
@@ -386,7 +386,7 @@ def test_cooperative_settle_channel_bigger_withdraw(
         withdraw_channel,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -427,7 +427,7 @@ def test_cooperative_settle_channel_wrong_balances(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
+        common_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -504,7 +504,6 @@ def test_cooperative_close_replay_reopened_channel(
         create_cooperative_settle_signatures,
 ):
     (A, B) = get_accounts(2)
-    nonce = 3
     deposit_A = 15
     deposit_B = 10
     balance_A = 2
@@ -523,7 +522,7 @@ def test_cooperative_close_replay_reopened_channel(
         balance_A,
     )
 
-    txn_hash = token_network.functions.cooperativeSettle(
+    token_network.functions.cooperativeSettle(
         B,
         balance_B,
         A,
@@ -539,7 +538,7 @@ def test_cooperative_close_replay_reopened_channel(
 
     assert channel_identifier1 != channel_identifier2
     with pytest.raises(TransactionFailed):
-        txn_hash = token_network.functions.cooperativeSettle(
+        token_network.functions.cooperativeSettle(
             B,
             balance_B,
             A,

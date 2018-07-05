@@ -247,7 +247,7 @@ def reveal_secrets(web3, secret_registry_contract):
 
 
 @pytest.fixture()
-def cooperative_settle_state_tests(custom_token, token_network):
+def common_settle_state_tests(custom_token, token_network):
     def get(
             A,
             balance_A,
@@ -341,7 +341,7 @@ def updateBalanceProof_state_tests(token_network, get_block):
 
 
 @pytest.fixture()
-def settle_state_tests(token_network, cooperative_settle_state_tests):
+def settle_state_tests(token_network, common_settle_state_tests):
     def get(
             A,
             values_A,
@@ -356,7 +356,7 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
         # Calculate how much A and B receive according to onchain computation
         on_chain_settlement = get_onchain_settlement_amounts(values_A, values_B)
 
-        cooperative_settle_state_tests(
+        common_settle_state_tests(
             A,
             settlement.participant1_balance,
             B,
@@ -365,7 +365,7 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
             pre_account_balance_B,
             pre_balance_contract
         )
-        cooperative_settle_state_tests(
+        common_settle_state_tests(
             A,
             on_chain_settlement.participant1_balance,
             B,
