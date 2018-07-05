@@ -132,15 +132,15 @@ def test_create_erc20_token_network(
         custom_token,
 ):
     assert token_network_registry_contract.functions.token_to_token_networks(
-        custom_token.address).call() == EMPTY_ADDRESS
+        custom_token.address,
+    ).call() == EMPTY_ADDRESS
 
     token_network = register_token_network(custom_token.address)
 
     assert token_network.functions.token().call() == custom_token.address
-    secret_registry_address = token_network_registry_contract.functions.secret_registry_address().call()  # noqa
-    assert token_network.functions.secret_registry().call() == secret_registry_address
-    assert (token_network.functions.chain_id().call()
-            == token_network_registry_contract.functions.chain_id().call())
+    assert token_network_registry_contract.functions.token_to_token_networks(
+        custom_token.address,
+    ).call() == token_network.address
 
 
 def test_create_erc20_token_network_twice_fails(
