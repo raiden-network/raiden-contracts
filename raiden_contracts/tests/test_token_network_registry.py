@@ -7,8 +7,8 @@ from raiden_contracts.constants import (
 )
 from .fixtures.config import (
     raiden_contracts_version,
-    empty_address,
-    fake_address,
+    EMPTY_ADDRESS,
+    FAKE_ADDRESS,
 )
 from raiden_contracts.utils.events import check_token_network_created
 from web3.exceptions import ValidationError
@@ -38,7 +38,7 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(['', chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network_registry([fake_address, chain_id, settle_min, settle_max])
+        get_token_network_registry([FAKE_ADDRESS, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, '', settle_min, settle_max])
     with pytest.raises(TypeError):
@@ -59,7 +59,7 @@ def test_constructor_call(
         get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, -3])
 
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([empty_address, chain_id, settle_min, settle_max])
+        get_token_network_registry([EMPTY_ADDRESS, chain_id, settle_min, settle_max])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([A, chain_id, settle_min, settle_max])
 
@@ -110,10 +110,10 @@ def test_create_erc20_token_network_call(
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork('').transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork(fake_address).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(FAKE_ADDRESS).transact()
 
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.functions.createERC20TokenNetwork(empty_address).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(EMPTY_ADDRESS).transact()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(A).transact()
     with pytest.raises(TransactionFailed):
@@ -130,18 +130,38 @@ def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
         custom_token,
-        get_accounts,
 ):
     assert token_network_registry_contract.functions.token_to_token_networks(
-        custom_token.address).call() == empty_address
+        custom_token.address,
+    ).call() == EMPTY_ADDRESS
 
     token_network = register_token_network(custom_token.address)
 
     assert token_network.functions.token().call() == custom_token.address
-    secret_registry_address = token_network_registry_contract.functions.secret_registry_address().call()  # noqa
-    assert token_network.functions.secret_registry().call() == secret_registry_address
-    assert (token_network.functions.chain_id().call()
-            == token_network_registry_contract.functions.chain_id().call())
+    assert token_network_registry_contract.functions.token_to_token_networks(
+        custom_token.address,
+    ).call() == token_network.address
+
+
+def test_create_erc20_token_network_twice_fails(
+        owner,
+        token_network_registry_contract,
+        custom_token,
+
+):
+
+    token_network_registry_contract.transact(
+        {'from': owner},
+    ).createERC20TokenNetwork(
+        custom_token.address,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.transact(
+            {'from': owner},
+        ).createERC20TokenNetwork(
+            custom_token.address,
+        )
 
 
 def test_events(

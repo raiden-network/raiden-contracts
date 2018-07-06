@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from raiden_contracts.utils.sign import hash_balance_proof
-from raiden_contracts.tests.fixtures.config import empty_address
+from raiden_contracts.tests.fixtures.config import EMPTY_ADDRESS
 from raiden_contracts.utils.sign_utils import sign
 
 
@@ -106,7 +106,7 @@ def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_privat
         signature[:32],
         signature[32:64],
         2,
-    ).call() == empty_address
+    ).call() == EMPTY_ADDRESS
 
 
 def test_ecrecover_output_fail(signature_test_contract, get_accounts, get_private_key):

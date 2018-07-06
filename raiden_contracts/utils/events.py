@@ -5,6 +5,13 @@ def check_secret_revealed(secrethash, secret):
     return get
 
 
+def check_secrets_revealed(secrethashes, secrets):
+    def get(event):
+        assert event['args']['secrethash'] in secrethashes
+        assert event['args']['secret'] in secrets
+    return get
+
+
 def check_token_network_created(token_address, token_network_address):
     def get(event):
         assert event['args']['token_address'] == token_address

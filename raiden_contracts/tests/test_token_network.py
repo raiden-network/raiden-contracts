@@ -1,6 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from .fixtures.config import raiden_contracts_version, empty_address, fake_address
+from .fixtures.config import raiden_contracts_version, EMPTY_ADDRESS, FAKE_ADDRESS
 
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
@@ -33,7 +33,7 @@ def test_constructor_call(
         get_token_network(['', secret_registry_contract.address, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
         get_token_network([
-            fake_address,
+            FAKE_ADDRESS,
             secret_registry_contract.address,
             chain_id,
             settle_min,
@@ -46,7 +46,7 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network([custom_token.address, '', chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, fake_address, chain_id, settle_min, settle_max])
+        get_token_network([custom_token.address, FAKE_ADDRESS, chain_id, settle_min, settle_max])
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -98,7 +98,7 @@ def test_constructor_call(
 
     with pytest.raises(TransactionFailed):
         get_token_network([
-            empty_address,
+            EMPTY_ADDRESS,
             secret_registry_contract.address,
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
@@ -124,7 +124,7 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
-            empty_address,
+            EMPTY_ADDRESS,
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
@@ -197,4 +197,4 @@ def test_constructor_not_registered(
 
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address,
-    ).call() == empty_address
+    ).call() == EMPTY_ADDRESS
