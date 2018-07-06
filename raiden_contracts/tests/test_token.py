@@ -28,6 +28,11 @@ def test_approve_transfer(web3, custom_token, get_accounts):
     assert token.functions.balanceOf(B).call() == initial_balance_B + to_transfer
     assert token.functions.balanceOf(A).call() == initial_balance_A - to_transfer
 
+    assert custom_token.functions.allowance(A, B).call() == 0
+    assert custom_token.functions.approve(B, 25).transact({'from': A})
+    assert custom_token.functions.allowance(A, B).call() == 25
+    assert custom_token.functions.allowance(A, token.address).call() == 0
+
 
 def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
     (A, B) = get_accounts(2)
