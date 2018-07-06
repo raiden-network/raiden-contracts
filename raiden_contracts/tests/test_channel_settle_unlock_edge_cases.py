@@ -516,7 +516,7 @@ def test_unlock_valid_valid_notrevealed_notrevealed(
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 15
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(
-        token_network.address
+        token_network.address,
     ).call() == pre_balance_contract - 15
 
 
@@ -602,7 +602,7 @@ def test_unlock_valid_valid_revealed_notrevealed_locked_smaller_than_deposit(
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + values_A.deposit - 25
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + values_B.deposit - 15
     assert custom_token.functions.balanceOf(
-        token_network.address
+        token_network.address,
     ).call() == pre_balance_contract - values_A.deposit - values_B.deposit + 40
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -618,7 +618,7 @@ def test_unlock_valid_valid_revealed_notrevealed_locked_smaller_than_deposit(
     assert token_network.functions.getParticipantLockedAmount(
         B,
         A,
-        values_B.locksroot
+        values_B.locksroot,
     ).call() == 0
 
     # B's pending transfer secrets have NOT been revealed on-chain, therefore the locked amount
@@ -626,7 +626,7 @@ def test_unlock_valid_valid_revealed_notrevealed_locked_smaller_than_deposit(
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 15
     assert custom_token.functions.balanceOf(
-        token_network.address
+        token_network.address,
     ).call() == pre_balance_contract - 15
 
     # B unlocks A's pending transfers
@@ -1037,7 +1037,7 @@ def test_unlock_old_valid_revealed_notrevealed(
     assert token_network.functions.getParticipantLockedAmount(
         B,
         A,
-        values_B.locksroot
+        values_B.locksroot,
     ).call() == 15
 
     # We don't transfer anything at this point, because all tokens are locked inside the contract
@@ -1174,7 +1174,7 @@ def test_unlock_old_valid_notrevealed_notrevealed(
     assert token_network.functions.getParticipantLockedAmount(
         A,
         B,
-        values_A.locksroot
+        values_A.locksroot,
     ).call() == 0
     assert token_network.functions.getParticipantLockedAmount(
         B,
