@@ -547,6 +547,24 @@ def test_cooperative_close_replay_reopened_channel(
             signature_A,
         ).transact({'from': B})
 
+    # Signed message with the correct channel identifier must work
+    (signature_A2, signature_B2) = create_cooperative_settle_signatures(
+        [A, B],
+        channel_identifier2,
+        B,
+        balance_B,
+        A,
+        balance_A,
+    )
+    token_network.functions.cooperativeSettle(
+        B,
+        balance_B,
+        A,
+        balance_A,
+        signature_B2,
+        signature_A2,
+    ).transact({'from': B})
+
 
 def test_cooperative_settle_channel_event(
         get_accounts,

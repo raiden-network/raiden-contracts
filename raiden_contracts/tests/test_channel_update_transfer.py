@@ -918,6 +918,28 @@ def test_update_replay_reopened_channel(
             balance_proof_update_signature_A,
         ).transact({'from': A})
 
+    # Correct channel_identifier must work
+    balance_proof_B2 = create_balance_proof(
+        channel_identifier2,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce_B,
+        values_B.locksroot,
+    )
+    balance_proof_update_signature_A2 = create_balance_proof_update_signature(
+        A,
+        channel_identifier2,
+        *balance_proof_B2,
+    )
+
+    token_network.functions.updateNonClosingBalanceProof(
+        B,
+        A,
+        *balance_proof_B2,
+        balance_proof_update_signature_A2,
+    ).transact({'from': A})
+
 
 def test_update_channel_event(
         get_accounts,

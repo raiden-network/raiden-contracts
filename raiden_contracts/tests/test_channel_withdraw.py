@@ -499,6 +499,21 @@ def test_withdraw_replay_reopened_channel(
             signature_B_for_A,
         ).transact({'from': A})
 
+    # Signed message with correct channel_identifier must work
+    (signature_A_for_A2, signature_B_for_A2) = create_withdraw_signatures(
+        [A, B],
+        channel_identifier2,
+        A,
+        withdraw_A,
+    )
+    token_network.functions.setTotalWithdraw(
+        A,
+        withdraw_A,
+        B,
+        signature_A_for_A2,
+        signature_B_for_A2,
+    ).transact({'from': A})
+
 
 def test_withdraw_event(
         token_network,

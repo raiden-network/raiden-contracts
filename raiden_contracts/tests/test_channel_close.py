@@ -368,6 +368,17 @@ def test_close_replay_reopened_channel(
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
 
+    # Balance proof with correct channel_identifier must work
+    balance_proof_B2 = create_balance_proof(
+        channel_identifier2,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce,
+        values_B.locksroot,
+    )
+    token_network.functions.closeChannel(B, *balance_proof_B2).transact({'from': A})
+
 
 def test_close_channel_event(
         get_accounts,
