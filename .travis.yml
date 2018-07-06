@@ -1,36 +1,34 @@
-dist: trusty
+dist: xenial
 sudo: true
-language: generic
+language: python
+python:
+  - '3.6'
 
+env:
+  global:
+    - TEST_TYPE=raiden_contracts
+    - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.23/solc-static-linux'
+    - SOLC_VERSION='v0.4.23'
 
-jobs:
-  include:
-    - language: python
-      python: '3.5'
-      env:
-        - TEST_TYPE=raiden_contracts
-        - SOLC_URL='https://github.com/ethereum/solidity/releases/download/v0.4.23/solc-static-linux'
-        - SOLC_VERSION='v0.4.23'
+cache:
+  pip: true
+  directories:
+    - $HOME/.cache/pip
 
-      cache:
-        pip: true
-        directories:
-          - $HOME/.cache/pip
+before_install:
+  - mkdir -p $HOME/.bin
+  - export PATH=$PATH:$HOME/.bin
+  - ./.travis/download_solc.sh
 
-      before_install:
-            - mkdir -p $HOME/.bin
-            - export PATH=$PATH:$HOME/.bin
-            - ./.travis/download_solc.sh
+install:
+  - pip install -U pip wheel coveralls "coverage<4.4"
+  - pip install pytest-travis-fold
+  - pip install -r requirements-dev.txt
+  - pip install pytest-xdist pytest-sugar
+  - python setup.py compile_contracts
 
-      install:
-        - pip install -U pip wheel coveralls "coverage<4.4"
-        - pip install pytest-travis-fold
-        - pip install -r requirements-dev.txt
-        - pip install pytest-xdist pytest-sugar
-        - python setup.py compile_contracts
+before_script:
+  - flake8 raiden_contracts/
 
-      before_script:
-        - flake8 raiden_contracts/
-
-      script:
-        - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n auto -v $TEST_TYPE
+script:
+  - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE

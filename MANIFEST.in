@@ -1,4 +1,4 @@
 include requirements.txt
-include raiden_contracts/data/contracts.json
+include raiden_contracts/data/contracts.json.gz
 recursive-include raiden_contracts/contracts/ *
 recursive-include raiden_contracts/contracts/test *

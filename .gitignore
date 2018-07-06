@@ -15,3 +15,4 @@ venv/
 # editors
 .vscode/
 
+raiden_contracts/data/contracts.json.gz
