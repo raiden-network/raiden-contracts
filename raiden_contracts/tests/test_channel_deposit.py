@@ -3,7 +3,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
 from raiden_contracts.constants import EVENT_CHANNEL_DEPOSIT, MAX_TOKENS_DEPLOY
 from raiden_contracts.utils.events import check_new_deposit
-from .fixtures.config import empty_address, fake_address
+from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS
 from raiden_contracts.tests.utils import MAX_UINT256
 
 
@@ -30,7 +30,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
-            fake_address,
+            FAKE_ADDRESS,
             deposit_A,
             B,
         ).transact({'from': A})
@@ -50,7 +50,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            fake_address,
+            FAKE_ADDRESS,
         ).transact({'from': A})
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -67,7 +67,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
 
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
-            empty_address,
+            EMPTY_ADDRESS,
             deposit_A,
             B,
         ).transact({'from': A})
@@ -75,7 +75,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
         token_network.functions.setTotalDeposit(
             A,
             deposit_A,
-            empty_address,
+            EMPTY_ADDRESS,
         ).transact({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
