@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 try:
     from setuptools import setup, find_packages
 except ImportError:
@@ -13,7 +12,6 @@ from setuptools.command.sdist import sdist
 
 DESCRIPTION = 'Raiden contracts library and utilities'
 VERSION = '0.0.1'
-COMPILED_CONTRACTS = 'raiden_contracts/data/contracts.json'
 
 
 def read_requirements(path: str):
@@ -33,7 +31,9 @@ class BuildPyCommand(build_py):
 
 class SdistCommand(sdist):
     def run(self):
-        if os.path.isfile(COMPILED_CONTRACTS) is False:
+        from raiden_contracts.contract_manager import CONTRACTS_PRECOMPILED_PATH
+
+        if not CONTRACTS_PRECOMPILED_PATH.is_file():
             try:
                 self.run_command('build')
             except SystemExit:
@@ -52,23 +52,24 @@ class CompileContracts(Command):
         pass
 
     def run(self):
+        from raiden_contracts.contract_manager import (
+            ContractManager,
+            CONTRACTS_PRECOMPILED_PATH,
+            CONTRACTS_SOURCE_DIRS,
+        )
         try:
             from solc import compile_files  # noqa
         except ModuleNotFoundError:
             print('py-solc is not installed, skipping contracts compilation')
             return
-        from raiden_contracts.contract_manager import CONTRACT_MANAGER
-        if CONTRACT_MANAGER.contracts_source_dirs is None:
-            print(
-                'skipping compilation - contract manager is using precompiled contracts',
-            )
-            return
-        compiled = CONTRACT_MANAGER.precompile_contracts(
-            'raiden_contracts/contracts/',
-            CONTRACT_MANAGER.get_mappings(),
-        )
-        with open(COMPILED_CONTRACTS, 'w') as compiled_json:
-            compiled_json.write(json.dumps(compiled))
+
+        try:
+            contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+            contract_manager.store_compiled_contracts(CONTRACTS_PRECOMPILED_PATH)
+        except RuntimeError:
+            import traceback
+            print("Couldn't compile the contracts!")
+            traceback.print_exc()
 
 
 config = {
