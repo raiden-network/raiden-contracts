@@ -19,6 +19,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
+    get_participants_hash
 )
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
@@ -246,7 +247,7 @@ def reveal_secrets(web3, secret_registry_contract):
 
 
 @pytest.fixture()
-def cooperative_settle_state_tests(custom_token, token_network):
+def common_settle_state_tests(custom_token, token_network):
     def get(
             A,
             balance_A,
@@ -265,6 +266,10 @@ def cooperative_settle_state_tests(custom_token, token_network):
         assert balance_contract == pre_balance_contract - balance_A - balance_B
 
         # Make sure channel data has been removed
+        assert token_network.functions.participants_hash_to_channel_counter(
+            get_participants_hash(A, B)
+        ).call() == 0
+
         (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
         assert settle_block_number == 0  # settle_block_number
         assert state == CHANNEL_STATE_NONEXISTENT  # state
@@ -336,7 +341,7 @@ def updateBalanceProof_state_tests(token_network, get_block):
 
 
 @pytest.fixture()
-def settle_state_tests(token_network, cooperative_settle_state_tests):
+def settle_state_tests(token_network, common_settle_state_tests):
     def get(
             A,
             values_A,
@@ -351,7 +356,7 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
         # Calculate how much A and B receive according to onchain computation
         on_chain_settlement = get_onchain_settlement_amounts(values_A, values_B)
 
-        cooperative_settle_state_tests(
+        common_settle_state_tests(
             A,
             settlement.participant1_balance,
             B,
@@ -360,7 +365,7 @@ def settle_state_tests(token_network, cooperative_settle_state_tests):
             pre_account_balance_B,
             pre_balance_contract
         )
-        cooperative_settle_state_tests(
+        common_settle_state_tests(
             A,
             on_chain_settlement.participant1_balance,
             B,

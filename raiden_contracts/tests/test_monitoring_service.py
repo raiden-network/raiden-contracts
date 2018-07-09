@@ -37,6 +37,7 @@ def create_reward_proof(token_network, get_private_key):
     return get
 
 
+@pytest.mark.skip(reason='Monitoring Service implementation delayed to another milestone')
 def test_msc_happy_path(
     token_network,
     monitoring_service_external,

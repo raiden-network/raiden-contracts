@@ -29,17 +29,22 @@ contract TokenNetwork is Utils {
 
     uint256 public deposit_limit;
 
-    // channel_identifier => Channel, where the channel identifier is the keccak256 of the
-    // addresses of the two participants
+    uint256 public channel_counter;
+
+    // channel_identifier => Channel
+    // channel identifier is the keccak256(keccak256(lexicographic order of participant addresses), channel_counter)
     mapping (bytes32 => Channel) public channels;
+
+    // This is needed to enforce one channel per pair of participants
+    // The key is keccak256(participant1_address, participant2_address)
+    mapping (bytes32 => uint256) public participants_hash_to_channel_counter;
 
     // We keep the unlock data in a separate mapping to allow channel data structures to be
     // removed when settling uncooperatively. If there are locked pending transfers, we need to
     // store data needed to unlock them at a later time.
-    // The key is `keccak256(channel_identifier + participant_address + locksroot)`
+    // The key is `keccak256(participants_hash + participant_address + locksroot)`
     // The value is the total amount of tokens locked in the pending transfers corresponding to
-    // the `locksroot`, that were sent by `participant_address` to his partner from the channel
-    // represented by the `channel_identifier`.
+    // the `locksroot`, that were sent by `participant_address` to his channel partner.
     // Note that the assumption is that no two locksroots can be the same due to having different
     // values for the secrethash of each lock, combined with different `expiration` values.
     mapping(bytes32 => uint256) locksroot_identifier_to_locked_amount;
@@ -116,8 +121,9 @@ contract TokenNetwork is Utils {
     event ChannelClosed(bytes32 indexed channel_identifier, address indexed closing_participant);
 
     event ChannelUnlocked(
-        bytes32 indexed channel_identifier,
         address indexed participant,
+        address indexed partner,
+        bytes32 indexed locksroot,
         uint256 unlocked_amount,
         uint256 returned_tokens
     );
@@ -205,6 +211,18 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
+        channel_counter += 1;
+
+        // Set the channel counter
+        bytes32 pair_hash = getParticipantsHash(participant1, participant2);
+
+        // There must only be one channel opened between two participants at any moment in time.
+        require(participants_hash_to_channel_counter[pair_hash] == 0);
+
+        participants_hash_to_channel_counter[pair_hash] = channel_counter;
+
+        // Get the channel identifier after setting the counter
+        // getChannelIdentifier uses the counter to calculate the identifier
         bytes32 channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
@@ -487,8 +505,10 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        bytes32 pair_hash;
         bytes32 channel_identifier;
 
+        pair_hash = getParticipantsHash(participant1, participant2);
         channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
@@ -541,16 +561,20 @@ contract TokenNetwork is Utils {
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
+        // Remove the pair's channel counter
+        delete participants_hash_to_channel_counter[pair_hash];
+
+
         // Store balance data needed for `unlock`
         updateUnlockData(
-            channel_identifier,
             participant1,
+            participant2,
             participant1_locked_amount,
             participant1_locksroot
         );
         updateUnlockData(
-            channel_identifier,
             participant2,
+            participant1,
             participant2_locked_amount,
             participant2_locksroot
         );
@@ -698,7 +722,7 @@ contract TokenNetwork is Utils {
         // the computed locksroot.
         // Get the amount of tokens that have been left in the contract, to account for the
         // pending transfers `partner` -> `participant`.
-        unlock_key = getLocksrootIdentifier(channel_identifier, partner, computed_locksroot);
+        unlock_key = getLocksrootIdentifier(partner, participant, computed_locksroot);
         locked_amount = locksroot_identifier_to_locked_amount[unlock_key];
 
         // If the locksroot does not exist, then the locked_amount will be 0. Transaction must fail
@@ -723,7 +747,7 @@ contract TokenNetwork is Utils {
             require(token.transfer(partner, returned_tokens));
         }
 
-        emit ChannelUnlocked(channel_identifier, participant, unlocked_amount, returned_tokens);
+        emit ChannelUnlocked(participant, partner, computed_locksroot, unlocked_amount, returned_tokens);
 
         // Channel must be settled and channel data deleted
         require(channels[channel_identifier].state == 0);
@@ -744,15 +768,18 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        bytes32 pair_hash;
         bytes32 channel_identifier;
         address participant1;
         address participant2;
         uint256 total_available_deposit;
-        uint256 initial_state;
 
+        pair_hash = getParticipantsHash(participant1_address, participant2_address);
         channel_identifier = getChannelIdentifier(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
-        initial_state = channel.state;
+
+        // The channel must be open
+        require(channel.state == 1);
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -785,6 +812,9 @@ contract TokenNetwork is Utils {
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
+        // Remove the pair's channel counter
+        delete participants_hash_to_channel_counter[pair_hash];
+
 
         // Do the token transfers
         if (participant1_balance > 0) {
@@ -794,9 +824,6 @@ contract TokenNetwork is Utils {
         if (participant2_balance > 0) {
             require(token.transfer(participant2, participant2_balance));
         }
-
-        // The channel must be open
-        require(initial_state == 1);
 
         // The provided addresses must be the same as the recovered ones
         require(participant1 == participant1_address);
@@ -813,6 +840,22 @@ contract TokenNetwork is Utils {
     /// @param partner Address of the channel partner.
     /// @return Unique identifier for the channel.
     function getChannelIdentifier(address participant, address partner)
+        view
+        public
+        returns (bytes32)
+    {
+        require(participant != 0x0);
+        require(partner != 0x0);
+
+        // Participant addresses must be different
+        require(participant != partner);
+
+        bytes32 pair_hash = getParticipantsHash(participant, partner);
+        uint256 counter = participants_hash_to_channel_counter[pair_hash];
+        return keccak256(abi.encodePacked(pair_hash, counter));
+    }
+
+    function getParticipantsHash(address participant, address partner)
         pure
         public
         returns (bytes32)
@@ -833,8 +876,8 @@ contract TokenNetwork is Utils {
     }
 
     function getLocksrootIdentifier(
-        bytes32 channel_identifier,
         address participant,
+        address partner,
         bytes32 locksroot
     )
         pure
@@ -843,7 +886,10 @@ contract TokenNetwork is Utils {
     {
         require(locksroot != 0x0);
 
-        key = keccak256(abi.encodePacked(channel_identifier, participant, locksroot));
+        bytes32 participants_hash = getParticipantsHash(participant, partner);
+
+        // Get the locksroot corresponding to the pending transfers participant -> partner
+        key = keccak256(abi.encodePacked(participants_hash, participant, locksroot));
     }
 
     function updateBalanceProofData(
@@ -865,8 +911,8 @@ contract TokenNetwork is Utils {
     }
 
     function updateUnlockData(
-        bytes32 channel_identifier,
         address participant,
+        address partner,
         uint256 locked_amount,
         bytes32 locksroot
     )
@@ -877,7 +923,7 @@ contract TokenNetwork is Utils {
             return;
         }
 
-        bytes32 key = getLocksrootIdentifier(channel_identifier, participant, locksroot);
+        bytes32 key = getLocksrootIdentifier(participant, partner, locksroot);
         locksroot_identifier_to_locked_amount[key] = locked_amount;
     }
 
@@ -1045,7 +1091,7 @@ contract TokenNetwork is Utils {
         bytes32 unlock_key;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
-        unlock_key = getLocksrootIdentifier(channel_identifier, participant1, locksroot);
+        unlock_key = getLocksrootIdentifier(participant1, participant2, locksroot);
 
         return locksroot_identifier_to_locked_amount[unlock_key];
     }

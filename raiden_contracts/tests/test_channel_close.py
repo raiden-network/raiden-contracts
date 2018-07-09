@@ -11,6 +11,8 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.utils.events import check_channel_closed
 from .fixtures.config import fake_bytes, fake_hex
+from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 
 
 def test_close_nonexistent_channel(
@@ -310,6 +312,72 @@ def test_close_channel_event_no_offchain_transfers(
 
     ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
+
+
+def test_close_replay_reopened_channel(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+):
+    (A, B) = get_accounts(2)
+    nonce = 3
+    values_A = ChannelValues(
+        deposit=10,
+        transferred=0,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=20,
+        transferred=15,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    channel_identifier1 = create_channel(A, B)[0]
+    channel_deposit(B, values_B.deposit, A)
+
+    balance_proof_B = create_balance_proof(
+        channel_identifier1,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce,
+        values_B.locksroot,
+    )
+    token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    token_network.functions.settleChannel(
+        A,
+        values_A.transferred,
+        values_A.locked,
+        values_A.locksroot,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        values_B.locksroot,
+    ).transact({'from': A})
+
+    # Reopen the channel and make sure we cannot use the old balance proof
+    channel_identifier2 = create_channel(A, B)[0]
+    channel_deposit(B, values_B.deposit, A)
+
+    assert channel_identifier1 != channel_identifier2
+    with pytest.raises(TransactionFailed):
+        token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+
+    # Balance proof with correct channel_identifier must work
+    balance_proof_B2 = create_balance_proof(
+        channel_identifier2,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce,
+        values_B.locksroot,
+    )
+    token_network.functions.closeChannel(B, *balance_proof_B2).transact({'from': A})
 
 
 def test_close_channel_event(
