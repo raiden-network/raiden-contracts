@@ -26,10 +26,11 @@ jobs:
         - pip install -U pip wheel coveralls "coverage<4.4"
         - pip install pytest-travis-fold
         - pip install -r requirements-dev.txt
+        - pip install pytest-xdist pytest-sugar
         - python setup.py compile_contracts
 
       before_script:
         - flake8 raiden_contracts/
 
       script:
-        - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always $TEST_TYPE
+        - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n auto -v $TEST_TYPE

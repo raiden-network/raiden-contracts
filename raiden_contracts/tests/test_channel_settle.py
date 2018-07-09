@@ -200,6 +200,7 @@ def test_settle_channel_state(
 def test_settle_single_direct_transfer_for_closing_party(
         web3,
         get_accounts,
+        custom_token,
         token_network,
         create_channel,
         channel_deposit,
@@ -230,6 +231,10 @@ def test_settle_single_direct_transfer_for_closing_party(
     )
     token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
 
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
     web3.testing.mine(settle_timeout)
     token_network.functions.settleChannel(
         A,
@@ -249,11 +254,17 @@ def test_settle_single_direct_transfer_for_closing_party(
 
     assert (expected_settlement.participant1_balance == onchain_settlement.participant1_balance)
     assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
+    assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 6
+    assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 5
+    assert custom_token.functions.balanceOf(
+        token_network.address,
+    ).call() == pre_balance_contract - 11
 
 
 def test_settle_single_direct_transfer_for_counterparty(
         web3,
         get_accounts,
+        custom_token,
         token_network,
         create_channel,
         channel_deposit,
@@ -302,6 +313,10 @@ def test_settle_single_direct_transfer_for_counterparty(
         balance_proof_update_signature_B,
     ).transact({'from': B})
 
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
     web3.testing.mine(settle_timeout)
     token_network.functions.settleChannel(
         B,
@@ -321,6 +336,11 @@ def test_settle_single_direct_transfer_for_counterparty(
 
     assert (expected_settlement.participant1_balance == onchain_settlement.participant1_balance)
     assert (expected_settlement.participant2_balance == onchain_settlement.participant2_balance)
+    assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 5
+    assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 6
+    assert custom_token.functions.balanceOf(
+        token_network.address,
+    ).call() == pre_balance_contract - 11
 
 
 def test_settlement_with_unauthorized_token_transfer(
