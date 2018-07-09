@@ -31,18 +31,11 @@ def deploy_tester_contract(
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
-    using conract manager to compile the bytecode and get the ABI"""
-    def f(contract_name, libs=None, args=None):
-        json_contract = contracts_manager.get_contract(contract_name)
-        contract = deploy_contract(
-            web3,
-            contract_deployer_address,
-            json_contract['abi'],
-            json_contract['bin'],
-            args,
-        )
-        return contract
-    return f
+    using contract manager to compile the bytecode and get the ABI"""
+    return deploy_contract(
+        deploy_contract,
+        contract_deployer_address,
+    )
 
 
 @pytest.fixture
