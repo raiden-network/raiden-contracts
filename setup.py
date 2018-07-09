@@ -5,7 +5,6 @@ except ImportError:
     from distutils.core import setup
 
 import os
-import json
 from setuptools import Command
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
@@ -52,11 +51,15 @@ class CompileContracts(Command):
         pass
 
     def run(self):
+        # This is a workaround to stop a possibly existing invalid
+        # precompiled `contracts.json` from preventing us from compiling a new one
+        os.environ['_RAIDEN_CONTRACT_MANAGER_SKIP_PRECOMPILED'] = '1'
         from raiden_contracts.contract_manager import (
             ContractManager,
             CONTRACTS_PRECOMPILED_PATH,
             CONTRACTS_SOURCE_DIRS,
         )
+
         try:
             from solc import compile_files  # noqa
         except ModuleNotFoundError:
