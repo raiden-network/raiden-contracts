@@ -209,7 +209,7 @@ def test_reopen_channel(
         locksroot,
     ).transact({'from': A})
 
-    # Reopening the channel should work if channel is settled
+    # Reopening the channel should work iff channel is settled
     token_network.functions.openChannel(A, B, settle_timeout).transact()
     assert token_network.functions.getChannelIdentifier(A, B).call() != channel_identifier1
     assert token_network.functions.participants_hash_to_channel_counter(
