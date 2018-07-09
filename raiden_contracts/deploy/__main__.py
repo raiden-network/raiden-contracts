@@ -12,12 +12,14 @@ from raiden_contracts.utils.utils import (
     check_succesful_tx,
 )
 from raiden_contracts.constants import (
+    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_CUSTOM_TOKEN,
     DEPLOY_SETTLE_TIMEOUT_MIN,
     DEPLOY_SETTLE_TIMEOUT_MAX,
 )
+from web3.middleware import geth_poa_middleware
 
 
 @click.command()
@@ -86,6 +88,7 @@ def main(**kwargs):
           or you'll get timeout''')
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
 
     owner = owner or web3.eth.accounts[0]
@@ -113,6 +116,14 @@ def main(**kwargs):
 
         assert token_address and is_address(token_address)
         token_address = to_checksum_address(token_address)
+
+        deploy_contract(
+            web3,
+            contracts_compiled_data,
+            CONTRACT_ENDPOINT_REGISTRY,
+            transaction,
+            txn_wait,
+        )
 
         secret_registry_address = deploy_contract(
             web3,
