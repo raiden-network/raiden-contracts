@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import contextlib
-import sys
 
 from coincurve import PrivateKey
 from eth_utils import (
     encode_hex,
-    decode_hex,
     keccak,
     to_canonical_address,
 )
