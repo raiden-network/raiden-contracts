@@ -1,6 +1,10 @@
 """
 A simple Python script to deploy compiled contracts.
 """
+import logging
+from logging import getLogger
+from getpass import getpass
+
 import click
 import json
 from web3 import Web3, HTTPProvider
@@ -8,6 +12,8 @@ from eth_utils import (
     is_address,
     to_checksum_address,
 )
+
+from raiden_contracts.contract_manager import CONTRACT_MANAGER
 from raiden_contracts.utils.utils import (
     check_succesful_tx,
 )
@@ -21,6 +27,8 @@ from raiden_contracts.constants import (
 )
 from web3.middleware import geth_poa_middleware
 
+log = getLogger(__name__)
+
 
 @click.command()
 @click.option(
@@ -29,14 +37,28 @@ from web3.middleware import geth_poa_middleware
     help='Address of the Ethereum RPC provider',
 )
 @click.option(
-    '--json',
-    default='raiden_contracts/data/contracts.json',
-    help='Path to compiled contracts data',
-)
-@click.option(
     '--owner',
     help='Contracts owner, default: web3.eth.accounts[0]',
 )
+@click.option(
+    '--wait',
+    default=300,
+    help='Max tx wait time in s.',
+)
+@click.option(
+    '--gas-price',
+    default=0,
+    type=int,
+    help='Gas price to use in gwei',
+)
+@click.option(
+    '--gas-limit',
+    default=5_500_00,
+)
+@click.option(
+    '--deploy-token',
+    is_flag=True,
+    help='Also deploy a test token and register with the newly deployed token network contract')
 @click.option(
     '--supply',
     default=10000000,
@@ -61,31 +83,22 @@ from web3.middleware import geth_poa_middleware
     '--token-address',
     help='Already deployed token address.',
 )
-@click.option(
-    '--wait',
-    default=300,
-    help='Token contract number of decimals.',
-)
-@click.option(
-    '--gas-price',
-    default=0,
-    help='Token contract number of decimals.',
-)
-def main(**kwargs):
-    rpc_provider = kwargs['rpc_provider']
-    json_file = kwargs['json']
-    owner = kwargs['owner']
-    supply = kwargs['supply']
-    token_name = kwargs['token_name']
-    token_decimals = kwargs['token_decimals']
-    token_symbol = kwargs['token_symbol']
-    token_address = kwargs['token_address']
-    supply *= 10**(token_decimals)
-    txn_wait = kwargs['wait']
-    gas_price = kwargs['gas_price']
+def main(
+    rpc_provider,
+    owner,
+    wait,
+    gas_price,
+    gas_limit,
+    deploy_token,
+    supply,
+    token_name,
+    token_decimals,
+    token_symbol,
+    token_address,
+):
+    supply *= 10 ** token_decimals
 
-    print('''Make sure chain is running, you can connect to it and it is synced,
-          or you'll get timeout''')
+    logging.basicConfig(level=logging.INFO)
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
@@ -97,55 +110,65 @@ def main(**kwargs):
     print('Owner is', owner)
     assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
 
-    transaction = {'from': owner}
-    if gas_price == 0:
-        transaction['gasPrice'] = gas_price
+    password = getpass(f'Enter password for {owner}:')
 
-    with open(json_file) as json_data:
-        contracts_compiled_data = json.load(json_data)
+    transaction = {'from': owner, 'gas': gas_limit}
+    if gas_price != 0:
+        transaction['gasPrice'] = gas_price * 10 ** 9
 
+    contracts_compiled_data = CONTRACT_MANAGER._contracts
+
+    deployed_contracts = {}
+
+    web3.personal.unlockAccount(owner, password)
+    deployed_contracts[CONTRACT_ENDPOINT_REGISTRY] = deploy_contract(
+        web3,
+        contracts_compiled_data,
+        CONTRACT_ENDPOINT_REGISTRY,
+        transaction,
+        wait,
+    )
+
+    web3.personal.unlockAccount(owner, password)
+    secret_registry_address = deploy_contract(
+        web3,
+        contracts_compiled_data,
+        CONTRACT_SECRET_REGISTRY,
+        transaction,
+        wait,
+    )
+    deployed_contracts[CONTRACT_SECRET_REGISTRY] = secret_registry_address
+
+    web3.personal.unlockAccount(owner, password)
+    token_network_registry_address = deploy_contract(
+        web3,
+        contracts_compiled_data,
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        transaction,
+        wait,
+        [
+            secret_registry_address,
+            int(web3.version.network),
+            DEPLOY_SETTLE_TIMEOUT_MIN,
+            DEPLOY_SETTLE_TIMEOUT_MAX,
+        ],
+    )
+    deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY] = token_network_registry_address
+
+    if deploy_token:
         if not token_address:
-            token_address = deploy_contract(
+            web3.personal.unlockAccount(owner, password)
+            deployed_contracts['CustomToken'] = token_address = deploy_contract(
                 web3,
                 contracts_compiled_data,
                 'CustomToken',
                 transaction,
-                txn_wait,
+                wait,
                 [supply, token_decimals, token_name, token_symbol],
             )
 
         assert token_address and is_address(token_address)
         token_address = to_checksum_address(token_address)
-
-        deploy_contract(
-            web3,
-            contracts_compiled_data,
-            CONTRACT_ENDPOINT_REGISTRY,
-            transaction,
-            txn_wait,
-        )
-
-        secret_registry_address = deploy_contract(
-            web3,
-            contracts_compiled_data,
-            CONTRACT_SECRET_REGISTRY,
-            transaction,
-            txn_wait,
-        )
-
-        token_network_registry_address = deploy_contract(
-            web3,
-            contracts_compiled_data,
-            CONTRACT_TOKEN_NETWORK_REGISTRY,
-            transaction,
-            txn_wait,
-            [
-                secret_registry_address,
-                int(web3.version.network),
-                DEPLOY_SETTLE_TIMEOUT_MIN,
-                DEPLOY_SETTLE_TIMEOUT_MAX,
-            ],
-        )
 
         token_network_registry = instantiate_contract(
             web3,
@@ -154,10 +177,11 @@ def main(**kwargs):
             token_network_registry_address,
         )
 
+        web3.personal.unlockAccount(owner, password)
         txhash = token_network_registry.transact(transaction).createERC20TokenNetwork(
             token_address,
         )
-        receipt = check_succesful_tx(web3, txhash, txn_wait)
+        receipt = check_succesful_tx(web3, txhash, wait)
 
         print(
             'TokenNetwork address: {0}. Gas used: {1}'.format(
@@ -165,6 +189,7 @@ def main(**kwargs):
                 receipt['gasUsed'],
             ),
         )
+    print(json.dumps(deployed_contracts, indent=4))
 
 
 def instantiate_contract(web3, contracts_compiled_data, contract_name, contract_address):
@@ -195,12 +220,13 @@ def deploy_contract(
         bytecode=contract_interface['bin'],
     )
 
+    log.info(f'Deploying {contract_name}')
     # Get transaction hash from deployed contract
     txhash = contract.deploy(transaction=transaction, args=args)
 
     # Get tx receipt to get contract address
     receipt = check_succesful_tx(web3, txhash, txn_wait)
-    print(
+    log.info(
         '{0} address: {1}. Gas used: {2}'.format(
             contract_name,
             receipt['contractAddress'],
