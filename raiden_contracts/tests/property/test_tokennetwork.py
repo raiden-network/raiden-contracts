@@ -53,7 +53,7 @@ def transaction_must_fail(error_message):
     try:
         yield
     except Exception:  # TransactionFailed:
-        pass
+        raise
     else:
         raise ValueError(error_message)
 
@@ -147,7 +147,7 @@ class NettingChannelStateMachine(GenericStateMachine):
         deployer_key = Web3.sha3(b'deploy_key')
 
         self.tester_chain = ethereum_tester()
-        web3 = get_web3(self.tester_chain, deployer_key)
+        self.web3 = get_web3(self.tester_chain, deployer_key)
 
         self.private_keys = [
             PrivateKey(secret=b'p1'),
@@ -164,11 +164,11 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         self.tokens = [
             deploy_custom_token(
-                web3,
+                self.web3,
                 deployer_key,
             ),
             deploy_custom_token(
-                web3,
+                self.web3,
                 deployer_key,
             ),
         ]
@@ -180,7 +180,7 @@ class NettingChannelStateMachine(GenericStateMachine):
         ]
 
         self.secret_registry = deploy_contract(
-            web3,
+            self.web3,
             CONTRACT_SECRET_REGISTRY,
             deployer_key,
             [],  # No Libs
@@ -188,7 +188,7 @@ class NettingChannelStateMachine(GenericStateMachine):
         )
 
         self.token_network = deploy_contract(
-            web3,
+            self.web3,
             CONTRACT_TOKEN_NETWORK,
             deployer_key,
             [],
@@ -200,6 +200,7 @@ class NettingChannelStateMachine(GenericStateMachine):
                 TEST_SETTLE_TIMEOUT_MAX,
             ],
         )
+        self.tester_chain.mine_blocks()
 
         channel_identifier = self.token_network.functions.openChannel(
             participant1=self.addresses[0],
@@ -300,41 +301,46 @@ class NettingChannelStateMachine(GenericStateMachine):
     def contract_deposit(self, deposit_amount, sender_pkey, receiver_pkey):
         sender_address = private_key_to_address(sender_pkey.to_hex())
         receiver_address = private_key_to_address(receiver_pkey.to_hex())
+
         token_balance = self.token.functions.balanceOf(
             sender_address,
-        ).transact()
+        ).call()
 
         channelInfo = self.token_network.functions.getChannelInfo(
-            sender_address,
-            receiver_address,
-        ).transact()
+            self.addresses[0],
+            self.addresses[1],
+        ).call()
 
         if not self.is_participant(sender_address):
             with transaction_must_fail('deposit from non-participant didnt fail'):
-                self.netting_channel.deposit(
+                self.token_network.functions.setTotalDeposit(
+                    sender_address,
                     deposit_amount,
-                    sender=sender_pkey,
-                )
+                    receiver_address,
+                ).call()
 
         elif channelInfo[2] != 0:
             with transaction_must_fail('deposit with closed channel didnt fail'):
-                self.netting_channel.deposit(
+                self.token_network.functions.setTotalDeposit(
+                    sender_address,
                     deposit_amount,
-                    sender=sender_pkey,
-                )
+                    receiver_address,
+                ).call()
 
         elif token_balance < deposit_amount:
             with transaction_must_fail('having insufficient funds for a deposit didnt fail'):
-                self.netting_channel.deposit(
+                self.token_network.functions.setTotalDeposit(
+                    sender_address,
                     deposit_amount,
-                    sender=sender_pkey,
-                )
+                    receiver_address,
+                ).call()
 
         else:
-            self.netting_channel.deposit(
+            self.token_network.functions.setTotalDeposit(
+                sender_address,
                 deposit_amount,
-                sender=sender_pkey,
-            )
+                receiver_address,
+            ).call()
 
     def contract_close(self, transfer, signing_pkey, sender_pkey, receiver_pkey):
         transfer.sign(
@@ -350,15 +356,15 @@ class NettingChannelStateMachine(GenericStateMachine):
             hexstr=encode_hex(transfer_data[:-65]),
         )
 
-        channelInfo = self.token_network.functions.getChannelInfo(
+        (_, _, channelState) = self.token_network.functions.getChannelInfo(
             sender_address,
             receiver_address,
-        ).transact()
+        ).call()
 
         if not self.is_participant(transfer.sender):
             msg = 'close with transfer data from a non participant didnt fail'
             with transaction_must_fail(msg):
-                self.netting_channel.close(  # pylint: disable=no-member
+                self.token_network.close(  # pylint: disable=no-member
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -369,7 +375,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif transfer.sender == sender_address:
             with transaction_must_fail('close with self signed transfer didnt fail'):
-                self.netting_channel.close(  # pylint: disable=no-member
+                self.token_network.close(  # pylint: disable=no-member
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -378,9 +384,9 @@ class NettingChannelStateMachine(GenericStateMachine):
                     sender=sender_pkey,
                 )
 
-        elif channelInfo[2] != 0:  # pylint: disable=no-member
+        elif channelState != 0:  # pylint: disable=no-member
             with transaction_must_fail('close called twice didnt fail'):
-                self.netting_channel.close(  # pylint: disable=no-member
+                self.token_network.close(  # pylint: disable=no-member
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -391,7 +397,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif not self.is_participant(sender_address):
             with transaction_must_fail('close called by a non participant didnt fail'):
-                self.netting_channel.close(  # pylint: disable=no-member
+                self.token_network.close(  # pylint: disable=no-member
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -400,10 +406,10 @@ class NettingChannelStateMachine(GenericStateMachine):
                     sender=sender_pkey,
                 )
 
-        elif transfer.channel != to_canonical_address(self.netting_channel.address):
+        elif transfer.channel != to_canonical_address(self.token_network.address):
             msg = 'close called with a transfer for a different channe didnt fail'
             with transaction_must_fail(msg):
-                self.netting_channel.close(  # pylint: disable=no-member
+                self.token_network.close(  # pylint: disable=no-member
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -413,7 +419,7 @@ class NettingChannelStateMachine(GenericStateMachine):
                 )
 
         else:
-            self.netting_channel.close(  # pylint: disable=no-member
+            self.token_network.close(  # pylint: disable=no-member
                 transfer.nonce,
                 transfer.transferred_amount,
                 transfer.locksroot,
@@ -438,19 +444,19 @@ class NettingChannelStateMachine(GenericStateMachine):
             hexstr=encode_hex(transfer_data[:-65]),
         )
 
-        channelInfo = self.token_network.functions.getChannelInfo(
+        (_, settle_block_number, channel_state) = self.token_network.functions.getChannelInfo(
             sender_address,
             receiver_address,
-        ).transact()
-        settlement_end = channelInfo[1]
+        ).call()
 
-        is_closed = channelInfo[2] == 2
-        is_settlement_period_over = is_closed and settlement_end < self.tester_chain.block.number
+        is_closed = channel_state == 2
+        block_number = self.tester_chain.get_block_by_number('latest')['number']
+        is_settlement_period_over = is_closed and settle_block_number < block_number
 
         if not self.is_participant(transfer.sender):
             msg = 'updateTransfer with transfer data from a non participant didnt fail'
             with transaction_must_fail(msg):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -461,7 +467,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif transfer.sender == sender_address:
             with transaction_must_fail('updateTransfer with self signed transfer didnt fail'):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -472,7 +478,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif self.update_transfer_called:
             with transaction_must_fail('updateTransfer called twice didnt fail'):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -483,7 +489,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif not self.is_participant(sender_address):
             with transaction_must_fail('updateTransfer called by a non participant didnt fail'):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -495,7 +501,7 @@ class NettingChannelStateMachine(GenericStateMachine):
         elif transfer.channel != self.channel_addresses[0]:
             msg = 'updateTransfer called with a transfer for a different channel didnt fail'
             with transaction_must_fail(msg):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -506,7 +512,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif not is_closed:
             with transaction_must_fail('updateTransfer called on an open channel and didnt fail'):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -518,7 +524,7 @@ class NettingChannelStateMachine(GenericStateMachine):
         elif is_settlement_period_over:
             msg = 'updateTransfer called after end of the settlement period and didnt fail'
             with transaction_must_fail(msg):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -529,7 +535,7 @@ class NettingChannelStateMachine(GenericStateMachine):
 
         elif sender_address == self.closing_address:
             with transaction_must_fail('updateTransfer called by the closer and it didnt fail'):
-                self.netting_channel.updateTransfer(  # pylint: disable=no-member
+                self.token_network.updateNonClosingBalanceProof(
                     transfer.nonce,
                     transfer.transferred_amount,
                     transfer.locksroot,
@@ -539,7 +545,7 @@ class NettingChannelStateMachine(GenericStateMachine):
                 )
 
         else:
-            self.netting_channel.updateTransfer(  # pylint: disable=no-member
+            self.token_network.updateNonClosingBalanceProof(
                 transfer.nonce,
                 transfer.transferred_amount,
                 transfer.locksroot,
