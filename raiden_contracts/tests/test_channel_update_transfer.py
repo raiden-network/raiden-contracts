@@ -11,6 +11,8 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.utils.events import check_transfer_updated
 from .fixtures.config import fake_bytes, EMPTY_ADDRESS
+from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 
 
 def test_update_call(
@@ -826,6 +828,117 @@ def test_updateNonClosingBalanceProof_signature_on_invalid_arguments(
         *balance_proof_valid,
         balance_proof_update_signature,
     ).transact({'from': B})
+
+
+def test_update_replay_reopened_channel(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+):
+    (A, B) = get_accounts(2)
+    nonce_A = 0
+    nonce_B = 5
+    values_A = ChannelValues(
+        deposit=10,
+        transferred=0,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+    values_B = ChannelValues(
+        deposit=20,
+        transferred=15,
+        locked=0,
+        locksroot=EMPTY_MERKLE_ROOT,
+    )
+
+    channel_identifier1 = create_channel(A, B)[0]
+    channel_deposit(B, values_B.deposit, A)
+    balance_proof_B = create_balance_proof(
+        channel_identifier1,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce_B,
+        values_B.locksroot,
+    )
+    balance_proof_update_signature_A = create_balance_proof_update_signature(
+        A,
+        channel_identifier1,
+        *balance_proof_B,
+    )
+
+    token_network.functions.closeChannel(
+        A,
+        fake_bytes(32),
+        nonce_A,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': B})
+
+    token_network.functions.updateNonClosingBalanceProof(
+        B,
+        A,
+        *balance_proof_B,
+        balance_proof_update_signature_A,
+    ).transact({'from': A})
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    token_network.functions.settleChannel(
+        A,
+        values_A.transferred,
+        values_A.locked,
+        values_A.locksroot,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        values_B.locksroot,
+    ).transact({'from': A})
+
+    # Reopen the channel and make sure we cannot use the old balance proof
+    channel_identifier2 = create_channel(A, B)[0]
+    channel_deposit(B, values_B.deposit, A)
+    token_network.functions.closeChannel(
+        A,
+        fake_bytes(32),
+        nonce_A,
+        fake_bytes(32),
+        fake_bytes(64),
+    ).transact({'from': B})
+
+    assert channel_identifier1 != channel_identifier2
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            B,
+            A,
+            *balance_proof_B,
+            balance_proof_update_signature_A,
+        ).transact({'from': A})
+
+    # Correct channel_identifier must work
+    balance_proof_B2 = create_balance_proof(
+        channel_identifier2,
+        B,
+        values_B.transferred,
+        values_B.locked,
+        nonce_B,
+        values_B.locksroot,
+    )
+    balance_proof_update_signature_A2 = create_balance_proof_update_signature(
+        A,
+        channel_identifier2,
+        *balance_proof_B2,
+    )
+
+    token_network.functions.updateNonClosingBalanceProof(
+        B,
+        A,
+        *balance_proof_B2,
+        balance_proof_update_signature_A2,
+    ).transact({'from': A})
 
 
 def test_update_channel_event(
