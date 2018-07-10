@@ -32,3 +32,15 @@ before_script:
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
+
+deploy:
+    - provider: pypi
+    user: raiden_pypi_automated
+    password:
+        secure: pGSz00xatE6rLdmEvyHW2wM6VJvDeTY8s/huZzPLdAxX30UHZZACugdDNBCYgLmBpKN4pRrw5hXZ+09/6+MUpXHwFZ7tExJftUkHdLt9kY6bD/orFeHLU0hGzXJHSvCmGv2sTJ018j6MoKPiF+AzLaqExbHoOJZxtOf3O9a5LjP7M0uMDmUuCkBu2Y59Ozf3K5/uHio4pFDKTVg/jT5UzQ183LDvSPyfm/n0vbpvGyhfkThE+Nyk2Qs9Lu6WJjWj/Z96TZmnfqTfk9HIzePbkQSc1GLW2emCCYg5J8sGhKKShZ+1fGdhzN2nZQ2ccqnpLn+VJOumBQC+7fNlk7iKGBf10kESNlua/ccmD/jksdvYPlRQe12M0MqMh3cLRZU5EzEBMh/eIjQKj3MMPCk+YtSbXn6dITvZD/tkLXwQljNXHZvj4JEfdkP2dxORhMJ+TFwmvMgWyKhoSKTrZnN17qK2X9Agsr3taJ6RyzBMSzXDeSglNoYh/0mChLARjIXyz3WcoiIzpaRL8wPot1aRe4np/Rg+6c6PLMNvIAjgvNAvRFHCwKWzYwFaHjmi7bgDS6dirWdFd+TjAXCb8HFq+m670a0GY7u5JgHrU30QcfbeXhFJBUaBFkvDpJw53JogURlL+Et9So5xcJjYsYocUtrZi6YZ58UUu8A7ZWF0DNk=
+    python: 3.6
+    on:
+      tags: true
+      distributions: sdist bdist_wheel
+      repo: raiden-network/raiden
+      branch: test_deploy
