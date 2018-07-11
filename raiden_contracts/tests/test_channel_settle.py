@@ -9,7 +9,6 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_channel_settled
-from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import (
@@ -75,7 +74,6 @@ def test_settle_no_bp_success(
     ).transact({'from': A})
 
 
-@pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
 def test_settle_channel_state(
         web3,
         get_accounts,
@@ -85,125 +83,70 @@ def test_settle_channel_state(
         withdraw_channel,
         close_and_update_channel,
         settle_state_tests,
-        channel_test_values,
 ):
-    number_of_channels = 5
-    accounts = get_accounts(2 * number_of_channels)
-    (vals_A0, vals_B0) = channel_test_values
+    (A, B) = get_accounts(2)
+    vals_A = ChannelValues(
+        deposit=40,
+        withdrawn=10,
+        transferred=20020,
+        claimable_locked=3,
+        unclaimable_locked=4
+    )
+    vals_B = ChannelValues(
+        deposit=35,
+        withdrawn=5,
+        transferred=20030,
+        claimable_locked=2,
+        unclaimable_locked=3
+    )
 
-    # We mimic old balance proofs here, with a high locked amount and lower transferred amount
-    # We expect to have the same settlement values as the original values
+    pending_transfers_tree_A = get_pending_transfers_tree(
+        web3,
+        unlockable_amount=vals_A.claimable_locked,
+        expired_amount=vals_A.unclaimable_locked,
+    )
+    pending_transfers_tree_B = get_pending_transfers_tree(
+        web3,
+        unlockable_amount=vals_B.claimable_locked,
+        expired_amount=vals_B.unclaimable_locked,
+    )
+    vals_A.locksroot = pending_transfers_tree_A.merkle_root
+    vals_B.locksroot = pending_transfers_tree_B.merkle_root
 
-    def equivalent_transfers(balance_proof):
-        new_balance_proof = deepcopy(balance_proof)
-        new_balance_proof.locked = randint(
-            balance_proof.locked,
-            balance_proof.transferred + balance_proof.locked,
-        )
-        new_balance_proof.transferred = (
-            balance_proof.transferred +
-            balance_proof.locked -
-            new_balance_proof.locked
-        )
-        return new_balance_proof
+    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    withdraw_channel(A, vals_A.withdrawn, B)
+    withdraw_channel(B, vals_B.withdrawn, A)
+    close_and_update_channel(
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
 
-    vals_A_reversed = deepcopy(vals_A0)
-    vals_A_reversed.locked = vals_A0.transferred
-    vals_A_reversed.transferred = vals_A0.locked
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
-    vals_B_reversed = deepcopy(vals_B0)
-    vals_B_reversed.locked = vals_B0.transferred
-    vals_B_reversed.transferred = vals_B0.locked
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    new_values = [
-        (vals_A0, vals_B0),
-        (vals_A_reversed, vals_B_reversed),
-    ] + [
-        sorted(
-            [
-                equivalent_transfers(vals_A0),
-                equivalent_transfers(vals_B0),
-            ],
-            key=lambda x: x.transferred + x.locked,
-            reverse=False,
-        ) for no in range(0, number_of_channels - 1)
-    ]
+    call_settle(token_network, A, vals_A, B, vals_B)
 
-    # Calculate how much A and B should receive
-    settlement = get_settlement_amounts(vals_A0, vals_B0)
-    # Calculate how much A and B receive according to onchain computation
-    settlement2 = get_onchain_settlement_amounts(vals_A0, vals_B0)
+    # Balance & state tests
+    settle_state_tests(
+        A,
+        vals_A,
+        B,
+        vals_B,
+        pre_balance_A,
+        pre_balance_B,
+        pre_balance_contract,
+    )
 
-    for no in range(0, number_of_channels + 1):
-        A = accounts[no]
-        B = accounts[no + 1]
-        (vals_A, vals_B) = new_values[no]
-        vals_A.locksroot = fake_bytes(32, '02')
-        vals_B.locksroot = fake_bytes(32, '03')
-
-        channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-
-        withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-        withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
-
-        close_and_update_channel(
-            channel_identifier,
-            A,
-            vals_A,
-            B,
-            vals_B,
-        )
-
-        web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
-
-        pre_balance_A = custom_token.functions.balanceOf(A).call()
-        pre_balance_B = custom_token.functions.balanceOf(B).call()
-        pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
-
-        # We do the balance & state tests here for each channel and also compare with
-        # the expected settlement amounts
-        settle_state_tests(
-            channel_identifier,
-            A,
-            vals_A,
-            B,
-            vals_B,
-            pre_balance_A,
-            pre_balance_B,
-            pre_balance_contract,
-        )
-
-        # We compute again the settlement amounts here to compare with the other channel
-        # settlement test values, which should be equal
-
-        # Calculate how much A and B should receive
-        settlement_equivalent = get_settlement_amounts(vals_A, vals_B)
-        assert (
-            settlement.participant1_balance +
-            settlement.participant2_locked == settlement_equivalent.participant1_balance +
-            settlement_equivalent.participant2_locked
-        )
-        assert (
-            settlement.participant2_balance +
-            settlement.participant1_locked == settlement_equivalent.participant2_balance +
-            settlement_equivalent.participant1_locked
-        )
-
-        # Calculate how much A and B receive according to onchain computation
-        settlement2_equivalent = get_onchain_settlement_amounts(vals_A, vals_B)
-        assert (
-            settlement2.participant1_balance +
-            settlement2.participant2_locked == settlement2_equivalent.participant1_balance +
-            settlement2_equivalent.participant2_locked
-        )
-        assert (
-            settlement2.participant2_balance +
-            settlement2.participant1_locked == settlement2_equivalent.participant2_balance +
-            settlement2_equivalent.participant1_locked
-        )
-
+    # Some manual checks for the final balances, in case the settlement algorithms
+    # used in `settle_state_tests` are incorrect
+    assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 33
+    assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 15
+    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract - 48
 
 def test_settle_single_direct_transfer_for_closing_party(
         web3,

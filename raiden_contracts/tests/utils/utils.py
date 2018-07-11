@@ -21,6 +21,8 @@ class ChannelValues():
             nonce=0,
             transferred=0,
             locked=0,
+            claimable_locked=0,
+            unclaimable_locked=0,
             locksroot=EMPTY_LOCKSROOT,
             additional_hash=EMPTY_ADDITIONAL_HASH,
     ):
@@ -28,26 +30,109 @@ class ChannelValues():
         self.withdrawn = withdrawn
         self.nonce = nonce
         self.transferred = transferred
-        self.locked = locked
+        self.claimable_locked = claimable_locked or locked
+        self.unclaimable_locked = unclaimable_locked
+        self.locked = self.claimable_locked + self.unclaimable_locked or locked
         self.locksroot = locksroot
         self.additional_hash = additional_hash
 
     def __repr__(self):
         return (
-            'ChannelValues deposit:{} withdrawn:{} transferred:{} locked:{} locksroot:{}'
-        ).format(
-            self.deposit,
-            self.withdrawn,
-            self.transferred,
-            self.locked,
-            self.locksroot,
+            f'ChannelValues deposit:{self.deposit} withdrawn:{self.withdrawn} '
+            f'transferred:{self.transferred} claimable_locked:{self.claimable_locked} '
+            f'unclaimable_locked:{self.unclaimable_locked} locksroot:{self.locksroot} '
         )
 
 
-def get_settlement_amounts(
-        participant1,
-        participant2,
+def random_secret():
+    secret = os.urandom(32)
+    return (Web3.soliditySha3(['bytes32'], [secret]), secret)
+
+
+def get_pending_transfers(
+        web3,
+        unlockable_amounts,
+        expired_amounts,
+        min_expiration_delta=0,
+        max_expiration_delta=0,
 ):
+    current_block = web3.eth.blockNumber
+    min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
+    max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT_MIN)
+
+    unlockable_locks = [
+        [
+            current_block + random.randint(min_expiration_delta, max_expiration_delta),
+            amount,
+            *random_secret(),
+        ]
+        for amount in unlockable_amounts
+    ]
+    expired_locks = [
+        [current_block, amount, *random_secret()]
+        for amount in expired_amounts
+    ]
+    return (unlockable_locks, expired_locks)
+
+
+def get_pending_transfers_tree(
+        web3,
+        unlockable_amounts=[],
+        expired_amounts=[],
+        min_expiration_delta=None,
+        max_expiration_delta=None,
+        unlockable_amount=None,
+        expired_amount=None,
+):
+    types = ['uint256', 'uint256', 'bytes32']
+    if unlockable_amount is not None:
+        unlockable_amounts = get_random_values_for_sum(unlockable_amount)
+    if expired_amount is not None:
+        expired_amounts = get_random_values_for_sum(expired_amount)
+
+    (unlockable_locks, expired_locks) = get_pending_transfers(
+        web3,
+        unlockable_amounts,
+        expired_amounts,
+        min_expiration_delta,
+        max_expiration_delta,
+    )
+    pending_transfers = unlockable_locks + expired_locks
+
+    hashed_pending_transfers = [
+        Web3.soliditySha3(types, transfer_data[:-1])
+        for transfer_data in pending_transfers
+    ]
+    if len(pending_transfers) > 0:
+        hashed_pending_transfers, pending_transfers = zip(*sorted(zip(
+            hashed_pending_transfers,
+            pending_transfers,
+        )))
+        packed_transfers = get_packed_transfers(pending_transfers, types)
+    else:
+        packed_transfers = b''
+
+    merkle_tree = compute_merkle_tree(hashed_pending_transfers)
+    merkle_root = get_merkle_root(merkle_tree)
+    locked_amount = get_locked_amount(pending_transfers)
+
+    return PendingTransfersTree(
+        transfers=pending_transfers,
+        unlockable=unlockable_locks,
+        expired=expired_locks,
+        packed_transfers=packed_transfers,
+        merkle_tree=merkle_tree,
+        merkle_root=merkle_root,
+        locked_amount=locked_amount,
+    )
+
+
+def get_packed_transfers(pending_transfers, types):
+    packed_transfers = [encode_abi(types, x[:-1]) for x in pending_transfers]
+    return reduce((lambda x, y: x + y), packed_transfers)
+
+
+def get_settlement_amounts(participant1, participant2):
     """ Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
@@ -221,3 +306,13 @@ def get_participants_hash(A, B):
     A = to_canonical_address(A)
     B = to_canonical_address(B)
     return keccak(A + B) if A < B else keccak(B + A)
+
+
+def get_random_values_for_sum(values_sum):
+    amount = 0
+    values = []
+    while amount < values_sum:
+        value = random.randint(1, values_sum - amount)
+        values.append(value)
+        amount += value
+    return values
