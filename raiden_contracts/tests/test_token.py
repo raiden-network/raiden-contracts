@@ -9,10 +9,18 @@ def test_token_mint(web3, custom_token, get_accounts):
     supply = token.functions.totalSupply().call()
 
     token_pre_balance = web3.eth.getBalance(token.address)
-    tokens = 50 * multiplier
-    token.functions.mint(tokens).transact({'from': A})
-    assert token.functions.balanceOf(A).call() == tokens
-    assert token.functions.totalSupply().call() == supply + tokens
+    tokens_a = 50 * multiplier
+    token.functions.mint(tokens_a).transact({'from': A})
+    assert token.functions.balanceOf(A).call() == tokens_a
+    assert token.functions.balanceOf(B).call() == 0
+    assert token.functions.totalSupply().call() == supply + tokens_a
+    assert web3.eth.getBalance(token.address) == token_pre_balance
+
+    tokens_b = 50 * multiplier
+    token.functions.mintFor(tokens_b, B).transact({'from': A})
+    assert token.functions.balanceOf(A).call() == tokens_a
+    assert token.functions.balanceOf(B).call() == tokens_b
+    assert token.functions.totalSupply().call() == supply + tokens_a + tokens_b
     assert web3.eth.getBalance(token.address) == token_pre_balance
 
 
