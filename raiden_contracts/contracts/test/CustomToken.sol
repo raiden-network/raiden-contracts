@@ -65,14 +65,19 @@ contract CustomToken is StandardToken {
         _total_supply = initial_supply;
     }
 
-    /// @notice Allows tokens to be minted and assigned to `msg.sender`
+    /// @notice Allows `num` tokens to be minted and assigned to `msg.sender`
     function mint(uint256 num) public {
-        balances[msg.sender] += num;
+        mintFor(num, msg.sender);
+    }
+
+    /// @notice Allows `num` tokens to be minted and assigned to `target`
+    function mintFor(uint256 num, address target) public {
+        balances[target] += num;
         _total_supply += num;
 
-        emit Minted(msg.sender, num);
+        emit Minted(target, num);
 
-        require(balances[msg.sender] >= num);
+        require(balances[target] >= num);
         assert(_total_supply >= num);
     }
 
