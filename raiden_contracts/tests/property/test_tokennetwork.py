@@ -27,14 +27,14 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.contracts import (
+from raiden_contracts.tests.utils import (
     deploy_contract,
     deploy_custom_token,
     get_web3,
     get_token_network,
+    make_address,
 )
 from raiden_contracts.tests.property.strategies import direct_transfer
-from raiden_contracts.tests.utils.address import make_address
 from web3 import Web3
 from web3.exceptions import ValidationError
 

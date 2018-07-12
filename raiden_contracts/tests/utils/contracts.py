@@ -11,7 +11,7 @@ from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_TOKEN_NETWORK,
 )
-from raiden_contracts.tests.fixtures import contracts_manager
+from raiden_contracts.tests.fixtures.contract_manager import contracts_manager
 
 
 def get_web3(eth_tester, deployer_key):
