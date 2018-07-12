@@ -46,7 +46,7 @@ CLOSE = 'close'
 UPDATE_TRANSFER = 'updateTransfer'
 MINE = 'mine'
 EMPTY_MERKLE_ROOT = b'\x00' * 32
-GAS_LIMIT = 5942885
+GAS_LIMIT = 5942324
 
 privatekeys = binary(min_size=32, max_size=32)
 identifier = integers(min_value=0, max_value=UINT64_MAX)
@@ -454,7 +454,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                     closer_signature,
                 ).transact()
 
-        elif channel_state != 0:
+        elif channel_state == 2:
             with transaction_must_fail('close called twice didnt fail'):
                 self.token_network.functions.closeChannel(
                     partner_address,
