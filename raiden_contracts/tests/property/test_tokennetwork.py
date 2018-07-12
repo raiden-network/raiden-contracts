@@ -6,7 +6,6 @@ import eth_tester.backends.pyevm.main as pyevm_main
 from coincurve import PrivateKey
 from eth_utils import (
     encode_hex,
-    keccak,
     to_canonical_address,
     to_checksum_address,
 )
@@ -14,8 +13,6 @@ from eth_tester.exceptions import TransactionFailed
 from hypothesis import assume
 from hypothesis.stateful import GenericStateMachine
 from hypothesis.strategies import (
-    binary,
-    composite,
     integers,
     just,
     one_of,
@@ -24,7 +21,6 @@ from hypothesis.strategies import (
 )
 from raiden_libs.test.fixtures.web3 import ethereum_tester
 from raiden_libs.utils import private_key_to_address
-from web3 import Web3
 from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -37,21 +33,17 @@ from raiden_contracts.tests.utils.contracts import (
     get_web3,
     get_token_network,
 )
+from raiden_contracts.tests.property.strategies import direct_transfer
 from raiden_contracts.tests.utils.address import make_address
+from web3 import Web3
+from web3.exceptions import ValidationError
 
-UINT64_MAX = 2 ** 64 - 1
-UINT256_MAX = 2 ** 256 - 1
 DEPOSIT = 'deposit'
 CLOSE = 'close'
 UPDATE_TRANSFER = 'updateTransfer'
 MINE = 'mine'
 EMPTY_MERKLE_ROOT = b'\x00' * 32
-GAS_LIMIT = 5942324
-
-privatekeys = binary(min_size=32, max_size=32)
-identifier = integers(min_value=0, max_value=UINT64_MAX)
-nonce = integers(min_value=1, max_value=UINT64_MAX)
-transferred_amount = integers(min_value=0, max_value=UINT256_MAX)
+GAS_LIMIT = 5942246
 
 
 @contextlib.contextmanager
@@ -64,92 +56,8 @@ def transaction_must_fail(error_message):
         raise ValueError(error_message)
 
 
-class BlockGasLimitReached(BaseException):
+class BlockGasLimitReached(ValidationError):
     pass
-
-
-class Transfer:
-    cmdid = 5  # DirectTransfer
-
-    def __init__(
-            self,
-            message_identifier,
-            payment_identifier,
-            nonce,
-            registry_address,
-            token,
-            channel,
-            transferred_amount,
-            locked_amount,
-            recipient,
-            locksroot,
-    ):
-        self.message_identifier = message_identifier
-        self.payment_identifier = payment_identifier
-        self.nonce = nonce
-        self.registry_address = registry_address
-        self.token = token
-        self.channel = channel
-        self.transferred_amount = transferred_amount
-        self.locked_amount = locked_amount
-        self.recipient = recipient
-        self.locksroot = locksroot
-
-    def sign(self, private_key, node_address):
-        """ Sign message using `private_key`. """
-        signature = private_key.sign_recoverable(
-            self.to_bytes(),
-            hasher=keccak,
-        )
-        if len(signature) != 65:
-            raise ValueError('invalid signature')
-
-        signature = signature[:-1] + chr(signature[-1] + 27).encode()
-
-        self.signature = signature
-
-        self.sender = node_address
-        self.signature = signature
-
-        return signature
-
-    def to_bytes(self):
-        arr = bytearray()
-        arr.extend(self.message_identifier.to_bytes(8, byteorder='big'))
-        arr.extend(self.payment_identifier.to_bytes(8, byteorder='big'))
-        arr.extend(self.nonce.to_bytes(8, byteorder='big'))
-        arr.extend(self.token.encode())
-        arr.extend(self.registry_address.encode())
-        arr.extend(self.channel)
-        arr.extend(self.transferred_amount.to_bytes(32, byteorder='big'))
-        arr.extend(self.locked_amount.to_bytes(32, byteorder='big'))
-        arr.extend(self.recipient.encode())
-        arr.extend(self.locksroot)
-        return arr
-
-    def balance_hash(self):
-        # balance_hash Hash of (transferred_amount, locked_amount, locksroot).
-        return keccak(text='{0}{1}{2}'.format(
-            self.transferred_amount,
-            self.locked_amount,
-            self.locksroot,
-        ))
-
-
-@composite
-def direct_transfer(draw, registry_address, token, channel, recipient, locksroot):
-    return Transfer(
-        draw(identifier),
-        draw(identifier),
-        draw(nonce),
-        draw(registry_address),
-        draw(token),
-        draw(channel),
-        draw(transferred_amount),
-        0,
-        draw(recipient),
-        draw(locksroot),
-    )
 
 
 class TokenNetworkStateMachine(GenericStateMachine):
@@ -193,6 +101,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
             PrivateKey(secret=b'p3'),
         ]
 
+        # Create and fund accounts with Ether and CustomToken
         self.addresses = []
         token_amount = 100000
         for private_key in self.private_keys:
