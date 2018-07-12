@@ -54,17 +54,18 @@ class CompileContracts(Command):
         # This is a workaround to stop a possibly existing invalid
         # precompiled `contracts.json` from preventing us from compiling a new one
         os.environ['_RAIDEN_CONTRACT_MANAGER_SKIP_PRECOMPILED'] = '1'
-        from raiden_contracts.contract_manager import (
-            ContractManager,
-            CONTRACTS_PRECOMPILED_PATH,
-            CONTRACTS_SOURCE_DIRS,
-        )
 
         try:
             from solc import compile_files  # noqa
         except ModuleNotFoundError:
             print('py-solc is not installed, skipping contracts compilation')
             return
+
+        from raiden_contracts.contract_manager import (
+            ContractManager,
+            CONTRACTS_PRECOMPILED_PATH,
+            CONTRACTS_SOURCE_DIRS,
+        )
 
         try:
             contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
