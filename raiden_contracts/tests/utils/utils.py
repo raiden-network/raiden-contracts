@@ -40,7 +40,8 @@ class ChannelValues():
         return (
             f'ChannelValues deposit:{self.deposit} withdrawn:{self.withdrawn} '
             f'transferred:{self.transferred} claimable_locked:{self.claimable_locked} '
-            f'unclaimable_locked:{self.unclaimable_locked} locksroot:{self.locksroot} '
+            f'unclaimable_locked:{self.unclaimable_locked} '
+            f'locked:{self.locked} locksroot:{self.locksroot} '
         )
 
 
@@ -132,6 +133,52 @@ def get_packed_transfers(pending_transfers, types):
     return reduce((lambda x, y: x + y), packed_transfers)
 
 
+def get_participant_available_balance(participant1, participant2):
+    """ Returns the available balance for participant1
+
+    The available balance is used in the Raiden client, in order to check if a
+    participant is able to make transfers or not.
+    """
+    return (
+        participant1.deposit +
+        participant2.transferred -
+        participant1.withdrawn -
+        participant1.transferred -
+        participant1.locked
+    )
+
+
+def are_balance_proofs_valid(participant1, participant2):
+    """ Checks if balance proofs are valid or could have been valid at a certain point in time """
+    participant1_available_balance = get_participant_available_balance(participant1, participant2)
+    participant2_available_balance = get_participant_available_balance(participant2, participant1)
+    print('av balances', participant1_available_balance, participant2_available_balance)
+    return (
+        participant1.transferred + participant1.locked <= MAX_UINT256 and
+        participant2.transferred + participant2.locked <= MAX_UINT256 and
+        participant1_available_balance >= 0 and participant2_available_balance >= 0
+    )
+
+
+def is_balance_proof_old(participant1, participant2):
+    """ Checks if balance proofs are valid, with at least one old. """
+    both_valid = are_balance_proofs_valid(participant1, participant2)
+    if not both_valid:
+        return False
+
+    total_available_deposit = get_total_available_deposit(participant1, participant2)
+
+    (
+        participant1_balance,
+        participant2_balance,
+    ) = get_expected_after_settlement_unlock_amounts(participant1, participant2)
+
+    if participant1_balance + participant2_balance != total_available_deposit:
+        return False
+
+    return True
+
+
 def get_settlement_amounts(participant1, participant2):
     """ Settlement algorithm
 
@@ -140,12 +187,7 @@ def get_settlement_amounts(participant1, participant2):
 
     !!! Don't change this unless you really know what you are doing.
     """
-    total_available_deposit = (
-        participant1.deposit +
-        participant2.deposit -
-        participant1.withdrawn -
-        participant2.withdrawn
-    )
+    total_available_deposit = get_total_available_deposit(participant1, participant2)
     participant1_max_transferred = min(
         participant1.transferred + participant1.locked,
         MAX_UINT256,
@@ -190,6 +232,31 @@ def get_settlement_amounts(participant1, participant2):
         participant1_locked=participant1_locked,
         participant2_locked=participant2_locked,
     )
+
+
+def get_expected_after_settlement_unlock_amounts(participant1, participant2):
+    """ Get expected balances after the channel is settled and all locks are unlocked
+
+    We make the assumption that both balance proofs provided are valid, meaning that both
+    participants' balance proofs are the last known balance proofs from the channel.
+    """
+    participant1_balance = (
+        participant1.deposit -
+        participant1.withdrawn +
+        participant2.transferred -
+        participant1.transferred +
+        participant2.claimable_locked -
+        participant1.claimable_locked
+    )
+    participant2_balance = (
+        participant2.deposit -
+        participant2.withdrawn +
+        participant1.transferred -
+        participant2.transferred +
+        participant1.claimable_locked -
+        participant2.claimable_locked
+    )
+    return (participant1_balance, participant2_balance)
 
 
 def failsafe_add(a, b):
@@ -238,11 +305,7 @@ def get_onchain_settlement_amounts(
         participant1.transferred + participant1.locked
     )
 
-    total_available_deposit = (
-        participant1.deposit +
-        participant2.deposit -
-        participant1.withdrawn -
-        participant2.withdrawn)
+    total_available_deposit = get_total_available_deposit(participant1, participant2)
 
     # we assume that total_available_deposit does not overflow in settleChannel
     assert total_available_deposit <= MAX_UINT256
@@ -285,6 +348,16 @@ def get_onchain_settlement_amounts(
         participant1_locked=participant1_locked_amount,
         participant2_locked=participant2_locked_amount,
     )
+
+
+def get_total_available_deposit(participant1, participant2):
+    total_available_deposit = (
+        participant1.deposit +
+        participant2.deposit -
+        participant1.withdrawn -
+        participant2.withdrawn
+    )
+    return total_available_deposit
 
 
 def get_unlocked_amount(secret_registry, merkle_tree_leaves):
