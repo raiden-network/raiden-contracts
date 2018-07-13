@@ -156,7 +156,7 @@ def are_balance_proofs_valid(participant1, participant2):
     """ Checks if balance proofs are valid or could have been valid at a certain point in time """
     participant1_available_balance = get_participant_available_balance(participant1, participant2)
     participant2_available_balance = get_participant_available_balance(participant2, participant1)
-    print('av balances', participant1_available_balance, participant2_available_balance)
+
     return (
         participant1.transferred + participant1.locked <= MAX_UINT256 and
         participant2.transferred + participant2.locked <= MAX_UINT256 and
