@@ -571,4 +571,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
         return tx_logs[0]['args']['channel_identifier']
 
 
-TokenNetworkTestCase = TokenNetworkStateMachine.TestCase
+# FIXME: Disable the test for now. A more formalized sampling
+# of data should be done in the following issue:
+# https://github.com/raiden-network/raiden-contracts/issues/108
+# TokenNetworkTestCase = TokenNetworkStateMachine.TestCase
