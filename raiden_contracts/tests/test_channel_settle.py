@@ -1,7 +1,3 @@
-import pytest
-from copy import deepcopy
-from random import randint
-
 from raiden_contracts.utils.merkle import get_merkle_root
 
 from raiden_contracts.constants import (
@@ -90,14 +86,14 @@ def test_settle_channel_state(
         withdrawn=10,
         transferred=20020,
         claimable_locked=3,
-        unclaimable_locked=4
+        unclaimable_locked=4,
     )
     vals_B = ChannelValues(
         deposit=35,
         withdrawn=5,
         transferred=20030,
         claimable_locked=2,
-        unclaimable_locked=3
+        unclaimable_locked=3,
     )
 
     pending_transfers_tree_A = get_pending_transfers_tree(
@@ -146,7 +142,10 @@ def test_settle_channel_state(
     # used in `settle_state_tests` are incorrect
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 33
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 15
-    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract - 48
+    assert custom_token.functions.balanceOf(
+        token_network.address,
+    ).call() == pre_balance_contract - 48
+
 
 def test_settle_single_direct_transfer_for_closing_party(
         web3,

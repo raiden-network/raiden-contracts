@@ -78,14 +78,18 @@ def get_pending_transfers(
 
 def get_pending_transfers_tree(
         web3,
-        unlockable_amounts=[],
-        expired_amounts=[],
+        unlockable_amounts=None,
+        expired_amounts=None,
         min_expiration_delta=None,
         max_expiration_delta=None,
         unlockable_amount=None,
         expired_amount=None,
 ):
     types = ['uint256', 'uint256', 'bytes32']
+    if unlockable_amounts is None:
+        unlockable_amounts = []
+    if expired_amounts is None:
+        expired_amounts = []
     if unlockable_amount is not None:
         unlockable_amounts = get_random_values_for_sum(unlockable_amount)
     if expired_amount is not None:
