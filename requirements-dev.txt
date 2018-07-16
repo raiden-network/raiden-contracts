@@ -7,3 +7,4 @@ flake8-tuple>=0.2.13
 flake8-bugbear>=18.2.0
 git+https://github.com/raiden-network/raiden-libs.git
 bump2version
+hypothesis==3.44.14
