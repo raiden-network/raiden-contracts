@@ -609,7 +609,7 @@ contract TokenNetwork is Utils {
         uint256 participant2_locked_amount
     )
         view
-        private
+        internal
         returns (uint256, uint256, uint256, uint256)
     {
         // Direct token transfers done through the token `transfer` function
