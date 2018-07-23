@@ -16,6 +16,7 @@ from raiden_contracts.utils.sign import (
 from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
+    get_expected_after_settlement_unlock_amounts,
     ChannelValues,
     get_participants_hash,
 )
@@ -470,6 +471,30 @@ def settle_state_tests(token_network, custom_token):
 
 
 @pytest.fixture()
+def after_settle_unlock_balance_tests(token_network, custom_token):
+    def get(
+            A,
+            values_A,
+            B,
+            values_B,
+            pre_settlement_balance_A,
+            pre_settlement_balance_B,
+            pre_settlement_contract
+    ):
+        # Calculate how much A and B should receive when knowing who will receive the locked amounts
+        (balance_A, balance_B) = get_expected_after_settlement_unlock_amounts(values_A, values_B)
+
+        # Make sure the correct amount of tokens has been transferred
+        account_balance_A = custom_token.functions.balanceOf(A).call()
+        account_balance_B = custom_token.functions.balanceOf(B).call()
+        balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+        assert account_balance_A == pre_settlement_balance_A + balance_A
+        assert account_balance_B == pre_settlement_balance_B + balance_B
+        assert balance_contract == pre_settlement_contract - balance_A - balance_B
+    return get
+
+
+@pytest.fixture()
 def unlock_state_tests(token_network):
     def get(
             A,
@@ -494,6 +519,7 @@ def unlock_state_tests(token_network):
             locksroot_A
         ).call() == 0
     return get
+
 
 @pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):

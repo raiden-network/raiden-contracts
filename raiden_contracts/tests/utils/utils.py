@@ -153,7 +153,11 @@ def get_participant_available_balance(participant1, participant2):
 
 
 def are_balance_proofs_valid(participant1, participant2):
-    """ Checks if balance proofs are valid or could have been valid at a certain point in time """
+    """ Checks if balance proofs are valid or could have been valid at a certain point in time
+
+    Balance proof constraints are detailed in
+    https://github.com/raiden-network/raiden-contracts/issues/188#issuecomment-404752095
+    """
     participant1_available_balance = get_participant_available_balance(participant1, participant2)
     participant2_available_balance = get_participant_available_balance(participant2, participant1)
 

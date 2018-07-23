@@ -1,6 +1,8 @@
 from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues
 
 
+# We must cover the edge cases documented in
+# https://github.com/raiden-network/raiden-contracts/issues/188
 channel_settle_test_values = [
     # both balance proofs provided are valid
     (

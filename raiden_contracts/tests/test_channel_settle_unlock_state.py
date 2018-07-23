@@ -29,6 +29,7 @@ def test_channel_settle_unlock_edge_cases(
         settle_state_tests,
         channel_test_values,
         reveal_secrets,
+        after_settle_unlock_balance_tests,
 ):
     number_of_channels = 3
     accounts = get_accounts(2 * number_of_channels)
@@ -114,7 +115,8 @@ def test_channel_settle_unlock_edge_cases(
     # Calculate how much A and B should receive when knowing who will receive the locked amounts
     # This is a very important check. These amounts must be equal to the final tokens received
     # after the channel lifecycle is over (after settlement & all pending transfers unlocks)
-    # for all valid balance proofs that are the last ones known at the same point in time.
+    # for all valid balance proofs. This must be true for the last known balance proofs,
+    # but also for a last known balance proof + an old balance proof provided on purpose or not.
     # Where a valid balance proof is a balance proof that respects the Raiden client
     # value contraints, as defined here:
     # https://github.com/raiden-network/raiden-contracts/issues/188#issuecomment-404752095
@@ -286,6 +288,18 @@ def test_channel_settle_unlock_edge_cases(
                 vals_A.locksroot,
             ).call() == 0
 
+        # Do the post settlement and unlock tests if balance proofs are valid
+        if are_balance_proofs_valid(vals_A, vals_B):
+            after_settle_unlock_balance_tests(
+                A,
+                vals_A,
+                B,
+                vals_B,
+                pre_balance_A,
+                pre_balance_B,
+                pre_balance_contract,
+            )
+
         # Calculate how much A and B should receive after the channel is settled and
         # unlock is called by both.
         (
@@ -297,27 +311,17 @@ def test_channel_settle_unlock_edge_cases(
         # Raiden client), there are cases where participants can lose tokens.
         # We ensure balance correctness only if both participants use the official Raiden client.
         if are_balance_proofs_valid(vals_A, vals_B):
-            # If both balance proofs are valid and are the last ones known, then the final
-            # settlement & post-unlock amounts should be the expected ones.
-            if not is_balance_proof_old(vals_A, vals_B):
-                assert custom_token.functions.balanceOf(A).call() == (
-                    pre_balance_A +
-                    expected_final_balance_A
-                )
-                assert custom_token.functions.balanceOf(B).call() == (
-                    pre_balance_B +
-                    expected_final_balance_B
-                )
-                if are_balance_proofs_valid(vals_A0, vals_B0):
-                    assert expected_final_balance_A0 == expected_final_balance_A
-                    assert expected_final_balance_B0 == expected_final_balance_B
-
-            # TODO
-            # Even when old balance proofs are used, we must ensure that we still get the
-            # expected amount as if we are using the last balance proofs or
-            # the attacker (participant who sends the older balance proof) gets <= tokens
-            # than expected. This case has been documented here
-            # https://github.com/raiden-network/raiden-contracts/issues/188#issuecomment-404759425
+            assert custom_token.functions.balanceOf(A).call() == (
+                pre_balance_A +
+                expected_final_balance_A
+            )
+            assert custom_token.functions.balanceOf(B).call() == (
+                pre_balance_B +
+                expected_final_balance_B
+            )
+            if are_balance_proofs_valid(vals_A0, vals_B0):
+                assert expected_final_balance_A0 == expected_final_balance_A
+                assert expected_final_balance_B0 == expected_final_balance_B
 
         # Regardless of the tokens received by the two participants, we must make sure tokens
         # are not stolen from the other channels. And we must make sure tokens are not locked in
