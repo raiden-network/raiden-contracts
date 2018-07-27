@@ -449,7 +449,7 @@ def test_update_not_allowed_for_the_closing_address(
         ).transact({'from': M})
 
 
-def test_updateNonClosingBalanceProof_invalid_BP_arguments(
+def test_update_invalid_balance_proof_arguments(
         token_network,
         token_network_test,
         create_channel,
@@ -552,7 +552,7 @@ def test_updateNonClosingBalanceProof_invalid_BP_arguments(
 
     #  Create balance_proof for invalid channel identifier
     balance_proof_invalid_channel_identifier = balance_proof(*create_balance_proof(
-        channel_identifier[::-1],
+        channel_identifier + 1,
         A,
         10,
         0,
@@ -562,7 +562,7 @@ def test_updateNonClosingBalanceProof_invalid_BP_arguments(
 
     signature_invalid_channel_identifier = create_balance_proof_update_signature(
         B,
-        channel_identifier[::-1],
+        channel_identifier + 1,
         balance_proof_valid.balance_hash,
         balance_proof_valid.nonce,
         balance_proof_valid.additional_hash,
@@ -665,7 +665,7 @@ def test_updateNonClosingBalanceProof_invalid_BP_arguments(
     ).transact({'from': B})
 
 
-def test_updateNonClosingBalanceProof_signature_on_invalid_arguments(
+def test_update_signature_on_invalid_arguments(
         token_network,
         token_network_test,
         create_channel,
@@ -738,7 +738,7 @@ def test_updateNonClosingBalanceProof_signature_on_invalid_arguments(
 
     signature_invalid_channel_identifier = create_balance_proof_update_signature(
         B,
-        channel_identifier[::-1],  # invalid channel_identifier
+        channel_identifier + 1,  # invalid channel_identifier
         balance_proof_valid.balance_hash,
         balance_proof_valid.nonce,
         balance_proof_valid.additional_hash,
