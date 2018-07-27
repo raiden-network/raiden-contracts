@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import sys
 import zlib
 from json import JSONDecodeError
 from pathlib import Path
@@ -168,6 +169,7 @@ def _fix_contract_key_names(input: Dict) -> Dict:
 # The env variable gets set in `setup.py` for the `CompileContracts` step.
 if (
     CONTRACTS_PRECOMPILED_PATH.is_file() and
+    'pytest' not in sys.modules and
     os.environ.get('_RAIDEN_CONTRACT_MANAGER_SKIP_PRECOMPILED') is None
 ):
     CONTRACT_MANAGER = ContractManager(CONTRACTS_PRECOMPILED_PATH)
