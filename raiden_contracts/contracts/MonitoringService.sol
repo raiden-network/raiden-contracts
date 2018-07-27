@@ -135,7 +135,7 @@ contract MonitoringService is Utils {
     internal
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        bytes32 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
@@ -238,7 +238,7 @@ contract MonitoringService is Utils {
         returns (bool)
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        bytes32 channel_identifier = token_network.getChannelIdentifier(
+        uint256 channel_identifier = token_network.getChannelIdentifier(
             closing_participant,
             non_closing_participant
         );
@@ -290,7 +290,7 @@ contract MonitoringService is Utils {
     }
 
     function recoverAddressFromRewardProof(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         uint256 reward_amount,
         address token_network_address,
         uint256 chain_id,
