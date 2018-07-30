@@ -7,8 +7,6 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.tests.fixtures import fake_bytes
 from web3.exceptions import ValidationError
 
-from raiden_contracts.tests.fixtures.config import fake_hex
-
 
 def test_min_uses_usigned(token_network_test):
     """ Min cannot be called with negative values. """
@@ -53,7 +51,7 @@ def test_max(token_network_test):
         assert token_network_test.functions.maxPublic(a, b).call() == max(a, b)
 
 
-def test_verifyWithdrawSignatures(
+def test_verify_withdraw_signatures(
         token_network_test,
         create_withdraw_signatures,
         get_accounts,
@@ -61,7 +59,7 @@ def test_verifyWithdrawSignatures(
 
     (A, B) = get_accounts(2)
     fake_signature = fake_bytes(64)
-    channel_identifier = fake_hex(32)
+    channel_identifier = 4
     (signature_A, signature_B) = create_withdraw_signatures(
         [A, B],
         channel_identifier,
@@ -107,7 +105,7 @@ def test_verifyWithdrawSignatures(
         ).call()
 
 
-def test_recoverAddressFromWithdrawMessage(
+def test_recover_address_from_withdraw_message(
         token_network_test,
         create_withdraw_signatures,
         create_channel_and_deposit,
@@ -178,14 +176,14 @@ def test_recoverAddressFromWithdrawMessage(
     assert recovered_address_A != wrong_signature
 
 
-def test_recoverAddressFromBalanceProof(
+def test_recover_address_from_balance_proof(
         token_network_test,
         create_balance_proof,
         get_accounts,
 ):
     (A, B) = get_accounts(2)
 
-    channel_identifier = fake_bytes(32)
+    channel_identifier = 4
     balance_proof = create_balance_proof(
         channel_identifier,
         A,
@@ -216,7 +214,7 @@ def test_recoverAddressFromBalanceProof(
         channel_identifier, *balance_proof_wrong_token_network).call()
 
 
-def test_recoverAddressFromBalanceProofUpdate(
+def test_recover_address_from_balance_proof_update(
         token_network_test,
         create_balance_proof,
         create_balance_proof_update_signature,
@@ -225,7 +223,7 @@ def test_recoverAddressFromBalanceProofUpdate(
 
     (A, B) = get_accounts(2)
 
-    channel_identifier = fake_bytes(32)
+    channel_identifier = 4
     balance_proof = create_balance_proof(
         channel_identifier,
         A,
@@ -271,13 +269,13 @@ def test_recoverAddressFromBalanceProofUpdate(
     ).call()
 
 
-def test_recoverAddressFromCooperativeSettleSignature(
+def test_recover_address_from_cooperative_settle_signature(
         token_network_test,
         create_cooperative_settle_signatures,
         get_accounts,
 ):
     (A, B) = get_accounts(2)
-    channel_identifier = fake_bytes(32)
+    channel_identifier = 4
     fake_signature = fake_bytes(64)
 
     (signature_A, signature_B) = create_cooperative_settle_signatures(

@@ -23,7 +23,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function updateBalanceProofDataPublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         address participant,
         uint256 nonce,
         bytes32 balance_hash
@@ -68,7 +68,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
         returns (uint256)
     {
 
-        bytes32 channel_identifier;
+        uint256 channel_identifier;
 
         channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
@@ -103,7 +103,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
         public
         returns (bool)
     {
-        bytes32 channel_identifier;
+        uint256 channel_identifier;
         channel_identifier = getChannelIdentifier(to_verify, partner);
         Channel storage channel = channels[channel_identifier];
         Participant storage to_verify_state = channel.participants[to_verify];
@@ -123,7 +123,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
         public
         returns (uint256 total_available_deposit)
     {
-        bytes32 channel_identifier = getChannelIdentifier(participant1,
+        uint256 channel_identifier = getChannelIdentifier(participant1,
         participant2);
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
@@ -135,7 +135,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function recoverAddressFromBalanceProofPublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
@@ -155,7 +155,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function recoverAddressFromBalanceProofUpdateMessagePublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
@@ -177,7 +177,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function recoverAddressFromCooperativeSettleSignaturePublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         address participant1,
         uint256 participant1_balance,
         address participant2,
@@ -199,7 +199,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function recoverAddressFromWithdrawMessagePublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         address participant,
         uint256 amount_to_withdraw,
         bytes signature
@@ -217,7 +217,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function verifyWithdrawSignaturesPublic(
-        bytes32 channel_identifier,
+        uint256 channel_identifier,
         address participant,
         address partner,
         uint256 total_withdraw,

@@ -266,7 +266,7 @@ def common_settle_state_tests(custom_token, token_network):
         assert balance_contract == pre_balance_contract - balance_A - balance_B
 
         # Make sure channel data has been removed
-        assert token_network.functions.participants_hash_to_channel_counter(
+        assert token_network.functions.participants_hash_to_channel_identifier(
             get_participants_hash(A, B)
         ).call() == 0
 
