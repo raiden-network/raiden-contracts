@@ -64,7 +64,7 @@ def check_channel_unlocked(
         partner,
         locksroot,
         unlocked_amount,
-        returned_tokens
+        returned_tokens,
 ):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier

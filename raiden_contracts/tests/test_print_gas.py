@@ -89,8 +89,8 @@ def test_channel_cycle(
     (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
 
-    txn_hash = channel_deposit(A, 20, B)
-    txn_hash = channel_deposit(B, 10, A)
+    txn_hash = channel_deposit(channel_identifier, A, 20, B)
+    txn_hash = channel_deposit(channel_identifier, B, 10, A)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.setTotalDeposit')
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
@@ -130,11 +130,17 @@ def test_channel_cycle(
 
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
-    txn_hash = token_network.functions.closeChannel(B, *balance_proof_B).transact({'from': A})
+    txn_hash = token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        *balance_proof_B,
+    ).transact({'from': A})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.closeChannel')
 
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
-        A, B,
+        channel_identifier,
+        A,
+        B,
         *balance_proof_A,
         balance_proof_update_signature_B,
     ).transact({'from': B})
@@ -142,6 +148,7 @@ def test_channel_cycle(
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.functions.settleChannel(
+        channel_identifier,
         B,
         5,
         locked_amount2,
@@ -154,6 +161,7 @@ def test_channel_cycle(
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.settleChannel')
 
     txn_hash = token_network.functions.unlock(
+        channel_identifier,
         A,
         B,
         pending_transfers_tree2.packed_transfers,
@@ -164,6 +172,7 @@ def test_channel_cycle(
     ))
 
     txn_hash = token_network.functions.unlock(
+        channel_identifier,
         B,
         A,
         pending_transfers_tree1.packed_transfers,
