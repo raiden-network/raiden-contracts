@@ -130,7 +130,8 @@ contract TokenNetwork is Utils {
 
     event NonClosingBalanceProofUpdated(
         uint256 indexed channel_identifier,
-        address indexed closing_participant
+        address indexed closing_participant,
+        uint256 nonce
     );
 
     event ChannelSettled(
@@ -460,7 +461,7 @@ contract TokenNetwork is Utils {
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
 
-        emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant);
+        emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant, nonce);
 
         // Channel must be closed
         require(channel.state == 2);

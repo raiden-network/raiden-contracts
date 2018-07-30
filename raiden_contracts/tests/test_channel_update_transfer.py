@@ -958,6 +958,7 @@ def test_update_channel_event(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(A, deposit_A, B)
     channel_deposit(B, deposit_B, A)
+
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3)
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 1)
     balance_proof_update_signature_B = create_balance_proof_update_signature(
@@ -977,6 +978,27 @@ def test_update_channel_event(
     ev_handler.add(
         txn_hash,
         EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
-        check_transfer_updated(channel_identifier, A),
+        check_transfer_updated(channel_identifier, A, 1),
+    )
+    ev_handler.check()
+
+    # Test event for second balance proof update
+    balance_proof_A2 = create_balance_proof(channel_identifier, A, 4, 0, 2)
+    balance_proof_update_signature_B2 = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_A2,
+    )
+    txn_hash = token_network.functions.updateNonClosingBalanceProof(
+        A,
+        B,
+        *balance_proof_A2,
+        balance_proof_update_signature_B2,
+    ).transact({'from': B})
+
+    ev_handler.add(
+        txn_hash,
+        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        check_transfer_updated(channel_identifier, A, 2),
     )
     ev_handler.check()
