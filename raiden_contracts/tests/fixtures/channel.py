@@ -13,13 +13,13 @@ from raiden_contracts.utils.sign import (
     hash_balance_data,
     sign_balance_proof_update_message,
     sign_cooperative_settle_message,
-    sign_withdraw_message
+    sign_withdraw_message,
 )
 from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
-    get_participants_hash
+    get_participants_hash,
 )
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
@@ -29,16 +29,17 @@ from .config import fake_bytes
 @pytest.fixture()
 def create_channel(token_network):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
-        # Make sure there is no channel data on chain
-        (_, channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(A, B).call()
-        assert channel_settle_timeout == 0
-        assert channel_state == CHANNEL_STATE_NONEXISTENT
+        # Make sure there is no channel existent on chain
+        assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
         txn_hash = token_network.functions.openChannel(A, B, settle_timeout).transact()
 
+        # Get the channel identifier
+        channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
+
         # Test the channel state on chain
-        (channel_identifier, channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(A, B).call()
+        (channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(channel_identifier).call()
         assert channel_settle_timeout == settle_timeout
         assert channel_state == CHANNEL_STATE_OPENED
 
@@ -71,11 +72,12 @@ def assign_tokens(owner, token_network, custom_token):
 
 @pytest.fixture()
 def channel_deposit(token_network, assign_tokens):
-    def get(participant, deposit, partner, tx_from=None):
+    def get(channel_identifier, participant, deposit, partner, tx_from=None):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
         txn_hash = token_network.functions.setTotalDeposit(
+            channel_identifier,
             participant,
             deposit,
             partner
@@ -90,16 +92,16 @@ def create_channel_and_deposit(create_channel, channel_deposit):
         channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
 
         if deposit1 > 0:
-            channel_deposit(participant1, deposit1, participant2)
+            channel_deposit(channel_identifier, participant1, deposit1, participant2)
         if deposit2 > 0:
-            channel_deposit(participant2, deposit2, participant1)
+            channel_deposit(channel_identifier, participant2, deposit2, participant1)
         return channel_identifier
     return get
 
 
 @pytest.fixture()
 def withdraw_channel(token_network, create_withdraw_signatures):
-    def get(participant, withdraw_amount, partner, delegate=None):
+    def get(channel_identifier, participant, withdraw_amount, partner, delegate=None):
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(participant, partner).call()
 
@@ -109,7 +111,9 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant, withdraw_amount
         )
         txn_hash = token_network.functions.setTotalWithdraw(
-            participant, withdraw_amount,
+            channel_identifier,
+            participant,
+            withdraw_amount,
             partner,
             signature_participant,
             signature_partner
@@ -125,6 +129,7 @@ def close_and_update_channel(
         create_balance_proof_update_signature
 ):
     def get(
+            channel_identifier,
             participant1,
             participant1_values,
             participant2,
@@ -134,8 +139,6 @@ def close_and_update_channel(
         nonce2 = 7
         additional_hash1 = fake_bytes(32)
         additional_hash2 = fake_bytes(32)
-
-        channel_identifier = token_network.functions.getChannelIdentifier(participant1, participant2).call()
 
         balance_proof_1 = create_balance_proof(
             channel_identifier,
@@ -162,11 +165,13 @@ def close_and_update_channel(
         )
 
         token_network.functions.closeChannel(
+            channel_identifier,
             participant2,
             *balance_proof_2
         ).transact({'from': participant1})
 
         token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier,
             participant1,
             participant2,
             *balance_proof_1,
@@ -222,6 +227,7 @@ def create_settled_channel(
         )
 
         close_and_update_channel(
+            channel_identifier,
             participant1,
             participant1_values,
             participant2,
@@ -230,7 +236,14 @@ def create_settled_channel(
 
         web3.testing.mine(settle_timeout)
 
-        call_settle(token_network, participant1, participant1_values, participant2, participant2_values)
+        call_settle(
+            token_network,
+            channel_identifier,
+            participant1,
+            participant1_values,
+            participant2,
+            participant2_values
+        )
 
         return channel_identifier
 
@@ -249,6 +262,7 @@ def reveal_secrets(web3, secret_registry_contract):
 @pytest.fixture()
 def common_settle_state_tests(custom_token, token_network):
     def get(
+            channel_identifier,
             A,
             balance_A,
             B,
@@ -270,7 +284,7 @@ def common_settle_state_tests(custom_token, token_network):
             get_participants_hash(A, B)
         ).call() == 0
 
-        (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+        (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
         assert settle_block_number == 0  # settle_block_number
         assert state == CHANNEL_STATE_NONEXISTENT  # state
 
@@ -281,7 +295,7 @@ def common_settle_state_tests(custom_token, token_network):
             A_is_the_closer,
             A_balance_hash,
             A_nonce
-        ) = token_network.functions.getChannelParticipantInfo(A, B).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
         assert A_deposit == 0
         assert A_withdrawn == 0
         assert A_is_the_closer == 0
@@ -294,7 +308,7 @@ def common_settle_state_tests(custom_token, token_network):
             B_is_the_closer,
             B_balance_hash,
             B_nonce
-        ) = token_network.functions.getChannelParticipantInfo(B, A).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
         assert B_deposit == 0
         assert B_withdrawn == 0
         assert B_is_the_closer == 0
@@ -304,14 +318,17 @@ def common_settle_state_tests(custom_token, token_network):
 
 
 @pytest.fixture()
-def updateBalanceProof_state_tests(token_network, get_block):
+def update_state_tests(token_network, get_block):
     def get(
-            A, balance_proof_A,
-            B, balance_proof_B,
+            channel_identifier,
+            A,
+            balance_proof_A,
+            B,
+            balance_proof_B,
             settle_timeout,
             txn_hash1,
     ):
-        (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+        (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
 
         assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
         assert state == CHANNEL_STATE_CLOSED  # state
@@ -322,7 +339,7 @@ def updateBalanceProof_state_tests(token_network, get_block):
             A_is_the_closer,
             A_balance_hash,
             A_nonce
-        ) = token_network.functions.getChannelParticipantInfo(A, B).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
         assert A_is_the_closer is True
         assert A_balance_hash == balance_proof_A[0]
         assert A_nonce == 5
@@ -333,7 +350,7 @@ def updateBalanceProof_state_tests(token_network, get_block):
             B_is_the_closer,
             B_balance_hash,
             B_nonce
-        ) = token_network.functions.getChannelParticipantInfo(B, A).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
         assert B_is_the_closer is False
         assert B_balance_hash == balance_proof_B[0]
         assert B_nonce == 3
@@ -343,6 +360,7 @@ def updateBalanceProof_state_tests(token_network, get_block):
 @pytest.fixture()
 def settle_state_tests(token_network, common_settle_state_tests):
     def get(
+            channel_identifier,
             A,
             values_A,
             B,
@@ -357,6 +375,7 @@ def settle_state_tests(token_network, common_settle_state_tests):
         on_chain_settlement = get_onchain_settlement_amounts(values_A, values_B)
 
         common_settle_state_tests(
+            channel_identifier,
             A,
             settlement.participant1_balance,
             B,
@@ -366,6 +385,7 @@ def settle_state_tests(token_network, common_settle_state_tests):
             pre_balance_contract
         )
         common_settle_state_tests(
+            channel_identifier,
             A,
             on_chain_settlement.participant1_balance,
             B,
@@ -415,6 +435,7 @@ def unlock_state_tests(token_network):
 @pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):
     def get(
+            channel_identifier,
             participant,
             deposit_participant,
             total_withdrawn_participant,
@@ -429,7 +450,7 @@ def withdraw_state_tests(custom_token, token_network):
             pre_balance_delegate=None
     ):
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
-        (_, _, state) = token_network.functions.getChannelInfo(participant, partner).call()
+        (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
         assert state == CHANNEL_STATE_OPENED
 
         (
@@ -438,7 +459,7 @@ def withdraw_state_tests(custom_token, token_network):
             is_the_closer,
             balance_hash,
             nonce
-        ) = token_network.functions.getChannelParticipantInfo(participant, partner).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, participant).call()
         assert deposit == deposit_participant
         assert withdrawn_amount == total_withdrawn_participant
         assert is_the_closer is False
@@ -451,7 +472,7 @@ def withdraw_state_tests(custom_token, token_network):
             is_the_closer,
             balance_hash,
             nonce
-        ) = token_network.functions.getChannelParticipantInfo(partner, participant).call()
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, partner).call()
         assert deposit == deposit_partner
         assert withdrawn_amount == total_withdrawn_partner
         assert is_the_closer is False
@@ -603,12 +624,13 @@ def create_withdraw_signatures(token_network, get_private_key):
     return get
 
 
-def call_settle(token_network, A, vals_A, B, vals_B):
+def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
     assert vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked
 
     if vals_B.transferred != vals_A.transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(
+                channel_identifier,
                 B,
                 vals_B.transferred,
                 vals_B.locked,
@@ -620,6 +642,7 @@ def call_settle(token_network, A, vals_A, B, vals_B):
             ).transact({'from': A})
 
     token_network.functions.settleChannel(
+        channel_identifier,
         A,
         vals_A.transferred,
         vals_A.locked,
