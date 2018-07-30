@@ -28,11 +28,13 @@ def test_settle_timeout_inrange(
         token_network.functions.openChannel(A, B, large_settle_timeout).transact()
 
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
-    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+    channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
+    (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
     token_network.functions.closeChannel(
+        channel_identifier,
         B,
         fake_bytes(32),
         0,
@@ -41,6 +43,7 @@ def test_settle_timeout_inrange(
     ).transact({'from': A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
+        channel_identifier,
         A,
         0,
         0,
@@ -51,6 +54,7 @@ def test_settle_timeout_inrange(
         fake_bytes(32),
     ).transact({'from': A})
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).transact()
-    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+    channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
+    (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MAX

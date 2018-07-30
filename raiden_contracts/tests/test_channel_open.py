@@ -110,6 +110,26 @@ def test_counter(token_network, get_accounts, create_channel):
     assert token_network.functions.getChannelIdentifier(C, D).call() == 3
 
 
+def test_state_channel_identifier_invalid(token_network, get_accounts, create_channel):
+    (A, B, C) = get_accounts(3)
+
+    (settle_block_number, state) = token_network.functions.getChannelInfo(0).call()
+    assert settle_block_number == 0
+    assert state == CHANNEL_STATE_NONEXISTENT
+
+    create_channel(A, B)
+    create_channel(A, C)
+    create_channel(B, C)
+
+    current_counter = token_network.functions.channel_counter().call()
+
+    (settle_block_number, state) = token_network.functions.getChannelInfo(
+        current_counter + 1,
+    ).call()
+    assert settle_block_number == 0
+    assert state == CHANNEL_STATE_NONEXISTENT
+
+
 def test_open_channel_state(token_network, get_accounts):
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
@@ -120,19 +140,19 @@ def test_open_channel_state(token_network, get_accounts):
     assert token_network.functions.participants_hash_to_channel_identifier(
         participants_hash,
     ).call() == 0
-
-    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
-    assert settle_block_number == 0
-    assert state == CHANNEL_STATE_NONEXISTENT
+    assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     token_network.functions.openChannel(A, B, settle_timeout).transact()
+    channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
     assert token_network.functions.participants_hash_to_channel_identifier(
         participants_hash,
     ).call() == channel_counter + 1
 
-    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+    (settle_block_number, state) = token_network.functions.getChannelInfo(
+        channel_identifier,
+    ).call()
     assert settle_block_number == settle_timeout
     assert state == CHANNEL_STATE_OPENED
 
@@ -142,7 +162,7 @@ def test_open_channel_state(token_network, get_accounts):
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(A, B).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
@@ -155,7 +175,7 @@ def test_open_channel_state(token_network, get_accounts):
         B_is_the_closer,
         B_balance_hash,
         B_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
@@ -184,6 +204,7 @@ def test_reopen_channel(
 
     # Close channel
     token_network.functions.closeChannel(
+        channel_identifier1,
         B,
         locksroot,
         0,
@@ -200,6 +221,7 @@ def test_reopen_channel(
 
     # Settle channel
     token_network.functions.settleChannel(
+        channel_identifier1,
         A,
         0,
         0,
@@ -212,12 +234,15 @@ def test_reopen_channel(
 
     # Reopening the channel should work iff channel is settled
     token_network.functions.openChannel(A, B, settle_timeout).transact()
-    assert token_network.functions.getChannelIdentifier(A, B).call() != channel_identifier1
+    channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
+    assert channel_identifier2 != channel_identifier1
     assert token_network.functions.participants_hash_to_channel_identifier(
         get_participants_hash(A, B),
     ).call() == channel_counter1 + 1
 
-    (_, settle_block_number, state) = token_network.functions.getChannelInfo(A, B).call()
+    (settle_block_number, state) = token_network.functions.getChannelInfo(
+        channel_identifier2,
+    ).call()
     assert settle_block_number == settle_timeout
     assert state == CHANNEL_STATE_OPENED
 
@@ -227,7 +252,7 @@ def test_reopen_channel(
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(A, B).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, A).call()
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
@@ -240,7 +265,7 @@ def test_reopen_channel(
         B_is_the_closer,
         B_balance_hash,
         B_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, B).call()
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
