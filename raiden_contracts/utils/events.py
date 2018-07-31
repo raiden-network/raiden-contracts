@@ -68,10 +68,11 @@ def check_channel_unlocked(participant, partner, locksroot, unlocked_amount, ret
     return get
 
 
-def check_transfer_updated(channel_identifier, closing_participant):
+def check_transfer_updated(channel_identifier, closing_participant, nonce):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier
         assert event['args']['closing_participant'] == closing_participant
+        assert event['args']['nonce'] == nonce
     return get
 
 
