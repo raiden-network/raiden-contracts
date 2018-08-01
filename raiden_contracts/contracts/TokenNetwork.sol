@@ -154,8 +154,6 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(_token_address != 0x0);
-        require(_secret_registry != 0x0);
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > 0);
