@@ -21,6 +21,7 @@ from raiden_contracts.tests.utils import (
     ChannelValues,
     get_participants_hash,
 )
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
 from .config import fake_bytes
@@ -294,8 +295,10 @@ def common_settle_state_tests(custom_token, token_network):
             A_withdrawn,
             A_is_the_closer,
             A_balance_hash,
-            A_nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
+            A_nonce,
+            _,
+            _,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert A_deposit == 0
         assert A_withdrawn == 0
         assert A_is_the_closer == 0
@@ -307,8 +310,10 @@ def common_settle_state_tests(custom_token, token_network):
             B_withdrawn,
             B_is_the_closer,
             B_balance_hash,
-            B_nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
+            B_nonce,
+            _,
+            _,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert B_deposit == 0
         assert B_withdrawn == 0
         assert B_is_the_closer == 0
@@ -338,8 +343,10 @@ def update_state_tests(token_network, get_block):
             _,
             A_is_the_closer,
             A_balance_hash,
-            A_nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
+            A_nonce,
+            _,
+            _,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert A_is_the_closer is True
         assert A_balance_hash == balance_proof_A[0]
         assert A_nonce == 5
@@ -349,8 +356,10 @@ def update_state_tests(token_network, get_block):
             _,
             B_is_the_closer,
             B_balance_hash,
-            B_nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
+            B_nonce,
+            _,
+            _,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert B_is_the_closer is False
         assert B_balance_hash == balance_proof_B[0]
         assert B_nonce == 3
@@ -395,13 +404,19 @@ def settle_state_tests(token_network, common_settle_state_tests):
             pre_balance_contract
         )
 
-        locked_amount1 = token_network.functions.getParticipantLockedAmount(A, B, values_A.locksroot).call()
-        assert locked_amount1 == settlement.participant1_locked
-        assert locked_amount1 == on_chain_settlement.participant1_locked
+        info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+        (_, _, _, _, _, locksroot_A, locked_amount_A) = info_A
+        assert locked_amount_A == settlement.participant1_locked
+        assert locked_amount_A == on_chain_settlement.participant1_locked
+        if locked_amount_A > 0:
+            assert locksroot_A == values_A.locksroot
 
-        locked_amount2 = token_network.functions.getParticipantLockedAmount(B, A, values_B.locksroot).call()
-        assert locked_amount2 == settlement.participant2_locked
-        assert locked_amount2 == on_chain_settlement.participant2_locked
+        info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+        (_, _, _, _, _, locksroot_B, locked_amount_B) = info_B
+        assert locked_amount_B == settlement.participant2_locked
+        assert locked_amount_B == on_chain_settlement.participant2_locked
+        if locked_amount_B > 0:
+            assert locksroot_B == values_B.locksroot
 
     return get
 
@@ -458,26 +473,34 @@ def withdraw_state_tests(custom_token, token_network):
             withdrawn_amount,
             is_the_closer,
             balance_hash,
-            nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, participant).call()
+            nonce,
+            locksroot,
+            locked_amount,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, participant, partner).call()
         assert deposit == deposit_participant
         assert withdrawn_amount == total_withdrawn_participant
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
+        assert locksroot == EMPTY_MERKLE_ROOT
+        assert locked_amount == 0
 
         (
             deposit,
             withdrawn_amount,
             is_the_closer,
             balance_hash,
-            nonce
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, partner).call()
+            nonce,
+            locksroot,
+            locked_amount,
+        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, partner, participant).call()
         assert deposit == deposit_partner
         assert withdrawn_amount == total_withdrawn_partner
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
+        assert locksroot == EMPTY_MERKLE_ROOT
+        assert locked_amount == 0
 
         balance_participant = custom_token.functions.balanceOf(participant).call()
         balance_partner = custom_token.functions.balanceOf(partner).call()
