@@ -4,9 +4,9 @@ from collections import namedtuple
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     TEST_SETTLE_TIMEOUT_MIN,
-    CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
+    CHANNEL_STATE_SETTLED,
 )
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
@@ -286,7 +286,7 @@ def common_settle_state_tests(custom_token, token_network):
 
         (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
         assert settle_block_number == 0  # settle_block_number
-        assert state == CHANNEL_STATE_NONEXISTENT  # state
+        assert state == CHANNEL_STATE_SETTLED  # state
 
         # Make sure participant data has been removed
         (

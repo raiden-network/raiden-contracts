@@ -76,8 +76,10 @@ contract TokenNetwork is Utils {
         uint256 settle_block_number;
 
         // Channel state
-        // 1 = open, 2 = closed
-        // 0 = non-existent or settled
+        // 0 = non-existent
+        // 1 = open
+        // 2 = closed
+        // 3 = settled; note: the channel can be in a settled, but pending unlock state
         uint8 state;
 
         mapping(address => Participant) participants;
@@ -1056,10 +1058,17 @@ contract TokenNetwork is Utils {
         returns (uint256, uint8)
     {
         Channel storage channel = channels[channel_identifier];
+        uint8 state = channel.state;
+
+        if (state == 0 && channel_identifier > 0 && channel_identifier <= channel_counter) {
+            // The channel has been settled, channel data is removed
+            // We might still have data stored for a future unlock operation
+            state = 3;
+        }
 
         return (
             channel.settle_block_number,
-            channel.state
+            state
         );
     }
 
