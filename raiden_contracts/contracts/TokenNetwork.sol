@@ -7,10 +7,6 @@ import "raiden/SecretRegistry.sol";
 
 contract TokenNetwork is Utils {
 
-    /*
-     *  Data structures
-     */
-
     string constant public contract_version = "0.3._";
 
     // Instance of the token used as digital currency by the channels
@@ -95,10 +91,6 @@ contract TokenNetwork is Utils {
         uint256 locked;
     }
 
-    /*
-     *  Events
-     */
-
     event ChannelOpened(
         uint256 indexed channel_identifier,
         address indexed participant1,
@@ -140,10 +132,6 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount
     );
 
-    /*
-     * Modifiers
-     */
-
     modifier isOpen(address participant, address partner) {
         uint256 channel_identifier = getChannelIdentifier(participant, partner);
         require(channels[channel_identifier].state == 1);
@@ -154,10 +142,6 @@ contract TokenNetwork is Utils {
         require(timeout >= settlement_timeout_min && timeout <= settlement_timeout_max);
         _;
     }
-
-    /*
-     *  Constructor
-     */
 
     constructor(
         address _token_address,
