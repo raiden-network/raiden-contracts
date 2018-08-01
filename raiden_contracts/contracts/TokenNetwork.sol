@@ -56,7 +56,6 @@ contract TokenNetwork is Utils {
 
         // This is a value set to true after the channel has been closed, only if this is the
         // participant who closed the channel.
-        // This is bytes1 and it gets packed with the rest of the struct data.
         bool is_the_closer;
 
         // keccak256 of the balance data provided after a closeChannel or an
