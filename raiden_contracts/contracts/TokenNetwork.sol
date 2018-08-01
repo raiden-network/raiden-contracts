@@ -68,10 +68,10 @@ contract TokenNetwork is Utils {
     }
 
     enum ChannelState {
-        Gone,    // 0
-        Opened,  // 1
-        Closed,  // 2
-        Settled  // 3; note: the channel can be in a settled, but pending unlock state
+        NonExistent, // 0
+        Opened,      // 1
+        Closed,      // 2
+        Settled      // 3; note: the channel can be in a settled, but pending unlock state
     }
 
     struct Channel {
@@ -218,11 +218,10 @@ contract TokenNetwork is Utils {
         Channel storage channel = channels[channel_identifier];
 
         require(channel.settle_block_number == 0);
-        require(channel.state == ChannelState.Gone);
+        require(channel.state == ChannelState.NonExistent);
 
         // Store channel information
         channel.settle_block_number = settle_timeout;
-        // Mark channel as opened
         channel.state = ChannelState.Opened;
 
         emit ChannelOpened(channel_identifier, participant1, participant2, settle_timeout);
@@ -759,7 +758,7 @@ contract TokenNetwork is Utils {
         // After the channel is settled the storage is cleared, therefor the
         // value will be Gone and not Settled. The value Settled is used for
         // the external APIs
-        require(channels[channel_identifier].state == ChannelState.Gone);
+        require(channels[channel_identifier].state == ChannelState.NonExistent);
 
         require(computed_locksroot != 0);
         require(locked_amount > 0);
