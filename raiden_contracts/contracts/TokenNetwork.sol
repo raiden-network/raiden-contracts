@@ -104,7 +104,9 @@ contract TokenNetwork is Utils {
         uint256 total_deposit
     );
 
-    // withdrawn_amount is the total amount withdrawn by the participant from the channel
+    // total_withdraw is how much the participant has withdrawn during the
+    // lifetime of the channel. The actual amount which the participant withdrew
+    // is `total_withdraw - total_withdraw_from_previous_event_or_zero`
     event ChannelWithdraw(
         uint256 indexed channel_identifier,
         address indexed participant, uint256 total_withdraw
