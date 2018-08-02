@@ -742,7 +742,7 @@ contract TokenNetwork is Utils {
         // Locksroot must be the same as the computed locksroot
         require(unlock_data.locksroot == computed_locksroot);
 
-        // There are no pending transfers if the locked_amount will be 0. Transaction must fail
+        // There are no pending transfers if the locked_amount is 0. Transaction must fail
         require(locked_amount > 0);
 
         // Make sure we don't transfer more tokens than previously reserved in the smart contract.
@@ -1083,8 +1083,8 @@ contract TokenNetwork is Utils {
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
     /// @param participant Address of the channel participant whose data will be returned.
     /// @param partner Address of the channel partner
-    /// @return Participant's channel deposit, whether the participant has called
-    /// `closeChannel` or not, balance_hash and nonce.
+    /// @return Participant's deposit, withdrawn_amount, whether the participant has called
+    /// `closeChannel` or not, balance_hash, nonce, locksroot, locked_amount.
     function getChannelParticipantInfo(
             uint256 channel_identifier,
             address participant,
