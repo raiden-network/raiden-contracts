@@ -71,7 +71,8 @@ contract TokenNetwork is Utils {
         NonExistent, // 0
         Opened,      // 1
         Closed,      // 2
-        Settled      // 3; note: the channel can be in a settled, but pending unlock state
+        Settled      // 3; Note: The channel can be at the settled state and
+                     //          have pending unlocks or not
     }
 
     struct Channel {
