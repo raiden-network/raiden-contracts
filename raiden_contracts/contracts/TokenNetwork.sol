@@ -67,6 +67,14 @@ contract TokenNetwork is Utils {
         uint256 nonce;
     }
 
+    enum ChannelState {
+        NonExistent, // 0
+        Opened,      // 1
+        Closed,      // 2
+        Settled      // 3; Note: The channel can be at the settled state and
+                     //          may or may not have pending unlocks
+    }
+
     struct Channel {
         // After opening the channel this value represents the settlement window. This is the
         // number of blocks that need to be mined between closing the channel uncooperatively
@@ -75,12 +83,7 @@ contract TokenNetwork is Utils {
         // block number after which settleChannel can be called.
         uint256 settle_block_number;
 
-        // Channel state
-        // 0 = non-existent
-        // 1 = open
-        // 2 = closed
-        // 3 = settled; note: the channel can be in a settled, but pending unlock state
-        uint8 state;
+        ChannelState state;
 
         mapping(address => Participant) participants;
     }
@@ -137,12 +140,8 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount
     );
 
-    /*
-     * Modifiers
-     */
-
     modifier isOpen(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == 1);
+        require(channels[channel_identifier].state == ChannelState.Opened);
         _;
     }
 
@@ -220,12 +219,11 @@ contract TokenNetwork is Utils {
         Channel storage channel = channels[channel_identifier];
 
         require(channel.settle_block_number == 0);
-        require(channel.state == 0);
+        require(channel.state == ChannelState.NonExistent);
 
         // Store channel information
         channel.settle_block_number = settle_timeout;
-        // Mark channel as opened
-        channel.state = 1;
+        channel.state = ChannelState.Opened;
 
         emit ChannelOpened(channel_identifier, participant1, participant2, settle_timeout);
 
@@ -318,9 +316,7 @@ contract TokenNetwork is Utils {
 
         // Do the tokens transfer
         require(token.transfer(participant, current_withdraw));
-
-        // Channel must be open
-        require(channel.state == 1);
+        require(channel.state == ChannelState.Opened);
 
         verifyWithdrawSignatures(
             channel_identifier,
@@ -376,8 +372,7 @@ contract TokenNetwork is Utils {
 
         Channel storage channel = channels[channel_identifier];
 
-        // Mark the channel as closed and mark the closing participant
-        channel.state = 2;
+        channel.state = ChannelState.Closed;
         channel.participants[msg.sender].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
@@ -465,8 +460,7 @@ contract TokenNetwork is Utils {
 
         emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant, nonce);
 
-        // Channel must be closed
-        require(channel.state == 2);
+        require(channel.state == ChannelState.Closed);
 
         // Channel must be in the settlement window
         require(channel.settle_block_number >= block.number);
@@ -518,8 +512,7 @@ contract TokenNetwork is Utils {
         pair_hash = getParticipantsHash(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
-        // Channel must be closed
-        require(channel.state == 2);
+        require(channel.state == ChannelState.Closed);
 
         // Settlement window must be over
         require(channel.settle_block_number < block.number);
@@ -763,6 +756,11 @@ contract TokenNetwork is Utils {
             returned_tokens
         );
 
+        // After the channel is settled the storage is cleared, therefore the
+        // value will be NonExistent and not Settled. The value Settled is used
+        // for the external APIs
+        require(channels[channel_identifier].state == ChannelState.NonExistent);
+
         require(computed_locksroot != 0);
         require(locked_amount > 0);
         require(locked_amount >= returned_tokens);
@@ -802,8 +800,7 @@ contract TokenNetwork is Utils {
         pair_hash = getParticipantsHash(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
 
-        // The channel must be open
-        require(channel.state == 1);
+        require(channel.state == ChannelState.Opened);
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -1055,15 +1052,15 @@ contract TokenNetwork is Utils {
     function getChannelInfo(uint256 channel_identifier)
         view
         external
-        returns (uint256, uint8)
+        returns (uint256, ChannelState)
     {
         Channel storage channel = channels[channel_identifier];
-        uint8 state = channel.state;
+        ChannelState state = channel.state;  // This must **not** update the storage
 
-        if (state == 0 && channel_identifier > 0 && channel_identifier <= channel_counter) {
+        if (state == ChannelState.NonExistent && channel_identifier > 0 && channel_identifier <= channel_counter) {
             // The channel has been settled, channel data is removed
             // We might still have data stored for a future unlock operation
-            state = 3;
+            state = ChannelState.Settled;
         }
 
         return (
