@@ -72,7 +72,7 @@ contract TokenNetwork is Utils {
         Opened,      // 1
         Closed,      // 2
         Settled      // 3; Note: The channel can be at the settled state and
-                     //          have pending unlocks or not
+                     //          may or may not have pending unlocks
     }
 
     struct Channel {
@@ -756,9 +756,9 @@ contract TokenNetwork is Utils {
             returned_tokens
         );
 
-        // After the channel is settled the storage is cleared, therefor the
-        // value will be Gone and not Settled. The value Settled is used for
-        // the external APIs
+        // After the channel is settled the storage is cleared, therefore the
+        // value will be NonExistent and not Settled. The value Settled is used
+        // for the external APIs
         require(channels[channel_identifier].state == ChannelState.NonExistent);
 
         require(computed_locksroot != 0);
@@ -1052,12 +1052,12 @@ contract TokenNetwork is Utils {
     function getChannelInfo(uint256 channel_identifier)
         view
         external
-        returns (uint256, uint8)
+        returns (uint256, ChannelState)
     {
         Channel storage channel = channels[channel_identifier];
-        ChannelState memory state = channel.state;  // This must **not** update the storage
+        ChannelState state = channel.state;  // This must **not** update the storage
 
-        if (state == ChannelState.Gone && channel_identifier > 0 && channel_identifier <= channel_counter) {
+        if (state == ChannelState.NonExistent && channel_identifier > 0 && channel_identifier <= channel_counter) {
             // The channel has been settled, channel data is removed
             // We might still have data stored for a future unlock operation
             state = ChannelState.Settled;
