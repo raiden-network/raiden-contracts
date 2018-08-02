@@ -11,6 +11,7 @@ from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS, fake_bytes
 from web3.exceptions import ValidationError
 from .utils import get_participants_hash
+from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 
 
 def test_open_channel_call(token_network, get_accounts):
@@ -162,12 +163,16 @@ def test_open_channel_state(token_network, get_accounts):
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
+        A_locksroot,
+        A_locked_amount,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
+    assert A_locksroot == EMPTY_MERKLE_ROOT
+    assert A_locked_amount == 0
 
     (
         B_deposit,
@@ -175,12 +180,16 @@ def test_open_channel_state(token_network, get_accounts):
         B_is_the_closer,
         B_balance_hash,
         B_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
+        B_locksroot,
+        B_locked_amount,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
     assert B_balance_hash == fake_bytes(32)
     assert B_nonce == 0
+    assert B_locksroot == EMPTY_MERKLE_ROOT
+    assert B_locked_amount == 0
 
 
 def test_reopen_channel(
@@ -252,12 +261,16 @@ def test_reopen_channel(
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, A).call()
+        A_locksroot,
+        A_locked_amount,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, A, B).call()
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
+    assert A_locksroot == EMPTY_MERKLE_ROOT
+    assert A_locked_amount == 0
 
     (
         B_deposit,
@@ -265,12 +278,16 @@ def test_reopen_channel(
         B_is_the_closer,
         B_balance_hash,
         B_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, B).call()
+        B_locksroot,
+        B_locked_amount,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier2, B, A).call()
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
     assert B_balance_hash == fake_bytes(32)
     assert B_nonce == 0
+    assert B_locksroot == EMPTY_MERKLE_ROOT
+    assert B_locked_amount == 0
 
 
 def test_open_channel_event(get_accounts, token_network, event_handler):

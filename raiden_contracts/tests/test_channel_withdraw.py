@@ -397,9 +397,10 @@ def test_withdraw_channel_state(
     balance_C = custom_token.functions.balanceOf(C).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    (_, withdrawn_amount, _, _, _) = token_network.functions.getChannelParticipantInfo(
+    (_, withdrawn_amount, _, _, _, _, _) = token_network.functions.getChannelParticipantInfo(
         channel_identifier,
         A,
+        B,
     ).call()
     assert withdrawn_amount == 0
 

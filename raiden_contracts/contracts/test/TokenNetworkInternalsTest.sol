@@ -40,6 +40,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     }
 
     function updateUnlockDataPublic(
+        uint256 channel_identifier,
         address participant,
         address partner,
         uint256 locked_amount,
@@ -48,6 +49,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
         public
     {
        return updateUnlockData(
+            channel_identifier,
             participant,
             partner,
             locked_amount,

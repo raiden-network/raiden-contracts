@@ -281,11 +281,14 @@ def test_close_channel_state(
     assert state == CHANNEL_STATE_OPENED
 
     (
-        _, _,
+        _,
+        _,
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is False
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
@@ -307,7 +310,9 @@ def test_close_channel_state(
         A_is_the_closer,
         A_balance_hash,
         A_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A).call()
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is True
     assert A_balance_hash == fake_bytes(32)
     assert A_nonce == 0
@@ -317,7 +322,9 @@ def test_close_channel_state(
         B_is_the_closer,
         B_balance_hash,
         B_nonce,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B).call()
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == balance_proof[0]
     assert B_nonce == nonce
