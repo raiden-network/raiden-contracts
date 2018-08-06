@@ -7,7 +7,7 @@ from raiden_contracts.constants import (
     EVENT_CHANNEL_WITHDRAW,
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
-    CHANNEL_STATE_SETTLED,
+    CHANNEL_STATE_REMOVED,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
@@ -155,7 +155,7 @@ def test_withdraw_wrong_state(
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     channel_identifier = create_channel_and_deposit(A, B, 10, 14, TEST_SETTLE_TIMEOUT_MIN)
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
+    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == CHANNEL_STATE_OPENED
 
     # Channel is open, withdraw must work
@@ -169,7 +169,7 @@ def test_withdraw_wrong_state(
         fake_bytes(32),
         fake_bytes(64),
     ).transact({'from': A})
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
+    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == CHANNEL_STATE_CLOSED
 
     with pytest.raises(TransactionFailed):
@@ -187,8 +187,8 @@ def test_withdraw_wrong_state(
         0,
         fake_bytes(32),
     ).transact({'from': A})
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
-    assert state == CHANNEL_STATE_SETTLED
+    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    assert state == CHANNEL_STATE_REMOVED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, B)

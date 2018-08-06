@@ -29,9 +29,10 @@ def test_settle_timeout_inrange(
 
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
@@ -57,8 +58,9 @@ def test_settle_timeout_inrange(
     ).transact({'from': A})
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MAX
