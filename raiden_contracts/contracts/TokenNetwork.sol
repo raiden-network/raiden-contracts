@@ -146,12 +146,12 @@ contract TokenNetwork is Utils {
     );
 
     modifier isOpen(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == ChannelState.Opened);
+        require(channels[channel_identifier].state == ChannelState.Opened, 'Invalid channel state');
         _;
     }
 
     modifier settleTimeoutValid(uint256 timeout) {
-        require(timeout >= settlement_timeout_min && timeout <= settlement_timeout_max);
+        require(timeout >= settlement_timeout_min && timeout <= settlement_timeout_max, 'Invalid settlement timeout.');
         _;
     }
 
@@ -169,8 +169,8 @@ contract TokenNetwork is Utils {
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
-        require(contractExists(_token_address));
-        require(contractExists(_secret_registry));
+        require(contractExists(_token_address), 'Invalid Token.');
+        require(contractExists(_secret_registry), 'Invalid SecretRegistry.');
 
         token = Token(_token_address);
 
@@ -180,7 +180,7 @@ contract TokenNetwork is Utils {
         settlement_timeout_max = _settlement_timeout_max;
 
         // Make sure the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0, 'Invalid Token.');
 
         // Try to get token decimals, otherwise assume 18
         bool exists = address(token).call(bytes4(keccak256("decimals()")));
@@ -217,7 +217,7 @@ contract TokenNetwork is Utils {
         pair_hash = getParticipantsHash(participant1, participant2);
 
         // There must only be one channel opened between two participants at any moment in time.
-        require(participants_hash_to_channel_identifier[pair_hash] == 0);
+        require(participants_hash_to_channel_identifier[pair_hash] == 0, 'Channel already open.');
 
         participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
 
@@ -251,9 +251,9 @@ contract TokenNetwork is Utils {
         isOpen(channel_identifier)
         public
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_deposit > 0);
-        require(total_deposit <= deposit_limit);
+        require(channel_identifier == getChannelIdentifier(participant, partner), 'Invalid channel identifier.');
+        require(total_deposit > 0, 'Invalid total deposit.');
+        require(total_deposit <= deposit_limit, 'Over bug bounty limit.');
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -274,7 +274,7 @@ contract TokenNetwork is Utils {
         emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
 
         // Do the transfer
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
+        require(token.transferFrom(msg.sender, address(this), added_deposit), 'Token transfer failed.');
 
         require(participant_state.deposit >= added_deposit);
         require(channel_deposit >= participant_state.deposit);
@@ -301,8 +301,8 @@ contract TokenNetwork is Utils {
     )
         external
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_withdraw > 0);
+        require(channel_identifier == getChannelIdentifier(participant, partner), 'Invalid channel identifier.');
+        require(total_withdraw > 0, 'Invalid total withdraw.');
 
         uint256 total_deposit;
         uint256 current_withdraw;
@@ -320,8 +320,8 @@ contract TokenNetwork is Utils {
         participant_state.withdrawn_amount += current_withdraw;
 
         // Do the tokens transfer
-        require(token.transfer(participant, current_withdraw));
-        require(channel.state == ChannelState.Opened);
+        require(token.transfer(participant, current_withdraw), 'Token transfer failed.');
+        require(channel.state == ChannelState.Opened, 'Invalid channel state.');
 
         verifyWithdrawSignatures(
             channel_identifier,
@@ -332,14 +332,14 @@ contract TokenNetwork is Utils {
             partner_signature
         );
 
-        require(current_withdraw > 0);
+        require(current_withdraw > 0, 'Invalid withdrawn amount.');
 
-        // Underflow check
+        // Overflow check
         require(participant_state.withdrawn_amount >= current_withdraw);
         require(participant_state.withdrawn_amount == total_withdraw);
 
         // Entire withdrawn amount must not be bigger than the entire channel deposit
-        require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
+        require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount), 'Invalid withdrawn amount.');
 
         require(total_deposit >= participant_state.deposit);
         require(total_deposit >= partner_state.deposit);
@@ -371,7 +371,7 @@ contract TokenNetwork is Utils {
         isOpen(channel_identifier)
         public
     {
-        require(channel_identifier == getChannelIdentifier(msg.sender, partner));
+        require(channel_identifier == getChannelIdentifier(msg.sender, partner), 'Invalid channel identifier.');
 
         address recovered_partner_address;
 
@@ -398,7 +398,7 @@ contract TokenNetwork is Utils {
             updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
 
             // Signature must be from the channel partner
-            require(partner == recovered_partner_address);
+            require(partner == recovered_partner_address, 'Invalid signer.');
         }
 
         emit ChannelClosed(channel_identifier, msg.sender);
@@ -430,7 +430,7 @@ contract TokenNetwork is Utils {
         require(channel_identifier == getChannelIdentifier(
             closing_participant,
             non_closing_participant
-        ));
+        ), 'Invalid channel identifier.');
         require(balance_hash != 0x0);
         require(nonce > 0);
 
@@ -465,16 +465,16 @@ contract TokenNetwork is Utils {
 
         emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant, nonce);
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, 'Invalid channel state.');
 
         // Channel must be in the settlement window
-        require(channel.settle_block_number >= block.number);
+        require(channel.settle_block_number >= block.number, 'Settlement timeout ended.');
 
         // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
+        require(closing_participant_state.is_the_closer, 'Invalid closer.');
 
-        require(closing_participant == recovered_closing_participant);
-        require(non_closing_participant == recovered_non_closing_participant);
+        require(closing_participant == recovered_closing_participant, 'Invalid closer signature.');
+        require(non_closing_participant == recovered_non_closing_participant, 'Invalid non-closer.');
     }
 
     /// @notice Settles the balance between the two parties.
@@ -510,17 +510,17 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(channel_identifier == getChannelIdentifier(participant1, participant2));
+        require(channel_identifier == getChannelIdentifier(participant1, participant2), 'Invalid channel identifier.');
 
         bytes32 pair_hash;
 
         pair_hash = getParticipantsHash(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, 'Invalid channel state.');
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number);
+        require(channel.settle_block_number < block.number, 'Settlement timeout not finalized.');
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -586,11 +586,11 @@ contract TokenNetwork is Utils {
 
         // Do the actual token transfers
         if (participant1_transferred_amount > 0) {
-            require(token.transfer(participant1, participant1_transferred_amount));
+            require(token.transfer(participant1, participant1_transferred_amount), 'Token transfer 1 failed.');
         }
 
         if (participant2_transferred_amount > 0) {
-            require(token.transfer(participant2, participant2_transferred_amount));
+            require(token.transfer(participant2, participant2_transferred_amount), 'Token transfer 2 failed.');
         }
 
         emit ChannelSettled(
@@ -711,14 +711,14 @@ contract TokenNetwork is Utils {
         public
     {
         // Channel represented by channel_identifier must be settled and channel data deleted
-        require(channel_identifier != getChannelIdentifier(participant, partner));
+        require(channel_identifier != getChannelIdentifier(participant, partner), 'Invalid channel state.');
 
         // After the channel is settled the storage is cleared, therefore the
         // value will be NonExistent and not Settled. The value Settled is used
         // for the external APIs
-        require(channels[channel_identifier].state == ChannelState.NonExistent);
+        require(channels[channel_identifier].state == ChannelState.NonExistent, 'Invalid channel state.');
 
-        require(merkle_tree_leaves.length > 0);
+        require(merkle_tree_leaves.length > 0, 'Invalid merkle data.');
 
         bytes32 unlock_key;
         bytes32 locksroot;
@@ -740,10 +740,10 @@ contract TokenNetwork is Utils {
         locked_amount = unlock_data.locked_amount;
 
         // Locksroot must be the same as the computed locksroot
-        require(unlock_data.locksroot == computed_locksroot);
+        require(unlock_data.locksroot == computed_locksroot, 'Invalid locksroot.');
 
         // There are no pending transfers if the locked_amount is 0. Transaction must fail
-        require(locked_amount > 0);
+        require(locked_amount > 0, 'No locked amount.');
 
         // Make sure we don't transfer more tokens than previously reserved in the smart contract.
         unlocked_amount = min(unlocked_amount, locked_amount);
@@ -756,12 +756,12 @@ contract TokenNetwork is Utils {
 
         // Transfer the unlocked tokens to the participant. unlocked_amount can be 0
         if (unlocked_amount > 0) {
-            require(token.transfer(participant, unlocked_amount));
+            require(token.transfer(participant, unlocked_amount), 'Token transfer 1 failed.');
         }
 
         // Transfer the rest of the tokens back to the partner
         if (returned_tokens > 0) {
-            require(token.transfer(partner, returned_tokens));
+            require(token.transfer(partner, returned_tokens), 'Token transfer 2 failed.');
         }
 
         emit ChannelUnlocked(
@@ -802,7 +802,7 @@ contract TokenNetwork is Utils {
         require(channel_identifier == getChannelIdentifier(
             participant1_address,
             participant2_address
-        ));
+        ), 'Invalid channel identifier.');
         bytes32 pair_hash;
         address participant1;
         address participant2;
@@ -811,7 +811,7 @@ contract TokenNetwork is Utils {
         pair_hash = getParticipantsHash(participant1_address, participant2_address);
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Opened);
+        require(channel.state == ChannelState.Opened, 'Invalid channel state.');
 
         participant1 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -850,19 +850,20 @@ contract TokenNetwork is Utils {
 
         // Do the token transfers
         if (participant1_balance > 0) {
-            require(token.transfer(participant1, participant1_balance));
+            require(token.transfer(participant1, participant1_balance), 'Token transfer 1 failed.');
         }
 
         if (participant2_balance > 0) {
-            require(token.transfer(participant2, participant2_balance));
+            require(token.transfer(participant2, participant2_balance), 'Token transfer 2 failed.');
         }
 
         // The provided addresses must be the same as the recovered ones
-        require(participant1 == participant1_address);
-        require(participant2 == participant2_address);
+        require(participant1 == participant1_address, 'Invalid signature 1.');
+        require(participant2 == participant2_address, 'Invalid signature 1.');
 
         // The sum of the provided balances must be equal to the total available deposit
-        require(total_available_deposit == (participant1_balance + participant2_balance));
+        require(total_available_deposit == (participant1_balance + participant2_balance), 'Invalid balances.');
+
         emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
 
     }
@@ -880,7 +881,7 @@ contract TokenNetwork is Utils {
         require(partner != 0x0);
 
         // Participant addresses must be different
-        require(participant != partner);
+        require(participant != partner, 'Invalid participants.');
 
         bytes32 pair_hash = getParticipantsHash(participant, partner);
         return participants_hash_to_channel_identifier[pair_hash];
@@ -895,7 +896,7 @@ contract TokenNetwork is Utils {
         require(partner != 0x0);
 
         // Participant addresses must be different
-        require(participant != partner);
+        require(participant != partner, 'Invalid participants.');
 
         // Lexicographic order of the channel addresses
         // This limits the number of channels that can be opened between two nodes to 1.
@@ -915,7 +916,7 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
-        require(participant != partner);
+        require(participant != partner, 'Invalid participants.');
         return keccak256(abi.encodePacked(channel_identifier, participant, partner));
     }
 
@@ -931,7 +932,7 @@ contract TokenNetwork is Utils {
 
         // Multiple calls to updateNonClosingBalanceProof can be made and we need to store
         // the last known balance proof data
-        require(nonce > participant_state.nonce);
+        require(nonce > participant_state.nonce, 'Invalid nonce.');
 
         participant_state.nonce = nonce;
         participant_state.balance_hash = balance_hash;
@@ -1002,7 +1003,7 @@ contract TokenNetwork is Utils {
 
         // We enforce this check artificially, in order to get rid of some hard to deal with cases
         // This means settleChannel must be called with ordered values
-        require(participant2_max_transferred >= participant1_max_transferred);
+        require(participant2_max_transferred >= participant1_max_transferred, 'Invalid argument order.');
 
         assert(participant1_max_transferred >= participant1_settlement.transferred);
         assert(participant2_max_transferred >= participant2_settlement.transferred);
@@ -1262,8 +1263,8 @@ contract TokenNetwork is Utils {
             partner_signature
         );
         // Check recovered addresses from signatures
-        require(participant == recovered_participant_address);
-        require(partner == recovered_partner_address);
+        require(participant == recovered_participant_address, 'Invalid participant.');
+        require(partner == recovered_partner_address, 'Invalid partner.');
     }
 
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
@@ -1275,7 +1276,7 @@ contract TokenNetwork is Utils {
 
         // each merkle_tree lock component has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
-        require(length % 96 == 0);
+        require(length % 96 == 0, 'Invalid merkle data length.');
 
         uint256 i;
         uint256 total_unlocked_amount;
