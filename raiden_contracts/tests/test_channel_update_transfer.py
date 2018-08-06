@@ -111,9 +111,10 @@ def test_update_nonexistent_fail(
     (A, B, C) = get_accounts(3)
     channel_identifier = 1
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == 0
     assert state == CHANNEL_STATE_NONEXISTENT
 
@@ -153,9 +154,10 @@ def test_update_notclosed_fail(
         *balance_proof_A,
     )
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number > 0
     assert state == CHANNEL_STATE_OPENED
 

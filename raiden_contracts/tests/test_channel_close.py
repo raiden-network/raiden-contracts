@@ -5,9 +5,9 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     EVENT_CHANNEL_CLOSED,
     CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_SETTLED,
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
+    CHANNEL_STATE_REMOVED,
 )
 from raiden_contracts.utils.events import check_channel_closed
 from .fixtures.config import fake_bytes, fake_hex
@@ -24,6 +24,8 @@ def test_close_nonexistent_channel(
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         non_existent_channel_identifier,
+        A,
+        B,
     ).call()
     assert state == CHANNEL_STATE_NONEXISTENT
     assert settle_block_number == 0
@@ -50,7 +52,7 @@ def test_close_settled_channel(
     channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
     channel_deposit(channel_identifier, A, 5, B)
 
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
+    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == CHANNEL_STATE_OPENED
 
     token_network.functions.closeChannel(
@@ -74,10 +76,11 @@ def test_close_settled_channel(
         fake_bytes(32),
     ).transact({'from': A})
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
-    assert state == CHANNEL_STATE_SETTLED
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    assert state == CHANNEL_STATE_REMOVED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -274,9 +277,10 @@ def test_close_channel_state(
         locksroot,
     )
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == settle_timeout
     assert state == CHANNEL_STATE_OPENED
 
@@ -299,9 +303,10 @@ def test_close_channel_state(
         *balance_proof,
     ).transact({'from': A})
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier,
-    ).call()
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == settle_timeout + get_block(txn_hash)
     assert state == CHANNEL_STATE_CLOSED
 

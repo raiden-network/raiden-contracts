@@ -7,6 +7,7 @@ from raiden_contracts.constants import (
     CHANNEL_STATE_OPENED,
     CHANNEL_STATE_CLOSED,
     CHANNEL_STATE_SETTLED,
+    CHANNEL_STATE_REMOVED,
 )
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
@@ -40,7 +41,10 @@ def create_channel(token_network):
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
         # Test the channel state on chain
-        (channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(channel_identifier).call()
+        (
+            channel_settle_timeout,
+            channel_state,
+        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert channel_settle_timeout == settle_timeout
         assert channel_state == CHANNEL_STATE_OPENED
 
@@ -260,66 +264,61 @@ def reveal_secrets(web3, secret_registry_contract):
     return get
 
 
-@pytest.fixture()
-def common_settle_state_tests(custom_token, token_network):
-    def get(
-            channel_identifier,
-            A,
-            balance_A,
-            B,
-            balance_B,
-            pre_account_balance_A,
-            pre_account_balance_B,
-            pre_balance_contract
-    ):
-        # Make sure the correct amount of tokens has been transferred
-        account_balance_A = custom_token.functions.balanceOf(A).call()
-        account_balance_B = custom_token.functions.balanceOf(B).call()
-        balance_contract = custom_token.functions.balanceOf(token_network.address).call()
-        assert account_balance_A == pre_account_balance_A + balance_A
-        assert account_balance_B == pre_account_balance_B + balance_B
-        assert balance_contract == pre_balance_contract - balance_A - balance_B
+def common_settle_state_tests(
+        custom_token,
+        token_network,
+        channel_identifier,
+        A,
+        balance_A,
+        B,
+        balance_B,
+        pre_account_balance_A,
+        pre_account_balance_B,
+        pre_balance_contract
+):
+    # Make sure the correct amount of tokens has been transferred
+    account_balance_A = custom_token.functions.balanceOf(A).call()
+    account_balance_B = custom_token.functions.balanceOf(B).call()
+    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    assert account_balance_A == pre_account_balance_A + balance_A
+    assert account_balance_B == pre_account_balance_B + balance_B
+    assert balance_contract == pre_balance_contract - balance_A - balance_B
 
-        # Make sure channel data has been removed
-        assert token_network.functions.participants_hash_to_channel_identifier(
-            get_participants_hash(A, B)
-        ).call() == 0
+    # Make sure channel data has been removed
+    assert token_network.functions.participants_hash_to_channel_identifier(
+        get_participants_hash(A, B)
+    ).call() == 0
 
-        (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
-        assert settle_block_number == 0  # settle_block_number
-        assert state == CHANNEL_STATE_SETTLED  # state
+    # Make sure participant data has been removed
+    (
+        A_deposit,
+        A_withdrawn,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    assert A_deposit == 0
+    assert A_withdrawn == 0
+    assert A_is_the_closer == 0
+    assert A_balance_hash == fake_bytes(32)
+    assert A_nonce == 0
 
-        # Make sure participant data has been removed
-        (
-            A_deposit,
-            A_withdrawn,
-            A_is_the_closer,
-            A_balance_hash,
-            A_nonce,
-            _,
-            _,
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
-        assert A_deposit == 0
-        assert A_withdrawn == 0
-        assert A_is_the_closer == 0
-        assert A_balance_hash == fake_bytes(32)
-        assert A_nonce == 0
-
-        (
-            B_deposit,
-            B_withdrawn,
-            B_is_the_closer,
-            B_balance_hash,
-            B_nonce,
-            _,
-            _,
-        ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
-        assert B_deposit == 0
-        assert B_withdrawn == 0
-        assert B_is_the_closer == 0
-        assert B_balance_hash == fake_bytes(32)
-        assert B_nonce == 0
-    return get
+    (
+        B_deposit,
+        B_withdrawn,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_deposit == 0
+    assert B_withdrawn == 0
+    assert B_is_the_closer == 0
+    assert B_balance_hash == fake_bytes(32)
+    assert B_nonce == 0
 
 
 @pytest.fixture()
@@ -333,7 +332,10 @@ def update_state_tests(token_network, get_block):
             settle_timeout,
             txn_hash1,
     ):
-        (settle_block_number, state) = token_network.functions.getChannelInfo(channel_identifier).call()
+        (
+            settle_block_number,
+            state,
+        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
         assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
         assert state == CHANNEL_STATE_CLOSED  # state
@@ -367,7 +369,41 @@ def update_state_tests(token_network, get_block):
 
 
 @pytest.fixture()
-def settle_state_tests(token_network, common_settle_state_tests):
+def cooperative_settle_state_tests(token_network, custom_token):
+    def get(
+            channel_identifier,
+            A,
+            balance_A,
+            B,
+            balance_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+    ):
+        common_settle_state_tests(
+            custom_token,
+            token_network,
+            channel_identifier,
+            A,
+            balance_A,
+            B,
+            balance_B,
+            pre_account_balance_A,
+            pre_account_balance_B,
+            pre_balance_contract
+        )
+
+        (
+            settle_block_number,
+            state,
+        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        assert settle_block_number == 0
+        assert state == CHANNEL_STATE_REMOVED
+    return get
+
+
+@pytest.fixture()
+def settle_state_tests(token_network, custom_token):
     def get(
             channel_identifier,
             A,
@@ -384,6 +420,8 @@ def settle_state_tests(token_network, common_settle_state_tests):
         on_chain_settlement = get_onchain_settlement_amounts(values_A, values_B)
 
         common_settle_state_tests(
+            custom_token,
+            token_network,
             channel_identifier,
             A,
             settlement.participant1_balance,
@@ -394,6 +432,8 @@ def settle_state_tests(token_network, common_settle_state_tests):
             pre_balance_contract
         )
         common_settle_state_tests(
+            custom_token,
+            token_network,
             channel_identifier,
             A,
             on_chain_settlement.participant1_balance,
@@ -417,6 +457,16 @@ def settle_state_tests(token_network, common_settle_state_tests):
         assert locked_amount_B == on_chain_settlement.participant2_locked
         if locked_amount_B > 0:
             assert locksroot_B == values_B.locksroot
+
+        (
+            settle_block_number,
+            state,
+        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        assert settle_block_number == 0
+        if locked_amount_A > 0 or locked_amount_B > 0:
+            assert state == CHANNEL_STATE_SETTLED
+        else:
+            assert state == CHANNEL_STATE_REMOVED
 
     return get
 
@@ -465,7 +515,11 @@ def withdraw_state_tests(custom_token, token_network):
             pre_balance_delegate=None
     ):
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
-        (_, state) = token_network.functions.getChannelInfo(channel_identifier).call()
+        (_, state) = token_network.functions.getChannelInfo(
+            channel_identifier,
+            participant,
+            partner,
+        ).call()
         assert state == CHANNEL_STATE_OPENED
 
         (
