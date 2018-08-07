@@ -1058,6 +1058,8 @@ contract TokenNetwork is Utils {
 
     /// @dev Returns the channel specific data.
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
+    /// @param participant1 Address of one of the channel's participants
+    /// @param participant2 Address of one of the other channel participant
     /// @return Channel settle_block_number and state.
     function getChannelInfo(
         uint256 channel_identifier,
