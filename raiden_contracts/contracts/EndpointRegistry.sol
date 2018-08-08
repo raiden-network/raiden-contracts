@@ -51,7 +51,7 @@ contract EndpointRegistry{
      * @param An eth_address which is a 20 byte Ethereum Address
      * @return A socket which the current Ethereum Address is using.
      */
-    function findEndpointByAddress(address eth_address) public constant returns (string socket)
+    function findEndpointByAddress(address eth_address) public view returns (string socket)
     {
         return address_to_socket[eth_address];
     }
@@ -62,7 +62,7 @@ contract EndpointRegistry{
      * @param string of socket in this format "127.0.0.1:38647"
      * @return An ethereum address
      */
-    function findAddressByEndpoint(string socket) public constant returns (address eth_address)
+    function findAddressByEndpoint(string socket) public view returns (address eth_address)
     {
         return socket_to_address[socket];
     }
