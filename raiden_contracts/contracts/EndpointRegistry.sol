@@ -15,8 +15,6 @@ contract EndpointRegistry{
     mapping (address => string) address_to_socket;
     // Mapping of SocketEndpoints => Ethereum Addresses
     mapping (string => address) socket_to_address;
-    // list of all the Registered Addresses , still not used.
-    address[] eth_addresses;
 
     modifier noEmptyString(string str)
     {
