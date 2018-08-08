@@ -173,7 +173,8 @@ contract TokenNetwork is Utils {
     }
 
     modifier settleTimeoutValid(uint256 timeout) {
-        require(timeout >= settlement_timeout_min && timeout <= settlement_timeout_max);
+        require(timeout >= settlement_timeout_min);
+        require(timeout <= settlement_timeout_max);
         _;
     }
 
@@ -249,7 +250,12 @@ contract TokenNetwork is Utils {
         channel.settle_block_number = settle_timeout;
         channel.state = ChannelState.Opened;
 
-        emit ChannelOpened(channel_identifier, participant1, participant2, settle_timeout);
+        emit ChannelOpened(
+            channel_identifier,
+            participant1,
+            participant2,
+            settle_timeout
+        );
 
         return channel_identifier;
     }
@@ -292,7 +298,11 @@ contract TokenNetwork is Utils {
         // Calculate the entire channel deposit, to avoid overflow
         channel_deposit = participant_state.deposit + partner_state.deposit;
 
-        emit ChannelNewDeposit(channel_identifier, participant, participant_state.deposit);
+        emit ChannelNewDeposit(
+            channel_identifier,
+            participant,
+            participant_state.deposit
+        );
 
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
@@ -376,7 +386,11 @@ contract TokenNetwork is Utils {
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
 
-        emit ChannelWithdraw(channel_identifier, participant, participant_state.withdrawn_amount);
+        emit ChannelWithdraw(
+            channel_identifier,
+            participant,
+            participant_state.withdrawn_amount
+        );
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only
@@ -428,7 +442,12 @@ contract TokenNetwork is Utils {
                 signature
             );
 
-            updateBalanceProofData(channel, recovered_partner_address, nonce, balance_hash);
+            updateBalanceProofData(
+                channel,
+                recovered_partner_address,
+                nonce,
+                balance_hash
+            );
 
             // Signature must be from the channel partner
             require(partner == recovered_partner_address);
@@ -502,7 +521,11 @@ contract TokenNetwork is Utils {
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
 
-        emit NonClosingBalanceProofUpdated(channel_identifier, closing_participant, nonce);
+        emit NonClosingBalanceProofUpdated(
+            channel_identifier,
+            closing_participant,
+            nonce
+        );
 
         require(channel.state == ChannelState.Closed);
 
@@ -688,7 +711,9 @@ contract TokenNetwork is Utils {
         // Calculate the locksroot for the pending transfers and the amount of
         // tokens corresponding to the locked transfers with secrets revealed
         // on chain.
-        (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
+        (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(
+            merkle_tree_leaves
+        );
 
         // The partner must have a non-empty locksroot on-chain that must be
         // the same as the computed locksroot.
