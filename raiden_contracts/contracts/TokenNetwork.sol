@@ -5,11 +5,14 @@ import "raiden/Utils.sol";
 import "raiden/lib/ECVerify.sol";
 import "raiden/SecretRegistry.sol";
 
+/// @title TokenNetwork
+/// @notice Stores and manages all the Raiden Network channels that use the token specified
+/// in this TokenNetwork contract.
 contract TokenNetwork is Utils {
 
     string constant public contract_version = "0.3._";
 
-    // Instance of the token used as digital currency by the channels
+    // Instance of the token used by the channels
     Token public token;
 
     // Instance of SecretRegistry used for storing secrets revealed in a mediating transfer.
@@ -23,8 +26,11 @@ contract TokenNetwork is Utils {
 
     uint256 constant public MAX_SAFE_UINT256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
+    // Bug bounty release deposit limit
     uint256 public deposit_limit;
 
+    // Global, monotonically increasing counter that keeps track of all the
+    // opened channels in this contract
     uint256 public channel_counter;
 
     // channel_identifier => Channel
@@ -44,12 +50,14 @@ contract TokenNetwork is Utils {
     mapping(bytes32 => UnlockData) unlock_identifier_to_unlock_data;
 
     struct Participant {
-        // Total amount of token transferred to this smart contract through the
-        // `setTotalDeposit` function, note that direct token transfer cannot be
+        // Total amount of tokens transferred to this smart contract through the
+        // `setTotalDeposit` function, for a specific channel, in the participant's benefit.
+        // This is a strictly monotonic value. Note that direct token transfer cannot be
         // tracked and will be burned.
         uint256 deposit;
 
-        // Total amount of tokens withdrawn by the participant. This is a strictly monotonic value
+        // Total amount of tokens withdrawn by the participant during the lifecycle of this channel.
+        // This is a strictly monotonic value.
         uint256 withdrawn_amount;
 
         // This is a value set to true after the channel has been closed, only if this is the
@@ -192,10 +200,6 @@ contract TokenNetwork is Utils {
         deposit_limit = 100 * (10 ** uint256(decimals));
     }
 
-    /*
-     *  Public functions
-     */
-
     /// @notice Opens a new channel between `participant1` and `participant2`.
     /// Can be called by anyone.
     /// @param participant1 Ethereum address of a channel participant.
@@ -210,15 +214,14 @@ contract TokenNetwork is Utils {
         bytes32 pair_hash;
         uint256 channel_identifier;
 
+        // First increment the counter; there will never be a channel with channel_identifier == 0
         channel_counter += 1;
         channel_identifier = channel_counter;
 
-        // Set the channel counter
         pair_hash = getParticipantsHash(participant1, participant2);
 
         // There must only be one channel opened between two participants at any moment in time.
         require(participants_hash_to_channel_identifier[pair_hash] == 0);
-
         participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
 
         Channel storage channel = channels[channel_identifier];
@@ -241,7 +244,7 @@ contract TokenNetwork is Utils {
     /// @param participant Channel participant whose deposit is being set.
     /// @param total_deposit The total amount of tokens that the participant will have
     /// as a deposit.
-    /// @param partner Channel partner address, needed to compute the channel identifier.
+    /// @param partner Channel partner address, needed to compute the total channel deposit.
     function setTotalDeposit(
         uint256 channel_identifier,
         address participant,
@@ -288,7 +291,7 @@ contract TokenNetwork is Utils {
     /// @param participant Channel participant, who will receive the withdrawn amount.
     /// @param total_withdraw Total amount of tokens that are marked as withdrawn from the channel
     /// during the channel lifecycle.
-    /// @param partner Channel partner address, needed to compute the channel identifier.
+    /// @param partner Channel partner address, needed to compute the total channel deposit.
     /// @param participant_signature Participant's signature on the withdraw data.
     /// @param partner_signature Partner's signature on the withdraw data.
     function setTotalWithdraw(
@@ -355,7 +358,6 @@ contract TokenNetwork is Utils {
     /// may close the channel, providing a balance proof signed by its partner. Callable only once.
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
     /// @param partner Channel partner of the `msg.sender`, who provided the signature.
-    /// We need the partner for computing the channel identifier.
     /// @param balance_hash Hash of (transferred_amount, locked_amount, locksroot).
     /// @param additional_hash Computed from the message. Used for message authentication.
     /// @param nonce Strictly monotonic value used to order transfers.
@@ -477,12 +479,13 @@ contract TokenNetwork is Utils {
         require(non_closing_participant == recovered_non_closing_participant);
     }
 
-    /// @notice Settles the balance between the two parties.
+    /// @notice Settles the balance between the two parties. Note that arguments order counts:
+    /// `participant1_transferred_amount + participant1_locked_amount` <=
+    /// `participant2_transferred_amount + participant2_locked_amount`
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
     /// @param participant1 Channel participant.
     /// @param participant1_transferred_amount The latest known amount of tokens transferred
     /// from `participant1` to `participant2`.
-    /// `participant1_transferred_amount + participant1_locked_amount` MUST be <= `participant2_transferred_amount + participant2_locked_amount`
     /// @param participant1_locked_amount Amount of tokens owed by `participant1` to
     /// `participant2`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
@@ -491,7 +494,6 @@ contract TokenNetwork is Utils {
     /// @param participant2 Other channel participant.
     /// @param participant2_transferred_amount The latest known amount of tokens transferred
     /// from `participant2` to `participant1`.
-    /// `participant1_transferred_amount + participant1_locked_amount` MUST be <= `participant2_transferred_amount + participant2_locked_amount`
     /// @param participant2_locked_amount Amount of tokens owed by `participant2` to
     /// `participant1`, contained in locked transfers that will be retrieved by calling `unlock`
     /// after the channel is settled.
@@ -600,6 +602,8 @@ contract TokenNetwork is Utils {
         );
     }
 
+    /// @dev Function that calculates the amount of tokens that the participants will
+    /// receive when calling settleChannel.
     function getSettleTransferAmounts(
         Participant storage participant1_state,
         uint256 participant1_transferred_amount,
@@ -612,11 +616,6 @@ contract TokenNetwork is Utils {
         private
         returns (uint256, uint256, uint256, uint256)
     {
-        // Direct token transfers done through the token `transfer` function
-        // cannot be accounted for, these superfluous tokens will be burned,
-        // this is because there is no way to tell which participant (if any)
-        // had ownership over the token.
-
         // Cases that require attention:
         // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
         // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
@@ -783,9 +782,11 @@ contract TokenNetwork is Utils {
     /// lifecycle has ended and no more operations can be done on it.
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
     /// @param participant1_address Address of channel participant.
-    /// @param participant1_balance Amount of tokens that `participant1_address` must receive when the channel is settled.
+    /// @param participant1_balance Amount of tokens that `participant1_address` must receive when
+    /// the channel is settled and removed.
     /// @param participant2_address Address of the other channel participant.
-    /// @param participant2_balance Amount of tokens that `participant2_address` must receive when the channel is settled.
+    /// @param participant2_balance Amount of tokens that `participant2_address` must receive
+    /// when the channel is settled and removed.
     /// @param participant1_signature Signature of `participant1_address` on the cooperative settle message.
     /// @param participant2_signature Signature of `participant2_address` on the cooperative settle message.
     function cooperativeSettle(
@@ -867,9 +868,9 @@ contract TokenNetwork is Utils {
 
     }
 
-    /// @dev Returns the unique identifier for the channel
+    /// @notice Returns the unique identifier for the channel given by the contract.
     /// @param participant Address of a channel participant.
-    /// @param partner Address of the channel partner.
+    /// @param partner Address of the other channel participant.
     /// @return Unique identifier for the channel. It can be 0 if channel does not exist.
     function getChannelIdentifier(address participant, address partner)
         view
@@ -878,14 +879,15 @@ contract TokenNetwork is Utils {
     {
         require(participant != 0x0);
         require(partner != 0x0);
-
-        // Participant addresses must be different
         require(participant != partner);
 
         bytes32 pair_hash = getParticipantsHash(participant, partner);
         return participants_hash_to_channel_identifier[pair_hash];
     }
 
+    /// @dev Get the hash of the participant addresses, ordered lexicographically.
+    /// @param participant Address of a channel participant.
+    /// @param partner Address of the other channel participant.
     function getParticipantsHash(address participant, address partner)
         pure
         public
@@ -893,12 +895,8 @@ contract TokenNetwork is Utils {
     {
         require(participant != 0x0);
         require(partner != 0x0);
-
-        // Participant addresses must be different
         require(participant != partner);
 
-        // Lexicographic order of the channel addresses
-        // This limits the number of channels that can be opened between two nodes to 1.
         if (participant < partner) {
             return keccak256(abi.encodePacked(participant, partner));
         } else {
@@ -1058,8 +1056,8 @@ contract TokenNetwork is Utils {
 
     /// @dev Returns the channel specific data.
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
-    /// @param participant1 Address of one of the channel's participants
-    /// @param participant2 Address of one of the other channel participant
+    /// @param participant1 Address of a channel participant.
+    /// @param participant2 Address of the other channel participant.
     /// @return Channel settle_block_number and state.
     function getChannelInfo(
         uint256 channel_identifier,
@@ -1108,7 +1106,7 @@ contract TokenNetwork is Utils {
     /// @dev Returns the channel specific data.
     /// @param channel_identifier Identifier for the channel on which this operation takes place.
     /// @param participant Address of the channel participant whose data will be returned.
-    /// @param partner Address of the channel partner
+    /// @param partner Address of the channel partner.
     /// @return Participant's deposit, withdrawn_amount, whether the participant has called
     /// `closeChannel` or not, balance_hash, nonce, locksroot, locked_amount.
     function getChannelParticipantInfo(
@@ -1138,10 +1136,6 @@ contract TokenNetwork is Utils {
             unlock_data.locked_amount
         );
     }
-
-    /*
-     * Internal Functions
-     */
 
     function recoverAddressFromBalanceProof(
         uint256 channel_identifier,
@@ -1268,6 +1262,8 @@ contract TokenNetwork is Utils {
         require(partner == recovered_partner_address);
     }
 
+    /// @dev Calculates the merkle root for the pending transfers data and calculates the amount
+    /// of tokens that can be unlocked because the secret was registered on-chain.
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
         view
         internal
@@ -1367,7 +1363,8 @@ contract TokenNetwork is Utils {
     /// @dev Special subtraction function that does not fail when underflowing.
     /// @param a Minuend
     /// @param b Subtrahend
-    /// @return Minimum between the result of the subtraction and 0, the maximum subtrahend for which no underflow occurs.
+    /// @return Minimum between the result of the subtraction and 0, the maximum subtrahend
+    /// for which no underflow occurs.
     function failsafe_subtract(uint256 a, uint256 b)
         pure
         internal

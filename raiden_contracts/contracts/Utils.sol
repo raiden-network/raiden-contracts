@@ -1,5 +1,7 @@
 pragma solidity ^0.4.23;
 
+/// @title Utils
+/// @notice Utils contract for various helpers used by the Raiden Network smart contracts.
 contract Utils {
     string constant public contract_version = "0.3._";
 

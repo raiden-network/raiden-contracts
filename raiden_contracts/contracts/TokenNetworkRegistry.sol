@@ -4,11 +4,11 @@ import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
 
-contract TokenNetworkRegistry is Utils {
 
-    /*
-     *  Data structures
-     */
+/// @title TokenNetworkRegistry
+/// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
+/// Raiden Network protocol.
+contract TokenNetworkRegistry is Utils {
 
     string constant public contract_version = "0.3._";
     address public secret_registry_address;
@@ -19,15 +19,7 @@ contract TokenNetworkRegistry is Utils {
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
 
-    /*
-     *  Events
-     */
-
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
-
-    /*
-     *  Constructor
-     */
 
     constructor(
         address _secret_registry_address,
@@ -49,10 +41,9 @@ contract TokenNetworkRegistry is Utils {
         settlement_timeout_max = _settlement_timeout_max;
     }
 
-    /*
-     *  External Functions
-     */
-
+    /// @notice Deploy a new TokenNetwork contract for the Token deployed at `_token_address`.
+    /// @param _token_address Ethereum address of an already deployed token, to be used
+    /// in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
         external
         returns (address token_network_address)

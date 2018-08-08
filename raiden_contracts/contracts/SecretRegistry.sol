@@ -1,19 +1,13 @@
 pragma solidity ^0.4.23;
 
+/// @title SecretRegistry
+/// @notice SecretRegistry contract for registering secrets from Raiden Network clients.
 contract SecretRegistry {
-
-    /*
-     *  Data structures
-     */
 
     string constant public contract_version = "0.3._";
 
-    // secrethash => block number at which the secret was revealed
+    // keccak256(secret) => block number at which the secret was revealed
     mapping(bytes32 => uint256) public secrethash_to_block;
-
-    /*
-     *  Events
-     */
 
     event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 
@@ -44,6 +38,9 @@ contract SecretRegistry {
         return completeSuccess;
     }
 
+    /// @notice Get the stored block number at which the secret was revealed.
+    /// @param secrethash The hash of the registered secret `keccak256(secret)`.
+    /// @return The block number at which the secret was revealed.
     function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256) {
         return secrethash_to_block[secrethash];
     }
