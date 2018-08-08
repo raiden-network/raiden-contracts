@@ -41,9 +41,10 @@ contract TokenNetworkRegistry is Utils {
         settlement_timeout_max = _settlement_timeout_max;
     }
 
-    /// @notice Deploy a new TokenNetwork contract for the Token deployed at `_token_address`.
-    /// @param _token_address Ethereum address of an already deployed token, to be used
-    /// in the new TokenNetwork contract.
+    /// @notice Deploy a new TokenNetwork contract for the Token deployed at
+    /// `_token_address`.
+    /// @param _token_address Ethereum address of an already deployed token, to
+    /// be used in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
         external
         returns (address token_network_address)
@@ -51,7 +52,6 @@ contract TokenNetworkRegistry is Utils {
         require(token_to_token_networks[_token_address] == 0x0);
 
         // Token contract checks are in the corresponding TokenNetwork contract
-
         token_network_address = new TokenNetwork(
             _token_address,
             secret_registry_address,
