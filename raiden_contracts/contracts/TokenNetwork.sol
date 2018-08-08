@@ -602,96 +602,6 @@ contract TokenNetwork is Utils {
         );
     }
 
-    /// @dev Function that calculates the amount of tokens that the participants will
-    /// receive when calling settleChannel.
-    function getSettleTransferAmounts(
-        Participant storage participant1_state,
-        uint256 participant1_transferred_amount,
-        uint256 participant1_locked_amount,
-        Participant storage participant2_state,
-        uint256 participant2_transferred_amount,
-        uint256 participant2_locked_amount
-    )
-        view
-        private
-        returns (uint256, uint256, uint256, uint256)
-    {
-        // Cases that require attention:
-        // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
-        // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
-        // We need to punish participant1.
-        // case2. If participant2 does NOT provide a balance proof or provides an old balance proof.
-        // participant1_transferred_amount can be [0, real_participant1_transferred_amount)
-        // We need to punish participant2.
-        // case3. If neither participants provide a balance proof, we just subtract their
-        // withdrawn amounts from their deposits.
-
-        uint256 participant1_amount;
-        uint256 participant2_amount;
-        uint256 total_available_deposit;
-
-        SettlementData memory participant1_settlement;
-        SettlementData memory participant2_settlement;
-
-        participant1_settlement.deposit = participant1_state.deposit;
-        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
-        participant1_settlement.transferred = participant1_transferred_amount;
-        participant1_settlement.locked = participant1_locked_amount;
-
-        participant2_settlement.deposit = participant2_state.deposit;
-        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
-        participant2_settlement.transferred = participant2_transferred_amount;
-        participant2_settlement.locked = participant2_locked_amount;
-
-        total_available_deposit = getChannelAvailableDeposit(
-            participant1_state,
-            participant2_state
-        );
-
-        // This amount is the maximum possible amount that participant1 can receive
-        // and also contains the entire locked amount of the pending transfers
-        // from participant2 to participant1.
-        participant1_amount = getMaxPossibleReceivableAmount(
-            participant1_settlement,
-            participant2_settlement
-        );
-
-        // We need to bound this to the available channel deposit
-        participant1_amount = min(participant1_amount, total_available_deposit);
-
-        // Now it is safe to subtract without underflow
-        participant2_amount = total_available_deposit - participant1_amount;
-
-        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
-        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
-            participant1_amount,
-            participant2_locked_amount
-        );
-
-        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
-        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
-            participant2_amount,
-            participant1_locked_amount
-        );
-
-        // This should never happen:
-        assert(participant1_amount <= total_available_deposit);
-        assert(participant2_amount <= total_available_deposit);
-        assert(total_available_deposit == (
-            participant1_amount +
-            participant2_amount +
-            participant1_locked_amount +
-            participant2_locked_amount
-        ));
-
-        return (
-            participant1_amount,
-            participant2_amount,
-            participant1_locked_amount,
-            participant2_locked_amount
-        );
-    }
-
     /// @notice Unlocks all pending off-chain transfers from `partner` to `participant` and sends
     /// the locked tokens corresponding to locks with secrets registered on-chain to the
     /// `participant`. Locked tokens corresponding to locks where the secret was not revelead
@@ -885,6 +795,89 @@ contract TokenNetwork is Utils {
         return participants_hash_to_channel_identifier[pair_hash];
     }
 
+    /// @dev Returns the channel specific data.
+    /// @param channel_identifier Identifier for the channel on which this operation takes place.
+    /// @param participant1 Address of a channel participant.
+    /// @param participant2 Address of the other channel participant.
+    /// @return Channel settle_block_number and state.
+    function getChannelInfo(
+        uint256 channel_identifier,
+        address participant1,
+        address participant2
+    )
+        view
+        external
+        returns (uint256, ChannelState)
+    {
+        bytes32 unlock_key1;
+        bytes32 unlock_key2;
+
+        Channel storage channel = channels[channel_identifier];
+        ChannelState state = channel.state;  // This must **not** update the storage
+
+        if (state == ChannelState.NonExistent &&
+            channel_identifier > 0 &&
+            channel_identifier <= channel_counter
+        ) {
+            // The channel has been settled, channel data is removed
+            // Therefore, the channel state in storage is actually `0`, or `NonExistent`
+            // However, for this view function, we return `Settled`, in order to provide
+            // a consistent external API
+            state = ChannelState.Settled;
+
+            // We might still have data stored for future unlock operations
+            // Only if we do not, we can consider the channel as `Removed`
+            unlock_key1 = getUnlockIdentifier(channel_identifier, participant1, participant2);
+            UnlockData storage unlock_data1 = unlock_identifier_to_unlock_data[unlock_key1];
+
+            unlock_key2 = getUnlockIdentifier(channel_identifier, participant2, participant1);
+            UnlockData storage unlock_data2 = unlock_identifier_to_unlock_data[unlock_key2];
+
+            if (unlock_data1.locked_amount == 0 && unlock_data2.locked_amount == 0) {
+                state = ChannelState.Removed;
+            }
+        }
+
+        return (
+            channel.settle_block_number,
+            state
+        );
+    }
+
+    /// @dev Returns the channel specific data.
+    /// @param channel_identifier Identifier for the channel on which this operation takes place.
+    /// @param participant Address of the channel participant whose data will be returned.
+    /// @param partner Address of the channel partner.
+    /// @return Participant's deposit, withdrawn_amount, whether the participant has called
+    /// `closeChannel` or not, balance_hash, nonce, locksroot, locked_amount.
+    function getChannelParticipantInfo(
+            uint256 channel_identifier,
+            address participant,
+            address partner
+    )
+        view
+        external
+        returns (uint256, uint256, bool, bytes32, uint256, bytes32, uint256)
+    {
+        bytes32 unlock_key;
+
+        Participant storage participant_state = channels[channel_identifier].participants[
+            participant
+        ];
+        unlock_key = getUnlockIdentifier(channel_identifier, participant, partner);
+        UnlockData storage unlock_data = unlock_identifier_to_unlock_data[unlock_key];
+
+        return (
+            participant_state.deposit,
+            participant_state.withdrawn_amount,
+            participant_state.is_the_closer,
+            participant_state.balance_hash,
+            participant_state.nonce,
+            unlock_data.locksroot,
+            unlock_data.locked_amount
+        );
+    }
+
     /// @dev Get the hash of the participant addresses, ordered lexicographically.
     /// @param participant Address of a channel participant.
     /// @param partner Address of the other channel participant.
@@ -971,6 +964,96 @@ contract TokenNetwork is Utils {
         );
     }
 
+    /// @dev Function that calculates the amount of tokens that the participants will
+    /// receive when calling settleChannel.
+    function getSettleTransferAmounts(
+        Participant storage participant1_state,
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        Participant storage participant2_state,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount
+    )
+        view
+        private
+        returns (uint256, uint256, uint256, uint256)
+    {
+        // Cases that require attention:
+        // case1. If participant1 does NOT provide a balance proof or provides an old balance proof.
+        // participant2_transferred_amount can be [0, real_participant2_transferred_amount)
+        // We need to punish participant1.
+        // case2. If participant2 does NOT provide a balance proof or provides an old balance proof.
+        // participant1_transferred_amount can be [0, real_participant1_transferred_amount)
+        // We need to punish participant2.
+        // case3. If neither participants provide a balance proof, we just subtract their
+        // withdrawn amounts from their deposits.
+
+        uint256 participant1_amount;
+        uint256 participant2_amount;
+        uint256 total_available_deposit;
+
+        SettlementData memory participant1_settlement;
+        SettlementData memory participant2_settlement;
+
+        participant1_settlement.deposit = participant1_state.deposit;
+        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
+        participant1_settlement.transferred = participant1_transferred_amount;
+        participant1_settlement.locked = participant1_locked_amount;
+
+        participant2_settlement.deposit = participant2_state.deposit;
+        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
+        participant2_settlement.transferred = participant2_transferred_amount;
+        participant2_settlement.locked = participant2_locked_amount;
+
+        total_available_deposit = getChannelAvailableDeposit(
+            participant1_state,
+            participant2_state
+        );
+
+        // This amount is the maximum possible amount that participant1 can receive
+        // and also contains the entire locked amount of the pending transfers
+        // from participant2 to participant1.
+        participant1_amount = getMaxPossibleReceivableAmount(
+            participant1_settlement,
+            participant2_settlement
+        );
+
+        // We need to bound this to the available channel deposit
+        participant1_amount = min(participant1_amount, total_available_deposit);
+
+        // Now it is safe to subtract without underflow
+        participant2_amount = total_available_deposit - participant1_amount;
+
+        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
+        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
+            participant1_amount,
+            participant2_locked_amount
+        );
+
+        // We take out the pending transfers locked amount, bounding it by the maximum receivable amount.
+        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
+            participant2_amount,
+            participant1_locked_amount
+        );
+
+        // This should never happen:
+        assert(participant1_amount <= total_available_deposit);
+        assert(participant2_amount <= total_available_deposit);
+        assert(total_available_deposit == (
+            participant1_amount +
+            participant2_amount +
+            participant1_locked_amount +
+            participant2_locked_amount
+        ));
+
+        return (
+            participant1_amount,
+            participant2_amount,
+            participant1_locked_amount,
+            participant2_locked_amount
+        );
+    }
+
     function getMaxPossibleReceivableAmount(
         SettlementData participant1_settlement,
         SettlementData participant2_settlement
@@ -1052,89 +1135,6 @@ contract TokenNetwork is Utils {
             locked_amount,
             locksroot
         ));
-    }
-
-    /// @dev Returns the channel specific data.
-    /// @param channel_identifier Identifier for the channel on which this operation takes place.
-    /// @param participant1 Address of a channel participant.
-    /// @param participant2 Address of the other channel participant.
-    /// @return Channel settle_block_number and state.
-    function getChannelInfo(
-        uint256 channel_identifier,
-        address participant1,
-        address participant2
-    )
-        view
-        external
-        returns (uint256, ChannelState)
-    {
-        bytes32 unlock_key1;
-        bytes32 unlock_key2;
-
-        Channel storage channel = channels[channel_identifier];
-        ChannelState state = channel.state;  // This must **not** update the storage
-
-        if (state == ChannelState.NonExistent &&
-            channel_identifier > 0 &&
-            channel_identifier <= channel_counter
-        ) {
-            // The channel has been settled, channel data is removed
-            // Therefore, the channel state in storage is actually `0`, or `NonExistent`
-            // However, for this view function, we return `Settled`, in order to provide
-            // a consistent external API
-            state = ChannelState.Settled;
-
-            // We might still have data stored for future unlock operations
-            // Only if we do not, we can consider the channel as `Removed`
-            unlock_key1 = getUnlockIdentifier(channel_identifier, participant1, participant2);
-            UnlockData storage unlock_data1 = unlock_identifier_to_unlock_data[unlock_key1];
-
-            unlock_key2 = getUnlockIdentifier(channel_identifier, participant2, participant1);
-            UnlockData storage unlock_data2 = unlock_identifier_to_unlock_data[unlock_key2];
-
-            if (unlock_data1.locked_amount == 0 && unlock_data2.locked_amount == 0) {
-                state = ChannelState.Removed;
-            }
-        }
-
-        return (
-            channel.settle_block_number,
-            state
-        );
-    }
-
-    /// @dev Returns the channel specific data.
-    /// @param channel_identifier Identifier for the channel on which this operation takes place.
-    /// @param participant Address of the channel participant whose data will be returned.
-    /// @param partner Address of the channel partner.
-    /// @return Participant's deposit, withdrawn_amount, whether the participant has called
-    /// `closeChannel` or not, balance_hash, nonce, locksroot, locked_amount.
-    function getChannelParticipantInfo(
-            uint256 channel_identifier,
-            address participant,
-            address partner
-    )
-        view
-        external
-        returns (uint256, uint256, bool, bytes32, uint256, bytes32, uint256)
-    {
-        bytes32 unlock_key;
-
-        Participant storage participant_state = channels[channel_identifier].participants[
-            participant
-        ];
-        unlock_key = getUnlockIdentifier(channel_identifier, participant, partner);
-        UnlockData storage unlock_data = unlock_identifier_to_unlock_data[unlock_key];
-
-        return (
-            participant_state.deposit,
-            participant_state.withdrawn_amount,
-            participant_state.is_the_closer,
-            participant_state.balance_hash,
-            participant_state.nonce,
-            unlock_data.locksroot,
-            unlock_data.locked_amount
-        );
     }
 
     function recoverAddressFromBalanceProof(
