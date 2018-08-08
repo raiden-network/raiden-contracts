@@ -571,14 +571,14 @@ contract TokenNetwork is Utils {
         delete participants_hash_to_channel_identifier[pair_hash];
 
         // Store balance data needed for `unlock`
-        updateUnlockData(
+        storeUnlockData(
             channel_identifier,
             participant1,
             participant2,
             participant1_locked_amount,
             participant1_locksroot
         );
-        updateUnlockData(
+        storeUnlockData(
             channel_identifier,
             participant2,
             participant1,
@@ -935,7 +935,7 @@ contract TokenNetwork is Utils {
         participant_state.balance_hash = balance_hash;
     }
 
-    function updateUnlockData(
+    function storeUnlockData(
         uint256 channel_identifier,
         address participant,
         address partner,

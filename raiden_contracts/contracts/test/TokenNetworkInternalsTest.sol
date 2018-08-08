@@ -48,7 +48,7 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     )
         public
     {
-       return updateUnlockData(
+       return storeUnlockData(
             channel_identifier,
             participant,
             partner,
