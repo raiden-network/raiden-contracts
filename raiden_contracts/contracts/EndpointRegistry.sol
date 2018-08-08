@@ -2,7 +2,8 @@ pragma solidity ^0.4.23;
 
 /// @title Endpoint Registry
 /// @notice This contract is a registry which maps an Ethereum address to its
-/// endpoint i.e. sockets. The Ethereum address registers its address in this registry.
+/// endpoint i.e. sockets. The Ethereum address registers its address in this
+/// registry.
 contract EndpointRegistry {
     string constant public contract_version = "0.3._";
 
@@ -27,7 +28,8 @@ contract EndpointRegistry {
     {
         string storage old_socket = address_to_socket[msg.sender];
 
-        // Compare if the new socket matches the old one, if it does just return
+        // Compare if the new socket matches the old one, if it does just
+        // return
         if (equals(old_socket, socket)) {
             return;
         }
