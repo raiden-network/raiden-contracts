@@ -21,6 +21,15 @@ contract TokenNetworkInternalsTest is TokenNetwork {
     {
 
     }
+    struct SettlementValues {
+        uint256 participant1_transferred_amount;
+        uint256 participant2_transferred_amount;
+        uint256 participant1_locked_amount;
+        uint256 participant2_locked_amount;
+    }
+
+    mapping (bytes32 => SettlementValues) public channel_identifier_to_settle_values;
+
 
     function updateBalanceProofDataPublic(
         uint256 channel_identifier,
@@ -277,5 +286,76 @@ contract TokenNetworkInternalsTest is TokenNetwork {
 
     function get_max_safe_uint256() pure public returns (uint256) {
         return uint256(0 - 1);
+    }
+
+    // Wrapper for the internal getSettleTransferAmounts.
+    function getSettleTransferAmountsPublic(
+        address participant1,
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        address participant2,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount
+    )
+        public
+        returns (uint256, uint256, uint256, uint256)
+    {
+        bytes32 channel_identifier = getChannelIdentifier(participant1, participant2);
+
+        writeTransferAmounts(
+            participant1,
+            participant1_transferred_amount,
+            participant1_locked_amount,
+            participant2,
+            participant2_transferred_amount,
+            participant2_locked_amount
+        );
+
+        SettlementValues storage settlement_values =
+        channel_identifier_to_settle_values[channel_identifier];
+        participant1_transferred_amount = settlement_values.participant1_transferred_amount;
+        participant2_transferred_amount = settlement_values.participant2_transferred_amount;
+        participant1_locked_amount = settlement_values.participant1_locked_amount;
+        participant2_locked_amount = settlement_values.participant2_locked_amount;
+        return(
+            participant1_transferred_amount,
+            participant2_transferred_amount,
+            participant1_locked_amount,
+            participant2_locked_amount
+        );
+    }
+
+    // writeTransferAmounts helpers due to sol stack depth limit.
+    function writeTransferAmounts(
+        address participant1,
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        address participant2,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount
+    )
+        internal
+    {
+        bytes32 channel_identifier;
+
+        channel_identifier = getChannelIdentifier(participant1, participant2);
+        Channel storage channel = channels[channel_identifier];
+        SettlementValues storage settlement_values =
+        channel_identifier_to_settle_values[channel_identifier];
+        Participant storage participant1_state = channel.participants[participant1];
+        Participant storage participant2_state = channel.participants[participant2];
+        (
+            settlement_values.participant1_transferred_amount,
+            settlement_values.participant2_transferred_amount,
+            settlement_values.participant1_locked_amount,
+            settlement_values.participant2_locked_amount
+        ) = getSettleTransferAmounts(
+            participant1_state,
+            participant1_transferred_amount,
+            participant1_locked_amount,
+            participant2_state,
+            participant2_transferred_amount,
+            participant2_locked_amount
+        );
     }
 }
