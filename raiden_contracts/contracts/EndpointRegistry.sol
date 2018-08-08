@@ -1,16 +1,16 @@
 pragma solidity ^0.4.23;
 
 /// @title Endpoint Registry
-/// @notice This contract is a registry which maps the Ethereum Address to their
-/// endpoint i.e sockets. The Ethereum address registers his address in this registry.
+/// @notice This contract is a registry which maps an Ethereum address to its
+/// endpoint i.e. sockets. The Ethereum address registers its address in this registry.
 contract EndpointRegistry{
     string constant public contract_version = "0.3._";
 
     event AddressRegistered(address indexed eth_address, string socket);
 
-    // Mapping of Ethereum Addresses => SocketEndpoints
+    // Mapping of Ethereum addresses => SocketEndpoints
     mapping (address => string) address_to_socket;
-    // Mapping of SocketEndpoints => Ethereum Addresses
+    // Mapping of SocketEndpoints => Ethereum addresses
     mapping (string => address) socket_to_address;
 
     modifier noEmptyString(string str) {
@@ -18,9 +18,9 @@ contract EndpointRegistry{
         _;
     }
 
-    /// @notice Registers the Ethereum Address to the Endpoint socket.
-    /// @dev Registers the Ethereum Address to the Endpoint socket.
-    /// @param socket String in this format "127.0.0.1:38647".
+    /// @notice Registers the Ethereum address to the Endpoint socket.
+    /// @dev Registers the Ethereum address to the Endpoint socket.
+    /// @param socket String in the format "127.0.0.1:38647".
     function registerEndpoint(string socket)
         public
         noEmptyString(socket)
@@ -52,7 +52,7 @@ contract EndpointRegistry{
 
     /// @notice Finds an Ethereum address if given a registered socket address.
     /// @dev Finds an Ethereum address if given a registered socket address.
-    /// @param socket A string in this format "127.0.0.1:38647".
+    /// @param socket A string in the format "127.0.0.1:38647".
     /// @return eth_address An Ethereum address.
     function findAddressByEndpoint(string socket) public view returns (address eth_address)
     {
