@@ -19,10 +19,10 @@ def check_token_network_created(token_address, token_network_address):
     return get
 
 
-def check_address_registered(eth_address, socket):
+def check_address_registered(eth_address, endpoint):
     def get(event):
         assert event['args']['eth_address'] == eth_address
-        assert event['args']['socket'] == socket
+        assert event['args']['endpoint'] == endpoint
     return get
 
 
