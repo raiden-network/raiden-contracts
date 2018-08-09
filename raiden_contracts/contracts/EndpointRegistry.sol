@@ -2,8 +2,8 @@ pragma solidity ^0.4.23;
 
 /// @title Endpoint Registry
 /// @notice This contract is a registry which maps an Ethereum address to its
-/// endpoint i.e. sockets. The Ethereum address registers its address in this
-/// registry.
+/// endpoint i.e. sockets. The Raiden node registers its ethereum address in
+/// this registry.
 contract EndpointRegistry {
     string constant public contract_version = "0.3._";
 
@@ -19,8 +19,7 @@ contract EndpointRegistry {
         _;
     }
 
-    /// @notice Registers the Ethereum address to the Endpoint socket.
-    /// @dev Registers the Ethereum address to the Endpoint socket.
+    /// @notice Registers the Ethereum address to the  Endpoint socket.
     /// @param socket String in the format "127.0.0.1:38647".
     function registerEndpoint(string socket)
         public
@@ -44,24 +43,29 @@ contract EndpointRegistry {
     }
 
     /// @notice Finds the socket if given a registered Ethereum address.
-    /// @dev Finds the socket if given a registered Ethereum address.
     /// @param eth_address A 20 byte Ethereum address.
     /// @return socket which the current Ethereum address is using.
-    function findEndpointByAddress(address eth_address) public view returns (string socket)
+    function findEndpointByAddress(address eth_address)
+        public
+        view
+        returns (string socket)
     {
         return address_to_socket[eth_address];
     }
 
     /// @notice Finds an Ethereum address if given a registered socket address.
-    /// @dev Finds an Ethereum address if given a registered socket address.
     /// @param socket A string in the format "127.0.0.1:38647".
     /// @return eth_address An Ethereum address.
-    function findAddressByEndpoint(string socket) public view returns (address eth_address)
+    function findAddressByEndpoint(string socket)
+        public
+        view
+        returns
+        (address eth_address)
     {
         return socket_to_address[socket];
     }
 
-    /// @dev Checks if two strings are equal or not.
+    /// @notice Checks if two strings are equal or not.
     /// @param a First string.
     /// @param b Second string.
     /// @return result True if `a` and `b` are equal, false otherwise.
