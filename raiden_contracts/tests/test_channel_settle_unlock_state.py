@@ -36,39 +36,43 @@ def test_channel_settle_unlock_edge_cases(
     (vals_A0, vals_B0) = channel_test_values
     all_test_cases = [(vals_A0, vals_B0)]
 
-    # We mimic old balance proofs here, with a high locked amount and lower transferred amount
-    # We expect to have the same settlement values as the original values
-
+    # We mimic old balance proofs here, with a high locked claimable amount and lower transferred
+    # amount. We expect to have the same settlement values as the original values
     def equivalent_transfers(balance_proof):
         new_balance_proof = deepcopy(balance_proof)
-        new_balance_proof.locked = randint(
-            balance_proof.locked,
-            balance_proof.transferred + balance_proof.locked,
+        new_balance_proof.claimable_locked = randint(
+            balance_proof.claimable_locked,
+            balance_proof.transferred + balance_proof.claimable_locked,
         )
-        new_balance_proof.claimable_locked = new_balance_proof.locked
-        new_balance_proof.unclaimable_locked = 0
+        new_balance_proof.locked = (
+            new_balance_proof.claimable_locked +
+            new_balance_proof.unclaimable_locked
+        )
         new_balance_proof.transferred = (
             balance_proof.transferred +
-            balance_proof.locked -
-            new_balance_proof.locked
+            balance_proof.claimable_locked -
+            new_balance_proof.claimable_locked
         )
         return new_balance_proof
 
     # No reason to mimic old balance proofs if the tested values do not represent
     # valid balance proofs that are the last ones known.
     if are_balance_proofs_valid(vals_A0, vals_B0) and not is_balance_proof_old(vals_A0, vals_B0):
-        print('mimic old balance proofs', vals_A0, vals_B0)
         vals_A_reversed = deepcopy(vals_A0)
-        vals_A_reversed.locked = vals_A0.transferred
-        vals_A_reversed.transferred = vals_A0.locked
-        vals_A_reversed.claimable_locked = vals_A_reversed.locked
-        vals_A_reversed.unclaimable_locked = 0
+        vals_A_reversed.claimable_locked = vals_A0.transferred
+        vals_A_reversed.transferred = vals_A0.claimable_locked
+        vals_A_reversed.locked = (
+            vals_A_reversed.claimable_locked +
+            vals_A_reversed.unclaimable_locked
+        )
 
         vals_B_reversed = deepcopy(vals_B0)
-        vals_B_reversed.locked = vals_B0.transferred
-        vals_B_reversed.transferred = vals_B0.locked
-        vals_B_reversed.claimable_locked = vals_B_reversed.locked
-        vals_B_reversed.unclaimable_locked = 0
+        vals_B_reversed.claimable_locked = vals_B0.transferred
+        vals_B_reversed.transferred = vals_B0.claimable_locked
+        vals_B_reversed.locked = (
+            vals_B_reversed.claimable_locked +
+            vals_B_reversed.unclaimable_locked
+        )
 
         all_test_cases.extend([
             (vals_A0, vals_B_reversed),
@@ -130,7 +134,8 @@ def test_channel_settle_unlock_edge_cases(
         B = accounts[no + 1]
         (vals_A, vals_B) = all_test_cases[no]
 
-        # Some checks to test that mimicking old balance proofs is done correctly
+        # Some checks to test that mimicking old balance proofs with high locked claimable amounts
+        # and low transferred amounts is done correctly
         assert vals_A.locked + vals_A.transferred == vals_A0.locked + vals_A0.transferred
         assert (
             vals_A.claimable_locked +
