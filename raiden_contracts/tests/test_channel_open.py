@@ -7,6 +7,8 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     CHANNEL_STATE_NONEXISTENT,
     CHANNEL_STATE_OPENED,
+    ChannelInfoIndex,
+    ParticipantInfoIndex,
 )
 from raiden_contracts.utils.events import check_channel_opened
 from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS, fake_bytes
@@ -162,23 +164,24 @@ def test_open_channel_state(token_network, get_accounts):
         participants_hash,
     ).call() == channel_counter + 1
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
+    channel_info_response = token_network.functions.getChannelInfo(
         channel_identifier,
         A,
         B,
     ).call()
+    settle_block_number = channel_info_response[ChannelInfoIndex.SETTLE_BLOCK]
+    state = channel_info_response[ChannelInfoIndex.STATE]
     assert settle_block_number == settle_timeout
     assert state == CHANNEL_STATE_OPENED
 
-    (
-        A_deposit,
-        A_withdrawn,
-        A_is_the_closer,
-        A_balance_hash,
-        A_nonce,
-        A_locksroot,
-        A_locked_amount,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    response = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    A_deposit = response[ParticipantInfoIndex.DEPOSIT]
+    A_withdrawn = response[ParticipantInfoIndex.WITHDRAWN]
+    A_is_the_closer = response[ParticipantInfoIndex.IS_CLOSER]
+    A_balance_hash = response[ParticipantInfoIndex.BALANCE_HASH]
+    A_nonce = response[ParticipantInfoIndex.NONCE]
+    A_locksroot = response[ParticipantInfoIndex.LOCKSROOT]
+    A_locked_amount = response[ParticipantInfoIndex.LOCKED_AMOUNT]
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
