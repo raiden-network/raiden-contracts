@@ -1,3 +1,5 @@
+from enum import IntEnum
+
 # Contract names
 CONTRACT_ENDPOINT_REGISTRY = 'EndpointRegistry'
 CONTRACT_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'
@@ -43,3 +45,18 @@ CHANNEL_STATE_REMOVED = 4
 
 # Temporary token deposit limits for the Red Eyes release
 MAX_TOKENS_DEPLOY = 100
+
+
+class ChannelInfoIndex(IntEnum):
+    SETTLE_BLOCK = 0
+    STATE = 1
+
+
+class ParticipantInfoIndex(IntEnum):
+    DEPOSIT = 0
+    WITHDRAWN = 1
+    IS_CLOSER = 2
+    BALANCE_HASH = 3
+    NONCE = 4
+    LOCKSROOT = 5
+    LOCKED_AMOUNT = 6
