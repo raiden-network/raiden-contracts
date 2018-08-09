@@ -7,13 +7,14 @@ from getpass import getpass
 
 import click
 import json
+
+from raiden_contracts.contract_manager import ContractManager, CONTRACTS_SOURCE_DIRS
 from web3 import Web3, HTTPProvider
 from eth_utils import (
     is_address,
     to_checksum_address,
 )
 
-from raiden_contracts.contract_manager import CONTRACT_MANAGER
 from raiden_contracts.utils.utils import (
     check_succesful_tx,
 )
@@ -98,7 +99,9 @@ def main(
 ):
     supply *= 10 ** token_decimals
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('web3').setLevel(logging.INFO)
+    logging.getLogger('urllib3').setLevel(logging.INFO)
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
@@ -116,7 +119,9 @@ def main(
     if gas_price != 0:
         transaction['gasPrice'] = gas_price * 10 ** 9
 
-    contracts_compiled_data = CONTRACT_MANAGER._contracts
+    contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+    contract_manager._compile_all_contracts()
+    contracts_compiled_data = contract_manager._contracts
 
     deployed_contracts = {}
 
@@ -225,6 +230,7 @@ def deploy_contract(
     txhash = contract.deploy(transaction=transaction, args=args)
 
     # Get tx receipt to get contract address
+    log.debug(f"TxHash: {txhash}")
     receipt = check_succesful_tx(web3, txhash, txn_wait)
     log.info(
         '{0} address: {1}. Gas used: {2}'.format(
