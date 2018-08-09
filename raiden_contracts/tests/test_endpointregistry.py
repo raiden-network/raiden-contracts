@@ -4,21 +4,32 @@ from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
     (A, B) = get_accounts(2)
-    PORT = '127.0.0.1:38647'
-    endpoint_registry_contract.functions.registerEndpoint(PORT).transact({'from': A})
-    assert endpoint_registry_contract.functions.findAddressByEndpoint(PORT).call() == A
-    NEW_PORT = '192.168.0.1:4002'
-    endpoint_registry_contract.functions.registerEndpoint(NEW_PORT).transact({'from': A})
-    assert endpoint_registry_contract.functions.findAddressByEndpoint(NEW_PORT).call() == A
-    assert endpoint_registry_contract.functions.findEndpointByAddress(A).call() == NEW_PORT
+    ENDPOINT = '127.0.0.1:38647'
+    endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({'from': A})
+    assert endpoint_registry_contract.functions.findAddressByEndpoint(
+        ENDPOINT,
+    ).call() == A
+    NEW_ENDPOINT = '192.168.0.1:4002'
+    endpoint_registry_contract.functions.registerEndpoint(NEW_ENDPOINT).transact({'from': A})
+    assert endpoint_registry_contract.functions.findAddressByEndpoint(
+        NEW_ENDPOINT,
+    ).call() == A
+    assert endpoint_registry_contract.functions.findEndpointByAddress(
+        A,
+    ).call() == NEW_ENDPOINT
 
 
 def test_events(endpoint_registry_contract, get_accounts, event_handler):
     (A, B) = get_accounts(2)
     ev_handler = event_handler(endpoint_registry_contract)
 
-    PORT = '127.0.0.1:38647'
-    txn_hash = endpoint_registry_contract.functions.registerEndpoint(PORT).transact({'from': A})
+    ENDPOINT = '127.0.0.1:38647'
+    txn_hash = endpoint_registry_contract.functions.registerEndpoint(
+        ENDPOINT,
+    ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_ADDRESS_REGISTERED, check_address_registered(A, PORT))
+    ev_handler.add(txn_hash, EVENT_ADDRESS_REGISTERED, check_address_registered(
+        A,
+        ENDPOINT,
+    ))
     ev_handler.check()
