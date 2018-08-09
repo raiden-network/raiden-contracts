@@ -4,10 +4,7 @@ from collections import namedtuple
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     TEST_SETTLE_TIMEOUT_MIN,
-    CHANNEL_STATE_OPENED,
-    CHANNEL_STATE_CLOSED,
-    CHANNEL_STATE_SETTLED,
-    CHANNEL_STATE_REMOVED,
+    ChannelState,
 )
 from raiden_contracts.utils.sign import (
     sign_balance_proof,
@@ -46,7 +43,7 @@ def create_channel(token_network):
             channel_state,
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert channel_settle_timeout == settle_timeout
-        assert channel_state == CHANNEL_STATE_OPENED
+        assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)
     return get
@@ -337,8 +334,8 @@ def update_state_tests(token_network, get_block):
             state,
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
-        assert settle_block_number == settle_timeout + get_block(txn_hash1)  # settle_block_number
-        assert state == CHANNEL_STATE_CLOSED  # state
+        assert settle_block_number == settle_timeout + get_block(txn_hash1)
+        assert state == ChannelState.CLOSED
 
         (
             _,
@@ -398,7 +395,7 @@ def cooperative_settle_state_tests(token_network, custom_token):
             state,
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert settle_block_number == 0
-        assert state == CHANNEL_STATE_REMOVED
+        assert state == ChannelState.REMOVED
     return get
 
 
@@ -464,9 +461,9 @@ def settle_state_tests(token_network, custom_token):
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert settle_block_number == 0
         if locked_amount_A > 0 or locked_amount_B > 0:
-            assert state == CHANNEL_STATE_SETTLED
+            assert state == ChannelState.SETTLED
         else:
-            assert state == CHANNEL_STATE_REMOVED
+            assert state == ChannelState.REMOVED
 
     return get
 
@@ -520,7 +517,7 @@ def withdraw_state_tests(custom_token, token_network):
             participant,
             partner,
         ).call()
-        assert state == CHANNEL_STATE_OPENED
+        assert state == ChannelState.OPENED
 
         (
             deposit,
