@@ -109,10 +109,11 @@ def test_settle_channel_state(
     vals_A.locksroot = pending_transfers_tree_A.merkle_root
     vals_B.locksroot = pending_transfers_tree_B.merkle_root
 
-    create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-    withdraw_channel(A, vals_A.withdrawn, B)
-    withdraw_channel(B, vals_B.withdrawn, A)
+    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
     close_and_update_channel(
+        channel_identifier,
         A,
         vals_A,
         B,
@@ -125,10 +126,11 @@ def test_settle_channel_state(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    call_settle(token_network, A, vals_A, B, vals_B)
+    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Balance & state tests
     settle_state_tests(
+        channel_identifier,
         A,
         vals_A,
         B,
