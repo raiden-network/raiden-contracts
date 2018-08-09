@@ -5,7 +5,7 @@ from random import randint
 from raiden_contracts.utils.merkle import get_merkle_root
 
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_SETTLED,
+    ChannelEvent,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_channel_settled
@@ -524,7 +524,7 @@ def test_settle_channel_event(
         locksroot,
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_SETTLED, check_channel_settled(
+    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(
         channel_identifier,
         5,
         5,

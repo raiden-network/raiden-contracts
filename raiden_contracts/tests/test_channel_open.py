@@ -2,9 +2,9 @@ import pytest
 from itertools import permutations
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_OPENED,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    ChannelEvent,
     ChannelState,
     ChannelInfoIndex,
     ParticipantInfoIndex,
@@ -316,7 +316,7 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_OPENED,
+        ChannelEvent.OPENED,
         check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT_MIN),
     )
     ev_handler.check()

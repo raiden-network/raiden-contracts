@@ -4,7 +4,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+    ChannelEvent,
     ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -1052,7 +1052,7 @@ def test_update_channel_event(
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        ChannelEvent.BALANCE_PROOF_UPDATED,
         check_transfer_updated(channel_identifier, A, 1),
     )
     ev_handler.check()
@@ -1074,7 +1074,7 @@ def test_update_channel_event(
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        ChannelEvent.BALANCE_PROOF_UPDATED,
         check_transfer_updated(channel_identifier, A, 2),
     )
     ev_handler.check()

@@ -3,7 +3,7 @@ from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
-    EVENT_CHANNEL_CLOSED,
+    ChannelEvent,
     ChannelState,
 )
 from raiden_contracts.utils.events import check_channel_closed
@@ -354,7 +354,7 @@ def test_close_channel_event_no_offchain_transfers(
         fake_bytes(64),
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
 
 
@@ -459,5 +459,5 @@ def test_close_channel_event(
         *balance_proof,
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()

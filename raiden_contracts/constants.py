@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 # Contract names
 CONTRACT_ENDPOINT_REGISTRY = 'EndpointRegistry'
@@ -14,14 +14,16 @@ CONTRACT_RAIDEN_SERVICE_BUNDLE = 'RaidenServiceBundle'
 # TokenNetworkRegistry
 EVENT_TOKEN_NETWORK_CREATED = 'TokenNetworkCreated'
 
-# TokenNetwork
-EVENT_CHANNEL_OPENED = 'ChannelOpened'
-EVENT_CHANNEL_DEPOSIT = 'ChannelNewDeposit'
-EVENT_CHANNEL_WITHDRAW = 'ChannelWithdraw'
-EVENT_CHANNEL_BALANCE_PROOF_UPDATED = 'NonClosingBalanceProofUpdated'
-EVENT_CHANNEL_CLOSED = 'ChannelClosed'
-EVENT_CHANNEL_SETTLED = 'ChannelSettled'
-EVENT_CHANNEL_UNLOCKED = 'ChannelUnlocked'
+
+class ChannelEvent(str, Enum):
+    OPENED = 'ChannelOpened'
+    DEPOSIT = 'ChannelNewDeposit'
+    WITHDRAW = 'ChannelWithdraw'
+    BALANCE_PROOF_UPDATED = 'NonClosingBalanceProofUpdated'
+    CLOSED = 'ChannelClosed'
+    SETTLED = 'ChannelSettled'
+    UNLOCKED = 'ChannelUnlocked'
+
 
 # SecretRegistry
 EVENT_SECRET_REVEALED = 'SecretRevealed'

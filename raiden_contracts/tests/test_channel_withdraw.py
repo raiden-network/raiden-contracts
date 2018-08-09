@@ -4,7 +4,7 @@ from web3.exceptions import ValidationError
 from raiden_contracts.utils.events import check_withdraw
 from .fixtures.config import EMPTY_ADDRESS, fake_bytes
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_WITHDRAW,
+    ChannelEvent,
     ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -557,9 +557,9 @@ def test_withdraw_event(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
 
     txn_hash = withdraw_channel(channel_identifier, A, 5, B)
-    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, A, 5))
+    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, A, 5))
 
     txn_hash = withdraw_channel(channel_identifier, B, 2, A, C)
-    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, B, 2))
+    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, B, 2))
 
     ev_handler.check()
