@@ -4,10 +4,8 @@ from web3.exceptions import ValidationError
 from raiden_contracts.utils.events import check_withdraw
 from .fixtures.config import EMPTY_ADDRESS, fake_bytes
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_WITHDRAW,
-    CHANNEL_STATE_OPENED,
-    CHANNEL_STATE_CLOSED,
-    CHANNEL_STATE_REMOVED,
+    ChannelEvent,
+    ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
@@ -156,7 +154,7 @@ def test_withdraw_wrong_state(
 
     channel_identifier = create_channel_and_deposit(A, B, 10, 14, TEST_SETTLE_TIMEOUT_MIN)
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     # Channel is open, withdraw must work
     withdraw_channel(channel_identifier, A, withdraw_A, B)
@@ -170,7 +168,7 @@ def test_withdraw_wrong_state(
         fake_bytes(64),
     ).transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == CHANNEL_STATE_CLOSED
+    assert state == ChannelState.CLOSED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, B)
@@ -188,7 +186,7 @@ def test_withdraw_wrong_state(
         fake_bytes(32),
     ).transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == CHANNEL_STATE_REMOVED
+    assert state == ChannelState.REMOVED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, B)
@@ -559,9 +557,9 @@ def test_withdraw_event(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
 
     txn_hash = withdraw_channel(channel_identifier, A, 5, B)
-    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, A, 5))
+    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, A, 5))
 
     txn_hash = withdraw_channel(channel_identifier, B, 2, A, C)
-    ev_handler.add(txn_hash, EVENT_CHANNEL_WITHDRAW, check_withdraw(channel_identifier, B, 2))
+    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, B, 2))
 
     ev_handler.check()

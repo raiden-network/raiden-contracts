@@ -2,11 +2,10 @@ import pytest
 from itertools import permutations
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_OPENED,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
-    CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_OPENED,
+    ChannelEvent,
+    ChannelState,
     ChannelInfoIndex,
     ParticipantInfoIndex,
 )
@@ -125,13 +124,13 @@ def test_state_channel_identifier_invalid(token_network, get_accounts, create_ch
             state,
         ) = token_network.functions.getChannelInfo(channel_id, *pair).call()
         assert settle_block_number == 0
-        assert state == CHANNEL_STATE_NONEXISTENT
+        assert state == ChannelState.NONEXISTENT
 
     for pair in pairs:
         create_channel(*pair)
         (settle_block_number, state) = token_network.functions.getChannelInfo(0, *pair).call()
         assert settle_block_number > 0
-        assert state == CHANNEL_STATE_OPENED
+        assert state == ChannelState.OPENED
 
     current_counter = token_network.functions.channel_counter().call()
 
@@ -141,7 +140,7 @@ def test_state_channel_identifier_invalid(token_network, get_accounts, create_ch
             *pair,
         ).call()
         assert settle_block_number == 0
-        assert state == CHANNEL_STATE_NONEXISTENT
+        assert state == ChannelState.NONEXISTENT
 
 
 def test_open_channel_state(token_network, get_accounts):
@@ -172,7 +171,7 @@ def test_open_channel_state(token_network, get_accounts):
     settle_block_number = channel_info_response[ChannelInfoIndex.SETTLE_BLOCK]
     state = channel_info_response[ChannelInfoIndex.STATE]
     assert settle_block_number == settle_timeout
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     response = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     A_deposit = response[ParticipantInfoIndex.DEPOSIT]
@@ -271,7 +270,7 @@ def test_reopen_channel(
         B,
     ).call()
     assert settle_block_number == settle_timeout
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     (
         A_deposit,
@@ -317,7 +316,7 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_OPENED,
+        ChannelEvent.OPENED,
         check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT_MIN),
     )
     ev_handler.check()

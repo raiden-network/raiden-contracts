@@ -1,6 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.constants import EVENT_CHANNEL_UNLOCKED
+from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_channel_unlocked
 from .utils import (
     get_pending_transfers_tree,
@@ -1116,7 +1116,7 @@ def test_unlock_channel_event(
     )
 
     # Add event
-    ev_handler.add(txn_hash, EVENT_CHANNEL_UNLOCKED, check_channel_unlocked(
+    ev_handler.add(txn_hash, ChannelEvent.UNLOCKED, check_channel_unlocked(
         channel_identifier,
         A,
         B,

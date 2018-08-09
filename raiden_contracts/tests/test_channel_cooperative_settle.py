@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.events import check_channel_settled
 from .fixtures.config import EMPTY_ADDRESS
-from raiden_contracts.constants import EVENT_CHANNEL_SETTLED
+from raiden_contracts.constants import ChannelEvent
 from web3.exceptions import ValidationError
 
 
@@ -628,7 +628,7 @@ def test_cooperative_settle_channel_event(
         signature_A,
     ).transact({'from': B})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_SETTLED, check_channel_settled(
+    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(
         channel_identifier,
         balance_B,
         balance_A,

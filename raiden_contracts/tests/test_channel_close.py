@@ -3,11 +3,8 @@ from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
-    EVENT_CHANNEL_CLOSED,
-    CHANNEL_STATE_NONEXISTENT,
-    CHANNEL_STATE_OPENED,
-    CHANNEL_STATE_CLOSED,
-    CHANNEL_STATE_REMOVED,
+    ChannelEvent,
+    ChannelState,
 )
 from raiden_contracts.utils.events import check_channel_closed
 from .fixtures.config import fake_bytes, fake_hex
@@ -27,7 +24,7 @@ def test_close_nonexistent_channel(
         A,
         B,
     ).call()
-    assert state == CHANNEL_STATE_NONEXISTENT
+    assert state == ChannelState.NONEXISTENT
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -53,7 +50,7 @@ def test_close_settled_channel(
     channel_deposit(channel_identifier, A, 5, B)
 
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     token_network.functions.closeChannel(
         channel_identifier,
@@ -80,7 +77,7 @@ def test_close_settled_channel(
         settle_block_number,
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == CHANNEL_STATE_REMOVED
+    assert state == ChannelState.REMOVED
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
@@ -282,7 +279,7 @@ def test_close_channel_state(
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == settle_timeout
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     (
         _,
@@ -308,7 +305,7 @@ def test_close_channel_state(
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == settle_timeout + get_block(txn_hash)
-    assert state == CHANNEL_STATE_CLOSED
+    assert state == ChannelState.CLOSED
 
     (
         _, _,
@@ -357,7 +354,7 @@ def test_close_channel_event_no_offchain_transfers(
         fake_bytes(64),
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
 
 
@@ -462,5 +459,5 @@ def test_close_channel_event(
         *balance_proof,
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()

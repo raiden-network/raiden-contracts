@@ -1,5 +1,5 @@
 import pytest
-from raiden_contracts.constants import EVENT_CHANNEL_CLOSED
+from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_channel_closed
 from raiden_contracts.utils.sign import sign_reward_proof
 from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
@@ -89,7 +89,7 @@ def test_msc_happy_path(
     )
     # 3) c1 closes channel
     txn_hash = token_network.functions.closeChannel(B, *balance_proof_A).transact({'from': A})
-    ev_handler.add(txn_hash, EVENT_CHANNEL_CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
     ev_handler.check()
     # 4) MS calls `MSC::monitor()` using c1's BP and reward proof
 

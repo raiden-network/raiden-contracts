@@ -4,9 +4,8 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import (
-    EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
-    CHANNEL_STATE_OPENED,
-    CHANNEL_STATE_NONEXISTENT,
+    ChannelEvent,
+    ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_transfer_updated
@@ -116,7 +115,7 @@ def test_update_nonexistent_fail(
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number == 0
-    assert state == CHANNEL_STATE_NONEXISTENT
+    assert state == ChannelState.NONEXISTENT
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
     balance_proof_update_signature_B = create_balance_proof_update_signature(
@@ -159,7 +158,7 @@ def test_update_notclosed_fail(
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert settle_block_number > 0
-    assert state == CHANNEL_STATE_OPENED
+    assert state == ChannelState.OPENED
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -1053,7 +1052,7 @@ def test_update_channel_event(
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        ChannelEvent.BALANCE_PROOF_UPDATED,
         check_transfer_updated(channel_identifier, A, 1),
     )
     ev_handler.check()
@@ -1075,7 +1074,7 @@ def test_update_channel_event(
 
     ev_handler.add(
         txn_hash,
-        EVENT_CHANNEL_BALANCE_PROOF_UPDATED,
+        ChannelEvent.BALANCE_PROOF_UPDATED,
         check_transfer_updated(channel_identifier, A, 2),
     )
     ev_handler.check()
