@@ -336,10 +336,20 @@ contract TokenNetwork is Utils {
         bytes participant_signature,
         bytes partner_signature
     )
+        isOpen(channel_identifier)
         external
     {
         require(channel_identifier == getChannelIdentifier(participant, partner));
         require(total_withdraw > 0);
+
+        verifyWithdrawSignatures(
+            channel_identifier,
+            participant,
+            partner,
+            total_withdraw,
+            participant_signature,
+            partner_signature
+        );
 
         uint256 total_deposit;
         uint256 current_withdraw;
@@ -359,16 +369,6 @@ contract TokenNetwork is Utils {
 
         // Do the tokens transfer
         require(token.transfer(participant, current_withdraw));
-        require(channel.state == ChannelState.Opened);
-
-        verifyWithdrawSignatures(
-            channel_identifier,
-            participant,
-            partner,
-            total_withdraw,
-            participant_signature,
-            partner_signature
-        );
 
         require(current_withdraw > 0);
 
