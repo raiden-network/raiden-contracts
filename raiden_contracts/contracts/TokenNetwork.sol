@@ -702,7 +702,6 @@ contract TokenNetwork is Utils {
         require(merkle_tree_leaves.length > 0);
 
         bytes32 unlock_key;
-        bytes32 locksroot;
         bytes32 computed_locksroot;
         uint256 unlocked_amount;
         uint256 locked_amount;
