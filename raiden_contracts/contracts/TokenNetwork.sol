@@ -206,7 +206,7 @@ contract TokenNetwork is Utils {
         require(token.totalSupply() > 0);
 
         // Try to get token decimals, otherwise assume 18
-        bool exists = address(token).call(bytes4(keccak256("decimals()")));
+        bool exists = address(token).call(abi.encodeWithSignature("decimals()"));
         uint8 decimals = 18;
         if (exists) {
             decimals = token.decimals();
