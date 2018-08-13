@@ -51,14 +51,18 @@ contract TokenNetworkRegistry is Utils {
     {
         require(token_to_token_networks[_token_address] == address(0x0));
 
+        TokenNetwork token_network;
+
         // Token contract checks are in the corresponding TokenNetwork contract
-        token_network_address = new TokenNetwork(
+        token_network = new TokenNetwork(
             _token_address,
             secret_registry_address,
             chain_id,
             settlement_timeout_min,
             settlement_timeout_max
         );
+
+        token_network_address = address(token_network);
 
         token_to_token_networks[_token_address] = token_network_address;
         emit TokenNetworkCreated(_token_address, token_network_address);
