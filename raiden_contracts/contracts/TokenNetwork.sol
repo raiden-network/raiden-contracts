@@ -1152,7 +1152,7 @@ contract TokenNetwork is Utils {
         SettlementData participant1_settlement,
         SettlementData participant2_settlement
     )
-        view
+        pure
         internal
         returns (uint256)
     {
