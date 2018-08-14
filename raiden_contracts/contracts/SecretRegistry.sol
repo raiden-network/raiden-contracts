@@ -8,7 +8,7 @@ contract SecretRegistry {
     string constant public contract_version = "0.3._";
 
     // keccak256(secret) => block number at which the secret was revealed
-    mapping(bytes32 => uint256) public secrethash_to_block;
+    mapping(bytes32 => uint256) private secrethash_to_block;
 
     event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 

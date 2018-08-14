@@ -55,7 +55,7 @@ contract TokenNetwork is Utils {
     // address partner)` Where `participant` is the participant that sent the
     // pending transfers We need `partner` for knowing where to send the
     // claimable tokens
-    mapping(bytes32 => UnlockData) unlock_identifier_to_unlock_data;
+    mapping(bytes32 => UnlockData) private unlock_identifier_to_unlock_data;
 
     struct Participant {
         // Total amount of tokens transferred to this smart contract through
