@@ -34,7 +34,7 @@ library ECVerify {
         signature_address = ecrecover(hash, v, r, s);
 
         // ecrecover returns zero on error
-        require(signature_address != 0x0);
+        require(signature_address != address(0x0));
 
         return signature_address;
     }

@@ -187,8 +187,8 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(_token_address != 0x0);
-        require(_secret_registry != 0x0);
+        require(_token_address != address(0x0));
+        require(_secret_registry != address(0x0));
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
@@ -871,8 +871,8 @@ contract TokenNetwork is Utils {
         public
         returns (uint256)
     {
-        require(participant != 0x0);
-        require(partner != 0x0);
+        require(participant != address(0x0));
+        require(partner != address(0x0));
         require(participant != partner);
 
         bytes32 pair_hash = getParticipantsHash(participant, partner);
@@ -975,8 +975,8 @@ contract TokenNetwork is Utils {
         public
         returns (bytes32)
     {
-        require(participant != 0x0);
-        require(partner != 0x0);
+        require(participant != address(0x0));
+        require(partner != address(0x0));
         require(participant != partner);
 
         if (participant < partner) {
