@@ -49,13 +49,10 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
     secret2 = b'secretsecretsecretsecretsecretss'
     secrethash = Web3.sha3(secret)
 
-    assert secret_registry_contract.functions.secrethash_to_block(secrethash).call() == 0
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
 
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
 
-    assert (secret_registry_contract.functions.secrethash_to_block(secrethash).call()
-            == get_block(txn_hash))
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
         secrethash,
     ).call() == get_block(txn_hash)
@@ -70,7 +67,6 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
     secret_hashes = [Web3.sha3(secret) for secret in secrets]
 
     for hash in secret_hashes:
-        assert secret_registry_contract.functions.secrethash_to_block(hash).call() == 0
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(hash).call() == 0
 
     txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).transact({
@@ -79,7 +75,6 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
     block = get_block(txn_hash)
 
     for hash in secret_hashes:
-        assert secret_registry_contract.functions.secrethash_to_block(hash).call() == block
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(hash).call() == block
 
 
