@@ -9,9 +9,9 @@ contract EndpointRegistry {
     event AddressRegistered(address indexed eth_address, string endpoint);
 
     // Mapping of Ethereum addresses => Endpoints
-    mapping (address => string) address_to_endpoint;
+    mapping (address => string) private address_to_endpoint;
     // Mapping of Endpoints => Ethereum addresses
-    mapping (string => address) endpoint_to_address;
+    mapping (string => address) private endpoint_to_address;
 
     modifier noEmptyString(string str) {
         require(equals(str, "") != true);
