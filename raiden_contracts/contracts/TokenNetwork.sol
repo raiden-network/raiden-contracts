@@ -489,7 +489,7 @@ contract TokenNetwork is Utils {
             closing_participant,
             non_closing_participant
         ));
-        require(balance_hash != 0x0);
+        require(balance_hash != bytes32(0x0));
         require(nonce > 0);
 
         address recovered_non_closing_participant;
