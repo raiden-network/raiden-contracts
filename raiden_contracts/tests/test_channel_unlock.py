@@ -3,10 +3,12 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_channel_unlocked
 from .utils import (
-    get_pending_transfers_tree,
     get_unlocked_amount,
-    get_locked_amount,
+)
+from raiden_contracts.utils.utils import (
+    get_pending_transfers_tree,
     get_packed_transfers,
+    get_locked_amount,
     random_secret,
 )
 from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
