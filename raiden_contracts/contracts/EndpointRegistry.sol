@@ -7,11 +7,7 @@ contract EndpointRegistry {
     string constant public contract_version = "0.3._";
 
     event AddressRegistered(address indexed eth_address, string endpoint);
-
-    // Mapping of Ethereum addresses => Endpoints
     mapping (address => string) private address_to_endpoint;
-    // Mapping of Endpoints => Ethereum addresses
-    mapping (string => address) private endpoint_to_address;
 
     modifier noEmptyString(string str) {
         require(equals(str, "") != true);
@@ -32,12 +28,8 @@ contract EndpointRegistry {
             return;
         }
 
-        // Set the value for the `old_endpoint` mapping key to `0`
-        endpoint_to_address[old_endpoint] = address(0);
-
         // Update the storage with the new endpoint value
         address_to_endpoint[msg.sender] = endpoint;
-        endpoint_to_address[endpoint] = msg.sender;
         emit AddressRegistered(msg.sender, endpoint);
     }
 
@@ -50,18 +42,6 @@ contract EndpointRegistry {
         returns (string endpoint)
     {
         return address_to_endpoint[eth_address];
-    }
-
-    /// @notice Finds an Ethereum address if given a registered endpoint
-    /// @param endpoint A string in the format "127.0.0.1:38647".
-    /// @return eth_address An Ethereum address.
-    function findAddressByEndpoint(string endpoint)
-        public
-        view
-        returns
-        (address eth_address)
-    {
-        return endpoint_to_address[endpoint];
     }
 
     /// @notice Checks if two strings are equal or not.

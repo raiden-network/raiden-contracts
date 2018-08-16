@@ -6,14 +6,8 @@ def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
     (A, B) = get_accounts(2)
     ENDPOINT = '127.0.0.1:38647'
     endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({'from': A})
-    assert endpoint_registry_contract.functions.findAddressByEndpoint(
-        ENDPOINT,
-    ).call() == A
     NEW_ENDPOINT = '192.168.0.1:4002'
     endpoint_registry_contract.functions.registerEndpoint(NEW_ENDPOINT).transact({'from': A})
-    assert endpoint_registry_contract.functions.findAddressByEndpoint(
-        NEW_ENDPOINT,
-    ).call() == A
     assert endpoint_registry_contract.functions.findEndpointByAddress(
         A,
     ).call() == NEW_ENDPOINT
