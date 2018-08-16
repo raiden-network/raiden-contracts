@@ -1,7 +1,7 @@
 import pytest
-from raiden_contracts.contract_manager import ContractManager, CONTRACTS_SOURCE_DIRS
+from raiden_contracts.contract_manager import CONTRACT_MANAGER
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def contracts_manager():
-    return ContractManager(CONTRACTS_SOURCE_DIRS)
+    return CONTRACT_MANAGER

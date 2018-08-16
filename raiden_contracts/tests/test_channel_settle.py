@@ -17,8 +17,8 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
-    get_pending_transfers_tree,
 )
+from raiden_contracts.utils.utils import get_pending_transfers_tree
 
 
 def test_max_safe_uint256(token_network, token_network_test):
