@@ -1166,7 +1166,7 @@ contract TokenNetwork is Utils {
     {
         uint256 participant1_max_transferred;
         uint256 participant2_max_transferred;
-        uint256 participant1_net_max_transferred;
+        uint256 participant1_net_max_received;
         uint256 participant1_max_amount;
 
         // This is the maximum possible amount that participant1 could transfer
@@ -1193,10 +1193,8 @@ contract TokenNetwork is Utils {
         assert(participant1_max_transferred >= participant1_settlement.transferred);
         assert(participant2_max_transferred >= participant2_settlement.transferred);
 
-        // This is the maximum amount that participant2 can receive from
-        // participant1, after we take into account all the transferred or
-        // pending amounts
-        participant1_net_max_transferred = (
+        // This is the maximum amount that participant1 can receive at settlement time
+        participant1_net_max_received = (
             participant2_max_transferred -
             participant1_max_transferred
         );
@@ -1204,7 +1202,7 @@ contract TokenNetwork is Utils {
         // Next, we add the participant1's deposit and subtract the already
         // withdrawn amount
         participant1_max_amount = failsafe_addition(
-            participant1_net_max_transferred,
+            participant1_net_max_received,
             participant1_settlement.deposit
         );
 
