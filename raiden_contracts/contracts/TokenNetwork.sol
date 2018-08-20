@@ -856,6 +856,12 @@ contract TokenNetwork is Utils {
         // The sum of the provided balances must be equal to the total
         // available deposit
         require(total_available_deposit == (participant1_balance + participant2_balance));
+        // Overflow check for the balances addition from the above check.
+        // This overflow should never happen if the token.transfer function is implemented
+        // correctly. We do not control the token implementation, therefore we add this
+        // check for safety.
+        require(participant1_balance <= participant1_balance + participant2_balance);
+
         emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
 
     }
