@@ -293,12 +293,21 @@ contract TokenNetwork is Utils {
 
         // Calculate the actual amount of tokens that will be transferred
         added_deposit = total_deposit - participant_state.deposit;
+        // The actual amount of tokens that will be transferred must be > 0
+        require(added_deposit > 0);
+        // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
+        require(added_deposit <= total_deposit);
+        // This should never fail at this point. Added check for security, because we directly set
+        // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
+        assert(participant_state.deposit + added_deposit == total_deposit);
 
         // Update the participant's channel deposit
-        participant_state.deposit += added_deposit;
+        participant_state.deposit = total_deposit;
 
         // Calculate the entire channel deposit, to avoid overflow
         channel_deposit = participant_state.deposit + partner_state.deposit;
+        // Overflow check
+        require(channel_deposit >= participant_state.deposit);
 
         emit ChannelNewDeposit(
             channel_identifier,
@@ -308,10 +317,6 @@ contract TokenNetwork is Utils {
 
         // Do the transfer
         require(token.transferFrom(msg.sender, address(this), added_deposit));
-
-        require(participant_state.deposit >= added_deposit);
-        require(channel_deposit >= participant_state.deposit);
-        require(channel_deposit >= partner_state.deposit);
     }
 
     /// @notice Allows `participant` to withdraw tokens from the channel that he
