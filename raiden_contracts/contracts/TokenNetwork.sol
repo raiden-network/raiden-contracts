@@ -243,8 +243,10 @@ contract TokenNetwork is Utils {
 
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.settle_block_number == 0);
-        require(channel.state == ChannelState.NonExistent);
+        // We always increase the channel counter, therefore no channel data can already exist,
+        // corresponding to this channel_identifier. This check must never fail.
+        assert(channel.settle_block_number == 0);
+        assert(channel.state == ChannelState.NonExistent);
 
         // Store channel information
         channel.settle_block_number = settle_timeout;
