@@ -364,41 +364,42 @@ contract TokenNetwork is Utils {
         Participant storage partner_state = channel.participants[partner];
 
         total_deposit = participant_state.deposit + partner_state.deposit;
+        // This should never happen, as we have an overflow check in setTotalDeposit
+        assert(total_deposit >= participant_state.deposit);
+        assert(total_deposit >= partner_state.deposit);
+
+        // Entire withdrawn amount must not be bigger than the current channel deposit
+        require(total_withdraw <= (total_deposit - partner_state.withdrawn_amount));
 
         // Using the total_withdraw (monotonically increasing) in the signed
         // message ensures that we do not allow reply attack to happen, by
         // using the same withdraw proof twice.
         current_withdraw = total_withdraw - participant_state.withdrawn_amount;
-
-        participant_state.withdrawn_amount += current_withdraw;
-
-        // Do the tokens transfer
-        require(token.transfer(participant, current_withdraw));
-
+        // The actual amount of tokens that will be transferred must be > 0
         require(current_withdraw > 0);
+        // Underflow check; we use <= because current_withdraw == total_withdraw for the first
+        // withdraw
+        require(current_withdraw <= total_withdraw);
+        // This should never fail at this point. Added check for security, because we directly set
+        // the participant_state.withdrawn_amount = total_withdraw,
+        // while we transfer `current_withdraw` tokens.
+        assert(participant_state.withdrawn_amount + current_withdraw == total_withdraw);
 
-        // Underflow check
-        require(participant_state.withdrawn_amount >= current_withdraw);
-        require(participant_state.withdrawn_amount == total_withdraw);
-
-        // Entire withdrawn amount must not be bigger than the entire channel
-        // deposit
-        require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
-
-        // This should never happen, as we have an overflow check in setTotalDeposit
-        assert(total_deposit >= participant_state.deposit);
-        assert(total_deposit >= partner_state.deposit);
-
-        // A withdraw should never happen if a participant already has a
-        // balance proof in storage
-        assert(participant_state.nonce == 0);
-        assert(partner_state.nonce == 0);
+        participant_state.withdrawn_amount = total_withdraw;
 
         emit ChannelWithdraw(
             channel_identifier,
             participant,
             participant_state.withdrawn_amount
         );
+
+        // Do the tokens transfer
+        require(token.transfer(participant, current_withdraw));
+
+        // A withdraw should never happen if a participant already has a
+        // balance proof in storage
+        assert(participant_state.nonce == 0);
+        assert(partner_state.nonce == 0);
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only
