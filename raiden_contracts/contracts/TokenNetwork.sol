@@ -658,6 +658,12 @@ contract TokenNetwork is Utils {
             participant2_locksroot
         );
 
+        emit ChannelSettled(
+            channel_identifier,
+            participant1_transferred_amount,
+            participant2_transferred_amount
+        );
+
         // Do the actual token transfers
         if (participant1_transferred_amount > 0) {
             require(token.transfer(participant1, participant1_transferred_amount));
@@ -666,12 +672,6 @@ contract TokenNetwork is Utils {
         if (participant2_transferred_amount > 0) {
             require(token.transfer(participant2, participant2_transferred_amount));
         }
-
-        emit ChannelSettled(
-            channel_identifier,
-            participant1_transferred_amount,
-            participant2_transferred_amount
-        );
     }
 
     /// @notice Unlocks all pending off-chain transfers from `partner` to
