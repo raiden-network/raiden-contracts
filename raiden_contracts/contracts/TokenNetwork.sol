@@ -380,8 +380,9 @@ contract TokenNetwork is Utils {
         // deposit
         require(participant_state.withdrawn_amount <= (total_deposit - partner_state.withdrawn_amount));
 
-        require(total_deposit >= participant_state.deposit);
-        require(total_deposit >= partner_state.deposit);
+        // This should never happen, as we have an overflow check in setTotalDeposit
+        assert(total_deposit >= participant_state.deposit);
+        assert(total_deposit >= partner_state.deposit);
 
         // A withdraw should never happen if a participant already has a
         // balance proof in storage
