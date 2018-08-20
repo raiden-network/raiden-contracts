@@ -818,6 +818,8 @@ contract TokenNetwork is Utils {
             participant2_balance,
             participant1_signature
         );
+        // The provided address must be the same as the recovered one
+        require(participant1 == participant1_address);
 
         participant2 = recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
@@ -827,6 +829,8 @@ contract TokenNetwork is Utils {
             participant2_balance,
             participant2_signature
         );
+        // The provided address must be the same as the recovered one
+        require(participant2 == participant2_address);
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -835,29 +839,6 @@ contract TokenNetwork is Utils {
             participant1_state,
             participant2_state
         );
-
-        // Remove channel data from storage before doing the token transfers
-        delete channel.participants[participant1];
-        delete channel.participants[participant2];
-        delete channels[channel_identifier];
-
-        // Remove the pair's channel counter
-        delete participants_hash_to_channel_identifier[pair_hash];
-
-
-        // Do the token transfers
-        if (participant1_balance > 0) {
-            require(token.transfer(participant1, participant1_balance));
-        }
-
-        if (participant2_balance > 0) {
-            require(token.transfer(participant2, participant2_balance));
-        }
-
-        // The provided addresses must be the same as the recovered ones
-        require(participant1 == participant1_address);
-        require(participant2 == participant2_address);
-
         // The sum of the provided balances must be equal to the total
         // available deposit
         require(total_available_deposit == (participant1_balance + participant2_balance));
@@ -867,8 +848,24 @@ contract TokenNetwork is Utils {
         // check for safety.
         require(participant1_balance <= participant1_balance + participant2_balance);
 
+        // Remove channel data from storage before doing the token transfers
+        delete channel.participants[participant1];
+        delete channel.participants[participant2];
+        delete channels[channel_identifier];
+
+        // Remove the pair's channel counter
+        delete participants_hash_to_channel_identifier[pair_hash];
+
         emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
 
+        // Do the token transfers
+        if (participant1_balance > 0) {
+            require(token.transfer(participant1, participant1_balance));
+        }
+
+        if (participant2_balance > 0) {
+            require(token.transfer(participant2, participant2_balance));
+        }
     }
 
     /// @notice Returns the unique identifier for the channel given by the
