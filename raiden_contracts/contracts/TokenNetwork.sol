@@ -505,6 +505,10 @@ contract TokenNetwork is Utils {
 
         Channel storage channel = channels[channel_identifier];
 
+        require(channel.state == ChannelState.Closed);
+        // Channel must be in the settlement window
+        require(channel.settle_block_number >= block.number);
+
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = recoverAddressFromBalanceProofUpdateMessage(
@@ -515,6 +519,7 @@ contract TokenNetwork is Utils {
             closing_signature,
             non_closing_signature
         );
+        require(non_closing_participant == recovered_non_closing_participant);
 
         recovered_closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
@@ -523,8 +528,11 @@ contract TokenNetwork is Utils {
             additional_hash,
             closing_signature
         );
+        require(closing_participant == recovered_closing_participant);
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
+        // Make sure the first signature is from the closing participant
+        require(closing_participant_state.is_the_closer);
 
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
@@ -534,17 +542,6 @@ contract TokenNetwork is Utils {
             closing_participant,
             nonce
         );
-
-        require(channel.state == ChannelState.Closed);
-
-        // Channel must be in the settlement window
-        require(channel.settle_block_number >= block.number);
-
-        // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
-
-        require(closing_participant == recovered_closing_participant);
-        require(non_closing_participant == recovered_non_closing_participant);
     }
 
     /// @notice Settles the balance between the two parties. Note that arguments
