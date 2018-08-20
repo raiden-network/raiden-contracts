@@ -450,6 +450,8 @@ contract TokenNetwork is Utils {
                 additional_hash,
                 signature
             );
+            // Signature must be from the channel partner
+            require(partner == recovered_partner_address);
 
             updateBalanceProofData(
                 channel,
@@ -457,9 +459,6 @@ contract TokenNetwork is Utils {
                 nonce,
                 balance_hash
             );
-
-            // Signature must be from the channel partner
-            require(partner == recovered_partner_address);
         }
 
         emit ChannelClosed(channel_identifier, msg.sender);
