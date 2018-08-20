@@ -744,6 +744,15 @@ contract TokenNetwork is Utils {
         // Remove partner's unlock data
         delete unlock_identifier_to_unlock_data[unlock_key];
 
+        emit ChannelUnlocked(
+            channel_identifier,
+            participant,
+            partner,
+            computed_locksroot,
+            unlocked_amount,
+            returned_tokens
+        );
+
         // Transfer the unlocked tokens to the participant. unlocked_amount can
         // be 0
         if (unlocked_amount > 0) {
@@ -754,15 +763,6 @@ contract TokenNetwork is Utils {
         if (returned_tokens > 0) {
             require(token.transfer(partner, returned_tokens));
         }
-
-        emit ChannelUnlocked(
-            channel_identifier,
-            participant,
-            partner,
-            computed_locksroot,
-            unlocked_amount,
-            returned_tokens
-        );
 
         // At this point, this should always be true
         assert(locked_amount >= returned_tokens);
