@@ -329,8 +329,6 @@ contract TokenNetwork is Utils {
     /// amount.
     /// @param total_withdraw Total amount of tokens that are marked as
     /// withdrawn from the channel during the channel lifecycle.
-    /// @param partner Channel partner address, needed to compute the total
-    /// channel deposit.
     /// @param participant_signature Participant's signature on the withdraw
     /// data.
     /// @param partner_signature Partner's signature on the withdraw data.
@@ -338,55 +336,65 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        address partner,
         bytes participant_signature,
         bytes partner_signature
     )
         isOpen(channel_identifier)
         external
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
+        uint256 total_deposit;
+        uint256 current_withdraw;
+        address partner;
+
         require(total_withdraw > 0);
 
-        verifyWithdrawSignatures(
+        // Authenticate both channel partners via there signatures:
+        require(participant == recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
-            partner,
             total_withdraw,
-            participant_signature,
+            participant_signature
+        ));
+        partner = recoverAddressFromWithdrawMessage(
+            channel_identifier,
+            participant,
+            total_withdraw,
             partner_signature
         );
 
-        uint256 total_deposit;
-        uint256 current_withdraw;
+        // Validate that authenticated partners and the channel identifier match
+        require(channel_identifier == getChannelIdentifier(participant, partner));
 
+        // Read channel state after validating the function input
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
         Participant storage partner_state = channel.participants[partner];
 
         total_deposit = participant_state.deposit + partner_state.deposit;
-        // This should never happen, as we have an overflow check in setTotalDeposit
-        assert(total_deposit >= participant_state.deposit);
-        assert(total_deposit >= partner_state.deposit);
 
         // Entire withdrawn amount must not be bigger than the current channel deposit
-        require(total_withdraw <= (total_deposit - partner_state.withdrawn_amount));
+        require((total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
 
         // Using the total_withdraw (monotonically increasing) in the signed
-        // message ensures that we do not allow reply attack to happen, by
+        // message ensures that we do not allow replay attack to happen, by
         // using the same withdraw proof twice.
+        // Next two lines enforce the monotonicity of total_withdraw and check for an underflow:
+        // (we use <= because current_withdraw == total_withdraw for the first withdraw)
         current_withdraw = total_withdraw - participant_state.withdrawn_amount;
-        // The actual amount of tokens that will be transferred must be > 0
-        require(current_withdraw > 0);
-        // Underflow check; we use <= because current_withdraw == total_withdraw for the first
-        // withdraw
         require(current_withdraw <= total_withdraw);
+
+        // The actual amount of tokens that will be transferred must be > 0 to disable the reuse of
+        // withdraw messages completely.
+        require(current_withdraw > 0);
+
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.withdrawn_amount = total_withdraw,
         // while we transfer `current_withdraw` tokens.
         assert(participant_state.withdrawn_amount + current_withdraw == total_withdraw);
 
+        // Do the state change and tokens transfer
         participant_state.withdrawn_amount = total_withdraw;
+        require(token.transfer(participant, current_withdraw));
 
         emit ChannelWithdraw(
             channel_identifier,
@@ -394,13 +402,15 @@ contract TokenNetwork is Utils {
             participant_state.withdrawn_amount
         );
 
-        // Do the tokens transfer
-        require(token.transfer(participant, current_withdraw));
+        // This should never happen, as we have an overflow check in setTotalDeposit
+        assert(total_deposit >= participant_state.deposit);
+        assert(total_deposit >= partner_state.deposit);
 
         // A withdraw should never happen if a participant already has a
-        // balance proof in storage
+        // balance proof in storage. This should never fail as we use isOpen.
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
+
     }
 
     /// @notice Close the channel defined by the two participant addresses. Only
@@ -1336,37 +1346,6 @@ contract TokenNetwork is Utils {
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
-    }
-
-    function verifyWithdrawSignatures(
-        uint256 channel_identifier,
-        address participant,
-        address partner,
-        uint256 total_withdraw,
-        bytes participant_signature,
-        bytes partner_signature
-    )
-        view
-        internal
-    {
-        address recovered_participant_address;
-        address recovered_partner_address;
-
-        recovered_participant_address = recoverAddressFromWithdrawMessage(
-            channel_identifier,
-            participant,
-            total_withdraw,
-            participant_signature
-        );
-        recovered_partner_address = recoverAddressFromWithdrawMessage(
-            channel_identifier,
-            participant,
-            total_withdraw,
-            partner_signature
-        );
-        // Check recovered addresses from signatures
-        require(participant == recovered_participant_address);
-        require(partner == recovered_partner_address);
     }
 
     /// @dev Calculates the merkle root for the pending transfers data and
