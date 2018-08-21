@@ -51,10 +51,11 @@ def check_withdraw(channel_identifier, participant, withdrawn_amount):
     return get
 
 
-def check_channel_closed(channel_identifier, closing_participant):
+def check_channel_closed(channel_identifier, closing_participant, nonce):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier
         assert event['args']['closing_participant'] == closing_participant
+        assert event['args']['nonce'] == nonce
     return get
 
 

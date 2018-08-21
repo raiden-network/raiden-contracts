@@ -354,7 +354,7 @@ def test_close_channel_event_no_offchain_transfers(
         fake_bytes(64),
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
     ev_handler.check()
 
 
@@ -451,7 +451,13 @@ def test_close_channel_event(
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
-    balance_proof = create_balance_proof(channel_identifier, B, 5, 0, 3)
+    balance_proof = create_balance_proof(
+        channel_identifier,
+        B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+    )
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
@@ -459,5 +465,5 @@ def test_close_channel_event(
         *balance_proof,
     ).transact({'from': A})
 
-    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
+    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 3))
     ev_handler.check()
