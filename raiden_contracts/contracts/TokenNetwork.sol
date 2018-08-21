@@ -143,7 +143,8 @@ contract TokenNetwork is Utils {
 
     event ChannelClosed(
         uint256 indexed channel_identifier,
-        address indexed closing_participant
+        address indexed closing_participant,
+        uint256 indexed nonce
     );
 
     event ChannelUnlocked(
@@ -158,7 +159,7 @@ contract TokenNetwork is Utils {
     event NonClosingBalanceProofUpdated(
         uint256 indexed channel_identifier,
         address indexed closing_participant,
-        uint256 nonce
+        uint256 indexed nonce
     );
 
     event ChannelSettled(
@@ -461,7 +462,7 @@ contract TokenNetwork is Utils {
             );
         }
 
-        emit ChannelClosed(channel_identifier, msg.sender);
+        emit ChannelClosed(channel_identifier, msg.sender, nonce);
     }
 
     /// @notice Called on a closed channel, the function allows the non-closing
