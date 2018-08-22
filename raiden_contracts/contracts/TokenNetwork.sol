@@ -38,6 +38,8 @@ contract TokenNetwork is Utils {
     // opened channels in this contract
     uint256 public channel_counter;
 
+    string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
+
     // channel_identifier => Channel
     // channel identifier is the channel_counter value at the time of opening
     // the channel
@@ -1379,13 +1381,21 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
+        uint256 message_type_id = 0;
+
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
+        string memory message_length = '212';
+
         bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            message_type_id,
+            channel_identifier,
             balance_hash,
             nonce,
-            additional_hash,
-            channel_identifier,
-            address(this),
-            chain_id
+            additional_hash
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
@@ -1403,13 +1413,21 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
+        uint256 message_type_id = 1;
+
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
+        string memory message_length = '277';
+
         bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            message_type_id,
+            channel_identifier,
             balance_hash,
             nonce,
             additional_hash,
-            channel_identifier,
-            address(this),
-            chain_id,
             closing_signature
         ));
 
@@ -1428,14 +1446,22 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
+        uint256 message_type_id = 3;
+
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
+        string memory message_length = '220';
+
         bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            message_type_id,
+            channel_identifier,
             participant1,
             participant1_balance,
             participant2,
-            participant2_balance,
-            channel_identifier,
-            address(this),
-            chain_id
+            participant2_balance
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
@@ -1451,12 +1477,20 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
+        uint256 message_type_id = 2;
+
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32
+        string memory message_length = '168';
+
         bytes32 message_hash = keccak256(abi.encodePacked(
-            participant,
-            total_withdraw,
-            channel_identifier,
+            signature_prefix,
+            message_length,
             address(this),
-            chain_id
+            chain_id,
+            message_type_id,
+            channel_identifier,
+            participant,
+            total_withdraw
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);

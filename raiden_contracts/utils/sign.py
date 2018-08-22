@@ -1,4 +1,5 @@
 from web3 import Web3
+from eth_abi import encode_single
 from .sign_utils import sign
 
 
@@ -6,6 +7,15 @@ def hash_balance_data(transferred_amount, locked_amount, locksroot):
     return Web3.soliditySha3(
         ['uint256', 'uint256', 'bytes32'],
         [transferred_amount, locked_amount, locksroot],
+    )
+
+
+def eth_sign_hash_message(encoded_message):
+    signature_prefix = '\x19Ethereum Signed Message:\n'
+    return Web3.sha3(
+        Web3.toBytes(text=signature_prefix) +
+        Web3.toBytes(text=str(len(encoded_message))) +
+        encoded_message
     )
 
 
@@ -17,21 +27,16 @@ def hash_balance_proof(
         nonce,
         additional_hash,
 ):
-    return Web3.soliditySha3([
-        'bytes32',
-        'uint256',
-        'bytes32',
-        'uint256',
-        'address',
-        'uint256',
-    ], [
-        balance_hash,
-        nonce,
-        additional_hash,
-        channel_identifier,
-        token_network_address,
-        chain_identifier,
-    ])
+    message_type_id = 0
+    return eth_sign_hash_message(
+        Web3.toBytes(hexstr=token_network_address) +
+        encode_single('uint256', chain_identifier) +
+        encode_single('uint256', message_type_id) +
+        encode_single('uint256', channel_identifier) +
+        balance_hash +
+        encode_single('uint256', nonce) +
+        additional_hash
+    )
 
 
 def hash_balance_proof_update_message(
@@ -43,23 +48,17 @@ def hash_balance_proof_update_message(
         additional_hash,
         closing_signature,
 ):
-    return Web3.soliditySha3([
-        'bytes32',
-        'uint256',
-        'bytes32',
-        'uint256',
-        'address',
-        'uint256',
-        'bytes',
-    ], [
-        balance_hash,
-        nonce,
-        additional_hash,
-        channel_identifier,
-        token_network_address,
-        chain_identifier,
-        closing_signature,
-    ])
+    message_type_id = 1
+    return eth_sign_hash_message(
+        Web3.toBytes(hexstr=token_network_address) +
+        encode_single('uint256', chain_identifier) +
+        encode_single('uint256', message_type_id) +
+        encode_single('uint256', channel_identifier) +
+        balance_hash +
+        encode_single('uint256', nonce) +
+        additional_hash +
+        closing_signature
+    )
 
 
 def hash_cooperative_settle_message(
@@ -71,23 +70,17 @@ def hash_cooperative_settle_message(
         participant2_address,
         participant2_balance,
 ):
-    return Web3.soliditySha3([
-        'address',
-        'uint256',
-        'address',
-        'uint256',
-        'uint256',
-        'address',
-        'uint256',
-    ], [
-        participant1_address,
-        participant1_balance,
-        participant2_address,
-        participant2_balance,
-        channel_identifier,
-        token_network_address,
-        chain_identifier,
-    ])
+    message_type_id = 3
+    return eth_sign_hash_message(
+        Web3.toBytes(hexstr=token_network_address) +
+        encode_single('uint256', chain_identifier) +
+        encode_single('uint256', message_type_id) +
+        encode_single('uint256', channel_identifier) +
+        Web3.toBytes(hexstr=participant1_address) +
+        encode_single('uint256', participant1_balance) +
+        Web3.toBytes(hexstr=participant2_address) +
+        encode_single('uint256', participant2_balance)
+    )
 
 
 def hash_withdraw_message(
@@ -97,19 +90,15 @@ def hash_withdraw_message(
         participant,
         amount_to_withdraw,
 ):
-    return Web3.soliditySha3([
-        'address',
-        'uint256',
-        'uint256',
-        'address',
-        'uint256',
-    ], [
-        participant,
-        amount_to_withdraw,
-        channel_identifier,
-        token_network_address,
-        chain_identifier,
-    ])
+    message_type_id = 2
+    return eth_sign_hash_message(
+        Web3.toBytes(hexstr=token_network_address) +
+        encode_single('uint256', chain_identifier) +
+        encode_single('uint256', message_type_id) +
+        encode_single('uint256', channel_identifier) +
+        Web3.toBytes(hexstr=participant) +
+        encode_single('uint256', amount_to_withdraw)
+    )
 
 
 def hash_reward_proof(
