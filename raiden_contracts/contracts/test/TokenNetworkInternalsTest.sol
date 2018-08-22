@@ -218,27 +218,6 @@ contract TokenNetworkInternalsTest is TokenNetwork {
         );
     }
 
-    function verifyWithdrawSignaturesPublic(
-        uint256 channel_identifier,
-        address participant,
-        address partner,
-        uint256 total_withdraw,
-        bytes participant_signature,
-        bytes partner_signature
-    )
-        view
-        public
-    {
-        return verifyWithdrawSignatures(
-            channel_identifier,
-            participant,
-            partner,
-            total_withdraw,
-            participant_signature,
-            partner_signature
-        );
-    }
-
     function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree_leaves)
         view
         public
