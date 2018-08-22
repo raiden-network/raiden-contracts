@@ -374,6 +374,7 @@ contract TokenNetwork is Utils {
 
         // Entire withdrawn amount must not be bigger than the current channel deposit
         require((total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
+        require(total_withdraw <= (total_withdraw + partner_state.withdrawn_amount));
 
         // Using the total_withdraw (monotonically increasing) in the signed
         // message ensures that we do not allow replay attack to happen, by
@@ -392,15 +393,15 @@ contract TokenNetwork is Utils {
         // while we transfer `current_withdraw` tokens.
         assert(participant_state.withdrawn_amount + current_withdraw == total_withdraw);
 
-        // Do the state change and tokens transfer
-        participant_state.withdrawn_amount = total_withdraw;
-        require(token.transfer(participant, current_withdraw));
-
         emit ChannelWithdraw(
             channel_identifier,
             participant,
-            participant_state.withdrawn_amount
+            total_withdraw
         );
+
+        // Do the state change and tokens transfer
+        participant_state.withdrawn_amount = total_withdraw;
+        require(token.transfer(participant, current_withdraw));
 
         // This should never happen, as we have an overflow check in setTotalDeposit
         assert(total_deposit >= participant_state.deposit);
