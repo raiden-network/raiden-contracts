@@ -16,11 +16,11 @@ from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
 
 
-def test_merkle_root_0_items(token_network_test):
+def test_merkle_root_0_items(token_network_test_utils):
     (
         locksroot,
         unlocked_amount,
-    ) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(b'').call()
+    ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(b'').call()
     assert locksroot == EMPTY_MERKLE_ROOT
     assert unlocked_amount == 0
 
@@ -28,7 +28,7 @@ def test_merkle_root_0_items(token_network_test):
 def test_merkle_root_1_item_unlockable(
         web3,
         get_accounts,
-        token_network_test,
+        token_network_test_utils,
         secret_registry_contract,
 ):
     A = get_accounts(1)[0]
@@ -41,7 +41,7 @@ def test_merkle_root_1_item_unlockable(
         pending_transfers_tree.unlockable[0][2],
     ).call() == web3.eth.blockNumber
 
-    (locksroot, unlocked_amount) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
+    (locksroot, unlocked_amount) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
         pending_transfers_tree.packed_transfers,
     ).call()
 
@@ -53,7 +53,7 @@ def test_merkle_root_1_item_unlockable(
 def test_merkle_root(
         web3,
         get_accounts,
-        token_network_test,
+        token_network_test_utils,
         secret_registry_contract,
         reveal_secrets,
 ):
@@ -62,7 +62,7 @@ def test_merkle_root(
 
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
-    (locksroot, unlocked_amount) = token_network_test.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
+    (locksroot, unlocked_amount) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
         pending_transfers_tree.packed_transfers,
     ).call()
     merkle_root = pending_transfers_tree.merkle_root

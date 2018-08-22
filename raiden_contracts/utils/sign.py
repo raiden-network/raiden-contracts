@@ -15,7 +15,7 @@ def eth_sign_hash_message(encoded_message):
     return Web3.sha3(
         Web3.toBytes(text=signature_prefix) +
         Web3.toBytes(text=str(len(encoded_message))) +
-        encoded_message
+        encoded_message,
     )
 
 
@@ -35,7 +35,7 @@ def hash_balance_proof(
         encode_single('uint256', channel_identifier) +
         balance_hash +
         encode_single('uint256', nonce) +
-        additional_hash
+        additional_hash,
     )
 
 
@@ -57,7 +57,7 @@ def hash_balance_proof_update_message(
         balance_hash +
         encode_single('uint256', nonce) +
         additional_hash +
-        closing_signature
+        closing_signature,
     )
 
 
@@ -79,7 +79,7 @@ def hash_cooperative_settle_message(
         Web3.toBytes(hexstr=participant1_address) +
         encode_single('uint256', participant1_balance) +
         Web3.toBytes(hexstr=participant2_address) +
-        encode_single('uint256', participant2_balance)
+        encode_single('uint256', participant2_balance),
     )
 
 
@@ -97,7 +97,7 @@ def hash_withdraw_message(
         encode_single('uint256', message_type_id) +
         encode_single('uint256', channel_identifier) +
         Web3.toBytes(hexstr=participant) +
-        encode_single('uint256', amount_to_withdraw)
+        encode_single('uint256', amount_to_withdraw),
     )
 
 

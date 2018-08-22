@@ -27,8 +27,8 @@ from raiden_contracts.tests.fixtures.config import (
 )
 
 
-def test_max_safe_uint256(token_network, token_network_test):
-    max_safe_uint256 = token_network_test.functions.get_max_safe_uint256().call()
+def test_max_safe_uint256(token_network, token_network_test_utils):
+    max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
 
     assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
     assert max_safe_uint256 == MAX_UINT256
