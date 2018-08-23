@@ -281,34 +281,35 @@ contract TokenNetwork is Utils {
         isOpen(channel_identifier)
         public
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_deposit > 0);
-        require(total_deposit <= deposit_limit);
-
         uint256 added_deposit;
         uint256 channel_deposit;
 
+        // Check deposit constraints
+        require(total_deposit > 0);
+        require(total_deposit <= deposit_limit);
+
+        // Check that address data is correct
+        require(channel_identifier == getChannelIdentifier(participant, partner));
+
+        // Get channel deposit state
         Channel storage channel = channels[channel_identifier];
         Participant storage participant_state = channel.participants[participant];
         Participant storage partner_state = channel.participants[partner];
 
-        // Calculate the actual amount of tokens that will be transferred
+        // Check for underflow:
+        require(total_deposit > participant_state.deposit);
+        // Calculate the actual amount of tokens that will be transferred:
         added_deposit = total_deposit - participant_state.deposit;
-        // The actual amount of tokens that will be transferred must be > 0
-        require(added_deposit > 0);
-        // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
-        require(added_deposit <= total_deposit);
+
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
 
+        // Check that overall channel deposit does not overflow
+        require((participant_state.deposit + partner_state.deposit) >= participant_state.deposit);
+
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;
-
-        // Calculate the entire channel deposit, to avoid overflow
-        channel_deposit = participant_state.deposit + partner_state.deposit;
-        // Overflow check
-        require(channel_deposit >= participant_state.deposit);
 
         emit ChannelNewDeposit(
             channel_identifier,
