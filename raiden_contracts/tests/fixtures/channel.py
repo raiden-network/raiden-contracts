@@ -116,7 +116,6 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             channel_identifier,
             participant,
             withdraw_amount,
-            partner,
             signature_participant,
             signature_partner
         ).transact({'from': delegate})

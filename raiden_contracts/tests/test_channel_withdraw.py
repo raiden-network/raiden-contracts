@@ -34,7 +34,6 @@ def test_withdraw_call(
             channel_identifier,
             0x0,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -43,25 +42,6 @@ def test_withdraw_call(
             channel_identifier,
             '',
             withdraw_A,
-            B,
-            signature_A_for_A,
-            signature_B_for_A,
-        ).transact({'from': A})
-    with pytest.raises(ValidationError):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            0x0,
-            signature_A_for_A,
-            signature_B_for_A,
-        ).transact({'from': A})
-    with pytest.raises(ValidationError):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            '',
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -70,7 +50,6 @@ def test_withdraw_call(
             channel_identifier,
             A,
             -1,
-            B,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -79,7 +58,6 @@ def test_withdraw_call(
             channel_identifier,
             A,
             MAX_UINT256 + 1,
-            B,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -89,16 +67,6 @@ def test_withdraw_call(
             channel_identifier,
             EMPTY_ADDRESS,
             withdraw_A,
-            B,
-            signature_A_for_A,
-            signature_B_for_A,
-        ).transact({'from': A})
-    with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            EMPTY_ADDRESS,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -107,7 +75,6 @@ def test_withdraw_call(
             channel_identifier,
             A,
             0,
-            B,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -116,7 +83,6 @@ def test_withdraw_call(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             fake_bytes(65),
             signature_B_for_A,
         ).transact({'from': A})
@@ -125,7 +91,6 @@ def test_withdraw_call(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             fake_bytes(65),
         ).transact({'from': A})
@@ -134,7 +99,6 @@ def test_withdraw_call(
         channel_identifier,
         A,
         withdraw_A,
-        B,
         signature_A_for_A,
         signature_B_for_A,
     ).transact({'from': A})
@@ -245,7 +209,6 @@ def test_withdraw_wrong_signers(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_C_for_A,
             signature_B_for_A,
         ).transact({'from': C})
@@ -254,7 +217,6 @@ def test_withdraw_wrong_signers(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_C_for_A,
         ).transact({'from': C})
@@ -263,7 +225,6 @@ def test_withdraw_wrong_signers(
         channel_identifier,
         A,
         withdraw_A,
-        B,
         signature_A_for_A,
         signature_B_for_A,
     ).transact({'from': C})
@@ -314,7 +275,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A_fake1,
             signature_B_for_A,
         ).transact({'from': A})
@@ -323,7 +283,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_B_for_A_fake1,
         ).transact({'from': A})
@@ -332,7 +291,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A_fake2,
             signature_B_for_A,
         ).transact({'from': A})
@@ -341,7 +299,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_B_for_A_fake2,
         ).transact({'from': A})
@@ -350,7 +307,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A_fake3,
             signature_B_for_A,
         ).transact({'from': A})
@@ -359,7 +315,6 @@ def test_withdraw_wrong_signature_content(
             channel_identifier,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_B_for_A_fake3,
         ).transact({'from': A})
@@ -368,7 +323,6 @@ def test_withdraw_wrong_signature_content(
         channel_identifier,
         A,
         withdraw_A,
-        B,
         signature_A_for_A,
         signature_B_for_A,
     ).transact({'from': A})
@@ -486,7 +440,6 @@ def test_withdraw_replay_reopened_channel(
         channel_identifier1,
         A,
         withdraw_A,
-        B,
         signature_A_for_A,
         signature_B_for_A,
     ).transact({'from': A})
@@ -522,7 +475,6 @@ def test_withdraw_replay_reopened_channel(
             channel_identifier2,
             A,
             withdraw_A,
-            B,
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
@@ -538,7 +490,6 @@ def test_withdraw_replay_reopened_channel(
         channel_identifier2,
         A,
         withdraw_A,
-        B,
         signature_A_for_A2,
         signature_B_for_A2,
     ).transact({'from': A})
