@@ -9,9 +9,15 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_transfer_updated
-from .fixtures.config import fake_bytes, EMPTY_ADDRESS
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_LOCKSROOT,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+    EMPTY_ADDRESS,
+    fake_bytes,
+)
 
 
 def test_update_call(
@@ -28,10 +34,10 @@ def test_update_call(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
@@ -64,14 +70,14 @@ def test_update_call(
             A,
             B,
             *balance_proof_A,
-            fake_bytes(64),
+            EMPTY_SIGNATURE,
         ).transact({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             nonce,
             additional_hash,
             closing_signature,
@@ -96,7 +102,7 @@ def test_update_call(
             balance_hash,
             nonce,
             additional_hash,
-            fake_bytes(64),
+            EMPTY_SIGNATURE,
             balance_proof_update_signature_B,
         ).transact({'from': C})
 
@@ -366,10 +372,10 @@ def test_update_channel_fail_no_offchain_transfers(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
@@ -377,11 +383,11 @@ def test_update_channel_fail_no_offchain_transfers(
             channel_identifier,
             A,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             0,
-            fake_bytes(32),
-            fake_bytes(64),
-            fake_bytes(64),
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            EMPTY_SIGNATURE,
         ).transact({'from': B})
 
     with pytest.raises(TransactionFailed):
@@ -514,10 +520,10 @@ def test_update_invalid_balance_proof_arguments(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     balance_proof = namedtuple(
@@ -746,10 +752,10 @@ def test_update_signature_on_invalid_arguments(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     #  Create valid balance_proof
@@ -905,19 +911,18 @@ def test_update_replay_reopened_channel(
         create_balance_proof_update_signature,
 ):
     (A, B) = get_accounts(2)
-    nonce_A = 0
     nonce_B = 5
     values_A = ChannelValues(
         deposit=10,
         transferred=0,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=20,
         transferred=15,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
 
     channel_identifier1 = create_channel(A, B)[0]
@@ -939,10 +944,10 @@ def test_update_replay_reopened_channel(
     token_network.functions.closeChannel(
         channel_identifier1,
         A,
-        fake_bytes(32),
-        nonce_A,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': B})
 
     token_network.functions.updateNonClosingBalanceProof(
@@ -972,10 +977,10 @@ def test_update_replay_reopened_channel(
     token_network.functions.closeChannel(
         channel_identifier2,
         A,
-        fake_bytes(32),
-        nonce_A,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': B})
 
     assert channel_identifier1 != channel_identifier2

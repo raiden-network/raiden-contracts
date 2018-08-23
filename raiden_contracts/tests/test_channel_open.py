@@ -10,10 +10,16 @@ from raiden_contracts.constants import (
     ParticipantInfoIndex,
 )
 from raiden_contracts.utils.events import check_channel_opened
-from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS, fake_bytes
 from web3.exceptions import ValidationError
 from .utils import get_participants_hash
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_LOCKSROOT,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+    EMPTY_ADDRESS,
+    FAKE_ADDRESS,
+)
 
 
 def test_open_channel_call(token_network, get_accounts):
@@ -184,9 +190,9 @@ def test_open_channel_state(token_network, get_accounts):
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
-    assert A_balance_hash == fake_bytes(32)
+    assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
-    assert A_locksroot == EMPTY_MERKLE_ROOT
+    assert A_locksroot == EMPTY_LOCKSROOT
     assert A_locked_amount == 0
 
     (
@@ -201,9 +207,9 @@ def test_open_channel_state(token_network, get_accounts):
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
-    assert B_balance_hash == fake_bytes(32)
+    assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
-    assert B_locksroot == EMPTY_MERKLE_ROOT
+    assert B_locksroot == EMPTY_LOCKSROOT
     assert B_locked_amount == 0
 
 
@@ -214,7 +220,6 @@ def test_reopen_channel(
 ):
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    locksroot = fake_bytes(32)
 
     token_network.functions.openChannel(A, B, settle_timeout).transact()
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
@@ -230,10 +235,10 @@ def test_reopen_channel(
     token_network.functions.closeChannel(
         channel_identifier1,
         B,
-        locksroot,
+        EMPTY_LOCKSROOT,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     # Reopen Channel before settlement fails
@@ -249,11 +254,11 @@ def test_reopen_channel(
         A,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
         B,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     # Reopening the channel should work iff channel is settled
@@ -284,9 +289,9 @@ def test_reopen_channel(
     assert A_deposit == 0
     assert A_withdrawn == 0
     assert A_is_the_closer is False
-    assert A_balance_hash == fake_bytes(32)
+    assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
-    assert A_locksroot == EMPTY_MERKLE_ROOT
+    assert A_locksroot == EMPTY_LOCKSROOT
     assert A_locked_amount == 0
 
     (
@@ -301,9 +306,9 @@ def test_reopen_channel(
     assert B_deposit == 0
     assert B_withdrawn == 0
     assert B_is_the_closer is False
-    assert B_balance_hash == fake_bytes(32)
+    assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
-    assert B_locksroot == EMPTY_MERKLE_ROOT
+    assert B_locksroot == EMPTY_LOCKSROOT
     assert B_locked_amount == 0
 
 
