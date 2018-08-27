@@ -11,7 +11,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel_test_values import channel_settle_test_values
 from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.tests.fixtures.config import fake_hex, fake_bytes
+from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import (
     MAX_UINT256,
     get_settlement_amounts,
@@ -19,6 +19,12 @@ from raiden_contracts.tests.utils import (
     ChannelValues,
 )
 from raiden_contracts.utils.utils import get_pending_transfers_tree
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_LOCKSROOT,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+)
 
 
 def test_max_safe_uint256(token_network, token_network_test):
@@ -38,18 +44,16 @@ def test_settle_no_bp_success(
     deposit_A = 10
     deposit_B = 6
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    locksroot = fake_bytes(32)
-    additional_hash = fake_bytes(32)
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     # Close channel with no balance proof
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        locksroot,
+        EMPTY_BALANCE_HASH,
         0,
-        additional_hash,
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     # Do not call updateNonClosingBalanceProof
@@ -63,11 +67,11 @@ def test_settle_no_bp_success(
         A,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
         B,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
 
@@ -219,7 +223,6 @@ def test_settle_single_direct_transfer_for_closing_party(
         ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
     )
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    locksroot = fake_bytes(32)
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -231,7 +234,7 @@ def test_settle_single_direct_transfer_for_closing_party(
         vals_B.transferred,
         vals_B.locked,
         1,
-        locksroot,
+        EMPTY_LOCKSROOT,
     )
     token_network.functions.closeChannel(
         channel_identifier,
@@ -249,11 +252,11 @@ def test_settle_single_direct_transfer_for_closing_party(
         A,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
         B,
         vals_B.transferred,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     # Calculate how much A and B should receive
@@ -289,8 +292,6 @@ def test_settle_single_direct_transfer_for_counterparty(
         ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
     )
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    locksroot = fake_bytes(32)
-    additional_hash = fake_bytes(32)
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -298,10 +299,10 @@ def test_settle_single_direct_transfer_for_counterparty(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        locksroot,
+        EMPTY_LOCKSROOT,
         0,
-        additional_hash,
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     balance_proof_A = create_balance_proof(
@@ -310,7 +311,8 @@ def test_settle_single_direct_transfer_for_counterparty(
         vals_A.transferred,
         vals_A.locked,
         1,
-        locksroot)
+        EMPTY_LOCKSROOT,
+    )
 
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
@@ -335,11 +337,11 @@ def test_settle_single_direct_transfer_for_counterparty(
         B,
         0,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
         A,
         vals_A.transferred,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
     ).transact({'from': B})
 
     # Calculate how much A and B should receive
@@ -485,13 +487,12 @@ def test_settle_channel_event(
     (A, B) = get_accounts(2)
     deposit_A = 10
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    locksroot = fake_hex(32, '00')
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, locksroot)
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, locksroot)
+    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, EMPTY_LOCKSROOT)
+    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, EMPTY_LOCKSROOT)
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B,
         channel_identifier,
@@ -517,11 +518,11 @@ def test_settle_channel_event(
         B,
         5,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
         A,
         10,
         0,
-        locksroot,
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(

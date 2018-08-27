@@ -1,5 +1,6 @@
 from collections import namedtuple
 from eth_utils import keccak, to_canonical_address
+from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT, EMPTY_ADDITIONAL_HASH
 
 
 MAX_UINT256 = 2 ** 256 - 1
@@ -17,13 +18,15 @@ class ChannelValues():
             self,
             deposit=0,
             withdrawn=0,
+            nonce=0,
             transferred=0,
             locked=0,
-            locksroot=b'',
-            additional_hash=b'',
+            locksroot=EMPTY_LOCKSROOT,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
     ):
         self.deposit = deposit
         self.withdrawn = withdrawn
+        self.nonce = nonce
         self.transferred = transferred
         self.locked = locked
         self.locksroot = locksroot

@@ -7,9 +7,14 @@ from raiden_contracts.constants import (
     ChannelState,
 )
 from raiden_contracts.utils.events import check_channel_closed
-from .fixtures.config import fake_bytes, fake_hex
+from .fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_LOCKSROOT,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+)
 
 
 def test_close_nonexistent_channel(
@@ -31,10 +36,10 @@ def test_close_nonexistent_channel(
         token_network.functions.closeChannel(
             non_existent_channel_identifier,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             0,
-            fake_bytes(32),
-            fake_bytes(64),
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -55,10 +60,10 @@ def test_close_settled_channel(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
@@ -66,11 +71,11 @@ def test_close_settled_channel(
         A,
         0,
         0,
-        fake_bytes(32),
+        EMPTY_LOCKSROOT,
         B,
         0,
         0,
-        fake_bytes(32),
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     (
@@ -84,10 +89,10 @@ def test_close_settled_channel(
         token_network.functions.closeChannel(
             channel_identifier,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             0,
-            fake_bytes(32),
-            fake_bytes(64),
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -102,7 +107,7 @@ def test_close_wrong_signature(
     deposit_A = 6
     transferred_amount = 5
     nonce = 3
-    locksroot = fake_hex(32, '03')
+    locksroot = fake_bytes(32, '03')
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
@@ -138,20 +143,20 @@ def test_close_call_twice_fail(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
             channel_identifier,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             0,
-            fake_bytes(32),
-            fake_bytes(64),
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -169,10 +174,10 @@ def test_close_wrong_sender(
         token_network.functions.closeChannel(
             channel_identifier,
             B,
-            fake_bytes(32),
+            EMPTY_BALANCE_HASH,
             0,
-            fake_bytes(32),
-            fake_bytes(64),
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
         ).transact({'from': C})
 
 
@@ -220,10 +225,10 @@ def test_close_first_participant_can_close(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
 
@@ -238,10 +243,10 @@ def test_close_second_participant_can_close(
     token_network.functions.closeChannel(
         channel_identifier,
         A,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': B})
 
 
@@ -258,7 +263,7 @@ def test_close_channel_state(
     deposit_A = 20
     transferred_amount = 5
     nonce = 3
-    locksroot = fake_hex(32, '03')
+    locksroot = fake_bytes(32, '03')
 
     # Create channel and deposit
     channel_identifier = create_channel(A, B, settle_timeout)[0]
@@ -291,7 +296,7 @@ def test_close_channel_state(
         _,
     ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is False
-    assert A_balance_hash == fake_bytes(32)
+    assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
 
     txn_hash = token_network.functions.closeChannel(
@@ -316,7 +321,7 @@ def test_close_channel_state(
         _,
     ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is True
-    assert A_balance_hash == fake_bytes(32)
+    assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
 
     (
@@ -348,10 +353,10 @@ def test_close_channel_event_no_offchain_transfers(
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
@@ -372,13 +377,13 @@ def test_close_replay_reopened_channel(
         deposit=10,
         transferred=0,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=20,
         transferred=15,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     channel_identifier1 = create_channel(A, B)[0]
     channel_deposit(channel_identifier1, B, values_B.deposit, A)

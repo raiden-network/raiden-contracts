@@ -2,14 +2,19 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
 from raiden_contracts.utils.events import check_withdraw
-from .fixtures.config import EMPTY_ADDRESS, fake_bytes
 from raiden_contracts.constants import (
     ChannelEvent,
     ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from .utils import MAX_UINT256
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_LOCKSROOT,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+    EMPTY_ADDRESS,
+)
 
 
 def test_withdraw_call(
@@ -83,7 +88,7 @@ def test_withdraw_call(
             channel_identifier,
             A,
             withdraw_A,
-            fake_bytes(65),
+            EMPTY_SIGNATURE,
             signature_B_for_A,
         ).transact({'from': A})
     with pytest.raises(TransactionFailed):
@@ -92,7 +97,7 @@ def test_withdraw_call(
             A,
             withdraw_A,
             signature_A_for_A,
-            fake_bytes(65),
+            EMPTY_SIGNATURE,
         ).transact({'from': A})
 
     token_network.functions.setTotalWithdraw(
@@ -126,10 +131,10 @@ def test_withdraw_wrong_state(
     token_network.functions.closeChannel(
         channel_identifier,
         B,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
@@ -143,11 +148,11 @@ def test_withdraw_wrong_state(
         A,
         0,
         0,
-        fake_bytes(32),
+        EMPTY_LOCKSROOT,
         B,
         0,
         0,
-        fake_bytes(32),
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
@@ -447,10 +452,10 @@ def test_withdraw_replay_reopened_channel(
     token_network.functions.closeChannel(
         channel_identifier1,
         A,
-        fake_bytes(32),
+        EMPTY_BALANCE_HASH,
         0,
-        fake_bytes(32),
-        fake_bytes(64),
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
     ).transact({'from': B})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
@@ -458,11 +463,11 @@ def test_withdraw_replay_reopened_channel(
         A,
         0,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         B,
         0,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     # Reopen the channel and make sure we cannot use the old withdraw proof
