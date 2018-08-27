@@ -1,6 +1,7 @@
 from web3 import Web3
 from eth_abi import encode_single
 from .sign_utils import sign
+from raiden_contracts.constants import MessageTypeId
 
 
 def hash_balance_data(transferred_amount, locked_amount, locksroot):
@@ -27,11 +28,10 @@ def hash_balance_proof(
         nonce,
         additional_hash,
 ):
-    message_type_id = 0
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address) +
         encode_single('uint256', chain_identifier) +
-        encode_single('uint256', message_type_id) +
+        encode_single('uint256', MessageTypeId.BALANCE_PROOF) +
         encode_single('uint256', channel_identifier) +
         balance_hash +
         encode_single('uint256', nonce) +
@@ -48,11 +48,10 @@ def hash_balance_proof_update_message(
         additional_hash,
         closing_signature,
 ):
-    message_type_id = 1
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address) +
         encode_single('uint256', chain_identifier) +
-        encode_single('uint256', message_type_id) +
+        encode_single('uint256', MessageTypeId.BALANCE_PROOF_UPDATE) +
         encode_single('uint256', channel_identifier) +
         balance_hash +
         encode_single('uint256', nonce) +
@@ -70,11 +69,10 @@ def hash_cooperative_settle_message(
         participant2_address,
         participant2_balance,
 ):
-    message_type_id = 3
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address) +
         encode_single('uint256', chain_identifier) +
-        encode_single('uint256', message_type_id) +
+        encode_single('uint256', MessageTypeId.COOPERATIVE_SETTLE) +
         encode_single('uint256', channel_identifier) +
         Web3.toBytes(hexstr=participant1_address) +
         encode_single('uint256', participant1_balance) +
@@ -90,11 +88,10 @@ def hash_withdraw_message(
         participant,
         amount_to_withdraw,
 ):
-    message_type_id = 2
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address) +
         encode_single('uint256', chain_identifier) +
-        encode_single('uint256', message_type_id) +
+        encode_single('uint256', MessageTypeId.WITHDRAW) +
         encode_single('uint256', channel_identifier) +
         Web3.toBytes(hexstr=participant) +
         encode_single('uint256', amount_to_withdraw),

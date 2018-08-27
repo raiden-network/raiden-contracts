@@ -1381,7 +1381,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 0;
+        uint256 message_type_id = 1;
 
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
         string memory message_length = '212';
@@ -1413,7 +1413,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 1;
+        uint256 message_type_id = 2;
 
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
         string memory message_length = '277';
@@ -1446,7 +1446,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 3;
+        uint256 message_type_id = 4;
 
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
         string memory message_length = '220';
@@ -1477,7 +1477,7 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 2;
+        uint256 message_type_id = 3;
 
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32
         string memory message_length = '168';

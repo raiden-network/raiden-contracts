@@ -39,6 +39,13 @@ DEPLOY_SETTLE_TIMEOUT_MIN = 500  # ~ 2 hours
 DEPLOY_SETTLE_TIMEOUT_MAX = 555428  # ~ 3 months
 
 
+class MessageTypeId(IntEnum):
+    BALANCE_PROOF = 1
+    BALANCE_PROOF_UPDATE = 2
+    WITHDRAW = 3
+    COOPERATIVE_SETTLE = 4
+
+
 class ChannelState(IntEnum):
     NONEXISTENT = 0
     OPENED = 1
