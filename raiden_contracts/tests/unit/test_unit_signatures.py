@@ -3,61 +3,6 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.tests.fixtures import fake_bytes
 
 
-def test_verify_withdraw_signatures(
-        token_network_test_signatures,
-        create_withdraw_signatures,
-        get_accounts,
-):
-
-    (A, B) = get_accounts(2)
-    fake_signature = fake_bytes(64)
-    channel_identifier = 4
-
-    (signature_A, signature_B) = create_withdraw_signatures(
-        [A, B],
-        channel_identifier,
-        A,
-        1,
-        token_network_test_signatures.address,
-    )
-    token_network_test_signatures.functions.verifyWithdrawSignaturesPublic(
-        channel_identifier,
-        A,
-        B,
-        1,
-        signature_A,
-        signature_B,
-    ).call()
-
-    with pytest.raises(TransactionFailed):
-        token_network_test_signatures.functions.verifyWithdrawSignaturesPublic(
-            channel_identifier,
-            A,
-            B,
-            3,
-            signature_B,
-            signature_A,
-        ).call()
-    with pytest.raises(TransactionFailed):
-        token_network_test_signatures.functions.verifyWithdrawSignaturesPublic(
-            channel_identifier,
-            A,
-            B,
-            3,
-            signature_A,
-            fake_signature,
-        ).call()
-    with pytest.raises(TransactionFailed):
-        token_network_test_signatures.functions.verifyWithdrawSignaturesPublic(
-            channel_identifier,
-            A,
-            B,
-            3,
-            fake_signature,
-            signature_B,
-        ).call()
-
-
 def test_recover_address_from_withdraw_message(
         token_network_test_signatures,
         create_withdraw_signatures,
