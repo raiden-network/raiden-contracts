@@ -593,6 +593,21 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        // There are several requirements that this function MUST enforce:
+        // - it MUST never fail; therefore, any overflows or underflows must be
+        // handled gracefully
+        // - it MUST ensure that if participants use the latest valid balance proofs,
+        // provided by the official Raiden client, the participants will be able
+        // to receive correct final balances at the end of the channel lifecycle
+        // - it MUST ensure that the participants cannot cheat by providing an
+        // old, valid balance proof of their partner; meaning that their partner MUST
+        // receive at least the amount of tokens that he would have received if
+        // the latest valid balance proofs are used.
+        // - the contract cannot determine if a balance proof is invalid (values
+        // are not within the constraints enforced by the official Raiden client),
+        // therefore it cannot ensure correctness. Users MUST use the official
+        // Raiden clients for signing balance proofs.
+
         require(channel_identifier == getChannelIdentifier(participant1, participant2));
 
         bytes32 pair_hash;
@@ -623,13 +638,17 @@ contract TokenNetwork is Utils {
         ));
 
         // We are calculating the final token amounts that need to be
-        // transferred to the participants and the amount of tokens that need
-        // to remain locked in the contract. These tokens can be unlocked by
-        // calling `unlock`.
-        // participant1_transferred_amount is the amount of tokens that
-        // participant1 will receive.
-        // participant2_transferred_amount is the amount of tokens that
-        // participant2 will receive.
+        // transferred to the participants now and the amount of tokens that
+        // need to remain locked in the contract. These tokens can be unlocked
+        // by calling `unlock`.
+        // participant1_transferred_amount = the amount of tokens that
+        //   participant1 will receive in this transaction.
+        // participant2_transferred_amount = the amount of tokens that
+        //   participant2 will receive in this transaction.
+        // participant1_locked_amount = the amount of tokens remaining in the
+        //   contract, representing pending transfers from participant1 to participant2.
+        // participant2_locked_amount = the amount of tokens remaining in the
+        //   contract, representing pending transfers from participant2 to participant1.
         // We are reusing variables due to the local variables number limit.
         // For better readability this can be refactored further.
         (
@@ -654,7 +673,8 @@ contract TokenNetwork is Utils {
         // Remove the pair's channel counter
         delete participants_hash_to_channel_identifier[pair_hash];
 
-        // Store balance data needed for `unlock`
+        // Store balance data needed for `unlock`, including the calculated
+        // locked amounts remaining in the contract.
         storeUnlockData(
             channel_identifier,
             participant1,
@@ -1076,6 +1096,8 @@ contract TokenNetwork is Utils {
 
     /// @dev Function that calculates the amount of tokens that the participants
     /// will receive when calling settleChannel.
+    /// Check https://github.com/raiden-network/raiden-contracts/issues/188 for the settlement
+    /// algorithm analysis and explanations.
     function getSettleTransferAmounts(
         Participant storage participant1_state,
         uint256 participant1_transferred_amount,
@@ -1088,17 +1110,92 @@ contract TokenNetwork is Utils {
         private
         returns (uint256, uint256, uint256, uint256)
     {
+        // The scope of this function is to compute the settlement amounts that
+        // the two channel participants will receive when calling settleChannel
+        // and the locked amounts that remain in the contract, to account for
+        // the pending, not finalized transfers, that will be received by the
+        // participants when calling `unlock`.
+
+        // The amount of tokens that participant1 MUST receive at the end of
+        // the channel lifecycle (after settleChannel and unlock) is:
+        // B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1
+
+        // The amount of tokens that participant2 MUST receive at the end of
+        // the channel lifecycle (after settleChannel and unlock) is:
+        // B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2
+
+        // B1 + B2 = TAD = D1 + D2 - W1 - W2
+        // TAD = total available deposit at settlement time
+
+        // L1 = Lc1 + Lu1
+        // L2 = Lc2 + Lu2
+
+        // where:
+        // B1 = final balance of participant1 after the channel is removed
+        // D1 = total amount deposited by participant1 into the channel
+        // W1 = total amount withdrawn by participant1 from the channel
+        // T2 = total amount transferred by participant2 to participant1 (finalized transfers)
+        // T1 = total amount transferred by participant1 to participant2 (finalized transfers)
+        // L1 = total amount of tokens locked in pending transfers, sent by
+        //   participant1 to participant2
+        // L2 = total amount of tokens locked in pending transfers, sent by
+        //   participant2 to participant1
+        // Lc2 = the amount that can be claimed by participant1 from the pending
+        //   transfers (that have not been finalized off-chain), sent by
+        //   participant2 to participant1. These are part of the locked amount
+        //   value from participant2's balance proof. They are considered claimed
+        //   if the secret corresponding to these locked transfers was registered
+        //   on-chain, in the SecretRegistry contract, before the lock's expiration.
+        // Lu1 = unclaimable locked amount from L1
+        // Lc1 = the amount that can be claimed by participant2 from the pending
+        //   transfers (that have not been finalized off-chain),
+        //   sent by participant1 to participant2
+        // Lu2 = unclaimable locked amount from L2
+
+        // Notes:
+        // 1) The unclaimble tokens from a locked amount will return to the sender.
+        // At the time of calling settleChannel, the TokenNetwork contract does
+        // not know what locked amounts are claimable or unclaimable.
+        // 2) There are some Solidity constraints that make the calculations
+        // more difficult: attention to overflows and underflows, that MUST be
+        // handled without throwing.
+
         // Cases that require attention:
         // case1. If participant1 does NOT provide a balance proof or provides
         // an old balance proof.  participant2_transferred_amount can be [0,
-        // real_participant2_transferred_amount) We need to punish
-        // participant1.
+        // real_participant2_transferred_amount) We MUST NOT punish
+        // participant2.
         // case2. If participant2 does NOT provide a balance proof or provides
         // an old balance proof.  participant1_transferred_amount can be [0,
-        // real_participant1_transferred_amount) We need to punish
-        // participant2.
+        // real_participant1_transferred_amount) We MUST NOT punish
+        // participant1.
         // case3. If neither participants provide a balance proof, we just
         // subtract their withdrawn amounts from their deposits.
+
+        // This is why, the algorithm implemented in Solidity is:
+        // (explained at each step, below)
+        // RmaxP1 = (T2 + L2) - (T1 + L1) + D1 - W1
+        // RmaxP1 = min(TAD, RmaxP1)
+        // RmaxP2 = TAD - RmaxP1
+        // SL2 = min(RmaxP1, L2)
+        // S1 = RmaxP1 - SL2
+        // SL1 = min(RmaxP2, L1)
+        // S2 = RmaxP2 - SL1
+
+        // where:
+        // RmaxP1 = due to possible over/underflows that only appear when using
+        //    old balance proofs & the fact that settlement balance calculation
+        //    is symmetric (we can calculate either RmaxP1 and RmaxP2 first,
+        //    order does not affect result), this is a convention used to determine
+        //    the maximum receivable amount of participant1 at settlement time
+        // S1 = amount received by participant1 when calling settleChannel
+        // SL1 = the maximum amount from L1 that can be locked in the
+        //   TokenNetwork contract when calling settleChannel (due to overflows
+        //   that only happen when using old balance proofs)
+        // S2 = amount received by participant2 when calling settleChannel
+        // SL2 = the maximum amount from L2 that can be locked in the
+        //   TokenNetwork contract when calling settleChannel (due to overflows
+        //   that only happen when using old balance proofs)
 
         uint256 participant1_amount;
         uint256 participant2_amount;
@@ -1117,42 +1214,56 @@ contract TokenNetwork is Utils {
         participant2_settlement.transferred = participant2_transferred_amount;
         participant2_settlement.locked = participant2_locked_amount;
 
+        // TAD = D1 + D2 - W1 - W2 = total available deposit at settlement time
         total_available_deposit = getChannelAvailableDeposit(
             participant1_state,
             participant2_state
         );
 
+        // RmaxP1 = (T2 + L2) - (T1 + L1) + D1 - W1
         // This amount is the maximum possible amount that participant1 can
-        // receive and also contains the entire locked amount of the pending
-        // transfers from participant2 to participant1.
+        // receive at settlement time and also contains the entire locked amount
+        //  of the pending transfers from participant2 to participant1.
         participant1_amount = getMaxPossibleReceivableAmount(
             participant1_settlement,
             participant2_settlement
         );
 
-        // We need to bound this to the available channel deposit
+        // RmaxP1 = min(TAD, RmaxP1)
+        // We need to bound this to the available channel deposit in order to
+        // not send tokens from other channels. The only case where TAD is
+        // smaller than RmaxP1 is when at least one balance proof is old.
         participant1_amount = min(participant1_amount, total_available_deposit);
 
+        // RmaxP2 = TAD - RmaxP1
         // Now it is safe to subtract without underflow
         participant2_amount = total_available_deposit - participant1_amount;
 
-        // We take out the pending transfers locked amount, bounding it by the
-        // maximum receivable amount.
+        // SL2 = min(RmaxP1, L2)
+        // S1 = RmaxP1 - SL2
+        // Both operations are done by failsafe_subtract
+        // We take out participant2's pending transfers locked amount, bounding
+        // it by the maximum receivable amount of participant1
         (participant1_amount, participant2_locked_amount) = failsafe_subtract(
             participant1_amount,
             participant2_locked_amount
         );
 
-        // We take out the pending transfers locked amount, bounding it by the
-        // maximum receivable amount.
+        // SL1 = min(RmaxP2, L1)
+        // S2 = RmaxP2 - SL1
+        // Both operations are done by failsafe_subtract
+        // We take out participant1's pending transfers locked amount, bounding
+        // it by the maximum receivable amount of participant2
         (participant2_amount, participant1_locked_amount) = failsafe_subtract(
             participant2_amount,
             participant1_locked_amount
         );
 
-        // This should never happen:
+        // This should never throw:
+        // S1 and S2 MUST be smaller than TAD
         assert(participant1_amount <= total_available_deposit);
         assert(participant2_amount <= total_available_deposit);
+        // S1 + S2 + SL1 + SL2 == TAD
         assert(total_available_deposit == (
             participant1_amount +
             participant2_amount +
@@ -1197,9 +1308,11 @@ contract TokenNetwork is Utils {
             participant2_settlement.locked
         );
 
-        // We enforce this check artificially, in order to get rid of some hard
-        // to deal with cases This means settleChannel must be called with
-        // ordered values
+        // We enforce this check artificially, in order to get rid of hard
+        // to deal with over/underflows. Settlement balance calculation is
+        // symmetric (we can calculate either RmaxP1 and RmaxP2 first, order does
+        // not affect result). This means settleChannel must be called with
+        // ordered values.
         require(participant2_max_transferred >= participant1_max_transferred);
 
         assert(participant1_max_transferred >= participant1_settlement.transferred);
