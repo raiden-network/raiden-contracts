@@ -1,8 +1,8 @@
 pragma solidity ^0.4.23;
-
 import "raiden/TokenNetwork.sol";
 
-contract TokenNetworkInternalsTest is TokenNetwork {
+
+contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
@@ -135,6 +135,27 @@ contract TokenNetworkInternalsTest is TokenNetwork {
            participant2_state
         );
     }
+}
+
+contract TokenNetworkSignatureTest is TokenNetwork {
+    constructor (
+        address _token_address,
+        address _secret_registry,
+        uint256 _chain_id,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
+    )
+        TokenNetwork(
+            _token_address,
+            _secret_registry,
+            _chain_id,
+            _settlement_timeout_min,
+            _settlement_timeout_max
+        )
+        public
+    {
+
+    }
 
     function recoverAddressFromBalanceProofPublic(
         uint256 channel_identifier,
@@ -216,6 +237,27 @@ contract TokenNetworkInternalsTest is TokenNetwork {
             amount_to_withdraw,
             signature
         );
+    }
+}
+
+contract TokenNetworkUtilsTest is TokenNetwork {
+    constructor (
+        address _token_address,
+        address _secret_registry,
+        uint256 _chain_id,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
+    )
+        TokenNetwork(
+            _token_address,
+            _secret_registry,
+            _chain_id,
+            _settlement_timeout_min,
+            _settlement_timeout_max
+        )
+        public
+    {
+
     }
 
     function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree_leaves)

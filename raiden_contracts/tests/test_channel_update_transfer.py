@@ -504,7 +504,7 @@ def test_update_not_allowed_for_the_closing_address(
 
 def test_update_invalid_balance_proof_arguments(
         token_network,
-        token_network_test,
+        token_network_test_utils,
         create_channel,
         channel_deposit,
         get_accounts,
@@ -558,7 +558,7 @@ def test_update_invalid_balance_proof_arguments(
         0,
         2,
         fake_bytes(32, '02'),
-        other_token_network=token_network_test,
+        other_token_network=token_network_test_utils,
     ))
 
     signature_invalid_token_network = create_balance_proof_update_signature(
@@ -568,7 +568,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.nonce,
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
-        other_token_network=token_network_test,
+        other_token_network=token_network_test_utils,
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -729,7 +729,7 @@ def test_update_invalid_balance_proof_arguments(
 
 def test_update_signature_on_invalid_arguments(
         token_network,
-        token_network_test,
+        token_network_test_utils,
         create_channel,
         channel_deposit,
         get_accounts,
@@ -773,7 +773,7 @@ def test_update_signature_on_invalid_arguments(
         B,
         channel_identifier,
         *balance_proof_valid,
-        other_token_network=token_network_test,  # invalid token_network_address
+        other_token_network=token_network_test_utils,  # invalid token_network_address
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
