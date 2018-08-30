@@ -93,6 +93,14 @@ contract TokenNetwork is Utils {
         Removed      // 4; Note: Channel data is removed, there are no pending unlocks
     }
 
+    enum MessageTypeId {
+        None,
+        BalanceProof,
+        BalanceProofUpdate,
+        Withdraw,
+        CooperativeSettle
+    }
+
     struct Channel {
         // After opening the channel this value represents the settlement
         // window. This is the number of blocks that need to be mined between
@@ -1381,8 +1389,6 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 1;
-
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
         string memory message_length = '212';
 
@@ -1391,7 +1397,7 @@ contract TokenNetwork is Utils {
             message_length,
             address(this),
             chain_id,
-            message_type_id,
+            uint256(MessageTypeId.BalanceProof),
             channel_identifier,
             balance_hash,
             nonce,
@@ -1413,8 +1419,6 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 2;
-
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
         string memory message_length = '277';
 
@@ -1423,7 +1427,7 @@ contract TokenNetwork is Utils {
             message_length,
             address(this),
             chain_id,
-            message_type_id,
+            uint256(MessageTypeId.BalanceProofUpdate),
             channel_identifier,
             balance_hash,
             nonce,
@@ -1446,8 +1450,6 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 4;
-
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
         string memory message_length = '220';
 
@@ -1456,7 +1458,7 @@ contract TokenNetwork is Utils {
             message_length,
             address(this),
             chain_id,
-            message_type_id,
+            uint256(MessageTypeId.CooperativeSettle),
             channel_identifier,
             participant1,
             participant1_balance,
@@ -1477,8 +1479,6 @@ contract TokenNetwork is Utils {
         internal
         returns (address signature_address)
     {
-        uint256 message_type_id = 3;
-
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32
         string memory message_length = '168';
 
@@ -1487,7 +1487,7 @@ contract TokenNetwork is Utils {
             message_length,
             address(this),
             chain_id,
-            message_type_id,
+            uint256(MessageTypeId.Withdraw),
             channel_identifier,
             participant,
             total_withdraw
