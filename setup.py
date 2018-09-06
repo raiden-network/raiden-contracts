@@ -5,18 +5,25 @@ except ImportError:
     from distutils.core import setup
 
 import os
+from typing import List
+
 from setuptools import Command
 from setuptools.command.build_py import build_py
 from setuptools.command.sdist import sdist
+
 
 DESCRIPTION = 'Raiden contracts library and utilities'
 VERSION = '0.2.0'
 
 
-def read_requirements(path: str):
+def read_requirements(path: str) -> List[str]:
     assert os.path.isfile(path)
     with open(path) as requirements:
         return requirements.read().split()
+
+
+def _get_single_requirement(requirements: List[str], package: str) -> List[str]:
+    return [req for req in requirements if req.startswith(package)]
 
 
 class BuildPyCommand(build_py):
@@ -76,6 +83,8 @@ class CompileContracts(Command):
             traceback.print_exc()
 
 
+requirements = read_requirements('requirements.txt')
+
 config = {
     'version': VERSION,
     'scripts': [],
@@ -86,7 +95,8 @@ config = {
     'url': 'https://github.com/raiden-network/raiden-contracts/',
     'license': 'MIT',
     'keywords': 'raiden ethereum blockchain',
-    'install_requires': read_requirements('requirements.txt'),
+    'install_requires': requirements,
+    'setup_requires': _get_single_requirement(requirements, 'py-solc'),
     'packages': find_packages(),
     'include_package_data': True,
     'classifiers': [
@@ -95,7 +105,8 @@ config = {
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     'entry_points': {
         'console_scripts': ['deploy = raiden_contracts.deploy.__main__:main'],
@@ -105,6 +116,7 @@ config = {
         'build_py': BuildPyCommand,
         'sdist': SdistCommand,
     },
+    'zip_safe': False,
 }
 
 setup(**config)

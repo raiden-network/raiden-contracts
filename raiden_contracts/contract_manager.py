@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Dict, Union
 
 from solc import compile_files
-from web3.utils.contracts import find_matching_event_abi
 
 
 log = logging.getLogger(__name__)
@@ -135,6 +134,9 @@ class ContractManager:
 
     def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
         """ Returns the ABI for a given event. """
+        # Import locally to avoid web3 dependency during installation via `compile_contracts`
+        from web3.utils.contracts import find_matching_event_abi
+
         if not self._contracts:
             self._compile_all_contracts()
         contract_abi = self.get_contract_abi(contract_name)
