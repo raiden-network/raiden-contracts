@@ -35,12 +35,13 @@ script:
 
 deploy:
     provider: pypi
+    skip_cleanup: true
     user: raiden_pypi_automated
     password:
       secure: "bjJ7odF0Etm4MnLfY8wYTCL8c+t6Swn4gRev75CYEboZqovz8aZD2LeAVewPaw/0W7PRZDxsR2n3CuPALpxktUU49LNv+uE8FGuI1rHenCelw1TrGhlmIdwZVdKWMQpA2TVId3731aw9mpE2Ib7MmvDsO2UjEVKYDf1UPT7BmWI6c0D1NNVZckAo8flvyUS2fgAqvEt3YwlmK3zf3qtTUFCIDBVhiNuubbY0UdbD2eOG9hF1CNa8Q9tNl9qiA8dQZfwOqq22284F02DHhJb0Y+5AR/jSSmuXbLqj5+4lrY4iVQiPZa5csAeJRV7eVcx5+1sWadf3bhUz+0g2JImmWbGQ8fBvVlo/zudQOTEMtQy4KqWTL5IjpBl9VrgcvnMSdaFAuxCjpcCL91d19gqqhSZYJgyPqYP02OnA31RQkgQoJYtUIknv/sMoyOyvuDIEXTyST+cFOSnWzTvYDPMK3y4C/XN1Pb2nSN6AEnykyB4Iy3z5hwuEtKtTC4xquvr9BoHeXQmPnArEBifWlMl45ngZw/q57A+TI/cbPs8TBwCKIpm5B1Bw9hXfdN2gRqjCAj/4Nssy005dF0pmGSHtrTyKSkgE6C2Xje5PG/fro31Pb13s6lcVUNgrAR8GpdptOZOTKc9kpmG3/9gZt9BGT924fAVYs/AhB0oe90I+v1c="
     python: 3.6
+    distributions: sdist bdist_wheel
     on:
       tags: true
-      distributions: sdist bdist_wheel
       repo: raiden-network/raiden-contracts
       branch: master
