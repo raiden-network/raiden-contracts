@@ -1,4 +1,5 @@
 pragma solidity ^0.4.23;
+import "raiden/lib/TokenNetworkUtils.sol";
 import "raiden/TokenNetwork.sol";
 
 
@@ -76,8 +77,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
-        SettlementData memory participant1_settlement;
-        SettlementData memory participant2_settlement;
+        TokenNetworkUtils.SettlementData memory participant1_settlement;
+        TokenNetworkUtils.SettlementData memory participant2_settlement;
 
         participant1_settlement.deposit = participant1_state.deposit;
         participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
@@ -88,7 +89,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
         participant2_settlement.transferred = participant2_transferred_amount;
         participant2_settlement.locked = participant2_locked_amount;
-        return getMaxPossibleReceivableAmount(
+        return TokenNetworkUtils.getMaxPossibleReceivableAmount(
             participant1_settlement,
             participant2_settlement
         );
@@ -278,22 +279,17 @@ contract TokenNetworkUtilsTest is TokenNetwork {
 
     function minPublic(uint256 a, uint256 b) view public returns (uint256)
     {
-        return min(a,b);
-    }
-
-    function maxPublic(uint256 a, uint256 b) view public returns (uint256)
-    {
-        return max(a,b);
+        return TokenNetworkUtils.min(a,b);
     }
 
     function failsafe_subtractPublic(uint256 a, uint256 b) view public returns (uint256, uint256)
     {
-        return failsafe_subtract(a,b);
+        return TokenNetworkUtils.failsafe_subtract(a,b);
     }
 
     function failsafe_additionPublic(uint256 a, uint256 b) view public returns (uint256)
     {
-        return failsafe_addition(a, b);
+        return TokenNetworkUtils.failsafe_addition(a, b);
     }
 
     function get_max_safe_uint256() pure public returns (uint256) {

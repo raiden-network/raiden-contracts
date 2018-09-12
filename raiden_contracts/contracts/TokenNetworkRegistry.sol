@@ -1,6 +1,5 @@
 pragma solidity ^0.4.23;
 
-import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
 
@@ -8,7 +7,7 @@ import "raiden/TokenNetwork.sol";
 /// @title TokenNetworkRegistry
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
-contract TokenNetworkRegistry is Utils {
+contract TokenNetworkRegistry {
 
     string constant public contract_version = "0.3._";
     address public secret_registry_address;
@@ -34,7 +33,7 @@ contract TokenNetworkRegistry is Utils {
         require(_settlement_timeout_max > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
         require(_secret_registry_address != address(0x0));
-        require(contractExists(_secret_registry_address));
+        require(TokenNetworkUtils.contractExists(_secret_registry_address));
         secret_registry_address = _secret_registry_address;
         chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;

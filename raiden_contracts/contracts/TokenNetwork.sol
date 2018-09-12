@@ -1,15 +1,15 @@
 pragma solidity ^0.4.23;
 
 import "raiden/Token.sol";
-import "raiden/Utils.sol";
 import "raiden/lib/ECVerify.sol";
+import "raiden/lib/TokenNetworkUtils.sol";
 import "raiden/SecretRegistry.sol";
 
 /// @title TokenNetwork
 /// @notice Stores and manages all the Raiden Network channels that use the
 /// token specified
 /// in this TokenNetwork contract.
-contract TokenNetwork is Utils {
+contract TokenNetwork {
 
     string constant public contract_version = "0.3._";
 
@@ -27,9 +27,9 @@ contract TokenNetwork is Utils {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
-    uint256 constant public MAX_SAFE_UINT256 = (
+    /* uint256 constant public MAX_SAFE_UINT256 = (
         115792089237316195423570985008687907853269984665640564039457584007913129639935
-    );
+    ); */
 
     // Bug bounty release deposit limit
     uint256 public deposit_limit;
@@ -114,13 +114,6 @@ contract TokenNetwork is Utils {
         mapping(address => Participant) participants;
     }
 
-    struct SettlementData {
-        uint256 deposit;
-        uint256 withdrawn;
-        uint256 transferred;
-        uint256 locked;
-    }
-
     struct UnlockData {
         // Merkle root of the pending transfers tree from the Raiden client
         bytes32 locksroot;
@@ -203,8 +196,8 @@ contract TokenNetwork is Utils {
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
-        require(contractExists(_token_address));
-        require(contractExists(_secret_registry));
+        require(TokenNetworkUtils.contractExists(_token_address));
+        require(TokenNetworkUtils.contractExists(_secret_registry));
 
         token = Token(_token_address);
 
@@ -778,7 +771,7 @@ contract TokenNetwork is Utils {
 
         // Make sure we don't transfer more tokens than previously reserved in
         // the smart contract.
-        unlocked_amount = min(unlocked_amount, locked_amount);
+        unlocked_amount = TokenNetworkUtils.min(unlocked_amount, locked_amount);
 
         // Transfer the rest of the tokens back to the partner
         returned_tokens = locked_amount - unlocked_amount;
@@ -1211,8 +1204,8 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount;
         uint256 total_available_deposit;
 
-        SettlementData memory participant1_settlement;
-        SettlementData memory participant2_settlement;
+        TokenNetworkUtils.SettlementData memory participant1_settlement;
+        TokenNetworkUtils.SettlementData memory participant2_settlement;
 
         participant1_settlement.deposit = participant1_state.deposit;
         participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
@@ -1234,7 +1227,7 @@ contract TokenNetwork is Utils {
         // This amount is the maximum possible amount that participant1 can
         // receive at settlement time and also contains the entire locked amount
         //  of the pending transfers from participant2 to participant1.
-        participant1_amount = getMaxPossibleReceivableAmount(
+        participant1_amount = TokenNetworkUtils.getMaxPossibleReceivableAmount(
             participant1_settlement,
             participant2_settlement
         );
@@ -1243,7 +1236,7 @@ contract TokenNetwork is Utils {
         // We need to bound this to the available channel deposit in order to
         // not send tokens from other channels. The only case where TAD is
         // smaller than RmaxP1 is when at least one balance proof is old.
-        participant1_amount = min(participant1_amount, total_available_deposit);
+        participant1_amount = TokenNetworkUtils.min(participant1_amount, total_available_deposit);
 
         // RmaxP2 = TAD - RmaxP1
         // Now it is safe to subtract without underflow
@@ -1254,7 +1247,7 @@ contract TokenNetwork is Utils {
         // Both operations are done by failsafe_subtract
         // We take out participant2's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant1
-        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
+        (participant1_amount, participant2_locked_amount) = TokenNetworkUtils.failsafe_subtract(
             participant1_amount,
             participant2_locked_amount
         );
@@ -1264,7 +1257,7 @@ contract TokenNetwork is Utils {
         // Both operations are done by failsafe_subtract
         // We take out participant1's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant2
-        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
+        (participant2_amount, participant1_locked_amount) = TokenNetworkUtils.failsafe_subtract(
             participant2_amount,
             participant1_locked_amount
         );
@@ -1287,66 +1280,6 @@ contract TokenNetwork is Utils {
             participant1_locked_amount,
             participant2_locked_amount
         );
-    }
-
-    function getMaxPossibleReceivableAmount(
-        SettlementData participant1_settlement,
-        SettlementData participant2_settlement
-    )
-        pure
-        internal
-        returns (uint256)
-    {
-        uint256 participant1_max_transferred;
-        uint256 participant2_max_transferred;
-        uint256 participant1_net_max_received;
-        uint256 participant1_max_amount;
-
-        // This is the maximum possible amount that participant1 could transfer
-        // to participant2, if all the pending lock secrets have been
-        // registered
-        participant1_max_transferred = failsafe_addition(
-            participant1_settlement.transferred,
-            participant1_settlement.locked
-        );
-
-        // This is the maximum possible amount that participant2 could transfer
-        // to participant1, if all the pending lock secrets have been
-        // registered
-        participant2_max_transferred = failsafe_addition(
-            participant2_settlement.transferred,
-            participant2_settlement.locked
-        );
-
-        // We enforce this check artificially, in order to get rid of hard
-        // to deal with over/underflows. Settlement balance calculation is
-        // symmetric (we can calculate either RmaxP1 and RmaxP2 first, order does
-        // not affect result). This means settleChannel must be called with
-        // ordered values.
-        require(participant2_max_transferred >= participant1_max_transferred);
-
-        assert(participant1_max_transferred >= participant1_settlement.transferred);
-        assert(participant2_max_transferred >= participant2_settlement.transferred);
-
-        // This is the maximum amount that participant1 can receive at settlement time
-        participant1_net_max_received = (
-            participant2_max_transferred -
-            participant1_max_transferred
-        );
-
-        // Next, we add the participant1's deposit and subtract the already
-        // withdrawn amount
-        participant1_max_amount = failsafe_addition(
-            participant1_net_max_received,
-            participant1_settlement.deposit
-        );
-
-        // Subtract already withdrawn amount
-        (participant1_max_amount, ) = failsafe_subtract(
-            participant1_max_amount,
-            participant1_settlement.withdrawn
-        );
-        return participant1_max_amount;
     }
 
     function verifyBalanceHashData(
@@ -1524,28 +1457,7 @@ contract TokenNetwork is Utils {
             merkle_layer[i / 96] = lockhash;
         }
 
-        length /= 96;
-
-        while (length > 1) {
-            if (length % 2 != 0) {
-                merkle_layer[length] = merkle_layer[length - 1];
-                length += 1;
-            }
-
-            for (i = 0; i < length - 1; i += 2) {
-                if (merkle_layer[i] == merkle_layer[i + 1]) {
-                    lockhash = merkle_layer[i];
-                } else if (merkle_layer[i] < merkle_layer[i + 1]) {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i], merkle_layer[i + 1]));
-                } else {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i + 1], merkle_layer[i]));
-                }
-                merkle_layer[i / 2] = lockhash;
-            }
-            length = i / 2;
-        }
-
-        merkle_root = merkle_layer[0];
+        merkle_root = TokenNetworkUtils.getMerkleRoot(merkle_layer);
 
         return (merkle_root, total_unlocked_amount);
     }
@@ -1584,42 +1496,5 @@ contract TokenNetwork is Utils {
         }
 
         return (lockhash, locked_amount);
-    }
-
-    function min(uint256 a, uint256 b) pure internal returns (uint256)
-    {
-        return a > b ? b : a;
-    }
-
-    function max(uint256 a, uint256 b) pure internal returns (uint256)
-    {
-        return a > b ? a : b;
-    }
-
-    /// @dev Special subtraction function that does not fail when underflowing.
-    /// @param a Minuend
-    /// @param b Subtrahend
-    /// @return Minimum between the result of the subtraction and 0, the maximum
-    /// subtrahend for which no underflow occurs.
-    function failsafe_subtract(uint256 a, uint256 b)
-        pure
-        internal
-        returns (uint256, uint256)
-    {
-        return a > b ? (a - b, b) : (0, a);
-    }
-
-    /// @dev Special addition function that does not fail when overflowing.
-    /// @param a Addend
-    /// @param b Addend
-    /// @return Maximum between the result of the addition or the maximum
-    /// uint256 value.
-    function failsafe_addition(uint256 a, uint256 b)
-        pure
-        internal
-        returns (uint256)
-    {
-        uint256 sum = a + b;
-        return sum >= a ? sum : MAX_SAFE_UINT256;
     }
 }
