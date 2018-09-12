@@ -96,6 +96,7 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
 
 def test_create_erc20_token_network_call(
         token_network_registry_contract,
+        contract_deployer_address,
         custom_token,
         get_accounts,
 ):
@@ -123,7 +124,7 @@ def test_create_erc20_token_network_call(
 
     token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
-    ).transact()
+    ).transact({'from': contract_deployer_address})
 
 
 def test_create_erc20_token_network(

@@ -16,10 +16,18 @@ contract TokenNetworkRegistry is Utils {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
+    // Only for the limited Bug Bounty release
+    address public deprecation_executor;
+
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
 
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
+
+    modifier onlyDeprecationExecutor() {
+        require(msg.sender == deprecation_executor);
+        _;
+    }
 
     constructor(
         address _secret_registry_address,
@@ -39,6 +47,8 @@ contract TokenNetworkRegistry is Utils {
         chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
+
+        deprecation_executor = msg.sender;
     }
 
     /// @notice Deploy a new TokenNetwork contract for the Token deployed at
@@ -46,6 +56,7 @@ contract TokenNetworkRegistry is Utils {
     /// @param _token_address Ethereum address of an already deployed token, to
     /// be used in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
+        onlyDeprecationExecutor
         external
         returns (address token_network_address)
     {
@@ -59,7 +70,8 @@ contract TokenNetworkRegistry is Utils {
             secret_registry_address,
             chain_id,
             settlement_timeout_min,
-            settlement_timeout_max
+            settlement_timeout_max,
+            deprecation_executor
         );
 
         token_network_address = address(token_network);

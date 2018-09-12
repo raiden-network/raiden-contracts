@@ -28,17 +28,16 @@ def test_token_network_registry(
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
-#    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
-#    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
-
 
 def test_token_network_deployment(
         web3,
+        get_accounts,
         print_gas,
         custom_token,
         secret_registry_contract,
         deploy_tester_contract_txhash,
 ):
+    deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
         [],
@@ -48,6 +47,7 @@ def test_token_network_deployment(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
@@ -58,10 +58,11 @@ def test_token_network_create(
         custom_token,
         secret_registry_contract,
         token_network_registry_contract,
+        contract_deployer_address,
 ):
     txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
-    ).transact()
+    ).transact({'from': contract_deployer_address})
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
