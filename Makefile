@@ -11,4 +11,7 @@ lint:
 	flake8 raiden_contracts/
 
 clean:
-	rm -rf build/ *egg-info/ raiden_contracts/data/contracts.json dist
+	rm -rf build/ *egg-info/ raiden_contracts/data/contracts.json.gz dist .eggs
+
+release: clean
+	RAIDEN_SOLC_REQUIRED=1 python setup.py sdist bdist_wheel upload
