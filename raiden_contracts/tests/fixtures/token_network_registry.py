@@ -1,6 +1,7 @@
 import pytest
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
+    LIBRARY_TOKEN_NETWORK_UTILS,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -17,23 +18,35 @@ def get_token_network_registry(deploy_tester_contract):
             CONTRACT_TOKEN_NETWORK_REGISTRY,
             {},
             arguments,
-        )
+        )[0]
     return get
 
 
 @pytest.fixture
-def token_network_registry_contract(deploy_tester_contract, secret_registry_contract, web3):
+def token_network_utils_library(deploy_tester_contract, web3):
+    """Deployed TokenNetworkUtils library"""
+    return deploy_tester_contract(LIBRARY_TOKEN_NETWORK_UTILS)[0]
+
+
+@pytest.fixture
+def token_network_registry_contract(
+        deploy_tester_contract,
+        token_network_utils_library,
+        secret_registry_contract,
+        web3,
+):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [],
+        # {'TokenNetworkUtils': token_network_utils_library.address},
+        {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address},
         [
             secret_registry_contract.address,
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
         ],
-    )
+    )[0]
 
 
 @pytest.fixture

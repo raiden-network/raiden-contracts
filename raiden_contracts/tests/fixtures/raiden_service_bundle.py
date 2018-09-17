@@ -9,7 +9,7 @@ def get_raiden_service_bundle(deploy_tester_contract):
             CONTRACT_RAIDEN_SERVICE_BUNDLE,
             {},
             arguments,
-        )
+        )[0]
     return get
 
 

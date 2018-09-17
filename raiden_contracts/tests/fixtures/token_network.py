@@ -18,7 +18,7 @@ def get_token_network(web3, deploy_tester_contract):
             CONTRACT_TOKEN_NETWORK,
             {},
             arguments,
-        )
+        )[0]
     return get
 
 
@@ -91,7 +91,7 @@ def token_network_contract(
             CONTRACT_SECRET_REGISTRY: secret_registry_contract.address.encode(),
         },
         [standard_token_contract.address, secret_registry_contract.address, network_id],
-    )
+    )[0]
 
 
 @pytest.fixture()

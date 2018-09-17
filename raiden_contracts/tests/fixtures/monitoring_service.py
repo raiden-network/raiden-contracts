@@ -9,7 +9,7 @@ def get_monitoring_service(deploy_tester_contract):
             CONTRACT_MONITORING_SERVICE,
             {},
             arguments,
-        )
+        )[0]
     return get
 
 

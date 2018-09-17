@@ -1,5 +1,6 @@
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    LIBRARY_TOKEN_NETWORK_UTILS,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_SECRET_REGISTRY,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -11,14 +12,21 @@ from raiden_contracts.utils.merkle import get_merkle_root
 
 def test_token_network_registry(
         web3,
-        deploy_tester_contract_txhash,
+        contracts_manager,
+        contract_deployer_address,
+        deploy_tester_contract,
         secret_registry_contract,
         custom_token,
         print_gas,
 ):
-    txhash = deploy_tester_contract_txhash(
+    # First deploy TokenNetworkUtils library and then link it
+    (token_network_utils_library, txn_hash) = deploy_tester_contract(LIBRARY_TOKEN_NETWORK_UTILS)
+    print_gas(txn_hash, LIBRARY_TOKEN_NETWORK_UTILS + ' DEPLOYMENT')
+
+    libs = {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address}
+    (token_network_registry, txn_hash) = deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [],
+        libs,
         [
             secret_registry_contract.address,
             int(web3.version.network),
@@ -26,31 +34,10 @@ def test_token_network_registry(
             TEST_SETTLE_TIMEOUT_MAX,
         ],
     )
-    print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
-#    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
-#    print_gas(txn_hash, C_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
-
-
-def test_token_network_deployment(
-        web3,
-        print_gas,
-        custom_token,
-        secret_registry_contract,
-        deploy_tester_contract_txhash,
-):
-    txhash = deploy_tester_contract_txhash(
-        CONTRACT_TOKEN_NETWORK,
-        [],
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-        ],
-    )
-    print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
+    txn_hash = token_network_registry.transact().createERC20TokenNetwork(custom_token.address)
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + '.createERC20TokenNetwork')
 
 
 def test_token_network_create(
@@ -74,12 +61,12 @@ def test_secret_registry(secret_registry_contract, print_gas):
 
 def test_channel_cycle(
         web3,
+        print_gas,
+        secret_registry_contract,
         token_network,
         create_channel,
         channel_deposit,
-        secret_registry_contract,
         get_accounts,
-        print_gas,
         create_balance_proof,
         create_balance_proof_update_signature,
 ):

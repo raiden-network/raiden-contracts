@@ -23,7 +23,7 @@ def token_network_test_storage(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
         ],
-    )
+    )[0]
 
 
 @pytest.fixture()
@@ -43,7 +43,7 @@ def token_network_test_signatures(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
         ],
-    )
+    )[0]
 
 
 @pytest.fixture()
@@ -63,4 +63,4 @@ def token_network_test_utils(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
         ],
-    )
+    )[0]

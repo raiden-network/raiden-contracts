@@ -6,4 +6,4 @@ from raiden_contracts.constants import CONTRACT_SECRET_REGISTRY
 @pytest.fixture
 def secret_registry_contract(deploy_tester_contract):
     """Deployed SecretRegistry contract"""
-    return deploy_tester_contract(CONTRACT_SECRET_REGISTRY)
+    return deploy_tester_contract(CONTRACT_SECRET_REGISTRY)[0]

@@ -1,13 +1,7 @@
 import pytest
 import logging
-from web3.utils.events import get_event_data
-from eth_utils import is_address
+from solc import link_code
 
-from raiden_contracts.constants import (
-    CONTRACT_TOKEN_NETWORK,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    EVENT_TOKEN_NETWORK_CREATED,
-)
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +16,61 @@ def contract_deployer_address(faucet_address) -> str:
 
 
 @pytest.fixture
+def deploy_contract_txhash(revert_chain):
+    """Returns a function that deploys a compiled contract, returning a txhash"""
+    def fn(
+            web3,
+            deployer_address,
+            abi,
+            bytecode,
+            args,
+            bytecode_runtime=None,
+    ):
+        if args is None:
+            args = []
+        if bytecode_runtime is not None:
+            contract = web3.eth.contract(
+                abi=abi,
+                bytecode=bytecode,
+                bytecode_runtime=bytecode_runtime,
+            )
+        else:
+            contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        web3.testing.mine(3)
+        return contract.constructor(*args).transact({'from': deployer_address})
+    return fn
+
+
+@pytest.fixture
+def deploy_contract(revert_chain, deploy_contract_txhash):
+    """Returns a function that deploys a compiled contract"""
+    def fn(
+            web3,
+            deployer_address,
+            abi,
+            bytecode,
+            args,
+            bytecode_runtime,
+    ):
+        txhash = deploy_contract_txhash(
+            web3,
+            deployer_address,
+            abi,
+            bytecode,
+            args,
+            bytecode_runtime,
+        )
+
+        contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+
+        contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
+        web3.testing.mine(1)
+
+        return contract(contract_address), txhash
+    return fn
+
+
+@pytest.fixture
 def deploy_tester_contract(
         web3,
         contracts_manager,
@@ -31,73 +80,20 @@ def deploy_tester_contract(
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
-    using conract manager to compile the bytecode and get the ABI"""
+    using contract manager to compile the bytecode and get the ABI"""
     def f(contract_name, libs=None, args=None):
         json_contract = contracts_manager.get_contract(contract_name)
-        contract = deploy_contract(
+
+        if isinstance(libs, dict):
+            json_contract['bin'] = link_code(json_contract['bin'], libs)
+            json_contract['bin-runtime'] = link_code(json_contract['bin-runtime'], libs)
+
+        return deploy_contract(
             web3,
             contract_deployer_address,
             json_contract['abi'],
             json_contract['bin'],
             args,
+            bytecode_runtime=json_contract['bin-runtime'],
         )
-        return contract
     return f
-
-
-@pytest.fixture
-def deploy_tester_contract_txhash(
-        web3,
-        contracts_manager,
-        deploy_contract_txhash,
-        contract_deployer_address,
-        wait_for_transaction,
-        get_random_address,
-):
-    """Returns a function that can be used to deploy a named contract,
-    but returning txhash only"""
-    def f(contract_name, libs=None, args=None):
-        json_contract = contracts_manager.get_contract(contract_name)
-        txhash = deploy_contract_txhash(
-            web3,
-            contract_deployer_address,
-            json_contract['abi'],
-            json_contract['bin'],
-            args,
-        )
-        return txhash
-    return f
-
-
-@pytest.fixture
-def utils_contract(deploy_tester_contract):
-    """Deployed Utils contract"""
-    return deploy_tester_contract('Utils')
-
-
-@pytest.fixture
-def standard_token_network_contract(
-        web3,
-        contracts_manager,
-        wait_for_transaction,
-        token_network_registry_contract,
-        standard_token_contract,
-        contract_deployer_address,
-):
-    """Return instance of a deployed TokenNetwork for HumanStandardToken."""
-    txid = token_network_registry_contract.functions.createERC20TokenNetwork(
-        standard_token_contract.address,
-    ).transact({'from': contract_deployer_address})
-    tx_receipt = wait_for_transaction(txid)
-    assert len(tx_receipt['logs']) == 1
-    event_abi = contracts_manager.get_event_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-        EVENT_TOKEN_NETWORK_CREATED,
-    )
-    decoded_event = get_event_data(event_abi, tx_receipt['logs'][0])
-    assert decoded_event is not None
-    assert is_address(decoded_event['args']['token_address'])
-    assert is_address(decoded_event['args']['token_network_address'])
-    token_network_address = decoded_event['args']['token_network_address']
-    token_network_abi = contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
-    return web3.eth.contract(abi=token_network_abi, address=token_network_address)

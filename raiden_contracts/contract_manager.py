@@ -72,7 +72,7 @@ class ContractManager:
             for contracts_dir in self._contracts_source_dirs.values():
                 res = compile_files(
                     [str(file) for file in contracts_dir.glob('*.sol')],
-                    output_values=('abi', 'bin', 'ast'),
+                    output_values=('abi', 'bin', 'ast', 'bin-runtime'),
                     import_remappings=import_dir_map,
                     optimize=False,
                 )
