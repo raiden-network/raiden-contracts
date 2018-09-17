@@ -307,6 +307,7 @@ def test_settlement_with_unauthorized_token_transfer(
         get_accounts,
         custom_token,
         token_network,
+        assign_tokens,
         create_channel_and_deposit,
         withdraw_channel,
         close_and_update_channel,
@@ -333,6 +334,14 @@ def test_settlement_with_unauthorized_token_transfer(
         vals_B,
     )
 
+    # Assign additional tokens to A
+    assign_tokens(A, externally_transferred_amount)
+
+    # Fetch onchain balances after settlement
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
     # A does a transfer to the token_network without appropriate function call - tokens are lost
     custom_token.functions.transfer(
         token_network.address,
@@ -354,15 +363,21 @@ def test_settlement_with_unauthorized_token_transfer(
 
     # A has lost the externally_transferred_amount
     assert (
-        vals_A.withdrawn + settlement.participant1_balance - externally_transferred_amount
-        == post_balance_A
-    )
+        pre_balance_A +
+        settlement.participant1_balance -
+        externally_transferred_amount
+    ) == post_balance_A
 
     # B's settlement works correctly
-    assert (settlement.participant2_balance + vals_B.withdrawn == post_balance_B)
+    assert pre_balance_B + settlement.participant2_balance == post_balance_B
 
     # The externally_transferred_amount stays in the contract
-    assert (post_balance_contract == externally_transferred_amount)
+    assert (
+        pre_balance_contract -
+        settlement.participant1_balance -
+        settlement.participant2_balance +
+        externally_transferred_amount
+    ) == post_balance_contract
 
 
 def test_settle_with_locked_but_unregistered(
