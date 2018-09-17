@@ -221,7 +221,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     } */
 
-    function recoverAddressFromWithdrawMessagePublic(
+    /* function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,
         address participant,
         uint256 amount_to_withdraw,
@@ -237,7 +237,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             amount_to_withdraw,
             signature
         );
-    }
+    } */
 }
 
 contract TokenNetworkUtilsTest is TokenNetwork {
