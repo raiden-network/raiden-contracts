@@ -811,7 +811,7 @@ contract TokenNetwork is Utils {
         assert(locked_amount >= unlocked_amount);
     }
 
-    /// @notice Cooperatively settles the balances between the two channel
+    /* /// @notice Cooperatively settles the balances between the two channel
     /// participants and transfers the agreed upon token amounts to the
     /// participants. After this the channel lifecycle has ended and no more
     /// operations can be done on it.
@@ -908,7 +908,7 @@ contract TokenNetwork is Utils {
         if (participant2_balance > 0) {
             require(token.transfer(participant2, participant2_balance));
         }
-    }
+    } */
 
     /// @notice Returns the unique identifier for the channel given by the
     /// contract.
@@ -1438,7 +1438,7 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
     }
 
-    function recoverAddressFromCooperativeSettleSignature(
+    /* function recoverAddressFromCooperativeSettleSignature(
         uint256 channel_identifier,
         address participant1,
         uint256 participant1_balance,
@@ -1467,7 +1467,7 @@ contract TokenNetwork is Utils {
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
-    }
+    } */
 
     function recoverAddressFromWithdrawMessage(
         uint256 channel_identifier,

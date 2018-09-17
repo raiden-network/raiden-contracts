@@ -199,7 +199,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     }
 
-    function recoverAddressFromCooperativeSettleSignaturePublic(
+    /* function recoverAddressFromCooperativeSettleSignaturePublic(
         uint256 channel_identifier,
         address participant1,
         uint256 participant1_balance,
@@ -219,7 +219,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             participant2_balance,
             signature
         );
-    }
+    } */
 
     function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,

@@ -6,6 +6,7 @@ from raiden_contracts.constants import ChannelEvent
 from web3.exceptions import ValidationError
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_call(
         token_network,
         create_channel_and_deposit,
@@ -123,6 +124,7 @@ def test_cooperative_settle_channel_call(
     ).transact({'from': C})
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_signatures(
         token_network,
         create_channel_and_deposit,
@@ -188,6 +190,7 @@ def test_cooperative_settle_channel_signatures(
     ).transact({'from': C})
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_0(
         custom_token,
         token_network,
@@ -239,6 +242,7 @@ def test_cooperative_settle_channel_0(
     )
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_00(
         custom_token,
         token_network,
@@ -290,6 +294,7 @@ def test_cooperative_settle_channel_00(
     )
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_state(
         custom_token,
         token_network,
@@ -342,6 +347,7 @@ def test_cooperative_settle_channel_state(
     )
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_state_withdraw(
         custom_token,
         token_network,
@@ -399,6 +405,7 @@ def test_cooperative_settle_channel_state_withdraw(
     )
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_bigger_withdraw(
         custom_token,
         token_network,
@@ -442,6 +449,7 @@ def test_cooperative_settle_channel_bigger_withdraw(
         ).transact({'from': C})
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_wrong_balances(
         custom_token,
         token_network,
@@ -520,6 +528,7 @@ def test_cooperative_settle_channel_wrong_balances(
     ).transact({'from': C})
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_close_replay_reopened_channel(
         get_accounts,
         token_network,
@@ -593,6 +602,7 @@ def test_cooperative_close_replay_reopened_channel(
     ).transact({'from': B})
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_cooperative_settle_channel_event(
         get_accounts,
         token_network,
