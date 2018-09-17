@@ -62,7 +62,6 @@ def test_secret_registry(secret_registry_contract, print_gas):
 def test_channel_cycle(
         web3,
         print_gas,
-        custom_token,
         secret_registry_contract,
         token_network,
         create_channel,

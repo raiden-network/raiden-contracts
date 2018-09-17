@@ -87,6 +87,8 @@ def deploy_tester_contract(
         if isinstance(libs, dict):
             json_contract['bin'] = link_code(json_contract['bin'], libs)
             json_contract['bin-runtime'] = link_code(json_contract['bin-runtime'], libs)
+        else:
+            json_contract['bin-runtime'] = None
 
         return deploy_contract(
             web3,

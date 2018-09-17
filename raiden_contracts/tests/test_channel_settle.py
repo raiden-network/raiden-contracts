@@ -8,7 +8,6 @@ from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import (
-    MAX_UINT256,
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
