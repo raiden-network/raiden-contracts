@@ -77,8 +77,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
-        TokenNetworkUtils.SettlementData memory participant1_settlement;
-        TokenNetworkUtils.SettlementData memory participant2_settlement;
+        SettlementData memory participant1_settlement;
+        SettlementData memory participant2_settlement;
 
         participant1_settlement.deposit = participant1_state.deposit;
         participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
@@ -89,7 +89,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
         participant2_settlement.transferred = participant2_transferred_amount;
         participant2_settlement.locked = participant2_locked_amount;
-        return TokenNetworkUtils.getMaxPossibleReceivableAmount(
+        return getMaxPossibleReceivableAmount(
             participant1_settlement,
             participant2_settlement
         );

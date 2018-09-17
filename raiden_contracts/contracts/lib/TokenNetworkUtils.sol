@@ -1,17 +1,11 @@
 pragma solidity ^0.4.23;
 
 library TokenNetworkUtils {
-    struct SettlementData {
-        uint256 deposit;
-        uint256 withdrawn;
-        uint256 transferred;
-        uint256 locked;
-    }
 
     /// @dev Calculates the merkle root for an array of hashes
     function getMerkleRoot(bytes32[] merkle_tree)
         pure
-        internal
+        public
         returns (bytes32)
     {
         uint256 i;
@@ -44,11 +38,17 @@ library TokenNetworkUtils {
     }
 
     function getMaxPossibleReceivableAmount(
-        SettlementData participant1_settlement,
-        SettlementData participant2_settlement
+        uint256 participant1_deposit,
+        uint256 participant1_withdrawn,
+        uint256 participant1_transferred,
+        uint256 participant1_locked,
+        uint256 participant2_deposit,
+        uint256 participant2_withdrawn,
+        uint256 participant2_transferred,
+        uint256 participant2_locked
     )
         pure
-        internal
+        public
         returns (uint256)
     {
         uint256 participant1_max_transferred;
@@ -60,16 +60,16 @@ library TokenNetworkUtils {
         // to participant2, if all the pending lock secrets have been
         // registered
         participant1_max_transferred = failsafe_addition(
-            participant1_settlement.transferred,
-            participant1_settlement.locked
+            participant1_transferred,
+            participant1_locked
         );
 
         // This is the maximum possible amount that participant2 could transfer
         // to participant1, if all the pending lock secrets have been
         // registered
         participant2_max_transferred = failsafe_addition(
-            participant2_settlement.transferred,
-            participant2_settlement.locked
+            participant2_transferred,
+            participant2_locked
         );
 
         // We enforce this check artificially, in order to get rid of hard
@@ -79,8 +79,8 @@ library TokenNetworkUtils {
         // ordered values.
         require(participant2_max_transferred >= participant1_max_transferred);
 
-        assert(participant1_max_transferred >= participant1_settlement.transferred);
-        assert(participant2_max_transferred >= participant2_settlement.transferred);
+        assert(participant1_max_transferred >= participant1_transferred);
+        assert(participant2_max_transferred >= participant2_transferred);
 
         // This is the maximum amount that participant1 can receive at settlement time
         participant1_net_max_received = (
@@ -92,18 +92,18 @@ library TokenNetworkUtils {
         // withdrawn amount
         participant1_max_amount = failsafe_addition(
             participant1_net_max_received,
-            participant1_settlement.deposit
+            participant1_deposit
         );
 
         // Subtract already withdrawn amount
         (participant1_max_amount, ) = failsafe_subtract(
             participant1_max_amount,
-            participant1_settlement.withdrawn
+            participant1_withdrawn
         );
         return participant1_max_amount;
     }
 
-    function min(uint256 a, uint256 b) pure internal returns (uint256)
+    function min(uint256 a, uint256 b) pure public returns (uint256)
     {
         return a > b ? b : a;
     }
@@ -115,7 +115,7 @@ library TokenNetworkUtils {
     /// subtrahend for which no underflow occurs.
     function failsafe_subtract(uint256 a, uint256 b)
         pure
-        internal
+        public
         returns (uint256, uint256)
     {
         return a > b ? (a - b, b) : (0, a);
@@ -128,7 +128,7 @@ library TokenNetworkUtils {
     /// uint256 value.
     function failsafe_addition(uint256 a, uint256 b)
         pure
-        internal
+        public
         returns (uint256)
     {
         uint256 MAX_SAFE_UINT256 = (
@@ -142,7 +142,7 @@ library TokenNetworkUtils {
     /// @param contract_address The address to check whether a contract is
     /// deployed or not
     /// @return True if a contract exists, false otherwise
-    function contractExists(address contract_address) view internal returns (bool) {
+    function contractExists(address contract_address) view public returns (bool) {
         uint size;
 
         assembly {

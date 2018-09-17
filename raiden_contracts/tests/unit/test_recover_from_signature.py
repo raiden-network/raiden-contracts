@@ -6,15 +6,6 @@ from raiden_contracts.tests.fixtures.config import EMPTY_ADDRESS
 from raiden_contracts.utils.sign_utils import sign
 
 
-@pytest.fixture
-def signature_test_contract(deploy_tester_contract):
-    return deploy_tester_contract(
-        'SignatureVerifyTest',
-        {},
-        [],
-    )
-
-
 def test_verify(
         web3,
         token_network,

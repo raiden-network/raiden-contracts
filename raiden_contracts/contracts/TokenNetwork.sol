@@ -27,10 +27,6 @@ contract TokenNetwork {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
-    /* uint256 constant public MAX_SAFE_UINT256 = (
-        115792089237316195423570985008687907853269984665640564039457584007913129639935
-    ); */
-
     // Bug bounty release deposit limit
     uint256 public deposit_limit;
 
@@ -120,6 +116,13 @@ contract TokenNetwork {
         // Total amount of tokens locked in the pending transfers corresponding
         // to the `locksroot`
         uint256 locked_amount;
+    }
+
+    struct SettlementData {
+        uint256 deposit;
+        uint256 withdrawn;
+        uint256 transferred;
+        uint256 locked;
     }
 
     event ChannelOpened(
@@ -1204,8 +1207,8 @@ contract TokenNetwork {
         uint256 participant2_amount;
         uint256 total_available_deposit;
 
-        TokenNetworkUtils.SettlementData memory participant1_settlement;
-        TokenNetworkUtils.SettlementData memory participant2_settlement;
+        SettlementData memory participant1_settlement;
+        SettlementData memory participant2_settlement;
 
         participant1_settlement.deposit = participant1_state.deposit;
         participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
@@ -1227,7 +1230,7 @@ contract TokenNetwork {
         // This amount is the maximum possible amount that participant1 can
         // receive at settlement time and also contains the entire locked amount
         //  of the pending transfers from participant2 to participant1.
-        participant1_amount = TokenNetworkUtils.getMaxPossibleReceivableAmount(
+        participant1_amount = getMaxPossibleReceivableAmount(
             participant1_settlement,
             participant2_settlement
         );
@@ -1279,6 +1282,26 @@ contract TokenNetwork {
             participant2_amount,
             participant1_locked_amount,
             participant2_locked_amount
+        );
+    }
+
+    function getMaxPossibleReceivableAmount(
+        SettlementData memory participant1_settlement,
+        SettlementData memory participant2_settlement
+    )
+        pure
+        internal
+        returns (uint256)
+    {
+        return TokenNetworkUtils.getMaxPossibleReceivableAmount(
+            participant1_settlement.deposit,
+            participant1_settlement.withdrawn,
+            participant1_settlement.transferred,
+            participant1_settlement.locked,
+            participant2_settlement.deposit,
+            participant2_settlement.withdrawn,
+            participant2_settlement.transferred,
+            participant2_settlement.locked
         );
     }
 

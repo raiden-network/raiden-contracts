@@ -12,11 +12,12 @@ from eth_utils import is_address
 
 
 @pytest.fixture()
-def get_token_network_registry(deploy_tester_contract):
+def get_token_network_registry(deploy_tester_contract, token_network_utils_library):
     def get(arguments, transaction=None):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
-            {},
+            # {'TokenNetworkUtils': token_network_utils_library.address},
+            {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address},
             arguments,
         )[0]
     return get
