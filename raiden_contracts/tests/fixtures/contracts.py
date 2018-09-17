@@ -42,39 +42,11 @@ def deploy_contract_txhash(revert_chain):
 
 
 @pytest.fixture
-def deploy_contract(revert_chain, deploy_contract_txhash):
-    """Returns a function that deploys a compiled contract"""
-    def fn(
-            web3,
-            deployer_address,
-            abi,
-            bytecode,
-            args,
-            bytecode_runtime,
-    ):
-        txhash = deploy_contract_txhash(
-            web3,
-            deployer_address,
-            abi,
-            bytecode,
-            args,
-            bytecode_runtime,
-        )
-
-        contract = web3.eth.contract(abi=abi, bytecode=bytecode)
-
-        contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
-        web3.testing.mine(1)
-
-        return contract(contract_address), txhash
-    return fn
-
-
-@pytest.fixture
 def deploy_tester_contract(
         web3,
         contracts_manager,
-        deploy_contract,
+        revert_chain,
+        deploy_contract_txhash,
         contract_deployer_address,
         wait_for_transaction,
         get_random_address,
@@ -83,19 +55,32 @@ def deploy_tester_contract(
     using contract manager to compile the bytecode and get the ABI"""
     def f(contract_name, libs=None, args=None):
         json_contract = contracts_manager.get_contract(contract_name)
+        abi = json_contract['abi']
+        bytecode = json_contract['bin']
 
-        if isinstance(libs, dict):
-            json_contract['bin'] = link_code(json_contract['bin'], libs)
-            json_contract['bin-runtime'] = link_code(json_contract['bin-runtime'], libs)
+        if isinstance(libs, dict) and len(libs.keys()) > 0:
+            bytecode = link_code(bytecode, libs)
+            bytecode_runtime = link_code(json_contract['bin-runtime'], libs)
+            txhash = deploy_contract_txhash(
+                web3,
+                contract_deployer_address,
+                abi,
+                bytecode,
+                args,
+                bytecode_runtime,
+            )
         else:
-            json_contract['bin-runtime'] = None
+            txhash = deploy_contract_txhash(
+                web3,
+                contract_deployer_address,
+                abi,
+                bytecode,
+                args,
+            )
 
-        return deploy_contract(
-            web3,
-            contract_deployer_address,
-            json_contract['abi'],
-            json_contract['bin'],
-            args,
-            bytecode_runtime=json_contract['bin-runtime'],
-        )
+        contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
+        web3.testing.mine(1)
+
+        return contract(contract_address), txhash
     return f

@@ -9,18 +9,7 @@ from raiden_contracts.constants import (
 )
 from web3.contract import get_event_data
 from eth_utils import is_address
-
-
-@pytest.fixture()
-def get_token_network_registry(deploy_tester_contract, token_network_utils_library):
-    def get(arguments, transaction=None):
-        return deploy_tester_contract(
-            CONTRACT_TOKEN_NETWORK_REGISTRY,
-            # {'TokenNetworkUtils': token_network_utils_library.address},
-            {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address},
-            arguments,
-        )[0]
-    return get
+from raiden_contracts.contract_manager import CONTRACTS_SOURCE_DIRS
 
 
 @pytest.fixture
@@ -30,17 +19,40 @@ def token_network_utils_library(deploy_tester_contract, web3):
 
 
 @pytest.fixture
+def token_network_libs(token_network_utils_library):
+    """Deployed TokenNetworkUtils library"""
+    # FIXME
+    # libraries should look lile: {'TokenNetworkUtils': token_network_utils_library.address}
+    # But solc assigns only 36 characters to the library name
+    # In our case, with remappings, the library name contains the full path to the library file
+    # Therefore, we get the same name for all libraries, containing path of the file path
+    libs = {}
+    libs[str(CONTRACTS_SOURCE_DIRS['raiden'])[:36]] = token_network_utils_library.address
+    return libs
+
+
+@pytest.fixture()
+def get_token_network_registry(deploy_tester_contract, token_network_libs):
+    def get(arguments, transaction=None):
+        return deploy_tester_contract(
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
+            token_network_libs,
+            arguments,
+        )[0]
+    return get
+
+
+@pytest.fixture
 def token_network_registry_contract(
         deploy_tester_contract,
-        token_network_utils_library,
+        token_network_libs,
         secret_registry_contract,
         web3,
 ):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        # {'TokenNetworkUtils': token_network_utils_library.address},
-        {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address},
+        token_network_libs,
         [
             secret_registry_contract.address,
             int(web3.version.network),

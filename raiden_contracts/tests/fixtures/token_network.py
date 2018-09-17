@@ -11,12 +11,15 @@ from web3.contract import get_event_data
 
 
 @pytest.fixture
-def get_token_network(web3, deploy_tester_contract):
+def get_token_network(web3, deploy_tester_contract, token_network_utils_library):
     """Deploy a token network as a separate contract (registry is not used)"""
     def get(arguments):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK,
-            {},
+            {
+                '/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address,
+                '/home/travis/build/raiden-network/ra': token_network_utils_library.address,
+            },
             arguments,
         )[0]
     return get

@@ -23,7 +23,10 @@ def test_token_network_registry(
     (token_network_utils_library, txn_hash) = deploy_tester_contract(LIBRARY_TOKEN_NETWORK_UTILS)
     print_gas(txn_hash, LIBRARY_TOKEN_NETWORK_UTILS + ' DEPLOYMENT')
 
-    libs = {'/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address}
+    libs = {
+        '/Users/loredana/ETH/raiden-contracts': token_network_utils_library.address,
+        '/home/travis/build/raiden-network/ra': token_network_utils_library.address,
+    }
     (token_network_registry, txn_hash) = deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         libs,

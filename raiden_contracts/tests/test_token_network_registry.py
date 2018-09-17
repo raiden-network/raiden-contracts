@@ -29,6 +29,14 @@ def test_constructor_call(
     chain_id = int(web3.version.network)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
+
+    get_token_network_registry([
+        secret_registry_contract.address,
+        chain_id,
+        settle_min,
+        settle_max,
+    ])
+
     with pytest.raises(TypeError):
         get_token_network_registry([])
     with pytest.raises(TypeError):
@@ -72,13 +80,6 @@ def test_constructor_call(
         get_token_network_registry([secret_registry_contract.address, 0, settle_min, 0])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([secret_registry_contract.address, 0, settle_max, settle_min])
-
-    get_token_network_registry([
-        secret_registry_contract.address,
-        chain_id,
-        settle_min,
-        settle_max,
-    ])
 
 
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
