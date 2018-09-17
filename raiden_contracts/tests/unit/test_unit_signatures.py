@@ -169,6 +169,7 @@ def test_recover_address_from_balance_proof_update(
     ).call()
 
 
+@pytest.mark.skip(reason='Delayed to another milestone')
 def test_recover_address_from_cooperative_settle_signature(
         token_network_test_signatures,
         create_cooperative_settle_signatures,
