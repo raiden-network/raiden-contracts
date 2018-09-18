@@ -706,7 +706,7 @@ def create_withdraw_signatures(token_network, get_private_key):
 def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
     A_total_transferred = vals_A.transferred + vals_A.locked
     B_total_transferred = vals_B.transferred + vals_B.locked
-    assert B_total_transferred >= B_total_transferred
+    assert B_total_transferred >= A_total_transferred
 
     if B_total_transferred != B_total_transferred:
         with pytest.raises(TransactionFailed):
