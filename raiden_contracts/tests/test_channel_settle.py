@@ -142,11 +142,20 @@ def test_settle_channel_state(
 
     # Some manual checks for the final balances, in case the settlement algorithms
     # used in `settle_state_tests` are incorrect
-    assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 33
-    assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 15
+
+    # FIXME after setTotalWithdraw is implemented again
+    post_balance_A = pre_balance_A + 33
+    post_balance_B = pre_balance_B + 15
+    post_balance_contract = pre_balance_contract - 48
+
+    # FIXME after setTotalWithdraw is implemented again
+    # we add the withdrawn amount here, because it was never withdrawn due to the
+    # removal of setTotalWithdraw
+    assert custom_token.functions.balanceOf(A).call() == post_balance_A + 10
+    assert custom_token.functions.balanceOf(B).call() == post_balance_B + 5
     assert custom_token.functions.balanceOf(
         token_network.address,
-    ).call() == pre_balance_contract - 48
+    ).call() == post_balance_contract - 15
 
 
 def test_settle_single_direct_transfer_for_closing_party(
