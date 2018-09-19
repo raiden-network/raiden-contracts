@@ -19,6 +19,7 @@ def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> dict:
     '''
     receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
     txinfo = web3.eth.getTransaction(txid)
+    assert receipt['status'] != 0
     assert txinfo['gas'] != receipt['gasUsed']
     return receipt
 
