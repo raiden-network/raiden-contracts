@@ -1,13 +1,30 @@
-env/
-build/
+__pycache__/
+*.py[cod]
 /.idea
 credentials/
-*.egg-info
-__pycache__
-build/docs/
 .cache
 .pytest_cache
 venv/
+
+# Distribution / packaging
+.Python
+env/
+devenv/
+build/
+build/docs/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # ignore private keys
 *.pem
@@ -16,3 +33,5 @@ venv/
 .vscode/
 
 raiden_contracts/data/contracts.json.gz
+
+tags
