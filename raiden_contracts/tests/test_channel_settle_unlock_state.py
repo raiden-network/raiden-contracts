@@ -258,13 +258,16 @@ def test_settlement_outcome(
 
 
 @pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
-def test_channel_settle_valid_old_balance_proof_values(
+@pytest.mark.parametrize('tested_range', ('one_old', 'both_old_1', 'both_old_2'))
+# This test is split in three so it does not time out on travis
+def test_channel_settle_old_balance_proof_values(
         web3,
         get_accounts,
         assign_tokens,
         channel_test_values,
         create_channel_and_deposit,
         test_settlement_outcome,
+        tested_range,
 ):
     (A, B, C, D) = get_accounts(4)
     (vals_A0, vals_B0) = channel_test_values['valid_last']
@@ -295,118 +298,68 @@ def test_channel_settle_valid_old_balance_proof_values(
         expected_final_balance_B0,
     ) = get_expected_after_settlement_unlock_amounts(vals_A0, vals_B0)
 
-    test_settlement_outcome(
-        (A, B),
-        (vals_A0, vals_B0, 'valid'),
-        expected_settlement0,
-        expected_settlement_onchain0,
-        expected_final_balance_A0,
-        expected_final_balance_B0,
-    )
+    if tested_range is 'one_old':
 
-    if 'old_last' in channel_test_values:
-        for vals_A in channel_test_values['old_last']:
-            vals_B = vals_B0
-            test_settlement_outcome(
-                (A, B),
-                (vals_A, vals_B, 'old_last'),
-                expected_settlement0,
-                expected_settlement_onchain0,
-                expected_final_balance_A0,
-                expected_final_balance_B0,
-            )
+        test_settlement_outcome(
+            (A, B),
+            (vals_A0, vals_B0, 'valid'),
+            expected_settlement0,
+            expected_settlement_onchain0,
+            expected_final_balance_A0,
+            expected_final_balance_B0,
+        )
 
-    if 'last_old' in channel_test_values:
-        for vals_B in channel_test_values['last_old']:
-            vals_A = vals_A0
-            test_settlement_outcome(
-                (A, B),
-                (vals_A, vals_B, 'last_old'),
-                expected_settlement0,
-                expected_settlement_onchain0,
-                expected_final_balance_A0,
-                expected_final_balance_B0,
-            )
-
-
-@pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
-def test_channel_settle_old_old_balance_proof_values(
-        web3,
-        get_accounts,
-        assign_tokens,
-        channel_test_values,
-        create_channel_and_deposit,
-        test_settlement_outcome,
-):
-    (A, B, C, D) = get_accounts(4)
-    (vals_A0, vals_B0) = channel_test_values['valid_last']
-    assert are_balance_proofs_valid(vals_A0, vals_B0)
-    assert not is_balance_proof_old(vals_A0, vals_B0)
-
-    # Mint additional tokens for participants
-    assign_tokens(A, 400)
-    assign_tokens(B, 200)
-    # We make sure the contract has more tokens than A, B will deposit
-    create_channel_and_deposit(C, D, 40, 60)
-
-    expected_settlement0 = get_settlement_amounts(vals_A0, vals_B0)
-    expected_settlement_onchain0 = get_onchain_settlement_amounts(vals_A0, vals_B0)
-    (
-        expected_final_balance_A0,
-        expected_final_balance_B0,
-    ) = get_expected_after_settlement_unlock_amounts(vals_A0, vals_B0)
-
-    if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
-        for vals_A in channel_test_values['old_last'][:5]:
-            for vals_B in channel_test_values['last_old'][:5]:
+        if 'old_last' in channel_test_values:
+            for vals_A in channel_test_values['old_last']:
+                vals_B = vals_B0
                 test_settlement_outcome(
                     (A, B),
-                    (vals_A, vals_B, 'invalid'),
+                    (vals_A, vals_B, 'old_last'),
                     expected_settlement0,
                     expected_settlement_onchain0,
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
 
-
-@pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
-def test_channel_settle_old_old_balance_proof_values2(
-        web3,
-        get_accounts,
-        assign_tokens,
-        channel_test_values,
-        create_channel_and_deposit,
-        test_settlement_outcome,
-):
-    (A, B, C, D) = get_accounts(4)
-    (vals_A0, vals_B0) = channel_test_values['valid_last']
-    assert are_balance_proofs_valid(vals_A0, vals_B0)
-    assert not is_balance_proof_old(vals_A0, vals_B0)
-
-    # Mint additional tokens for participants
-    assign_tokens(A, 400)
-    assign_tokens(B, 200)
-    # We make sure the contract has more tokens than A, B will deposit
-    create_channel_and_deposit(C, D, 40, 60)
-
-    expected_settlement0 = get_settlement_amounts(vals_A0, vals_B0)
-    expected_settlement_onchain0 = get_onchain_settlement_amounts(vals_A0, vals_B0)
-    (
-        expected_final_balance_A0,
-        expected_final_balance_B0,
-    ) = get_expected_after_settlement_unlock_amounts(vals_A0, vals_B0)
-
-    if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
-        for vals_A in channel_test_values['old_last'][5:]:
-            for vals_B in channel_test_values['last_old'][5:]:
+        if 'last_old' in channel_test_values:
+            for vals_B in channel_test_values['last_old']:
+                vals_A = vals_A0
                 test_settlement_outcome(
                     (A, B),
-                    (vals_A, vals_B, 'invalid'),
+                    (vals_A, vals_B, 'last_old'),
                     expected_settlement0,
                     expected_settlement_onchain0,
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
+
+    elif tested_range is 'both_old_1':
+
+        if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
+            for vals_A in channel_test_values['old_last'][:5]:
+                for vals_B in channel_test_values['last_old'][:5]:
+                    test_settlement_outcome(
+                        (A, B),
+                        (vals_A, vals_B, 'invalid'),
+                        expected_settlement0,
+                        expected_settlement_onchain0,
+                        expected_final_balance_A0,
+                        expected_final_balance_B0,
+                    )
+
+    else:
+
+        if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
+            for vals_A in channel_test_values['old_last'][5:]:
+                for vals_B in channel_test_values['last_old'][5:]:
+                    test_settlement_outcome(
+                        (A, B),
+                        (vals_A, vals_B, 'invalid'),
+                        expected_settlement0,
+                        expected_settlement_onchain0,
+                        expected_final_balance_A0,
+                        expected_final_balance_B0,
+                    )
 
 
 @pytest.mark.parametrize('channel_test_values', channel_settle_invalid_test_values)
