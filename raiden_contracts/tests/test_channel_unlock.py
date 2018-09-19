@@ -500,7 +500,11 @@ def test_channel_unlock_expired_lock_refunds(
     web3.testing.mine(max_lock_expiration)
 
     # Secrets are revealed before settlement window, but after expiration
-    reveal_secrets(A, pending_transfers_tree.unlockable)
+    for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
+        secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+            secrethash,
+        ).call() == web3.eth.blockNumber
 
     close_and_update_channel(
         channel_identifier,

@@ -16,8 +16,11 @@ from raiden_contracts.utils.sign import (
 from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
+    get_expected_after_settlement_unlock_amounts,
     ChannelValues,
     get_participants_hash,
+    are_balance_proofs_valid,
+    is_balance_proof_old,
 )
 from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 from .token_network import *  # flake8: noqa
@@ -254,9 +257,11 @@ def create_settled_channel(
 @pytest.fixture()
 def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
-        for (_, _, secrethash, secret) in transfers:
+        for (expiration, _, secrethash, secret) in transfers:
+            assert web3.eth.blockNumber < expiration
             secret_registry_contract.functions.registerSecret(secret).transact({'from': tx_from})
             assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == web3.eth.blockNumber
+
     return get
 
 
@@ -493,6 +498,7 @@ def unlock_state_tests(token_network):
         ).call() == 0
     return get
 
+
 @pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):
     def get(
@@ -698,9 +704,11 @@ def create_withdraw_signatures(token_network, get_private_key):
 
 
 def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
-    assert vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked
+    A_total_transferred = vals_A.transferred + vals_A.locked
+    B_total_transferred = vals_B.transferred + vals_B.locked
+    assert B_total_transferred >= A_total_transferred
 
-    if vals_B.transferred != vals_A.transferred:
+    if B_total_transferred != B_total_transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(
                 channel_identifier,

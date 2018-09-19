@@ -1,5 +1,5 @@
-import os
-import random
+from random import randint
+from os import urandom
 from collections import namedtuple
 from functools import reduce
 
@@ -31,14 +31,32 @@ def wait_for_transaction_receipt(web3, txid, timeout=180):
     return web3.eth.getTransactionReceipt(txid)
 
 
+def get_random_values_for_sum(values_sum):
+    amount = 0
+    values = []
+    while amount < values_sum:
+        value = randint(1, values_sum - amount)
+        values.append(value)
+        amount += value
+    return values
+
+
 def get_pending_transfers_tree(
         web3,
         unlockable_amounts=None,
         expired_amounts=None,
         min_expiration_delta=None,
         max_expiration_delta=None,
+        unlockable_amount=None,
+        expired_amount=None,
 ):
+    if isinstance(unlockable_amount, int):
+        unlockable_amounts = get_random_values_for_sum(unlockable_amount)
+    if isinstance(expired_amount, int):
+        expired_amounts = get_random_values_for_sum(expired_amount)
+
     types = ['uint256', 'uint256', 'bytes32']
+    packed_transfers = b''
     (unlockable_locks, expired_locks) = get_pending_transfers(
         web3,
         unlockable_amounts,
@@ -54,14 +72,15 @@ def get_pending_transfers_tree(
         for transfer_data in pending_transfers
     ]
 
-    hashed_pending_transfers, pending_transfers = zip(*sorted(zip(
-        hashed_pending_transfers,
-        pending_transfers,
-    )))
+    if len(pending_transfers) > 0:
+        hashed_pending_transfers, pending_transfers = zip(*sorted(zip(
+            hashed_pending_transfers,
+            pending_transfers,
+        )))
+        packed_transfers = get_packed_transfers(pending_transfers, types)
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
     merkle_root = get_merkle_root(merkle_tree)
-    packed_transfers = get_packed_transfers(pending_transfers, types)
     locked_amount = get_locked_amount(pending_transfers)
 
     return PendingTransfersTree(
@@ -89,7 +108,7 @@ def get_pending_transfers(
     max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT_MIN)
     unlockable_locks = [
         [
-            current_block + random.randint(min_expiration_delta, max_expiration_delta),
+            current_block + randint(min_expiration_delta, max_expiration_delta),
             amount,
             *random_secret(),
         ]
@@ -123,5 +142,5 @@ PendingTransfersTree = namedtuple('PendingTransfersTree', [
 
 
 def random_secret():
-    secret = os.urandom(32)
+    secret = urandom(32)
     return (Web3.soliditySha3(['bytes32'], [secret]), secret)
