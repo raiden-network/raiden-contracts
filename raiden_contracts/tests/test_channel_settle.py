@@ -345,6 +345,7 @@ def test_settlement_with_unauthorized_token_transfer(
 
     # Assign additional tokens to A
     assign_tokens(A, externally_transferred_amount)
+    assert custom_token.functions.balanceOf(A).call() >= externally_transferred_amount
 
     # Fetch onchain balances after settlement
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -356,6 +357,10 @@ def test_settlement_with_unauthorized_token_transfer(
         token_network.address,
         externally_transferred_amount,
     ).transact({'from': A})
+    assert custom_token.functions.balanceOf(token_network.address).call() == (
+        pre_balance_contract +
+        externally_transferred_amount
+    )
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
