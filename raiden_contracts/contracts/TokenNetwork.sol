@@ -31,7 +31,7 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Bug bounty release deposit limit
+    // Red Eyes release deposit limit
     uint256 public deposit_limit;
 
     // Global, monotonically increasing counter that keeps track of all the
@@ -39,6 +39,10 @@ contract TokenNetwork is Utils {
     uint256 public channel_counter;
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
+
+    // Only for the limited Bug Bounty release
+    address public deprecation_executor;
+    bool public safety_deprecation_switch = false;
 
     // channel_identifier => Channel
     // channel identifier is the channel_counter value at the time of opening
@@ -178,6 +182,16 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount
     );
 
+    modifier onlyDeprecationExecutor() {
+        require(msg.sender == deprecation_executor);
+        _;
+    }
+
+    modifier isSafe() {
+        require(safety_deprecation_switch == false);
+        _;
+    }
+
     modifier isOpen(uint256 channel_identifier) {
         require(channels[channel_identifier].state == ChannelState.Opened);
         _;
@@ -194,12 +208,14 @@ contract TokenNetwork is Utils {
         address _secret_registry,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        uint256 _settlement_timeout_max,
+        address _deprecation_executor
     )
         public
     {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
+        require(_deprecation_executor != address(0x0));
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
@@ -224,6 +240,12 @@ contract TokenNetwork is Utils {
         }
 
         deposit_limit = 100 * (10 ** uint256(decimals));
+
+        deprecation_executor = _deprecation_executor;
+    }
+
+    function deprecate() isSafe onlyDeprecationExecutor public {
+        safety_deprecation_switch = true;
     }
 
     /// @notice Opens a new channel between `participant1` and `participant2`.
@@ -233,6 +255,7 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
+        isSafe
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -288,6 +311,7 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
+        isSafe
         isOpen(channel_identifier)
         public
     {

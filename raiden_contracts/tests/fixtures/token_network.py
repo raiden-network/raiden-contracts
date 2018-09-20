@@ -95,11 +95,18 @@ def token_network_contract(
 
 
 @pytest.fixture()
-def token_network_external(web3, get_token_network, custom_token, secret_registry_contract):
+def token_network_external(
+        web3,
+        contract_deployer_address,
+        get_token_network,
+        custom_token,
+        secret_registry_contract,
+):
     return get_token_network([
         custom_token.address,
         secret_registry_contract.address,
         int(web3.version.network),
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
+        contract_deployer_address,
     ])

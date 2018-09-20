@@ -19,18 +19,39 @@ def test_constructor_call(
         secret_registry_contract,
         get_accounts,
 ):
-    A = get_accounts(1)[0]
+    (A, deprecation_executor) = get_accounts(2)
     chain_id = int(web3.version.network)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
     with pytest.raises(TypeError):
         get_token_network([])
     with pytest.raises(TypeError):
-        get_token_network([3, secret_registry_contract.address, chain_id, settle_min, settle_max])
+        get_token_network([
+            3,
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([0, secret_registry_contract.address, chain_id, settle_min, settle_max])
+        get_token_network([
+            0,
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
-        get_token_network(['', secret_registry_contract.address, chain_id, settle_min, settle_max])
+        get_token_network([
+            '',
+            secret_registry_contract.address,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
         get_token_network([
             FAKE_ADDRESS,
@@ -38,15 +59,44 @@ def test_constructor_call(
             chain_id,
             settle_min,
             settle_max,
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, 3, chain_id, settle_min, settle_max])
+        get_token_network([
+            custom_token.address,
+            3,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, 0, chain_id, settle_min, settle_max])
+        get_token_network([
+            custom_token.address,
+            0,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, '', chain_id, settle_min, settle_max])
+        get_token_network([
+            custom_token.address,
+            '',
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
-        get_token_network([custom_token.address, FAKE_ADDRESS, chain_id, settle_min, settle_max])
+        get_token_network([
+            custom_token.address,
+            FAKE_ADDRESS,
+            chain_id,
+            settle_min,
+            settle_max,
+            deprecation_executor,
+        ])
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -54,6 +104,7 @@ def test_constructor_call(
             '',
             settle_min,
             settle_max,
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -62,6 +113,7 @@ def test_constructor_call(
             -3,
             settle_min,
             settle_max,
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -70,6 +122,7 @@ def test_constructor_call(
             chain_id,
             '',
             settle_max,
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -78,6 +131,7 @@ def test_constructor_call(
             chain_id,
             -3,
             settle_max,
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -86,6 +140,7 @@ def test_constructor_call(
             chain_id,
             settle_min,
             '',
+            deprecation_executor,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -94,6 +149,7 @@ def test_constructor_call(
             chain_id,
             settle_min,
             -3,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -103,6 +159,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -111,6 +168,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -119,6 +177,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -128,6 +187,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -136,6 +196,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -145,6 +206,7 @@ def test_constructor_call(
             0,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -154,6 +216,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MAX,
             TEST_SETTLE_TIMEOUT_MIN,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -163,6 +226,7 @@ def test_constructor_call(
             chain_id,
             0,
             TEST_SETTLE_TIMEOUT_MIN,
+            deprecation_executor,
         ])
 
     with pytest.raises(TransactionFailed):
@@ -172,6 +236,7 @@ def test_constructor_call(
             chain_id,
             TEST_SETTLE_TIMEOUT_MIN,
             0,
+            deprecation_executor,
         ])
 
     get_token_network([
@@ -180,6 +245,7 @@ def test_constructor_call(
         chain_id,
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
+        deprecation_executor,
     ])
 
 
