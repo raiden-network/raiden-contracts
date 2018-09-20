@@ -31,8 +31,8 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Bug bounty release deposit limits
-    // The combined deposit of one channel is limited to 0,15 ETH.
+    // Red Eyes release deposit limits
+    // The combined deposit of one channel is limited to 0.15 ETH.
     // So 0.075 ETH per participant.
     uint256 constant public channel_participant_deposit_limit = 75000000000000000 wei;
     // The total combined deposit of all channels across the whole network is
@@ -45,7 +45,7 @@ contract TokenNetwork is Utils {
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
 
-    // Only for the limited Bug Bounty release
+    // Only for the limited Red Eyes release
     address public deprecation_executor;
     bool public safety_deprecation_switch = false;
 
@@ -259,7 +259,7 @@ contract TokenNetwork is Utils {
         bytes32 pair_hash;
         uint256 channel_identifier;
 
-        // Bug Bounty release token network limit
+        // Red Eyes release token network limit
         require(token.balanceOf(address(this)) < token_network_deposit_limit);
 
         // First increment the counter
@@ -339,7 +339,7 @@ contract TokenNetwork is Utils {
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
 
-        // Bug Bounty release token network limit
+        // Red Eyes release token network limit
         require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
 
         // Update the participant's channel deposit
