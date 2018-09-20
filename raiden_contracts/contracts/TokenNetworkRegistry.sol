@@ -18,14 +18,15 @@ contract TokenNetworkRegistry is Utils {
 
     // Only for the limited Bug Bounty release
     address public deprecation_executor;
+    bool public bug_bounty_token_network_created = false;
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
 
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
-    modifier onlyDeprecationExecutor() {
-        require(msg.sender == deprecation_executor);
+    modifier canCreateTokenNetwork() {
+        require(bug_bounty_token_network_created == false);
         _;
     }
 
@@ -56,11 +57,14 @@ contract TokenNetworkRegistry is Utils {
     /// @param _token_address Ethereum address of an already deployed token, to
     /// be used in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
-        onlyDeprecationExecutor
+        canCreateTokenNetwork
         external
         returns (address token_network_address)
     {
         require(token_to_token_networks[_token_address] == address(0x0));
+
+        // We limit the number of token networks to 1 for the Bug Bounty release
+        bug_bounty_token_network_created = true;
 
         TokenNetwork token_network;
 

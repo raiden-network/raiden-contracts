@@ -39,21 +39,31 @@ def test_deprecation_executor(
 
     # Make sure deployer is deprecation_executor
     assert token_network_registry.functions.deprecation_executor().call() == deprecation_executor
+    assert token_network_registry.functions.bug_bounty_token_network_created().call() is False
 
-    # Only the deprecation_executor can deploy TokenNetwork contracts
+    # We can only deploy one TokenNetwork contract
+    # It can be deployed by anyone
+    tx_hash = token_network_registry.functions.createERC20TokenNetwork(
+        custom_token.address,
+    ).transact(
+        {'from': B},
+    )
+    assert token_network_registry.functions.bug_bounty_token_network_created().call() is True
+
+    # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
         ).transact(
             {'from': B},
         )
+    with pytest.raises(TransactionFailed):
+        token_network_registry.functions.createERC20TokenNetwork(
+            custom_token.address,
+        ).transact(
+            {'from': deprecation_executor},
+        )
 
-    # Make sure deployer is deprecation_executor also for any created TokenNetwork
-    tx_hash = token_network_registry.functions.createERC20TokenNetwork(
-        custom_token.address,
-    ).transact(
-        {'from': deprecation_executor},
-    )
     tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
     event_abi = contracts_manager.get_event_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
