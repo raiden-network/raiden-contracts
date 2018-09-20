@@ -31,7 +31,7 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Bug bounty release deposit limit
+    // Red Eyes release deposit limit
     uint256 public deposit_limit;
 
     // Global, monotonically increasing counter that keeps track of all the

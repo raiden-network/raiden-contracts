@@ -39,7 +39,7 @@ def test_deprecation_executor(
 
     # Make sure deployer is deprecation_executor
     assert token_network_registry.functions.deprecation_executor().call() == deprecation_executor
-    assert token_network_registry.functions.bug_bounty_token_network_created().call() is False
+    assert token_network_registry.functions.token_network_created().call() is False
 
     # We can only deploy one TokenNetwork contract
     # It can be deployed by anyone
@@ -48,7 +48,7 @@ def test_deprecation_executor(
     ).transact(
         {'from': B},
     )
-    assert token_network_registry.functions.bug_bounty_token_network_created().call() is True
+    assert token_network_registry.functions.token_network_created().call() is True
 
     # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):

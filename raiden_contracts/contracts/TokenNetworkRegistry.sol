@@ -16,9 +16,9 @@ contract TokenNetworkRegistry is Utils {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
-    // Only for the limited Bug Bounty release
+    // Only for the limited Red Eyes release
     address public deprecation_executor;
-    bool public bug_bounty_token_network_created = false;
+    bool public token_network_created = false;
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
@@ -26,7 +26,7 @@ contract TokenNetworkRegistry is Utils {
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     modifier canCreateTokenNetwork() {
-        require(bug_bounty_token_network_created == false);
+        require(token_network_created == false);
         _;
     }
 
@@ -64,7 +64,7 @@ contract TokenNetworkRegistry is Utils {
         require(token_to_token_networks[_token_address] == address(0x0));
 
         // We limit the number of token networks to 1 for the Bug Bounty release
-        bug_bounty_token_network_created = true;
+        token_network_created = true;
 
         TokenNetwork token_network;
 
