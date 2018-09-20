@@ -31,9 +31,13 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Bug bounty release deposit limit
-    uint256 constant public channel_participant_deposit_limit = 75 * 10**15 wei;
-    uint256 constant public token_network_deposit_limit = 250 * 10**18 wei;
+    // Bug bounty release deposit limits
+    // The combined deposit of one channel is limited to 0,15 ETH.
+    // So 0.075 ETH per participant.
+    uint256 constant public channel_participant_deposit_limit = 75000000000000000 wei;
+    // The total combined deposit of all channels across the whole network is
+    // limited to 250 ETH.
+    uint256 constant public token_network_deposit_limit = 250000000000000000000 wei;
 
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
