@@ -9,11 +9,11 @@ from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues
 # we cannot determine and guarantee corectness. There are specific constraints that the
 # Raiden client must enforce that guarantee correctness.
 
-# For all valid last balance proofs provided we will programatically construct a suit of balance
+# For all valid last balance proofs provided we have manually constructed a suit of old balance
 # proof pairs that could be used for attacks (documented edge cases).
-# We can also specify the balance proof pairs that are not `valid last` (edge cases) manually.
-# We will test if the end result of using the `valid last` balance proof is the same as in the
-# edge cases, or that the attacker gets punished.
+# We will test that using old balance proofs does not result in cheating, therefore the attacker
+# (participant who provides the old balance proof) must not receive more tokens than in the case
+# where he provides a `valid last` balance proof.
 channel_settle_test_values = [
     {
         'valid_last': (
