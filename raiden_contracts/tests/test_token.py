@@ -63,13 +63,5 @@ def test_custom_token(custom_token, web3):
     assert web3.eth.getCode(custom_token.address)
 
 
-def test_custom_token_7_decimals(custom_token_7_decimals, web3):
-    assert web3.eth.getCode(custom_token_7_decimals.address)
-
-
-def test_custom_token_no_decimals(custom_token_no_decimals, web3):
-    assert web3.eth.getCode(custom_token_no_decimals.address)
-
-
 def test_human_standard_token(human_standard_token, web3):
     assert web3.eth.getCode(human_standard_token.address)
