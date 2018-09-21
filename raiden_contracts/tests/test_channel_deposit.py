@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
-from raiden_contracts.constants import ChannelEvent, MAX_TOKENS_DEPLOY
+from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS
 from raiden_contracts.tests.utils import MAX_UINT256
@@ -178,38 +178,6 @@ def test_channel_deposit_overflow(token_network, get_accounts, create_channel, c
         channel_deposit(channel_identifier, B, deposit_B_fail, A)
 
     channel_deposit(channel_identifier, B, deposit_B_ok, A)
-
-
-def test_channel_deposit_limit(token_network, get_accounts, create_channel, channel_deposit):
-    (A, B) = get_accounts(2)
-
-    contract_deposit_limit = MAX_TOKENS_DEPLOY * (10 ** 18)
-    assert token_network.functions.deposit_limit().call() == contract_deposit_limit
-
-    deposit_B_ok = contract_deposit_limit
-    deposit_B_fail = deposit_B_ok + 1
-
-    channel_identifier = create_channel(A, B)[0]
-
-    channel_deposit(channel_identifier, B, deposit_B_ok, A)
-
-    with pytest.raises(TransactionFailed):
-        channel_deposit(channel_identifier, B, deposit_B_fail, A)
-
-
-def test_channel_deposit_limit_7_decimals_token(
-        token_network_7_decimals,
-):
-    contract_deposit_limit = token_network_7_decimals.functions.deposit_limit().call()
-    assert contract_deposit_limit == MAX_TOKENS_DEPLOY * (10 ** 7)
-
-
-def test_channel_deposit_limit_no_decimals_token(
-        token_network_no_decimals,
-):
-    # When no decimals function is available assume 18
-    contract_deposit_limit = token_network_no_decimals.functions.deposit_limit().call()
-    assert contract_deposit_limit == MAX_TOKENS_DEPLOY * (10 ** 18)
 
 
 def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):

@@ -54,8 +54,9 @@ class ChannelState(IntEnum):
     REMOVED = 4
 
 
-# Temporary token deposit limits for the Red Eyes release
-MAX_TOKENS_DEPLOY = 100
+# Temporary deposit limits for the Red Eyes release in WEI
+MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10**18)
+MAX_ETH_TOKEN_NETWORK = int(250 * 10**18)
 
 
 class ChannelInfoIndex(IntEnum):

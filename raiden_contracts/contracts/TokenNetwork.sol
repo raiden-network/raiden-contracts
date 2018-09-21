@@ -31,8 +31,13 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Red Eyes release deposit limit
-    uint256 public deposit_limit;
+    // Red Eyes release deposit limits
+    // The combined deposit of one channel is limited to 0.15 ETH.
+    // So 0.075 ETH per participant.
+    uint256 constant public channel_participant_deposit_limit = 75000000000000000 wei;
+    // The total combined deposit of all channels across the whole network is
+    // limited to 250 ETH.
+    uint256 constant public token_network_deposit_limit = 250000000000000000000 wei;
 
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
@@ -40,7 +45,7 @@ contract TokenNetwork is Utils {
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
 
-    // Only for the limited Bug Bounty release
+    // Only for the limited Red Eyes release
     address public deprecation_executor;
     bool public safety_deprecation_switch = false;
 
@@ -232,15 +237,6 @@ contract TokenNetwork is Utils {
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);
 
-        // Try to get token decimals, otherwise assume 18
-        bool exists = address(token).call(abi.encodeWithSignature("decimals()"));
-        uint8 decimals = 18;
-        if (exists) {
-            decimals = token.decimals();
-        }
-
-        deposit_limit = 100 * (10 ** uint256(decimals));
-
         deprecation_executor = _deprecation_executor;
     }
 
@@ -262,6 +258,9 @@ contract TokenNetwork is Utils {
     {
         bytes32 pair_hash;
         uint256 channel_identifier;
+
+        // Red Eyes release token network limit
+        require(token.balanceOf(address(this)) < token_network_deposit_limit);
 
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
@@ -317,7 +316,7 @@ contract TokenNetwork is Utils {
     {
         require(channel_identifier == getChannelIdentifier(participant, partner));
         require(total_deposit > 0);
-        require(total_deposit <= deposit_limit);
+        require(total_deposit <= channel_participant_deposit_limit);
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -328,13 +327,20 @@ contract TokenNetwork is Utils {
 
         // Calculate the actual amount of tokens that will be transferred
         added_deposit = total_deposit - participant_state.deposit;
+
         // The actual amount of tokens that will be transferred must be > 0
         require(added_deposit > 0);
+
         // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
+
         require(added_deposit <= total_deposit);
+
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
+
+        // Red Eyes release token network limit
+        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
 
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;
