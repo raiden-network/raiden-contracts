@@ -13,7 +13,7 @@ from setuptools.command.sdist import sdist
 
 
 DESCRIPTION = 'Raiden contracts library and utilities'
-VERSION = '0.3.1'
+VERSION = '0.4.0'
 
 
 def read_requirements(path: str) -> List[str]:
