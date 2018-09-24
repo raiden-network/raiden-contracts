@@ -8,7 +8,6 @@ from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import (
-    MAX_UINT256,
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
@@ -20,13 +19,6 @@ from raiden_contracts.tests.fixtures.config import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
 )
-
-
-def test_max_safe_uint256(token_network, token_network_test_utils):
-    max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
-
-    assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
-    assert max_safe_uint256 == MAX_UINT256
 
 
 def test_settle_no_bp_success(
