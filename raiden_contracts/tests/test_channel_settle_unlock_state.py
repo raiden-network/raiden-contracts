@@ -338,28 +338,34 @@ def test_channel_settle_old_balance_proof_values(
         if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
             for vals_A in channel_test_values['old_last'][:5]:
                 for vals_B in channel_test_values['last_old'][:5]:
-                    test_settlement_outcome(
-                        (A, B),
-                        (vals_A, vals_B, 'invalid'),
-                        expected_settlement0,
-                        expected_settlement_onchain0,
-                        expected_final_balance_A0,
-                        expected_final_balance_B0,
-                    )
+                    # We only need to test for cases  where the we have the same argument ordering
+                    # for settleChannel, keeping the order of balance calculations
+                    if vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked:
+                        test_settlement_outcome(
+                            (A, B),
+                            (vals_A, vals_B, 'invalid'),
+                            expected_settlement0,
+                            expected_settlement_onchain0,
+                            expected_final_balance_A0,
+                            expected_final_balance_B0,
+                        )
 
     else:
 
         if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
             for vals_A in channel_test_values['old_last'][5:]:
                 for vals_B in channel_test_values['last_old'][5:]:
-                    test_settlement_outcome(
-                        (A, B),
-                        (vals_A, vals_B, 'invalid'),
-                        expected_settlement0,
-                        expected_settlement_onchain0,
-                        expected_final_balance_A0,
-                        expected_final_balance_B0,
-                    )
+                    # We only need to test for cases  where the we have the same argument ordering
+                    # for settleChannel, keeping the order of balance calculations
+                    if vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked:
+                        test_settlement_outcome(
+                            (A, B),
+                            (vals_A, vals_B, 'invalid'),
+                            expected_settlement0,
+                            expected_settlement_onchain0,
+                            expected_final_balance_A0,
+                            expected_final_balance_B0,
+                        )
 
 
 @pytest.mark.parametrize('channel_test_values', channel_settle_invalid_test_values)
