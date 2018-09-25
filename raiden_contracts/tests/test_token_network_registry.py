@@ -92,6 +92,8 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
     ])
     assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
     assert chain_id == registry.functions.chain_id().call()
+    assert TEST_SETTLE_TIMEOUT_MIN == registry.functions.settlement_timeout_min().call()
+    assert TEST_SETTLE_TIMEOUT_MAX == registry.functions.settlement_timeout_max().call()
 
 
 def test_create_erc20_token_network_call(
@@ -142,6 +144,18 @@ def test_create_erc20_token_network(
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address,
     ).call() == token_network.address
+
+    secret_registry = token_network_registry_contract.functions.secret_registry_address().call()
+    assert token_network.functions.secret_registry().call() == secret_registry
+
+    chain_id = token_network_registry_contract.functions.chain_id().call()
+    assert token_network.functions.chain_id().call() == chain_id
+
+    settle_timeout_min = token_network_registry_contract.functions.settlement_timeout_min().call()
+    assert token_network.functions.settlement_timeout_min().call() == settle_timeout_min
+
+    settle_timeout_max = token_network_registry_contract.functions.settlement_timeout_max().call()
+    assert token_network.functions.settlement_timeout_max().call() == settle_timeout_max
 
 
 def test_create_erc20_token_network_twice_fails(

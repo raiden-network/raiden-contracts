@@ -6,6 +6,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
+from raiden_contracts.tests.utils import MAX_UINT256
 
 
 def test_version(token_network):
@@ -247,6 +248,16 @@ def test_constructor_call(
         TEST_SETTLE_TIMEOUT_MAX,
         deprecation_executor,
     ])
+
+
+def test_token_network_variables(token_network, token_network_test_utils):
+    max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
+
+    assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
+    assert max_safe_uint256 == MAX_UINT256
+
+    assert token_network.functions.channel_counter().call() == 0
+    assert token_network.functions.signature_prefix().call() == '\x19Ethereum Signed Message:\n'
 
 
 def test_constructor_not_registered(
