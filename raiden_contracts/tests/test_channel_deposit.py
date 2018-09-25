@@ -1,10 +1,16 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
-from raiden_contracts.constants import ChannelEvent
+from raiden_contracts.constants import ChannelEvent, TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.events import check_new_deposit
 from .fixtures.config import EMPTY_ADDRESS, FAKE_ADDRESS
-from raiden_contracts.tests.utils import MAX_UINT256
+from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues
+from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.tests.fixtures.config import (
+    EMPTY_BALANCE_HASH,
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_SIGNATURE,
+)
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
@@ -140,7 +146,7 @@ def test_deposit_notapproved(
         ).transact({'from': A})
 
 
-def test_small_deposit_fail(
+def test_null_or_negative_deposit_fail(
         token_network,
         create_channel,
         channel_deposit,
@@ -155,13 +161,49 @@ def test_small_deposit_fail(
 
     # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).transact({'from': A})
+    with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).transact({'from': A})
 
 
-def test_deposit_delegate(token_network, get_accounts, create_channel, channel_deposit):
+def test_deposit_delegate_works(token_network, get_accounts, create_channel, channel_deposit):
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
+
+
+def test_deposit_wrong_channel(
+        get_accounts,
+        token_network,
+        create_channel,
+        assign_tokens,
+):
+    (A, B, C) = get_accounts(3)
+    channel_identifier = create_channel(A, B)[0]
+    channel_identifier2 = create_channel(A, C)[0]
+    assign_tokens(A, 10)
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier2,
+            A,
+            10,
+            B,
+        ).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier,
+            A,
+            10,
+            C,
+        ).transact({'from': A})
+
+    token_network.functions.setTotalDeposit(
+        channel_identifier,
+        A,
+        10,
+        B,
+    ).transact({'from': A})
 
 
 @pytest.mark.skip('Not necessary with limited deposits for the test release.')
@@ -208,14 +250,99 @@ def test_deposit_channel_state(token_network, create_channel, channel_deposit, g
         B,
     ).call()[0]
     assert A_deposit == deposit_A
+    B_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier,
+        B,
+        A,
+    ).call()[0]
+    assert B_deposit == 0
 
     channel_deposit(channel_identifier, B, deposit_B, A)
+    A_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier,
+        A,
+        B,
+    ).call()[0]
+    assert A_deposit == deposit_A
     B_deposit = token_network.functions.getChannelParticipantInfo(
         channel_identifier,
         B,
         A,
     ).call()[0]
     assert B_deposit == deposit_B
+
+
+def test_deposit_wrong_state_fail(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel,
+        assign_tokens,
+        close_and_update_channel,
+):
+    (A, B) = get_accounts(2)
+    vals_A = ChannelValues(deposit=2, transferred=0, locked=0)
+    vals_B = ChannelValues(deposit=2, transferred=0, locked=0)
+    channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
+    assign_tokens(A, vals_A.deposit)
+    assign_tokens(B, vals_B.deposit)
+    token_network.functions.setTotalDeposit(
+        channel_identifier,
+        A,
+        vals_A.deposit,
+        B,
+    ).transact({'from': A})
+    token_network.functions.setTotalDeposit(
+        channel_identifier,
+        B,
+        vals_B.deposit,
+        A,
+    ).transact({'from': B})
+
+    token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+    ).transact({'from': A})
+
+    assign_tokens(A, 10)
+    assign_tokens(B, 10)
+    vals_A.deposit += 5
+    vals_B.deposit += 5
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier,
+            A,
+            vals_A.deposit,
+            B,
+        ).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier,
+            B,
+            vals_B.deposit,
+            A,
+        ).transact({'from': B})
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier,
+            A,
+            vals_A.deposit,
+            B,
+        ).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalDeposit(
+            channel_identifier,
+            B,
+            vals_B.deposit,
+            A,
+        ).transact({'from': B})
 
 
 def test_deposit_channel_event(
