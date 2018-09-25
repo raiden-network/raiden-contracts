@@ -22,6 +22,7 @@ from raiden_contracts.tests.utils import (
     are_balance_proofs_valid,
     is_balance_proof_old,
 )
+from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
 from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
@@ -349,12 +350,14 @@ def update_state_tests(token_network, get_block):
             A_is_the_closer,
             A_balance_hash,
             A_nonce,
-            _,
-            _,
+            A_locksroot,
+            A_locked,
         ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert A_is_the_closer is True
         assert A_balance_hash == balance_proof_A[0]
         assert A_nonce == 5
+        assert A_locksroot == EMPTY_LOCKSROOT
+        assert A_locked == 0
 
         (
             _,
@@ -362,12 +365,14 @@ def update_state_tests(token_network, get_block):
             B_is_the_closer,
             B_balance_hash,
             B_nonce,
-            _,
-            _,
+            B_locksroot,
+            B_locked,
         ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert B_is_the_closer is False
         assert B_balance_hash == balance_proof_B[0]
         assert B_nonce == 3
+        assert B_locksroot == EMPTY_LOCKSROOT
+        assert B_locked == 0
     return get
 
 
