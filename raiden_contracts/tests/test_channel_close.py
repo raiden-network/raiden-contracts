@@ -43,7 +43,7 @@ def test_close_nonexistent_channel(
         ).transact({'from': A})
 
 
-def test_close_settled_channel(
+def test_close_settled_channel_fail(
         web3,
         token_network,
         create_channel,
@@ -181,6 +181,56 @@ def test_close_wrong_sender(
         ).transact({'from': C})
 
 
+def test_close_nonce_zero(
+        get_accounts,
+        token_network,
+        create_channel,
+        create_balance_proof,
+):
+    (A, B) = get_accounts(2)
+    vals_B = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locksroot=fake_bytes(32, '03'),
+        claimable_locked=3,
+        unclaimable_locked=4,
+        nonce=0,
+    )
+    # Create channel and deposit
+    channel_identifier = create_channel(A, B)[0]
+
+    # Create balance proofs
+    balance_proof_B = create_balance_proof(
+        channel_identifier,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        vals_B.nonce,
+        vals_B.locksroot,
+    )
+
+    token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        *balance_proof_B,
+    ).transact({'from': A})
+
+    # Even though we somehow provide valid values for the balance proof, they are not taken into
+    # consideration if the nonce is 0.
+    # The Raiden client enforces that the nonce is > 0 if off-chain transfers are made.
+    (
+        _, _,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_is_the_closer is False
+    assert B_balance_hash == EMPTY_BALANCE_HASH
+    assert B_nonce == 0
+
+
 def test_close_first_argument_is_for_partner_transfer(
         token_network,
         create_channel,
@@ -260,23 +310,27 @@ def test_close_channel_state(
 ):
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
-    deposit_A = 20
-    transferred_amount = 5
-    nonce = 3
-    locksroot = fake_bytes(32, '03')
+    vals_B = ChannelValues(
+        deposit=20,
+        transferred=5,
+        locksroot=fake_bytes(32, '03'),
+        claimable_locked=3,
+        unclaimable_locked=4,
+        nonce=3,
+    )
 
     # Create channel and deposit
     channel_identifier = create_channel(A, B, settle_timeout)[0]
-    channel_deposit(channel_identifier, A, deposit_A, B)
+    channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Create balance proofs
-    balance_proof = create_balance_proof(
+    balance_proof_B = create_balance_proof(
         channel_identifier,
         B,
-        transferred_amount,
-        0,
-        nonce,
-        locksroot,
+        vals_B.transferred,
+        vals_B.locked,
+        vals_B.nonce,
+        vals_B.locksroot,
     )
 
     (
@@ -298,11 +352,22 @@ def test_close_channel_state(
     assert A_is_the_closer is False
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
+    (
+        _, _,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_is_the_closer is False
+    assert B_balance_hash == EMPTY_BALANCE_HASH
+    assert B_nonce == 0
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
         B,
-        *balance_proof,
+        *balance_proof_B,
     ).transact({'from': A})
 
     (
@@ -333,8 +398,8 @@ def test_close_channel_state(
         _,
     ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
-    assert B_balance_hash == balance_proof[0]
-    assert B_nonce == nonce
+    assert B_balance_hash == balance_proof_B[0]
+    assert B_nonce == vals_B.nonce
 
 
 def test_close_channel_event_no_offchain_transfers(
