@@ -101,13 +101,13 @@ channel_settle_test_values = [
             # participant2 provides an old participant1 balance proof, with a higher
             # unclaimable locked amount can happen if expired transfers are removed
             # from the merkle tree
-            # ChannelValues(
-            #     deposit=35,
-            #     withdrawn=5,
-            #     transferred=20020,
-            #     claimable_locked=3,
-            #     unclaimable_locked=12,
-            # ),
+            ChannelValues(
+                deposit=35,
+                withdrawn=5,
+                transferred=20020,
+                claimable_locked=3,
+                unclaimable_locked=12,
+            ),
             # participant2 provides an old participant1 balance proof with a higher
             # claimable locked amount, but lower transferred + claimable_locked
             # A higher claimable locked amount can happen even if the locked tokens are
