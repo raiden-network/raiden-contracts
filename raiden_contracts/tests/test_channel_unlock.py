@@ -16,10 +16,11 @@ from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.constants import ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
 
 
-def test_merkle_root_0_items(token_network_test_utils):
+def test_merkle_root_0_items(token_network_test_utils, token_network):
     (
         locksroot,
         unlocked_amount,
@@ -44,7 +45,10 @@ def test_merkle_root_1_item_unlockable(
         pending_transfers_tree.unlockable[0][2],
     ).call() == web3.eth.blockNumber
 
-    (locksroot, unlocked_amount) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
+    (
+        locksroot,
+        unlocked_amount,
+    ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers,
     ).call()
 
@@ -65,7 +69,10 @@ def test_merkle_root(
 
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
-    (locksroot, unlocked_amount) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(  # noqa
+    (
+        locksroot,
+        unlocked_amount,
+    ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers,
     ).call()
     merkle_root = pending_transfers_tree.merkle_root
@@ -102,6 +109,15 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             pending_transfers_tree_A_fake.packed_transfers,
+        ).call()
+
+    # Fails for an empty merkle tree
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            b'',
         ).call()
 
     token_network.functions.unlock(
@@ -380,6 +396,14 @@ def test_channel_unlock(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
+    info_B = token_network.functions.getChannelParticipantInfo(
+        channel_identifier,
+        B,
+        A,
+    ).call()
+    assert info_B[ParticipantInfoIndex.LOCKSROOT] == values_B.locksroot
+    assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == values_B.locked
+
     # Unlock the tokens
     token_network.functions.unlock(
         channel_identifier,
@@ -387,6 +411,14 @@ def test_channel_unlock(
         B,
         pending_transfers_tree.packed_transfers,
     ).transact()
+
+    info_B = token_network.functions.getChannelParticipantInfo(
+        channel_identifier,
+        B,
+        A,
+    ).call()
+    assert info_B[ParticipantInfoIndex.LOCKSROOT] == EMPTY_LOCKSROOT
+    assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == 0
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -664,8 +696,6 @@ def test_channel_unlock_before_settlement_fails(
 
     # Create channel and deposit
     channel_identifier = create_channel(A, B, settle_timeout)[0]
-    channel_deposit(channel_identifier, A, values_A.deposit, B)
-    channel_deposit(channel_identifier, B, values_B.deposit, A)
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -674,6 +704,27 @@ def test_channel_unlock_before_settlement_fails(
 
     # Reveal secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    # Unlock fails before channel is not settled
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            A,
+            B,
+            pending_transfers_tree.packed_transfers,
+        ).transact()
+
+    channel_deposit(channel_identifier, A, values_A.deposit, B)
+    channel_deposit(channel_identifier, B, values_B.deposit, A)
+
+    # Unlock fails before channel is not settled
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            A,
+            B,
+            pending_transfers_tree.packed_transfers,
+        ).transact()
 
     close_and_update_channel(
         channel_identifier,
@@ -694,6 +745,7 @@ def test_channel_unlock_before_settlement_fails(
 
     # Settlement window must be over before settling the channel
     web3.testing.mine(settle_timeout)
+
     # Unlock fails before settle is called
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
