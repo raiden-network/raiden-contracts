@@ -282,6 +282,48 @@ def test_channel_unlock_bigger_unlocked_amount(
     assert balance_contract == 0
 
 
+def test_channel_unlock_no_locked_amount_fail(
+        web3,
+        token_network,
+        custom_token,
+        secret_registry_contract,
+        create_settled_channel,
+        get_accounts,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [2, 5], [4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+
+    channel_identifier = create_settled_channel(
+        A,
+        0,
+        EMPTY_LOCKSROOT,
+        B,
+        0,
+        EMPTY_LOCKSROOT,
+        settle_timeout,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            b'',
+        ).transact()
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            pending_transfers_tree_A.packed_transfers,
+        ).transact()
+
+
 def test_channel_unlock(
         web3,
         custom_token,
