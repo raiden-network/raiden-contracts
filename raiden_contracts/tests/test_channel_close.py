@@ -209,6 +209,18 @@ def test_close_nonce_zero(
         vals_B.locksroot,
     )
 
+    (
+        _, _,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_is_the_closer is False
+    assert B_balance_hash == EMPTY_BALANCE_HASH
+    assert B_nonce == 0
+
     token_network.functions.closeChannel(
         channel_identifier,
         B,
