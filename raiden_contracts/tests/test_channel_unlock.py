@@ -13,10 +13,10 @@ from raiden_contracts.utils.utils import (
     random_secret,
 )
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
 
 
 def test_merkle_root_0_items(token_network_test_utils):
@@ -24,7 +24,7 @@ def test_merkle_root_0_items(token_network_test_utils):
         locksroot,
         unlocked_amount,
     ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(b'').call()
-    assert locksroot == EMPTY_MERKLE_ROOT
+    assert locksroot == EMPTY_LOCKSROOT
     assert unlocked_amount == 0
 
 
@@ -92,7 +92,7 @@ def test_unlock_wrong_locksroot(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -140,7 +140,7 @@ def test_channel_unlock_bigger_locked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -197,7 +197,7 @@ def test_channel_unlock_smaller_locked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -255,7 +255,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         pending_transfers_tree_A.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -301,7 +301,7 @@ def test_channel_unlock(
         deposit=20,
         transferred=5,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -377,7 +377,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_1.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
     token_network.functions.unlock(
@@ -398,7 +398,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_2.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -423,7 +423,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_1.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -438,7 +438,7 @@ def test_channel_settle_and_unlock(
         pending_transfers_tree_2.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -476,7 +476,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         deposit=20,
         transferred=5,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -613,7 +613,7 @@ def test_channel_unlock_before_settlement_fails(
         deposit=20,
         transferred=5,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -705,7 +705,7 @@ def test_unlock_fails_with_partial_merkle_proof(
         pending_transfers_tree.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -755,7 +755,7 @@ def test_unlock_tampered_merkle_proof_fails(
         pending_transfers_tree.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
 
@@ -910,7 +910,7 @@ def test_unlock_twice_fails(
         pending_transfers_tree_1.merkle_root,
         B,
         0,
-        EMPTY_MERKLE_ROOT,
+        EMPTY_LOCKSROOT,
         settle_timeout,
     )
     token_network.functions.unlock(
@@ -948,7 +948,7 @@ def test_channel_unlock_with_a_large_expiration(
         deposit=20,
         transferred=5,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -1123,7 +1123,7 @@ def test_unlock_channel_event(
         deposit=20,
         transferred=5,
         locked=0,
-        locksroot=EMPTY_MERKLE_ROOT,
+        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
