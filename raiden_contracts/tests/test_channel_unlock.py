@@ -1105,6 +1105,71 @@ def test_reverse_participants_unlock(
     ).transact({'from': C})
 
 
+def test_unlock_different_channel_same_participants_fail(
+        web3,
+        token_network,
+        get_accounts,
+        create_settled_channel,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_1.unlockable)
+    channel_identifier = create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.merkle_root,
+        B,
+        0,
+        EMPTY_LOCKSROOT,
+        settle_timeout,
+    )
+
+    # The first channel is settled, so we create another one
+    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [3, 5], [2, 4, 3], settle_timeout)
+    reveal_secrets(A, pending_transfers_tree_2.unlockable)
+    channel_identifier2 = create_settled_channel(
+        A,
+        pending_transfers_tree_2.locked_amount,
+        pending_transfers_tree_2.merkle_root,
+        B,
+        0,
+        EMPTY_LOCKSROOT,
+        settle_timeout,
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            pending_transfers_tree_2.packed_transfers,
+        ).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier2,
+            B,
+            A,
+            pending_transfers_tree_1.packed_transfers,
+        ).transact({'from': A})
+
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        pending_transfers_tree_1.packed_transfers,
+    ).transact({'from': A})
+    token_network.functions.unlock(
+        channel_identifier2,
+        B,
+        A,
+        pending_transfers_tree_2.packed_transfers,
+    ).transact({'from': A})
+
+
 def test_unlock_channel_event(
         web3,
         token_network,
