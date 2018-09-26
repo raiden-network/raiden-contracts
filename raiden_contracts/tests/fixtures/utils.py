@@ -104,9 +104,9 @@ def event_handler(contracts_manager, web3):
 
 
 @pytest.fixture
-def txn_cost(web3, txnGas):
+def txn_cost(web3, txn_gas):
     def get(txn_hash):
-        return txnGas(txn_hash) * web3.eth.gasPrice
+        return txn_gas(txn_hash) * web3.eth.gasPrice
     return get
 
 

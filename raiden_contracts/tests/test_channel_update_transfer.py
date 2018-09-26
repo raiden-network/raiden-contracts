@@ -211,7 +211,23 @@ def test_update_wrong_nonce_fail(
         balance_proof_update_signature_B,
     ).transact({'from': Delegate})
 
-    balance_proof_A_same_nonce = balance_proof_A
+    # updateNonClosingBalanceProof should fail for the same nonce as provided previously
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A,
+            balance_proof_update_signature_B,
+        ).transact({'from': Delegate})
+    balance_proof_A_same_nonce = create_balance_proof(
+        channel_identifier,
+        A,
+        12,
+        2,
+        balance_proof_A[1],
+        fake_bytes(32, '03'),
+    )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -306,6 +322,8 @@ def test_update_wrong_signatures(
 
 
 def test_update_channel_state(
+        web3,
+        custom_token,
         token_network,
         create_channel,
         channel_deposit,
@@ -313,6 +331,7 @@ def test_update_channel_state(
         create_balance_proof,
         create_balance_proof_update_signature,
         update_state_tests,
+        txn_cost,
 ):
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
@@ -333,13 +352,33 @@ def test_update_channel_state(
         *balance_proof_B,
     ).transact({'from': A})
 
-    token_network.functions.updateNonClosingBalanceProof(
+    pre_eth_balance_A = web3.eth.getBalance(A)
+    pre_eth_balance_B = web3.eth.getBalance(B)
+    pre_eth_balance_delegate = web3.eth.getBalance(Delegate)
+    pre_eth_balance_contract = web3.eth.getBalance(token_network.address)
+    pre_balance_A = custom_token.functions.balanceOf(A).call()
+    pre_balance_B = custom_token.functions.balanceOf(B).call()
+    pre_balance_delegate = custom_token.functions.balanceOf(Delegate).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    txn_hash = token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
         A,
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
     ).transact({'from': Delegate})
+
+    # Test that no balances have changed.
+    # There are no transfers to be made in updateNonClosingBalanceProof.
+    assert web3.eth.getBalance(A) == pre_eth_balance_A
+    assert web3.eth.getBalance(B) == pre_eth_balance_B
+    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(txn_hash)
+    assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
+    assert custom_token.functions.balanceOf(A).call() == pre_balance_A
+    assert custom_token.functions.balanceOf(B).call() == pre_balance_B
+    assert custom_token.functions.balanceOf(Delegate).call() == pre_balance_delegate
+    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
     update_state_tests(
         channel_identifier,
@@ -970,6 +1009,16 @@ def test_update_replay_reopened_channel(
         values_B.locked,
         values_B.locksroot,
     ).transact({'from': A})
+
+    # Make sure we cannot update balance proofs after settleChannel is called
+    with pytest.raises(TransactionFailed):
+        token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier1,
+            B,
+            A,
+            *balance_proof_B,
+            balance_proof_update_signature_A,
+        ).transact({'from': A})
 
     # Reopen the channel and make sure we cannot use the old balance proof
     channel_identifier2 = create_channel(A, B)[0]
