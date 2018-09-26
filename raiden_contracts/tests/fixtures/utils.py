@@ -1,4 +1,5 @@
 import pytest
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.logs import LogHandler
 from raiden_libs.utils import private_key_to_address
 from .config import passphrase
@@ -34,16 +35,21 @@ def create_accounts(web3):
 
 
 @pytest.fixture
-def create_account(web3, faucet_address, ethereum_tester, get_random_privkey):
+def create_account(web3, ethereum_tester, get_random_privkey):
     def get():
         privkey = get_random_privkey()
         address = private_key_to_address(privkey)
         ethereum_tester.add_account(privkey)
-        web3.eth.sendTransaction({
-            'from': faucet_address,
-            'to': address,
-            'value': 1 * denoms.ether,
-        })
+        for faucet in web3.eth.accounts[:10]:
+            try:
+                web3.eth.sendTransaction({
+                    'from': faucet,
+                    'to': address,
+                    'value': 1 * denoms.finney,
+                })
+                break
+            except TransactionFailed:
+                continue
         return address
     return get
 
