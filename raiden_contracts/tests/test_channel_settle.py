@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from copy import deepcopy
 from raiden_contracts.constants import (
     ChannelEvent,
     ChannelState,
@@ -12,6 +13,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     ChannelValues,
+    MAX_UINT256,
 )
 from raiden_contracts.utils.utils import get_pending_transfers_tree
 from raiden_contracts.tests.fixtures.config import (
@@ -433,6 +435,139 @@ def test_settle_wrong_state_fail(
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     assert web3.eth.blockNumber >= settle_block_number
+
+    # Channel is settled
+    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+
+
+def test_settle_wrong_balance_hash(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel_and_deposit,
+        close_and_update_channel,
+        get_block,
+        reveal_secrets,
+):
+    (A, B) = get_accounts(2)
+    vals_A = ChannelValues(
+        deposit=35,
+        withdrawn=0,
+        transferred=5,
+        claimable_locked=10,
+        unclaimable_locked=2,
+    )
+    vals_B = ChannelValues(
+        deposit=40,
+        withdrawn=0,
+        transferred=15,
+        claimable_locked=5,
+        unclaimable_locked=4,
+    )
+    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+
+    # Mock pending transfers data for A -> B
+    pending_transfers_tree_A = get_pending_transfers_tree(
+        web3,
+        unlockable_amount=vals_A.claimable_locked,
+        expired_amount=vals_A.unclaimable_locked,
+    )
+    vals_A.locksroot = pending_transfers_tree_A.merkle_root
+    # Reveal A's secrets.
+    reveal_secrets(A, pending_transfers_tree_A.unlockable)
+
+    # Mock pending transfers data for B -> A
+    pending_transfers_tree_B = get_pending_transfers_tree(
+        web3,
+        unlockable_amount=vals_B.claimable_locked,
+        expired_amount=vals_B.unclaimable_locked,
+    )
+    vals_B.locksroot = pending_transfers_tree_B.merkle_root
+    # Reveal B's secrets
+    reveal_secrets(B, pending_transfers_tree_B.unlockable)
+
+    close_and_update_channel(
+        channel_identifier,
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
+
+    vals_A_fail = deepcopy(vals_A)
+    vals_A_fail.transferred += 1
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_A_fail.transferred = 0
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_A_fail.transferred = MAX_UINT256
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+
+    vals_A_fail = deepcopy(vals_A)
+    vals_A_fail.locked += 1
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_A_fail.locked = 0
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_A_fail.locked = MAX_UINT256
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+
+    vals_A_fail = deepcopy(vals_A)
+    vals_A_fail.locksroot = EMPTY_LOCKSROOT
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_A_fail.locksroot = fake_bytes(32, '01')
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+
+    vals_B_fail = deepcopy(vals_B)
+    vals_B_fail.transferred += 1
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+
+    vals_B_fail.transferred = 0
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+
+    vals_B_fail.transferred = MAX_UINT256
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+
+    vals_B_fail = deepcopy(vals_B)
+    vals_B_fail.locked += 1
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+
+    vals_B_fail.locked = 0
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+
+    vals_B_fail.locked = MAX_UINT256
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+
+    vals_B_fail = deepcopy(vals_B)
+    vals_B_fail.locksroot = EMPTY_LOCKSROOT
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+
+    vals_B_fail.locksroot = fake_bytes(32, '01')
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
