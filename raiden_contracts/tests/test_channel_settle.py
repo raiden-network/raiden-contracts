@@ -1,7 +1,8 @@
-from raiden_contracts.utils.merkle import get_merkle_root
-
+import pytest
+from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
     ChannelEvent,
+    ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.utils.events import check_channel_settled
@@ -384,6 +385,57 @@ def test_settlement_with_unauthorized_token_transfer(
         settlement.participant2_balance +
         externally_transferred_amount
     ) == post_balance_contract
+
+
+def test_settle_wrong_state_fail(
+        web3,
+        get_accounts,
+        token_network,
+        create_channel_and_deposit,
+        get_block,
+):
+    (A, B) = get_accounts(2)
+    vals_A = ChannelValues(deposit=35)
+    vals_B = ChannelValues(deposit=40)
+    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+
+    (settle_timeout, state) = token_network.functions.getChannelInfo(
+        channel_identifier,
+        A,
+        B,
+    ).call()
+    assert state == ChannelState.OPENED
+    assert settle_timeout == TEST_SETTLE_TIMEOUT_MIN
+
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+
+    txn_hash = token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+    ).transact({'from': A})
+
+    (settle_block_number, state) = token_network.functions.getChannelInfo(
+        channel_identifier,
+        A,
+        B,
+    ).call()
+    assert state == ChannelState.CLOSED
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(txn_hash)
+    assert web3.eth.blockNumber < settle_block_number
+
+    with pytest.raises(TransactionFailed):
+        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    assert web3.eth.blockNumber >= settle_block_number
+
+    # Channel is settled
+    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
 
 def test_settle_channel_event(
