@@ -2,6 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_channel_unlocked
+from raiden_contracts.utils.merkle import get_merkle_root
 from .utils import (
     get_unlocked_amount,
 )
@@ -11,8 +12,10 @@ from raiden_contracts.utils.utils import (
     get_locked_amount,
     random_secret,
 )
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
 from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.tests.fixtures.config import fake_bytes
 from raiden_contracts.tests.fixtures.channel import call_settle
 
 
@@ -454,7 +457,7 @@ def test_channel_settle_and_unlock(
     ).transact({'from': A})
 
 
-def test_channel_unlock_expired_lock_refunds(
+def test_channel_unlock_registered_expired_lock_refunds(
         web3,
         custom_token,
         token_network,
@@ -538,6 +541,58 @@ def test_channel_unlock_expired_lock_refunds(
     assert balance_A == pre_balance_A
     assert balance_B == pre_balance_B + values_B.locked
     assert balance_contract == pre_balance_contract - values_B.locked
+
+
+def test_channel_unlock_unregistered_locks(
+        web3,
+        token_network,
+        get_accounts,
+        create_channel_and_deposit,
+        withdraw_channel,
+        close_and_update_channel,
+        custom_token,
+):
+    (A, B) = get_accounts(2)
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    locked_A = pending_transfers_tree.locked_amount
+    (vals_A, vals_B) = (
+        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=locked_A),
+        ChannelValues(deposit=40, withdrawn=10, transferred=20, locked=0),
+    )
+
+    vals_A.locksroot = '0x' + get_merkle_root(pending_transfers_tree.merkle_tree).hex()
+    vals_B.locksroot = fake_bytes(32, '03')
+    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+
+    close_and_update_channel(
+        channel_identifier,
+        A,
+        vals_A,
+        B,
+        vals_B,
+    )
+
+    # Secret hasn't been registered before settlement timeout
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+
+    # Someone unlocks A's pending transfers - all tokens should be refunded
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        pending_transfers_tree.packed_transfers,
+    ).transact({'from': A})
+
+    # A gets back locked tokens
+    assert (
+        custom_token.functions.balanceOf(A).call() ==
+        vals_A.deposit - vals_A.transferred + vals_B.transferred
+    )
 
 
 def test_channel_unlock_before_settlement_fails(
