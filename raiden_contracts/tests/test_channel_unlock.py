@@ -91,7 +91,7 @@ def test_merkle_tree_length_fail(
     network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-96]).call()
 
 
-def test_merkle_root(
+def test_merkle_root_odd_even_components(
         web3,
         get_accounts,
         token_network_test_utils,
@@ -99,8 +99,24 @@ def test_merkle_root(
         reveal_secrets,
 ):
     (A, B) = get_accounts(2)
-    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
 
+    # Even number of merkle tree components
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    (
+        locksroot,
+        unlocked_amount,
+    ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        pending_transfers_tree.packed_transfers,
+    ).call()
+    merkle_root = pending_transfers_tree.merkle_root
+
+    assert locksroot == merkle_root
+    assert unlocked_amount == 9
+
+    # Odd number of merkle tree components
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8])
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
     (
