@@ -57,6 +57,40 @@ def test_merkle_root_1_item_unlockable(
     assert unlocked_amount == 6
 
 
+def test_merkle_tree_length_fail(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+):
+    network_utils = token_network_test_utils
+    A = get_accounts(1)[0]
+    pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
+
+    secret_registry_contract.functions.registerSecret(
+        pending_transfers_tree.unlockable[0][3],
+    ).transact({'from': A})
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+        pending_transfers_tree.unlockable[0][2],
+    ).call() == web3.eth.blockNumber
+
+    packed = pending_transfers_tree.packed_transfers
+
+    # packed length must be a multiple of 96
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-1]).call()
+    # last merkle tree component only contains expiration + locked_amount
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-32]).call()
+    # last merkle tree component only contains expiration
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-64]).call()
+
+    assert len(packed) % 96 == 0
+    network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed).call()
+    network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-96]).call()
+
+
 def test_merkle_root(
         web3,
         get_accounts,
