@@ -131,6 +131,111 @@ def test_merkle_root_odd_even_components(
     assert unlocked_amount == 9
 
 
+def test_merkle_tree_components_order(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+        reveal_secrets,
+        token_network,
+        create_settled_channel,
+):
+    network_utils = token_network_test_utils
+    (A, B) = get_accounts(2)
+    types = ['uint256', 'uint256', 'bytes32']
+
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    channel_identifier = create_settled_channel(
+        A,
+        pending_transfers_tree.locked_amount,
+        pending_transfers_tree.merkle_root,
+        B,
+        0,
+        EMPTY_LOCKSROOT,
+    )
+
+    # Merkle tree lockhashes are ordered lexicographicaly.
+    # If we change the order, we change the computed merkle root.
+    # However, the getMerkleRootAndUnlockedAmount orders neighbouring lockhashes
+    # lexicographicaly, so simple item[i], item[i + 1] swap
+    # will still result in the same merkle root.
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[1], wrong_order[0] = wrong_order[0], wrong_order[1]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    # Same merkle root this time
+    assert locksroot == pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        wrong_order_packed,
+    ).call()
+
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[2], wrong_order[0] = wrong_order[0], wrong_order[2]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    assert locksroot != pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            wrong_order_packed,
+        ).transact()
+
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[0], wrong_order[-1] = wrong_order[-1], wrong_order[0]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    assert locksroot != pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            wrong_order_packed,
+        ).transact()
+
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        pending_transfers_tree.packed_transfers,
+    ).call()
+    assert locksroot == pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        pending_transfers_tree.packed_transfers,
+    ).transact()
+
+
+
+
 def test_unlock_wrong_locksroot(
         web3,
         token_network,
@@ -159,7 +264,7 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             pending_transfers_tree_A_fake.packed_transfers,
-        ).call()
+        ).transact()
 
     # Fails for an empty merkle tree
     with pytest.raises(TransactionFailed):
@@ -168,14 +273,14 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             b'',
-        ).call()
+        ).transact()
 
     token_network.functions.unlock(
         channel_identifier,
         B,
         A,
         pending_transfers_tree_A.packed_transfers,
-    ).call()
+    ).transact()
 
 
 def test_channel_unlock_bigger_locked_amount(
