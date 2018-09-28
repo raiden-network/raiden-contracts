@@ -36,6 +36,7 @@ class ContractManager:
         self._contracts_source_dirs: Dict[str, Path] = None
         self._contracts = dict()
         self._precompiled_checksum = None
+        self._contracts_checksum = None
         if isinstance(path, dict):
             self._contracts_source_dirs = path
         elif isinstance(path, Path):
@@ -51,7 +52,8 @@ class ContractManager:
                     ) from ex
                 try:
                     self._contracts = precompiled_content['contracts']
-                    self._precompiled_checksum = precompiled_content['checksum']
+                    self._precompiled_checksum = precompiled_content['precompiled_checksum']
+                    self._contracts_checksum = precompiled_content['contracts_checksum']
                 except KeyError as ex:
                     raise ContractManagerError(
                         f'Precompiled contracts json has unexpected format: {ex}',
@@ -96,13 +98,14 @@ class ContractManager:
         if self._contracts_source_dirs is None:
             raise TypeError("Already using stored contracts.")
 
-        contracts_checksum = self._checksum_contracts()
+        contracts_checksum = self.checksum_contracts(self._contracts_source_dirs)
+        precompiled_checksum = hashlib.sha256(str(contracts_checksum).encode()).hexdigest()
 
         # Check if existing file matches checksum
         if target_path.is_file():
             try:
                 precompiled_manager = ContractManager(target_path)
-                if contracts_checksum == precompiled_manager._precompiled_checksum:
+                if precompiled_checksum == precompiled_manager._precompiled_checksum:
                     # Compiled contracts match source - nothing to be done
                     return
             except ContractManagerError:
@@ -116,7 +119,11 @@ class ContractManager:
         with gzip.GzipFile(target_path, 'wb') as target_file:
             target_file.write(
                 json.dumps(
-                    dict(contracts=self._contracts, checksum=contracts_checksum),
+                    dict(
+                        contracts=self._contracts,
+                        contracts_checksum=contracts_checksum,
+                        precompiled_checksum=precompiled_checksum,
+                    ),
                 ).encode(),
             )
 
@@ -142,20 +149,30 @@ class ContractManager:
         contract_abi = self.get_contract_abi(contract_name)
         return find_matching_event_abi(contract_abi, event_name)
 
-    def _checksum_contracts(self):
-        if self._contracts_source_dirs is None:
-            raise TypeError("Can't checksum when using precompiled contracts.")
-        checksums = []
-        for contracts_dir in self._contracts_source_dirs.values():
+    @staticmethod
+    def checksum_contracts(contracts_source_dirs: list):
+        checksums = {}
+        for contracts_dir in contracts_source_dirs.values():
             file: Path
             for file in contracts_dir.glob('*.sol'):
-                checksums.append(
-                    '{}:{}'.format(
-                        file.name,
-                        hashlib.sha256(file.read_bytes()).hexdigest(),
-                    ),
+                checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
+        return checksums
+
+    @staticmethod
+    def verify_contracts(contracts_source_dirs: list, contracts_precompiled: str):
+        checksummed_sources = ContractManager.checksum_contracts(contracts_source_dirs)
+        contracts_precompiled = ContractManager(contracts_precompiled)._contracts_checksum
+        for contract, checksum in checksummed_sources.items():
+            try:
+                precompiled_checksum = contracts_precompiled[contract]
+            except KeyError:
+                raise ContractManagerError(
+                    f'No checksum for {contract}',
                 )
-        return hashlib.sha256(':'.join(checksums).encode()).hexdigest()
+            if precompiled_checksum != checksum:
+                raise ContractManagerError(
+                    f'checksum of {contract} does not match {precompiled_checksum} != {checksum}',
+                )
 
 
 def _fix_contract_key_names(input: Dict) -> Dict:
