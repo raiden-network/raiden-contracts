@@ -28,9 +28,10 @@ def _get_single_requirement(requirements: List[str], package: str) -> List[str]:
 
 class BuildPyCommand(build_py):
     def run(self):
+        from solc.exceptions import SolcError
         try:
             self.run_command('compile_contracts')
-        except SystemExit:
+        except (SystemExit, SolcError) as e:
             pass
         build_py.run(self)
 
