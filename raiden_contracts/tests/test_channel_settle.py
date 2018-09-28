@@ -439,6 +439,14 @@ def test_settle_wrong_state_fail(
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
+    (settle_block_number, state) = token_network.functions.getChannelInfo(
+        channel_identifier,
+        A,
+        B,
+    ).call()
+    assert state == ChannelState.REMOVED
+    assert settle_block_number == 0
+
 
 def test_settle_wrong_balance_hash(
         web3,
