@@ -1,3 +1,6 @@
+from enum import IntEnum
+
+
 raiden_contracts_version = '0.3.0'
 MAX_UINT256 = 2 ** 256 - 1
 MAX_UINT192 = 2 ** 192 - 1
@@ -9,6 +12,13 @@ EMPTY_ADDITIONAL_HASH = b'\x00' * 32
 EMPTY_LOCKSROOT = b'\x00' * 32
 EMPTY_SIGNATURE = b'\x00' * 65
 passphrase = '0'
+
+
+class TestLockIndex(IntEnum):
+    EXPIRATION = 0
+    AMOUNT = 1
+    SECRETHASH = 2
+    SECRET = 3
 
 
 def fake_hex(size, fill='00'):

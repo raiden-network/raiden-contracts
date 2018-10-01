@@ -78,6 +78,7 @@ def get_pending_transfers_tree(
             hashed_pending_transfers,
             pending_transfers,
         )))
+        pending_transfers = list(pending_transfers)
         packed_transfers = get_packed_transfers(pending_transfers, types)
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)

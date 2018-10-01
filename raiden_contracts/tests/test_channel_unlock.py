@@ -14,7 +14,7 @@ from raiden_contracts.utils.utils import (
 )
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.tests.fixtures.config import fake_bytes
+from raiden_contracts.tests.fixtures.config import fake_bytes, TestLockIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.constants import ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
@@ -39,10 +39,10 @@ def test_merkle_root_1_item_unlockable(
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][3],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET],
     ).transact({'from': A})
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-        pending_transfers_tree.unlockable[0][2],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH],
     ).call() == web3.eth.blockNumber
 
     (
@@ -57,7 +57,41 @@ def test_merkle_root_1_item_unlockable(
     assert unlocked_amount == 6
 
 
-def test_merkle_root(
+def test_merkle_tree_length_fail(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+):
+    network_utils = token_network_test_utils
+    A = get_accounts(1)[0]
+    pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
+
+    secret_registry_contract.functions.registerSecret(
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET],
+    ).transact({'from': A})
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH],
+    ).call() == web3.eth.blockNumber
+
+    packed = pending_transfers_tree.packed_transfers
+
+    # packed length must be a multiple of 96
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-1]).call()
+    # last merkle tree component only contains expiration + locked_amount
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-32]).call()
+    # last merkle tree component only contains expiration
+    with pytest.raises(TransactionFailed):
+        network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-64]).call()
+
+    assert len(packed) % 96 == 0
+    network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed).call()
+    network_utils.functions.getMerkleRootAndUnlockedAmountPublic(packed[0:-96]).call()
+
+
+def test_merkle_root_odd_even_components(
         web3,
         get_accounts,
         token_network_test_utils,
@@ -65,8 +99,9 @@ def test_merkle_root(
         reveal_secrets,
 ):
     (A, B) = get_accounts(2)
-    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
 
+    # Even number of merkle tree components
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
     (
@@ -79,6 +114,216 @@ def test_merkle_root(
 
     assert locksroot == merkle_root
     assert unlocked_amount == 9
+
+    # Odd number of merkle tree components
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8])
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    (
+        locksroot,
+        unlocked_amount,
+    ) = token_network_test_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        pending_transfers_tree.packed_transfers,
+    ).call()
+    merkle_root = pending_transfers_tree.merkle_root
+
+    assert locksroot == merkle_root
+    assert unlocked_amount == 9
+
+
+def test_merkle_tree_components_order(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+        reveal_secrets,
+        token_network,
+        create_settled_channel,
+):
+    network_utils = token_network_test_utils
+    (A, B) = get_accounts(2)
+    types = ['uint256', 'uint256', 'bytes32']
+
+    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    channel_identifier = create_settled_channel(
+        A,
+        pending_transfers_tree.locked_amount,
+        pending_transfers_tree.merkle_root,
+        B,
+        0,
+        EMPTY_LOCKSROOT,
+    )
+
+    # Merkle tree lockhashes are ordered lexicographicaly.
+    # If we change the order, we change the computed merkle root.
+    # However, the getMerkleRootAndUnlockedAmount orders neighbouring lockhashes
+    # lexicographicaly, so simple item[i], item[i + 1] swap
+    # will still result in the same merkle root.
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[1], wrong_order[0] = wrong_order[0], wrong_order[1]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    # Same merkle root this time
+    assert locksroot == pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        wrong_order_packed,
+    ).call()
+
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[2], wrong_order[0] = wrong_order[0], wrong_order[2]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    assert locksroot != pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            wrong_order_packed,
+        ).transact()
+
+    wrong_order = pending_transfers_tree.transfers
+    wrong_order[0], wrong_order[-1] = wrong_order[-1], wrong_order[0]
+    wrong_order_packed = get_packed_transfers(wrong_order, types)
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        wrong_order_packed,
+    ).call()
+    assert locksroot != pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier,
+            B,
+            A,
+            wrong_order_packed,
+        ).transact()
+
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getMerkleRootAndUnlockedAmountPublic(
+        pending_transfers_tree.packed_transfers,
+    ).call()
+    assert locksroot == pending_transfers_tree.merkle_root
+    assert unlocked_amount == 9
+    token_network.functions.unlock(
+        channel_identifier,
+        B,
+        A,
+        pending_transfers_tree.packed_transfers,
+    ).transact()
+
+
+def test_lock_data_from_merkle_tree(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+        reveal_secrets,
+):
+    network_utils = token_network_test_utils
+    (A, B) = get_accounts(2)
+
+    unlockable_amounts = [3, 5]
+    expired_amounts = [2, 8, 7]
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3,
+        unlockable_amounts,
+        expired_amounts,
+        max_expiration_delta=5,
+    )
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    def claimable(index):
+        amount = pending_transfers_tree.transfers[index][1]
+        return amount if amount in unlockable_amounts else 0
+
+    def get_lockhash(index):
+        return pending_transfers_tree.merkle_tree.layers[0][index]
+
+    # Lock data is ordered lexicographically, regardless of expiration status
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32,
+    ).call()
+    assert lockhash == get_lockhash(0)
+    assert claimable_amount == claimable(0)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 96,
+    ).call()
+    assert lockhash == get_lockhash(1)
+    assert claimable_amount == claimable(1)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 2 * 96,
+    ).call()
+    assert lockhash == get_lockhash(2)
+    assert claimable_amount == claimable(2)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 3 * 96,
+    ).call()
+    assert lockhash == get_lockhash(3)
+    assert claimable_amount == claimable(3)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 4 * 96,
+    ).call()
+    assert lockhash == get_lockhash(4)
+    assert claimable_amount == claimable(4)
+
+    # Register last secret after expiration
+    web3.testing.mine(5)
+    last_lock = pending_transfers_tree.expired[-1]
+    # expiration
+    assert web3.eth.blockNumber > last_lock[0]
+    # register secret
+    secret_registry_contract.functions.registerSecret(last_lock[3]).transact()
+    # ensure registration was done
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+        last_lock[2],
+    ).call() == web3.eth.blockNumber
+
+    # Check that last secret is still regarded as expired
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 4 * 96,
+    ).call()
+    assert lockhash == get_lockhash(4)
+    assert claimable_amount == claimable(4)
+
+    # If the offset is bigger than the length of the merkle tree, return (0, 0)
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 5 * 96,
+    ).call()
+    assert lockhash == b'\x00' * 32
+    assert claimable_amount == 0
 
 
 def test_unlock_wrong_locksroot(
@@ -109,7 +354,7 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             pending_transfers_tree_A_fake.packed_transfers,
-        ).call()
+        ).transact()
 
     # Fails for an empty merkle tree
     with pytest.raises(TransactionFailed):
@@ -118,14 +363,14 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             b'',
-        ).call()
+        ).transact()
 
     token_network.functions.unlock(
         channel_identifier,
         B,
         A,
         pending_transfers_tree_A.packed_transfers,
-    ).call()
+    ).transact()
 
 
 def test_channel_unlock_bigger_locked_amount(
