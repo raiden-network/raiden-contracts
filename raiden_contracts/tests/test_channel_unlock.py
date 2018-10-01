@@ -234,6 +234,96 @@ def test_merkle_tree_components_order(
     ).transact()
 
 
+def test_lock_data_from_merkle_tree(
+        web3,
+        get_accounts,
+        token_network_test_utils,
+        secret_registry_contract,
+        reveal_secrets,
+):
+    network_utils = token_network_test_utils
+    (A, B) = get_accounts(2)
+
+    unlockable_amounts = [3, 5]
+    expired_amounts = [2, 8, 7]
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3,
+        unlockable_amounts,
+        expired_amounts,
+        max_expiration_delta=5,
+    )
+    reveal_secrets(A, pending_transfers_tree.unlockable)
+
+    def claimable(index):
+        amount = pending_transfers_tree.transfers[index][1]
+        return amount if amount in unlockable_amounts else 0
+
+    def get_lockhash(index):
+        return pending_transfers_tree.merkle_tree.layers[0][index]
+
+    # Lock data is ordered lexicographically, regardless of expiration status
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32,
+    ).call()
+    assert lockhash == get_lockhash(0)
+    assert claimable_amount == claimable(0)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 96,
+    ).call()
+    assert lockhash == get_lockhash(1)
+    assert claimable_amount == claimable(1)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 2 * 96,
+    ).call()
+    assert lockhash == get_lockhash(2)
+    assert claimable_amount == claimable(2)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 3 * 96,
+    ).call()
+    assert lockhash == get_lockhash(3)
+    assert claimable_amount == claimable(3)
+
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 4 * 96,
+    ).call()
+    assert lockhash == get_lockhash(4)
+    assert claimable_amount == claimable(4)
+
+    # Register last secret after expiration
+    web3.testing.mine(5)
+    last_lock = pending_transfers_tree.expired[-1]
+    # expiration
+    assert web3.eth.blockNumber > last_lock[0]
+    # register secret
+    secret_registry_contract.functions.registerSecret(last_lock[3]).transact()
+    # ensure registration was done
+    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+        last_lock[2],
+    ).call() == web3.eth.blockNumber
+
+    # Check that last secret is still regarded as expired
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 4 * 96,
+    ).call()
+    assert lockhash == get_lockhash(4)
+    assert claimable_amount == claimable(4)
+
+    # If the offset is bigger than the length of the merkle tree, return (0, 0)
+    (lockhash, claimable_amount) = network_utils.functions.getLockDataFromMerkleTreePublic(
+        pending_transfers_tree.packed_transfers,
+        32 + 5 * 96,
+    ).call()
+    assert lockhash == b'\x00' * 32
+    assert claimable_amount == 0
 
 
 def test_unlock_wrong_locksroot(
