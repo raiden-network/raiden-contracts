@@ -34,14 +34,14 @@ script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
 
 deploy:
-    provider: pypi
-    skip_cleanup: true
-    user: raiden_pypi_automated
-    password:
-      secure: "bjJ7odF0Etm4MnLfY8wYTCL8c+t6Swn4gRev75CYEboZqovz8aZD2LeAVewPaw/0W7PRZDxsR2n3CuPALpxktUU49LNv+uE8FGuI1rHenCelw1TrGhlmIdwZVdKWMQpA2TVId3731aw9mpE2Ib7MmvDsO2UjEVKYDf1UPT7BmWI6c0D1NNVZckAo8flvyUS2fgAqvEt3YwlmK3zf3qtTUFCIDBVhiNuubbY0UdbD2eOG9hF1CNa8Q9tNl9qiA8dQZfwOqq22284F02DHhJb0Y+5AR/jSSmuXbLqj5+4lrY4iVQiPZa5csAeJRV7eVcx5+1sWadf3bhUz+0g2JImmWbGQ8fBvVlo/zudQOTEMtQy4KqWTL5IjpBl9VrgcvnMSdaFAuxCjpcCL91d19gqqhSZYJgyPqYP02OnA31RQkgQoJYtUIknv/sMoyOyvuDIEXTyST+cFOSnWzTvYDPMK3y4C/XN1Pb2nSN6AEnykyB4Iy3z5hwuEtKtTC4xquvr9BoHeXQmPnArEBifWlMl45ngZw/q57A+TI/cbPs8TBwCKIpm5B1Bw9hXfdN2gRqjCAj/4Nssy005dF0pmGSHtrTyKSkgE6C2Xje5PG/fro31Pb13s6lcVUNgrAR8GpdptOZOTKc9kpmG3/9gZt9BGT924fAVYs/AhB0oe90I+v1c="
-    python: 3.6
-    distributions: sdist bdist_wheel
-    on:
-      tags: true
-      repo: raiden-network/raiden-contracts
-      branch: master
+  provider: pypi
+  skip_cleanup: true
+  user: raiden_pypi_automated
+  password:
+    secure: "Lzq5jhpMQukBKLk+cdGS2JjJFwfmhdJT8tF2ZpHwaOLR5EDFtbdmAYu43Tg+GUB0AUaFrdaZ388opZHQjEBNmGbWrJRpbls7yfBjIksNAFQcwTUzk1AhQ1qwUZbeMATy3IE6VVrWka0ovO0Ey3eReOstCVYVrYvaa4ee0uQm3+Vrw8dIrKSgKH8OqaGFC0tH2ycFJlWk2i60fIDqsW+XlLzEVxL8oPzEcW6JtUPgSmkHP3Su/egyfHwckB/NvtS3qG/lPBhzHZKbH6BYyqucatX3e/gZRb0QYnM80nrBzMu7wo/J89WP6ZI6QQwgvW5VumbSbNEBNPqhf1qAuOE1UwgRk6qYuf8EXAhM2gjyWzvCZVDGu0vuBCaj+fscXkIN1wlLZyS1ocGnjyc3jJlG6mgCD8GlQska0uEsgEgrxJbAz3RIEb5GQ2a4jhcsHH5qHrBWGwAGKlYNnIbBHDZoP7cc2vBzHxYwPPizLG81NrvgQVTpaFOZu0+f5tWL3yAHNLiuwDktbj9hg+QtqVEBWE7efWkvw7/FRSMumX3TfFBeAW2UrG5gY2KJNPRmiL4MO1csM6c9gtYiVFAV5ByQjrZfpBmdcxXnItuQbZ731uKWLJZK+cbkDpbsbMAKkrUrpspoz0R+7YHEO6r6/uNgayFVNDQjEBEEg6rqGjrapZI="
+  python: 3.6
+  distributions: sdist bdist_wheel
+  on:
+    tags: true
+    repo: raiden-network/raiden-contracts
+    branch: master
