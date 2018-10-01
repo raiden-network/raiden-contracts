@@ -14,7 +14,7 @@ from raiden_contracts.utils.utils import (
 )
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.tests.fixtures.config import fake_bytes
+from raiden_contracts.tests.fixtures.config import fake_bytes, TestLockIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.constants import ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
@@ -39,10 +39,10 @@ def test_merkle_root_1_item_unlockable(
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][3],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET],
     ).transact({'from': A})
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-        pending_transfers_tree.unlockable[0][2],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH],
     ).call() == web3.eth.blockNumber
 
     (
@@ -68,10 +68,10 @@ def test_merkle_tree_length_fail(
     pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][3],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET],
     ).transact({'from': A})
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-        pending_transfers_tree.unlockable[0][2],
+        pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH],
     ).call() == web3.eth.blockNumber
 
     packed = pending_transfers_tree.packed_transfers
