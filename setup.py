@@ -9,7 +9,6 @@ from typing import List
 
 from setuptools import Command
 from setuptools.command.build_py import build_py
-from setuptools.command.sdist import sdist
 
 
 DESCRIPTION = 'Raiden contracts library and utilities'
@@ -35,17 +34,6 @@ class BuildPyCommand(build_py):
         build_py.run(self)
 
 
-class SdistCommand(sdist):
-    def run(self):
-        from raiden_contracts.contract_manager import CONTRACTS_PRECOMPILED_PATH
-
-        if not CONTRACTS_PRECOMPILED_PATH.is_file():
-            try:
-                self.run_command('build')
-            except SystemExit:
-                pass
-        super().run()
-
 class VerifyContracts(Command):
     description = 'compile contracts to json'
     user_options = []
@@ -62,7 +50,7 @@ class VerifyContracts(Command):
             CONTRACTS_PRECOMPILED_PATH,
             CONTRACTS_SOURCE_DIRS,
         )
-        source_checksummed = ContractManager.verify_contracts(CONTRACTS_SOURCE_DIRS, CONTRACTS_PRECOMPILED_PATH)
+        ContractManager.verify_contracts(CONTRACTS_SOURCE_DIRS, CONTRACTS_PRECOMPILED_PATH)
 
 
 class CompileContracts(Command):
@@ -88,7 +76,7 @@ class CompileContracts(Command):
 
         try:
             contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
-            contract_manager.store_compiled_contracts(CONTRACTS_PRECOMPILED_PATH)
+            contract_manager.compile_contracts(CONTRACTS_PRECOMPILED_PATH)
         except RuntimeError:
             if os.environ.get('RAIDEN_SOLC_REQUIRED') is not None:
                 raise
@@ -129,7 +117,6 @@ config = {
         'compile_contracts': CompileContracts,
         'verify_contracts': VerifyContracts,
         'build_py': BuildPyCommand,
-        'sdist': SdistCommand,
     },
     'zip_safe': False,
 }

@@ -1,10 +1,8 @@
-import gzip
 import hashlib
 import json
 import logging
 import os
 import sys
-import zlib
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, Union
@@ -16,14 +14,22 @@ log = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
 
-CONTRACTS_PRECOMPILED_PATH = _BASE.joinpath('data', 'contracts.json.gz')
+CONTRACTS_PRECOMPILED_PATH = _BASE.joinpath('data', 'contracts.json')
 CONTRACTS_SOURCE_DIRS = {
     'raiden': _BASE.joinpath('contracts'),
     'test': _BASE.joinpath('contracts/test'),
 }
 
 
-class ContractManagerError(RuntimeError):
+class ContractManagerCompilationError(RuntimeError):
+    pass
+
+
+class ContractManagerLoadError(RuntimeError):
+    pass
+
+
+class ContractManagerVerificationError(RuntimeError):
     pass
 
 
@@ -44,10 +50,10 @@ class ContractManager:
                 ContractManager.__init__(self, {'smart_contracts': path})
             else:
                 try:
-                    with gzip.GzipFile(path, 'rb') as precompiled_file:
+                    with path.open() as precompiled_file:
                         precompiled_content = json.load(precompiled_file)
-                except (JSONDecodeError, UnicodeDecodeError, zlib.error) as ex:
-                    raise ContractManagerError(
+                except (JSONDecodeError, UnicodeDecodeError) as ex:
+                    raise ContractManagerLoadError(
                         f"Can't load precompiled smart contracts: {ex}",
                     ) from ex
                 try:
@@ -55,7 +61,7 @@ class ContractManager:
                     self._precompiled_checksum = precompiled_content['precompiled_checksum']
                     self._contracts_checksum = precompiled_content['contracts_checksum']
                 except KeyError as ex:
-                    raise ContractManagerError(
+                    raise ContractManagerLoadError(
                         f'Precompiled contracts json has unexpected format: {ex}',
                     ) from ex
         else:
@@ -67,7 +73,7 @@ class ContractManager:
         and also the :ref:`ethereum.tools` python library.
         """
         if self._contracts_source_dirs is None:
-            raise TypeError("Can't compile contracts when using precompiled archive.")
+            raise TypeError("Missing contracts source path, can't compile contracts.")
 
         import_dir_map = ['%s=%s' % (k, v) for k, v in self._contracts_source_dirs.items()]
         try:
@@ -89,11 +95,11 @@ class ContractManager:
                 }
                 self._contracts.update(_fix_contract_key_names(res))
         except FileNotFoundError as ex:
-            raise ContractManagerError(
+            raise ContractManagerCompilationError(
                 'Could not compile the contract. Check that solc is available.',
             ) from ex
 
-    def store_compiled_contracts(self, target_path: Path) -> None:
+    def compile_contracts(self, target_path: Path) -> None:
         """ Store compiled contracts JSON at `target_path`. """
         if self._contracts_source_dirs is None:
             raise TypeError("Already using stored contracts.")
@@ -101,22 +107,11 @@ class ContractManager:
         contracts_checksum = self.checksum_contracts(self._contracts_source_dirs)
         precompiled_checksum = hashlib.sha256(str(contracts_checksum).encode()).hexdigest()
 
-        # Check if existing file matches checksum
-        if target_path.is_file():
-            try:
-                precompiled_manager = ContractManager(target_path)
-                if precompiled_checksum == precompiled_manager._precompiled_checksum:
-                    # Compiled contracts match source - nothing to be done
-                    return
-            except ContractManagerError:
-                # File was either not json or had a wrong format
-                pass
-
         if not self._contracts:
             self._compile_all_contracts()
 
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        with gzip.GzipFile(target_path, 'wb') as target_file:
+        with target_path.open(mode='w') as target_file:
             target_file.write(
                 json.dumps(
                     dict(
@@ -124,7 +119,7 @@ class ContractManager:
                         contracts_checksum=contracts_checksum,
                         precompiled_checksum=precompiled_checksum,
                     ),
-                ).encode(),
+                ),
             )
 
     def get_contract(self, contract_name: str) -> Dict:
@@ -166,11 +161,11 @@ class ContractManager:
             try:
                 precompiled_checksum = contracts_precompiled[contract]
             except KeyError:
-                raise ContractManagerError(
+                raise ContractManagerVerificationError(
                     f'No checksum for {contract}',
                 )
             if precompiled_checksum != checksum:
-                raise ContractManagerError(
+                raise ContractManagerVerificationError(
                     f'checksum of {contract} does not match {precompiled_checksum} != {checksum}',
                 )
 
