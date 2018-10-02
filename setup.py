@@ -74,15 +74,8 @@ class CompileContracts(Command):
             CONTRACTS_SOURCE_DIRS,
         )
 
-        try:
-            contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
-            contract_manager.compile_contracts(CONTRACTS_PRECOMPILED_PATH)
-        except RuntimeError:
-            if os.environ.get('RAIDEN_SOLC_REQUIRED') is not None:
-                raise
-            import traceback
-            print("Couldn't compile the contracts!")
-            traceback.print_exc()
+        contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+        contract_manager.compile_contracts(CONTRACTS_PRECOMPILED_PATH)
 
 
 requirements = read_requirements('requirements.txt')

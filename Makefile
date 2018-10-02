@@ -18,4 +18,4 @@ clean:
 	rm -rf build/ *egg-info/ dist .eggs
 
 release: clean verify_contracts
-	RAIDEN_SOLC_REQUIRED=1 python setup.py sdist bdist_wheel upload
+	python setup.py sdist bdist_wheel upload
