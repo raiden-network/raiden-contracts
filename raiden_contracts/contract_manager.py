@@ -143,7 +143,7 @@ class ContractManager:
         return find_matching_event_abi(contract_abi, event_name)
 
     @staticmethod
-    def checksum_contracts(contracts_source_dirs: list):
+    def checksum_contracts(contracts_source_dirs: list) -> dict:
         checksums = {}
         for contracts_dir in contracts_source_dirs.values():
             file: Path
@@ -152,7 +152,7 @@ class ContractManager:
         return checksums
 
     @staticmethod
-    def verify_contracts(contracts_source_dirs: list, contracts_precompiled: str):
+    def verify_contracts(contracts_source_dirs: list, contracts_precompiled: str) -> None:
         checksummed_sources = ContractManager.checksum_contracts(contracts_source_dirs)
         contracts_precompiled = ContractManager(contracts_precompiled)._contracts_checksum
         for contract, checksum in checksummed_sources.items():

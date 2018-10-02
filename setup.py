@@ -35,7 +35,7 @@ class BuildPyCommand(build_py):
 
 
 class VerifyContracts(Command):
-    description = 'compile contracts to json'
+    description = 'Verify that the compiled contracts have the correct source code checksum'
     user_options = []
 
     def initialize_options(self):
@@ -54,7 +54,7 @@ class VerifyContracts(Command):
 
 
 class CompileContracts(Command):
-    description = 'compile contracts to json'
+    description = 'Compile contracts and add ABI and checksums to a json file'
     user_options = []
 
     def initialize_options(self):
