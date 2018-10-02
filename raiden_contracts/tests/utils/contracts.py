@@ -11,7 +11,6 @@ from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_TOKEN_NETWORK,
 )
-from raiden_contracts.contract_manager import CONTRACT_MANAGER
 
 
 def get_web3(eth_tester, deployer_key):
@@ -33,9 +32,9 @@ def get_web3(eth_tester, deployer_key):
     return web3
 
 
-def deploy_contract(web3, contract_name, deployer_key, libs=None, args=None):
+def deploy_contract(web3, contracts_manager, contract_name, deployer_key, libs=None, args=None):
     deployer_address = private_key_to_address(deployer_key.to_hex())
-    json_contract = CONTRACT_MANAGER.get_contract(contract_name)
+    json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(
         abi=json_contract['abi'],
         bytecode=json_contract['bin'],
@@ -58,8 +57,8 @@ def deploy_custom_token(web3, deployer_key):
     )
 
 
-def get_token_network(web3, address):
-    json_contract = CONTRACT_MANAGER.get_contract(
+def get_token_network(web3, address, contracts_manager):
+    json_contract = contracts_manager.get_contract(
         CONTRACT_TOKEN_NETWORK,
     )
 

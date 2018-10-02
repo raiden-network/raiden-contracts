@@ -64,10 +64,6 @@ class CompileContracts(Command):
         pass
 
     def run(self):
-        # This is a workaround to stop a possibly existing invalid
-        # precompiled `contracts.json` from preventing us from compiling a new one
-        os.environ['_RAIDEN_CONTRACT_MANAGER_SKIP_PRECOMPILED'] = '1'
-
         from raiden_contracts.contract_manager import (
             ContractManager,
             CONTRACTS_PRECOMPILED_PATH,
