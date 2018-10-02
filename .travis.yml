@@ -25,7 +25,7 @@ install:
   - pip install pytest-travis-fold
   - pip install -r requirements-dev.txt
   - pip install pytest-xdist pytest-sugar
-  - python setup.py compile_contracts
+  - python setup.py verify_contracts
 
 before_script:
   - flake8 raiden_contracts/

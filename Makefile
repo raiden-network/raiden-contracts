@@ -1,7 +1,11 @@
-all: compile_contracts install
+all: verify_contracts install
 
 compile_contracts:
-	python setup.py build
+	python setup.py compile_contracts
+
+verify_contracts:
+	python setup.py verify_contracts
+
 
 install:
 	pip install -r requirements.txt
@@ -11,7 +15,7 @@ lint:
 	flake8 raiden_contracts/
 
 clean:
-	rm -rf build/ *egg-info/ raiden_contracts/data/contracts.json.gz dist .eggs
+	rm -rf build/ *egg-info/ dist .eggs
 
-release: clean compile_contracts
+release: clean verify_contracts
 	RAIDEN_SOLC_REQUIRED=1 python setup.py sdist bdist_wheel upload
