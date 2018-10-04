@@ -153,7 +153,10 @@ class ContractManager:
             file: Path
             for file in contracts_dir.glob('*.sol'):
                 checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
-        self.overall_checksum = hashlib.sha256(str(checksums).encode()).hexdigest()
+
+        self.overall_checksum = hashlib.sha256(
+            ':'.join([checksums[key] for key in sorted(checksums)]).encode(),
+        ).hexdigest()
         self.contracts_checksums = checksums
 
     def verify_precompiled_checksums(self, contracts_precompiled: str) -> None:
@@ -161,13 +164,6 @@ class ContractManager:
 
         # We get the precompiled file data
         contracts_precompiled = ContractManager(contracts_precompiled)
-
-        # Compare the overall source code checksum with the one from the precompiled file
-        if self.overall_checksum != contracts_precompiled.overall_checksum:
-            raise ContractManagerVerificationError(
-                f'overall checksum does not match '
-                f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
-            )
 
         # Compare each contract source code checksum with the one from the precompiled file
         for contract, checksum in self.contracts_checksums.items():
@@ -181,6 +177,13 @@ class ContractManager:
                 raise ContractManagerVerificationError(
                     f'checksum of {contract} does not match {precompiled_checksum} != {checksum}',
                 )
+
+        # Compare the overall source code checksum with the one from the precompiled file
+        if self.overall_checksum != contracts_precompiled.overall_checksum:
+            raise ContractManagerVerificationError(
+                f'overall checksum does not match '
+                f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
+            )
 
 
 def _fix_contract_key_names(input: Dict) -> Dict:
