@@ -13,5 +13,5 @@ lint:
 clean:
 	rm -rf build/ *egg-info/ raiden_contracts/data/contracts.json.gz dist .eggs
 
-release: clean
+release: clean compile_contracts
 	RAIDEN_SOLC_REQUIRED=1 python setup.py sdist bdist_wheel upload

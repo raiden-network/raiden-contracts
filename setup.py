@@ -29,7 +29,7 @@ def _get_single_requirement(requirements: List[str], package: str) -> List[str]:
 class BuildPyCommand(build_py):
     def run(self):
         try:
-            self.run_command('compile_contracts')
+            self.run_command('verify_contracts')
         except SystemExit:
             pass
         build_py.run(self)
@@ -45,6 +45,24 @@ class SdistCommand(sdist):
             except SystemExit:
                 pass
         super().run()
+
+class VerifyContracts(Command):
+    description = 'compile contracts to json'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        from raiden_contracts.contract_manager import (
+            ContractManager,
+            CONTRACTS_PRECOMPILED_PATH,
+            CONTRACTS_SOURCE_DIRS,
+        )
+        source_checksummed = ContractManager.verify_contracts(CONTRACTS_SOURCE_DIRS, CONTRACTS_PRECOMPILED_PATH)
 
 
 class CompileContracts(Command):
@@ -109,6 +127,7 @@ config = {
     },
     'cmdclass': {
         'compile_contracts': CompileContracts,
+        'verify_contracts': VerifyContracts,
         'build_py': BuildPyCommand,
         'sdist': SdistCommand,
     },
