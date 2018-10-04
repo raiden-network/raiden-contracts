@@ -1,10 +1,11 @@
-from pathlib import Path
 import pytest
+from pathlib import Path
 
 from raiden_contracts.contract_manager import (
     ContractManager,
     CONTRACTS_SOURCE_DIRS,
     CONTRACTS_PRECOMPILED_PATH,
+    ContractManagerVerificationError,
 )
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
@@ -12,8 +13,65 @@ from raiden_contracts.constants import (
 )
 
 
-def test_verification():
-    ContractManager.verify_contracts(CONTRACTS_SOURCE_DIRS, CONTRACTS_PRECOMPILED_PATH)
+def test_verification_overall_checksum():
+    manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+    manager.checksum_contracts()
+    manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    original_checksum = manager.overall_checksum
+
+    # We change the source code overall checksum
+    manager.overall_checksum += '2'
+    # Now the verification should fail
+    with pytest.raises(ContractManagerVerificationError):
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    manager.overall_checksum = None
+    with pytest.raises(ContractManagerVerificationError):
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    manager.overall_checksum = ''
+    with pytest.raises(ContractManagerVerificationError):
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    checksum_fail = list(original_checksum)
+    # Replace the first char with a different one
+    checksum_fail[0] = list(filter(lambda x: x != checksum_fail[0], ['2', 'a']))[0]
+    manager.overall_checksum = "".join(checksum_fail)
+    with pytest.raises(ContractManagerVerificationError):
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    manager.overall_checksum = original_checksum
+    manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+
+def test_verification_contracts_checksums():
+    manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+    manager.checksum_contracts()
+    manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+    for contract, checksum in manager.contracts_checksums.items():
+        manager.contracts_checksums[contract] += '2'
+        with pytest.raises(ContractManagerVerificationError):
+            manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+        manager.contracts_checksums[contract] = None
+        with pytest.raises(ContractManagerVerificationError):
+            manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+        manager.contracts_checksums[contract] = ''
+        with pytest.raises(ContractManagerVerificationError):
+            manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+        checksum_fail = list(checksum)
+        # Replace the first char with a different one
+        checksum_fail[0] = list(filter(lambda x: x != checksum_fail[0], ['2', 'a']))[0]
+        manager.contracts_checksums[contract] = "".join(checksum_fail)
+        with pytest.raises(ContractManagerVerificationError):
+            manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+        manager.contracts_checksums[contract] = checksum
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
 
 
 def contract_manager_meta(contracts_path):
