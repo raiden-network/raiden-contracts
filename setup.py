@@ -50,7 +50,9 @@ class VerifyContracts(Command):
             CONTRACTS_PRECOMPILED_PATH,
             CONTRACTS_SOURCE_DIRS,
         )
-        ContractManager.verify_contracts(CONTRACTS_SOURCE_DIRS, CONTRACTS_PRECOMPILED_PATH)
+        manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+        manager.checksum_contracts()
+        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
 
 
 class CompileContracts(Command):

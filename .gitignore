@@ -33,3 +33,4 @@ var/
 .vscode/
 
 tags
+.mypy_cache/
