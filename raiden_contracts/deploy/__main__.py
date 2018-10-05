@@ -19,7 +19,11 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import CONTRACTS_SOURCE_DIRS, ContractManager
+from raiden_contracts.contract_manager import (
+    ContractManager,
+    CONTRACTS_SOURCE_DIRS,
+    CONTRACTS_PRECOMPILED_PATH,
+)
 from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_libs.private_contract import PrivateContract
 from raiden_libs.utils import get_private_key, private_key_to_address
@@ -53,8 +57,13 @@ class ContractDeployer:
         self.transaction = {'from': owner, 'gas_limit': gas_limit}
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
+
+        self.contract_manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
+
+        # Check that the precompiled data is correct
         self.contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
-        self.contract_manager._compile_all_contracts()
+        self.contract_manager.checksum_contracts()
+        self.contract_manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
 
     def deploy(
         self,
@@ -111,7 +120,7 @@ class ContractDeployer:
 )
 @click.option(
     '--gas-price',
-    default=0,
+    default=5,
     type=int,
     help='Gas price to use in gwei',
 )
