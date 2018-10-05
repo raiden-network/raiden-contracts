@@ -1,6 +1,7 @@
 """
 A simple Python script to deploy compiled contracts.
 """
+import functools
 import json
 import logging
 from logging import getLogger
@@ -20,9 +21,9 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import (
-    ContractManager,
-    CONTRACTS_SOURCE_DIRS,
     CONTRACTS_PRECOMPILED_PATH,
+    CONTRACTS_SOURCE_DIRS,
+    ContractManager,
 )
 from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_libs.private_contract import PrivateContract
@@ -100,9 +101,6 @@ class ContractDeployer:
             ),
         )
         return receipt['contractAddress']
-
-
-import functools
 
 
 def common_options(func):
