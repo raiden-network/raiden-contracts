@@ -117,12 +117,12 @@ Check deployment options::
 
 Deploying the main Raiden Network contracts with the ``raiden`` command::
 
-    python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 raiden
+    python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000
 
 Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 
-    python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 token --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT
+    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT
 
 Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command::
 
-    python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 register --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS
+    python -m raiden_contracts.deploy register --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS

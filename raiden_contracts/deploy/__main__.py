@@ -1,6 +1,7 @@
 """
 A simple Python script to deploy compiled contracts.
 """
+import functools
 import json
 import logging
 from logging import getLogger
@@ -20,9 +21,9 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import (
-    ContractManager,
-    CONTRACTS_SOURCE_DIRS,
     CONTRACTS_PRECOMPILED_PATH,
+    CONTRACTS_SOURCE_DIRS,
+    ContractManager,
 )
 from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_libs.private_contract import PrivateContract
@@ -102,42 +103,52 @@ class ContractDeployer:
         return receipt['contractAddress']
 
 
-@click.group(chain=True)
-@click.option(
-    '--rpc-provider',
-    default='http://127.0.0.1:8545',
-    help='Address of the Ethereum RPC provider',
-)
-@click.option(
-    '--private-key',
-    required=True,
-    help='Path to a private key store',
-)
-@click.option(
-    '--wait',
-    default=300,
-    help='Max tx wait time in s.',
-)
-@click.option(
-    '--gas-price',
-    default=5,
-    type=int,
-    help='Gas price to use in gwei',
-)
-@click.option(
-    '--gas-limit',
-    default=5_500_000,
-)
-@click.pass_context
-def main(
+def common_options(func):
+    @click.option(
+        '--private-key',
+        required=True,
+        help='Path to a private key store.',
+    )
+    @click.option(
+        '--rpc-provider',
+        default='http://127.0.0.1:8545',
+        help='Address of the Ethereum RPC provider',
+    )
+    @click.option(
+        '--wait',
+        default=300,
+        help='Max tx wait time in s.',
+    )
+    @click.option(
+        '--gas-price',
+        default=5,
+        type=int,
+        help='Gas price to use in gwei',
+    )
+    @click.option(
+        '--gas-limit',
+        default=5_500_000,
+    )
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def setup_ctx(
     ctx,
-    rpc_provider,
     private_key,
+    rpc_provider,
     wait,
     gas_price,
     gas_limit,
 ):
+    """Set up deployment context according to common options (shared among all
+    subcommands).
+    """
 
+    if private_key is None:
+        return
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('web3').setLevel(logging.INFO)
     logging.getLogger('urllib3').setLevel(logging.INFO)
@@ -145,7 +156,6 @@ def main(
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
-
     private_key = get_private_key(private_key)
     assert private_key is not None
     owner = private_key_to_address(private_key)
@@ -164,9 +174,23 @@ def main(
     ctx.obj['wait'] = wait
 
 
+@click.group(chain=True)
+def main():
+    pass
+
+
 @main.command()
+@common_options
 @click.pass_context
-def raiden(ctx):
+def raiden(
+    ctx,
+    private_key,
+    rpc_provider,
+    wait,
+    gas_price,
+    gas_limit,
+):
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     deployed_contracts = deploy_raiden_contracts(
         ctx.obj['deployer'],
     )
@@ -175,6 +199,7 @@ def raiden(ctx):
 
 
 @main.command()
+@common_options
 @click.option(
     '--token-supply',
     default=10000000,
@@ -198,11 +223,17 @@ def raiden(ctx):
 @click.pass_context
 def token(
     ctx,
+    private_key,
+    rpc_provider,
+    wait,
+    gas_price,
+    gas_limit,
     token_supply,
     token_name,
     token_decimals,
     token_symbol,
 ):
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     deployer = ctx.obj['deployer']
     token_supply *= 10 ** token_decimals
     deployed_token = deploy_token_contract(
@@ -218,7 +249,7 @@ def token(
 
 
 @main.command()
-@click.pass_context
+@common_options
 @click.option(
     '--token-address',
     default=None,
@@ -231,11 +262,18 @@ def token(
     callback=validate_address,
     help='Address of token network registry',
 )
+@click.pass_context
 def register(
     ctx,
+    private_key,
+    rpc_provider,
+    wait,
+    gas_price,
+    gas_limit,
     token_address,
     registry_address,
 ):
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
     if token_address:
