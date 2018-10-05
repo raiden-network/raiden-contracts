@@ -43,14 +43,13 @@ ROPSTEN = 'ropsten'
 RINKEBY = 'rinkeby'
 KOVAN = 'kovan'
 SMOKETEST = 'smoketest'
-RAIDENTEST_CHAINID = 627
 
 ID_TO_NETWORKNAME = {
-    1: MAINNET,
-    3: ROPSTEN,
-    4: RINKEBY,
-    42: KOVAN,
-    RAIDENTEST_CHAINID: SMOKETEST,
+    ChainId.MAINNET: MAINNET,
+    ChainId.ROPSTEN: ROPSTEN,
+    ChainId.RINKEBY: RINKEBY,
+    ChainId.KOVAN: KOVAN,
+    ChainId.SMOKETEST: SMOKETEST,
 }
 
 
@@ -60,7 +59,7 @@ class NetworkType(Enum):
 
 
 ID_TO_NETWORK_CONFIG = {
-    3: {
+    ChainId.ROPSTEN: {
         NetworkType.TEST: {
             'network_type': NetworkType.TEST,
             'contract_addresses': {
