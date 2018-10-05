@@ -26,6 +26,8 @@ Recommended::
 Usage
 -----
 
+We do not recommend the smart contracts to be used in production before a stable ``1.0.0`` release is made. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+
 If you want to use the officially deployed contracts, please use the ``raiden_contracts/data/contracts.json`` file to get the ABI and bytecode for initializing the contract instances.
 
 You can find the addresses of the deployed contracts in ``raiden_contracts/constants.py``, along with other useful constants that you can import.
@@ -49,6 +51,9 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     # compiled_contract_data['bin']
     # ROPSTEN_TOKEN_NETWORK_REGISTRY_ADDRESS
     # to initialize the contract instance
+
+
+All contracts under ``raiden_contracts/contracts/test/`` are only for testing purposes and they should not be used in production.
 
 Development
 -----------
