@@ -18,9 +18,7 @@ Prerequisites
 Installation
 ------------
 
-Recommended:
-
-::
+Recommended::
 
     pip install raiden-contracts
 
@@ -32,9 +30,7 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
 
 You can find the addresses of the deployed contracts in ``raiden_contracts/constants.py``, along with other useful constants that you can import.
 
-If you are using the ``raiden-contracts`` package in your project, you can use:
-
-::
+If you are using the ``raiden-contracts`` package in your project, you can use::
 
     from raiden_contracts.contract_manager import (
         ContractManager,
@@ -60,21 +56,15 @@ Development
 If you want to test and further develop outside the officially provided source code, compiled files and deployed addresses, you can do it at your own risk.
 
 
-If you want to install the package from source:
-
-::
+If you want to install the package from source::
 
     make install
 
-To verify that the precompiled ``raiden_contracts/data/contracts.json`` file corresponds to the source code of the contracts:
-
-::
+To verify that the precompiled ``raiden_contracts/data/contracts.json`` file corresponds to the source code of the contracts::
 
     make verify_contracts
 
-For development and testing, you have to install additional dependencies:
-
-::
+For development and testing, you have to install additional dependencies::
 
     pip install -r requirements-dev.txt
 
@@ -103,9 +93,7 @@ Testing
     pytest -n NUM_OF_CPUs
 
 
-If you are using the ``raiden-contracts`` package in your project, you can also test the source code directly (not only the precompiled contract data):
-
-::
+If you are using the ``raiden-contracts`` package in your project, you can also test the source code directly (not only the precompiled contract data)::
 
     from raiden_contracts.contract_manager import (
         ContractManager,
@@ -118,26 +106,18 @@ If you are using the ``raiden-contracts`` package in your project, you can also 
 Deployment on a testnet
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Check deployment options:
-
-::
+Check deployment options::
 
     python -m raiden_contracts.deploy --help
 
-Deploying the main Raiden Network contracts with the ``raiden`` command:
-
-::
+Deploying the main Raiden Network contracts with the ``raiden`` command::
 
     python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 raiden
 
-Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command:
-
-::
+Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 
     python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 token --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT
 
-Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command:
-
-::
+Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command::
 
     python -m raiden_contracts.deploy --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 register --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS
