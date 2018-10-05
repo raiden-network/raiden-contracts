@@ -107,7 +107,6 @@ def common_options(func):
     @click.option(
         '--private-key',
         required=True,
-        expose_value=False,
         help='Path to a private key store.',
     )
     @click.option(
