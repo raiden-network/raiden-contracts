@@ -3,12 +3,12 @@ from web3 import Web3
 from web3.exceptions import ValidationError
 from raiden_contracts.constants import EVENT_SECRET_REVEALED
 from raiden_contracts.utils.events import check_secret_revealed, check_secrets_revealed
-from .fixtures.config import fake_bytes, raiden_contracts_version
+from raiden_contracts.tests.fixtures.config import fake_bytes, CONTRACTS_VERSION
 
 
 def test_version(secret_registry_contract):
-    assert (secret_registry_contract.functions.contract_version().call()[:2]
-            == raiden_contracts_version[:2])
+    version = secret_registry_contract.functions.contract_version().call()[:2]
+    assert version == CONTRACTS_VERSION[:2]
 
 
 def test_register_secret_call(secret_registry_contract, event_handler):

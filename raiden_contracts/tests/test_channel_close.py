@@ -7,13 +7,13 @@ from raiden_contracts.constants import (
     ChannelState,
 )
 from raiden_contracts.utils.events import check_channel_closed
-from .fixtures.config import fake_bytes
 from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.config import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
+    fake_bytes,
 )
 
 

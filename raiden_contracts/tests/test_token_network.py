@@ -1,16 +1,20 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from .fixtures.config import raiden_contracts_version, EMPTY_ADDRESS, FAKE_ADDRESS
 
+from raiden_contracts.tests.utils import MAX_UINT256
+from raiden_contracts.tests.fixtures.config import (
+    CONTRACTS_VERSION,
+    EMPTY_ADDRESS,
+    FAKE_ADDRESS,
+)
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from raiden_contracts.tests.utils import MAX_UINT256
 
 
 def test_version(token_network):
-    assert token_network.functions.contract_version().call()[:2] == raiden_contracts_version[:2]
+    assert token_network.functions.contract_version().call()[:2] == CONTRACTS_VERSION[:2]
 
 
 def test_constructor_call(
