@@ -53,6 +53,12 @@ ID_TO_NETWORKNAME = {
 }
 
 
+NETWORKNAME_TO_ID = {
+    name: id
+    for id, name in ID_TO_NETWORKNAME.items()
+}
+
+
 class NetworkType(Enum):
     MAIN = 1
     TEST = 2
