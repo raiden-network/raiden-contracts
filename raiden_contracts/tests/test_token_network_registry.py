@@ -6,7 +6,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
 )
 from .fixtures.config import (
-    raiden_contracts_version,
+    CONTRACTS_VERSION,
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
@@ -15,8 +15,8 @@ from web3.exceptions import ValidationError
 
 
 def test_version(token_network_registry_contract):
-    assert (token_network_registry_contract.functions.contract_version().call()[:2]
-            == raiden_contracts_version[:2])
+    version = token_network_registry_contract.functions.contract_version().call()[:2]
+    assert version == CONTRACTS_VERSION[:2]
 
 
 def test_constructor_call(

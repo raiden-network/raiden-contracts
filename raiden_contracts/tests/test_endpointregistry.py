@@ -1,5 +1,11 @@
 from raiden_contracts.utils.events import check_address_registered
 from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED
+from raiden_contracts.tests.fixtures.config import CONTRACTS_VERSION
+
+
+def test_version(endpoint_registry_contract):
+    version = endpoint_registry_contract.functions.contract_version().call()[:2]
+    assert version == CONTRACTS_VERSION[:2]
 
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
