@@ -121,7 +121,7 @@ def common_options(func):
     )
     @click.option(
         '--gas-price',
-        default=0,
+        default=5,
         type=int,
         help='Gas price to use in gwei',
     )
