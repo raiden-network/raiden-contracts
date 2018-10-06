@@ -155,7 +155,7 @@ class ContractManager:
                 checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
 
         self.overall_checksum = hashlib.sha256(
-            ':'.join([checksums[key] for key in sorted(checksums)]).encode(),
+            ':'.join(checksums[key] for key in sorted(checksums)).encode(),
         ).hexdigest()
         self.contracts_checksums = checksums
 
