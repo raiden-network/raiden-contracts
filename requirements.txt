@@ -1,5 +1,5 @@
-click
-rlp>=1.0.0
-coincurve>=8.0.0,<9.0
-web3>=4.4.1
-py-solc>=3.0.0
+click>=7.0.0,<8.0
+rlp>=1.0.0,<2.0
+coincurve>=9.0.0,<10.0
+web3>=4.7.0,<5.0
+py-solc>=3.0.0,<4.0
