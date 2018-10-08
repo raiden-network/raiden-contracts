@@ -28,6 +28,71 @@ ROPSTEN_LIMITS_TOKEN_NETWORK_REGISTRY_ADDRESS = '0x6cC27CBF184B4177CD3c5D1a39a87
 ROPSTEN_LIMITS_ENDPOINT_REGISTRY_ADDRESS = '0xcF47EDF0D951c862ED9825F47075c15BEAf5Db1B'
 ROPSTEN_LIMITS_SECRET_REGISTRY_ADDRESS = '0x8167a262Fa3Be92F05420675c3b409c64Be3d348'
 
+# Timeouts
+TEST_SETTLE_TIMEOUT_MIN = 5
+TEST_SETTLE_TIMEOUT_MAX = 100000
+
+DEPLOY_SETTLE_TIMEOUT_MIN = 500  # ~ 2 hours
+DEPLOY_SETTLE_TIMEOUT_MAX = 555428  # ~ 3 months
+
+# Temporary deposit limits for the Red Eyes release in WEI
+MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10**18)
+MAX_ETH_TOKEN_NETWORK = int(250 * 10**18)
+
+# Event names
+# TokenNetworkRegistry
+EVENT_TOKEN_NETWORK_CREATED = 'TokenNetworkCreated'
+
+# SecretRegistry
+EVENT_SECRET_REVEALED = 'SecretRevealed'
+
+# EndpointRegistry
+EVENT_ADDRESS_REGISTERED = 'AddressRegistered'
+
+
+class ChannelEvent(str, Enum):
+    OPENED = 'ChannelOpened'
+    DEPOSIT = 'ChannelNewDeposit'
+    WITHDRAW = 'ChannelWithdraw'
+    BALANCE_PROOF_UPDATED = 'NonClosingBalanceProofUpdated'
+    CLOSED = 'ChannelClosed'
+    SETTLED = 'ChannelSettled'
+    UNLOCKED = 'ChannelUnlocked'
+
+
+# Index for return information from TokenNetwork.getChannelInfo
+class ChannelInfoIndex(IntEnum):
+    SETTLE_BLOCK = 0
+    STATE = 1
+
+
+# Index for return information from TokenNetwork.getChannelParticipantInfo
+class ParticipantInfoIndex(IntEnum):
+    DEPOSIT = 0
+    WITHDRAWN = 1
+    IS_CLOSER = 2
+    BALANCE_HASH = 3
+    NONCE = 4
+    LOCKSROOT = 5
+    LOCKED_AMOUNT = 6
+
+
+# Meaning of values returned by TokenNetwork.getChannelInfo[ChannelInfoIndex.STATE]
+class ChannelState(IntEnum):
+    NONEXISTENT = 0
+    OPENED = 1
+    CLOSED = 2
+    SETTLED = 3
+    REMOVED = 4
+
+
+# Message types, as used by the TokenNetwork contract
+class MessageTypeId(IntEnum):
+    BALANCE_PROOF = 1
+    BALANCE_PROOF_UPDATE = 2
+    WITHDRAW = 3
+    COOPERATIVE_SETTLE = 4
+
 
 # Network configurations
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
@@ -101,65 +166,3 @@ ID_TO_NETWORK_CONFIG = {
         },
     },
 }
-
-# TokenNetworkRegistry
-EVENT_TOKEN_NETWORK_CREATED = 'TokenNetworkCreated'
-
-
-class ChannelEvent(str, Enum):
-    OPENED = 'ChannelOpened'
-    DEPOSIT = 'ChannelNewDeposit'
-    WITHDRAW = 'ChannelWithdraw'
-    BALANCE_PROOF_UPDATED = 'NonClosingBalanceProofUpdated'
-    CLOSED = 'ChannelClosed'
-    SETTLED = 'ChannelSettled'
-    UNLOCKED = 'ChannelUnlocked'
-
-
-# SecretRegistry
-EVENT_SECRET_REVEALED = 'SecretRevealed'
-
-# EndpointRegistry
-EVENT_ADDRESS_REGISTERED = 'AddressRegistered'
-
-# Timeouts
-TEST_SETTLE_TIMEOUT_MIN = 5
-TEST_SETTLE_TIMEOUT_MAX = 100000
-
-DEPLOY_SETTLE_TIMEOUT_MIN = 500  # ~ 2 hours
-DEPLOY_SETTLE_TIMEOUT_MAX = 555428  # ~ 3 months
-
-
-class MessageTypeId(IntEnum):
-    BALANCE_PROOF = 1
-    BALANCE_PROOF_UPDATE = 2
-    WITHDRAW = 3
-    COOPERATIVE_SETTLE = 4
-
-
-class ChannelState(IntEnum):
-    NONEXISTENT = 0
-    OPENED = 1
-    CLOSED = 2
-    SETTLED = 3
-    REMOVED = 4
-
-
-# Temporary deposit limits for the Red Eyes release in WEI
-MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10**18)
-MAX_ETH_TOKEN_NETWORK = int(250 * 10**18)
-
-
-class ChannelInfoIndex(IntEnum):
-    SETTLE_BLOCK = 0
-    STATE = 1
-
-
-class ParticipantInfoIndex(IntEnum):
-    DEPOSIT = 0
-    WITHDRAWN = 1
-    IS_CLOSER = 2
-    BALANCE_HASH = 3
-    NONCE = 4
-    LOCKSROOT = 5
-    LOCKED_AMOUNT = 6
