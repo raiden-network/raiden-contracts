@@ -3,11 +3,11 @@ from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.tests.utils import MAX_UINT256
 from raiden_contracts.tests.fixtures.config import (
-    CONTRACTS_VERSION,
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
 from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )

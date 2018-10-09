@@ -1,7 +1,6 @@
 from enum import IntEnum
 
 
-CONTRACTS_VERSION = '0.3.0'
 MAX_UINT256 = 2 ** 256 - 1
 MAX_UINT192 = 2 ** 192 - 1
 MAX_UINT32 = 2 ** 32 - 1

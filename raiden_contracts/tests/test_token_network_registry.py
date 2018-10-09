@@ -1,12 +1,12 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
 from .fixtures.config import (
-    CONTRACTS_VERSION,
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
