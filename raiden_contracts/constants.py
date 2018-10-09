@@ -2,6 +2,7 @@ from enum import Enum, IntEnum
 
 from eth_utils import to_canonical_address
 
+# Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
 CONTRACTS_VERSION = "0.3._"
 
 # Contract names
