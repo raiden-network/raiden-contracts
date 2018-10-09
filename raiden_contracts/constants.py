@@ -2,6 +2,8 @@ from enum import Enum, IntEnum
 
 from eth_utils import to_canonical_address
 
+CONTRACTS_VERSION = "0.3._"
+
 # Contract names
 CONTRACT_ENDPOINT_REGISTRY = 'EndpointRegistry'
 CONTRACT_HUMAN_STANDARD_TOKEN = 'HumanStandardToken'
