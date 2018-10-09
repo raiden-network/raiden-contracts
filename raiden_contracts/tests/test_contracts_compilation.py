@@ -8,6 +8,7 @@ from raiden_contracts.contract_manager import (
     ContractManagerVerificationError,
 )
 from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
     CONTRACT_TOKEN_NETWORK,
     ChannelEvent,
 )
@@ -72,6 +73,11 @@ def test_verification_contracts_checksums():
 
         manager.contracts_checksums[contract] = checksum
         manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+
+
+def test_contracts_version():
+    manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
+    assert manager.contracts_version == CONTRACTS_VERSION
 
 
 def contract_manager_meta(contracts_path):

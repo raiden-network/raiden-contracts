@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, Union
 
 from solc import compile_files
+from raiden_contracts.constants import CONTRACTS_VERSION
 
 
 log = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class ContractManager:
         self.contracts_checksums = None
         if isinstance(path, dict):
             self.contracts_source_dirs = path
+            self.contracts_version = CONTRACTS_VERSION
         elif isinstance(path, Path):
             if path.is_dir():
                 ContractManager.__init__(self, {'smart_contracts': path})
@@ -58,6 +60,7 @@ class ContractManager:
                     self.contracts = precompiled_content['contracts']
                     self.overall_checksum = precompiled_content['overall_checksum']
                     self.contracts_checksums = precompiled_content['contracts_checksums']
+                    self.contracts_version = precompiled_content['contracts_version']
                 except KeyError as ex:
                     raise ContractManagerLoadError(
                         f'Precompiled contracts json has unexpected format: {ex}',
@@ -118,6 +121,7 @@ class ContractManager:
                         contracts=self.contracts,
                         contracts_checksums=self.contracts_checksums,
                         overall_checksum=self.overall_checksum,
+                        contracts_version=self.contracts_version,
                     ),
                 ),
             )
