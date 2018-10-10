@@ -4,10 +4,11 @@ A simple Python script to deploy compiled contracts.
 import functools
 import json
 import logging
+import click
+
 from logging import getLogger
 from typing import Dict
 
-import click
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
@@ -19,6 +20,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
+    ID_TO_NETWORKNAME,
 )
 from raiden_contracts.contract_manager import (
     CONTRACTS_PRECOMPILED_PATH,
@@ -28,6 +30,7 @@ from raiden_contracts.contract_manager import (
 from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_libs.private_contract import PrivateContract
 from raiden_libs.utils import get_private_key, private_key_to_address
+
 
 log = getLogger(__name__)
 
@@ -100,7 +103,7 @@ class ContractDeployer:
                 receipt['gasUsed'],
             ),
         )
-        return receipt['contractAddress']
+        return receipt
 
 
 def common_options(func):
@@ -299,22 +302,56 @@ def deploy_raiden_contracts(
     """Deploy all required raiden contracts and return a dict of contract_name:address"""
     deployed_contracts = {}
 
-    deployed_contracts[CONTRACT_ENDPOINT_REGISTRY] = deployer.deploy(
-        CONTRACT_ENDPOINT_REGISTRY,
-    )
+    endpoint_registry_receipt = deployer.deploy(CONTRACT_ENDPOINT_REGISTRY)
+    deployed_contracts[CONTRACT_ENDPOINT_REGISTRY] = to_checksum_address(endpoint_registry_receipt['contractAddress'])
 
-    deployed_contracts[CONTRACT_SECRET_REGISTRY] = deployer.deploy(
-        CONTRACT_SECRET_REGISTRY,
-    )
-    deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY] = deployer.deploy(
+    secret_registry_receipt = deployer.deploy(CONTRACT_SECRET_REGISTRY)
+    deployed_contracts[CONTRACT_SECRET_REGISTRY] = to_checksum_address(secret_registry_receipt['contractAddress'])
+
+    token_network_constructor_arguments = [
+        deployed_contracts[CONTRACT_SECRET_REGISTRY],
+        int(deployer.web3.version.network),
+        DEPLOY_SETTLE_TIMEOUT_MIN,
+        DEPLOY_SETTLE_TIMEOUT_MAX,
+    ]
+    token_network_registry_receipt = deployer.deploy(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [
-            deployed_contracts[CONTRACT_SECRET_REGISTRY],
-            int(deployer.web3.version.network),
-            DEPLOY_SETTLE_TIMEOUT_MIN,
-            DEPLOY_SETTLE_TIMEOUT_MAX,
-        ],
+        token_network_constructor_arguments,
     )
+    deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY] = to_checksum_address(token_network_registry_receipt['contractAddress'])
+
+    deployed_contracts_info = {
+        'contracts_version': deployer.contract_manager.contracts_version,
+        'contracts': {
+            CONTRACT_ENDPOINT_REGISTRY: {
+                'address': deployed_contracts[CONTRACT_ENDPOINT_REGISTRY],
+                'transaction_hash': encode_hex(endpoint_registry_receipt['transactionHash']),
+                'block_number': endpoint_registry_receipt['blockNumber'],
+                'gas_cost': endpoint_registry_receipt['gasUsed'],
+                'constructor_arguments': [],
+            },
+            CONTRACT_SECRET_REGISTRY: {
+                'address': deployed_contracts[CONTRACT_SECRET_REGISTRY],
+                'transaction_hash': encode_hex(secret_registry_receipt['transactionHash']),
+                'block_number': secret_registry_receipt['blockNumber'],
+                'gas_cost': secret_registry_receipt['gasUsed'],
+                'constructor_arguments': [],
+            },
+            CONTRACT_TOKEN_NETWORK_REGISTRY: {
+                'address': deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY],
+                'transaction_hash': encode_hex(token_network_registry_receipt['transactionHash']),
+                'block_number': token_network_registry_receipt['blockNumber'],
+                'gas_cost': token_network_registry_receipt['gasUsed'],
+                'constructor_arguments': token_network_constructor_arguments,
+            }
+        }
+    }
+
+    chain_id = int(deployer.web3.version.network)
+    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
+
+    store_deployment_info(deployed_contracts_info, chain_name)
+
     return deployed_contracts
 
 
@@ -375,6 +412,16 @@ def register_token_network(
             receipt['gasUsed'],
         ),
     )
+
+
+def store_deployment_info(deployment_info: dict, chain_name):
+    deployment_file_path = CONTRACTS_PRECOMPILED_PATH.parents[0].joinpath(
+        f'deployment_{chain_name}.json'
+    )
+    with deployment_file_path.open(mode='w') as target_file:
+        target_file.write(json.dumps(deployment_info))
+
+    print(f'Deployment information has been updated at {deployment_file_path}.')
 
 
 if __name__ == '__main__':
