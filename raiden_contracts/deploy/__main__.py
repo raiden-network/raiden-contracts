@@ -8,12 +8,15 @@ import click
 
 from logging import getLogger
 from typing import Dict
+from pathlib import Path
+from json import JSONDecodeError
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
 from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
@@ -33,6 +36,10 @@ from raiden_libs.utils import get_private_key, private_key_to_address
 
 
 log = getLogger(__name__)
+
+
+class DeploymentVerificationError(RuntimeError):
+    pass
 
 
 def validate_address(ctx, param, value):
@@ -296,11 +303,36 @@ def register(
     )
 
 
+@main.command()
+@click.option(
+    '--rpc-provider',
+    default='http://127.0.0.1:8545',
+    help='Address of the Ethereum RPC provider',
+)
+@click.pass_context
+def verify(
+    ctx,
+    rpc_provider,
+):
+    web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
+    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+    print('Web3 provider is', web3.providers[0])
+
+    contract_manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
+
+    verify_deployed_contracts(
+        web3,
+        contract_manager,
+        get_deployment_path(web3)
+    )
+
+
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
     """Deploy all required raiden contracts and return a dict of contract_name:address"""
     deployed_contracts = {}
+    chain_id = int(deployer.web3.version.network)
 
     endpoint_registry_receipt = deployer.deploy(CONTRACT_ENDPOINT_REGISTRY)
     deployed_contracts[CONTRACT_ENDPOINT_REGISTRY] = to_checksum_address(endpoint_registry_receipt['contractAddress'])
@@ -310,7 +342,7 @@ def deploy_raiden_contracts(
 
     token_network_constructor_arguments = [
         deployed_contracts[CONTRACT_SECRET_REGISTRY],
-        int(deployer.web3.version.network),
+        chain_id,
         DEPLOY_SETTLE_TIMEOUT_MIN,
         DEPLOY_SETTLE_TIMEOUT_MAX,
     ]
@@ -322,6 +354,7 @@ def deploy_raiden_contracts(
 
     deployed_contracts_info = {
         'contracts_version': deployer.contract_manager.contracts_version,
+        'chain_id': chain_id,
         'contracts': {
             CONTRACT_ENDPOINT_REGISTRY: {
                 'address': deployed_contracts[CONTRACT_ENDPOINT_REGISTRY],
@@ -347,10 +380,10 @@ def deploy_raiden_contracts(
         }
     }
 
-    chain_id = int(deployer.web3.version.network)
-    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
+    deployment_file_path = get_deployment_path(deployer.web3)
 
-    store_deployment_info(deployed_contracts_info, chain_name)
+    store_deployment_info(deployed_contracts_info, deployment_file_path)
+    verify_deployed_contracts(deployer.web3, deployer.contract_manager, deployment_file_path)
 
     return deployed_contracts
 
@@ -414,14 +447,145 @@ def register_token_network(
     )
 
 
-def store_deployment_info(deployment_info: dict, chain_name):
-    deployment_file_path = CONTRACTS_PRECOMPILED_PATH.parents[0].joinpath(
-        f'deployment_{chain_name}.json'
-    )
+def store_deployment_info(deployment_info: dict, deployment_file_path: Path):
     with deployment_file_path.open(mode='w') as target_file:
         target_file.write(json.dumps(deployment_info))
 
-    print(f'Deployment information has been updated at {deployment_file_path}.')
+    print(
+        f'Deployment information for chain id = {deployment_info["chain_id"]} '
+        f' has been updated at {deployment_file_path}.'
+    )
+
+
+def verify_deployed_contracts(web3, contract_manager, deployment_file_path: Path):
+    try:
+        with deployment_file_path.open() as deployment_file:
+            deployment_data = json.load(deployment_file)
+    except (JSONDecodeError, UnicodeDecodeError) as ex:
+        raise DeploymentVerificationError(
+            f'Cannot load deployment data file: {ex}'
+        ) from ex
+
+    contracts = deployment_data['contracts']
+
+    assert contract_manager.contracts_version == deployment_data['contracts_version']
+    assert int(web3.version.network) == deployment_data['chain_id']
+
+    endpoint_registry_address = contracts[CONTRACT_ENDPOINT_REGISTRY]['address']
+    endpoint_registry_abi = contract_manager.get_contract_abi(CONTRACT_ENDPOINT_REGISTRY)
+    endpoint_registry = web3.eth.contract(
+        abi=endpoint_registry_abi,
+        address=endpoint_registry_address,
+    )
+    endpoint_registry = PrivateContract(endpoint_registry)
+
+    # Check that the deployed bytecode matches the precompiled data
+    blockchain_bytecode = web3.eth.getCode(endpoint_registry_address).hex()
+    compiled_bytecode = contract_manager.contracts[CONTRACT_ENDPOINT_REGISTRY]['bin']
+    # Compiled code contains some additional initial data compare to the blockchain bytecode
+    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
+    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    assert blockchain_bytecode == compiled_bytecode
+
+    # Check blockchain transaction hash & block information
+    receipt = web3.eth.getTransactionReceipt(
+        contracts[CONTRACT_ENDPOINT_REGISTRY]['transaction_hash']
+    )
+    assert receipt['blockNumber'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number']
+    assert receipt['gasUsed'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost']
+    assert receipt['contractAddress'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['address']
+
+    # Check the contract version
+    assert endpoint_registry.functions.contract_version().call().decode() == deployment_data['contracts_version']
+
+    print(
+        f'{CONTRACT_ENDPOINT_REGISTRY} at {endpoint_registry_address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    secret_registry_address = contracts[CONTRACT_SECRET_REGISTRY]['address']
+    secret_registry_abi = contract_manager.get_contract_abi(CONTRACT_SECRET_REGISTRY)
+    secret_registry = web3.eth.contract(
+        abi=secret_registry_abi,
+        address=secret_registry_address,
+    )
+    secret_registry = PrivateContract(secret_registry)
+
+    # Check that the deployed bytecode matches the precompiled data
+    blockchain_bytecode = web3.eth.getCode(secret_registry_address).hex()
+    compiled_bytecode = contract_manager.contracts[CONTRACT_SECRET_REGISTRY]['bin']
+    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
+    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    assert blockchain_bytecode == compiled_bytecode
+
+    # Check blockchain transaction hash & block information
+    receipt = web3.eth.getTransactionReceipt(
+        contracts[CONTRACT_SECRET_REGISTRY]['transaction_hash']
+    )
+    assert receipt['blockNumber'] == contracts[CONTRACT_SECRET_REGISTRY]['block_number']
+    assert receipt['gasUsed'] == contracts[CONTRACT_SECRET_REGISTRY]['gas_cost']
+    assert receipt['contractAddress'] == contracts[CONTRACT_SECRET_REGISTRY]['address']
+
+    # Check the contract version
+    assert secret_registry.functions.contract_version().call().decode() == deployment_data['contracts_version']
+
+    print(
+        f'{CONTRACT_SECRET_REGISTRY} at {secret_registry_address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    token_registry_address = contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']
+    token_registry_abi = contract_manager.get_contract_abi(
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+    )
+    token_network_registry = web3.eth.contract(
+        abi=token_registry_abi,
+        address=token_registry_address,
+    )
+    token_network_registry = PrivateContract(token_network_registry)
+
+    # Check that the deployed bytecode matches the precompiled data
+    blockchain_bytecode = web3.eth.getCode(token_registry_address).hex()
+    compiled_bytecode = contract_manager.contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['bin']
+    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
+    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    assert blockchain_bytecode == compiled_bytecode
+
+    # Check blockchain transaction hash & block information
+    receipt = web3.eth.getTransactionReceipt(
+        contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['transaction_hash']
+    )
+    assert receipt['blockNumber'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number']
+    assert receipt['gasUsed'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost']
+    assert receipt['contractAddress'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']
+
+    # Check the contract version
+    assert token_network_registry.functions.contract_version().call().decode() == deployment_data['contracts_version']
+
+    # Check constructor parameters
+    constructor_arguments = contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['constructor_arguments']
+    assert to_checksum_address(
+        token_network_registry.functions.secret_registry_address().call(),
+    ) == secret_registry_address
+    assert secret_registry_address == constructor_arguments[0]
+    assert token_network_registry.functions.chain_id().call() == constructor_arguments[1]
+    assert token_network_registry.functions.settlement_timeout_min().call() == constructor_arguments[2]
+    assert token_network_registry.functions.settlement_timeout_max().call() == constructor_arguments[3]
+
+    print(
+        f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_registry_address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+
+def get_deployment_path(web3: Web3):
+    chain_id = int(web3.version.network)
+    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
+
+    deployment_file_path = CONTRACTS_PRECOMPILED_PATH.parents[0].joinpath(
+        f'deployment_{chain_name}.json'
+    )
+    return deployment_file_path
 
 
 if __name__ == '__main__':

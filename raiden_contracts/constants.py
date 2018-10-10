@@ -98,7 +98,7 @@ class MessageTypeId(IntEnum):
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
 
 
-class ChainId(Enum):
+class ChainId(IntEnum):
     MAINNET = 1
     ROPSTEN = 3
     RINKEBY = 4
