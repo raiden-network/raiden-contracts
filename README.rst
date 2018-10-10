@@ -126,3 +126,13 @@ Deploying a token for testing purposes (please DO NOT use this for production pu
 Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command::
 
     python -m raiden_contracts.deploy register --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS
+
+
+Deployment information is stored in a ``deployment_[CHAIN_NAME].json`` file corresponding to the chain on which it was deployed. To verify that the deployed contracts match the compiled data in ``contracts.json`` and also match the deployment information in the file, we can run:
+
+::
+
+    python -m raiden_contracts.deploy verify --rpc-provider http://127.0.0.1:8545
+
+    # Based on the network id, the script verifies the corresponding deployment_[CHAIN_NAME].json file
+    # using the chain name-id mapping from constants.py
