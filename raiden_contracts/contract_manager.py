@@ -81,10 +81,11 @@ class ContractManager:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
                     [str(file) for file in contracts_dir.glob('*.sol')],
-                    output_values=('abi', 'bin', 'ast'),
+                    output_values=('abi', 'bin', 'ast', 'metadata'),
                     import_remappings=import_dir_map,
                     optimize=False,
                 )
+
                 # Strip `ast` part from result
                 # TODO: Remove after https://github.com/ethereum/py-solc/issues/56 is fixed
                 res = {
