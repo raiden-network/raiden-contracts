@@ -88,6 +88,7 @@ def test_paths():
     assert contracts_precompiled_path().exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby']).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten']).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan']).exists()
 
 
 def test_pre_limits_version():
@@ -96,6 +97,7 @@ def test_pre_limits_version():
     assert contracts_precompiled_path('pre_limits').exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby'], 'pre_limits').exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten'], 'pre_limits').exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan'], 'pre_limits').exists()
 
 
 def contract_manager_meta(contracts_path):
