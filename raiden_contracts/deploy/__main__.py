@@ -409,10 +409,11 @@ def deploy_token_contract(
 ):
     """Deploy a token contract."""
     deployed_contracts = {}
-    deployed_contracts[token_type] = deployer.deploy(
+    receipt = deployer.deploy(
         token_type,
         [token_supply, token_decimals, token_name, token_symbol],
     )
+    deployed_contracts[token_type] = receipt['contractAddress']
 
     token_address = deployed_contracts[token_type]
     assert token_address and is_address(token_address)
