@@ -7,9 +7,7 @@ import logging
 import click
 
 from logging import getLogger
-from typing import Dict
-from pathlib import Path
-from json import JSONDecodeError
+from typing import Dict, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
@@ -22,12 +20,13 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
-    ID_TO_NETWORKNAME,
 )
 from raiden_contracts.contract_manager import (
-    CONTRACTS_PRECOMPILED_PATH,
-    CONTRACTS_SOURCE_DIRS,
     ContractManager,
+    contracts_precompiled_path,
+    contracts_source_path,
+    contracts_deployed_path,
+    get_contracts_deployed,
 )
 from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_libs.private_contract import PrivateContract
@@ -59,6 +58,7 @@ class ContractDeployer:
         gas_limit: int,
         gas_price: int=1,
         wait: int=10,
+        contracts_version: Optional[str]=None,
     ):
         self.web3 = web3
         self.private_key = private_key
@@ -68,12 +68,14 @@ class ContractDeployer:
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
-        self.contract_manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
+        self.contracts_version = contracts_version
+        self.precompiled_path = contracts_precompiled_path(self.contracts_version)
+        self.contract_manager = ContractManager(self.precompiled_path)
 
         # Check that the precompiled data is correct
-        self.contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+        self.contract_manager = ContractManager(contracts_source_path())
         self.contract_manager.checksum_contracts()
-        self.contract_manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+        self.contract_manager.verify_precompiled_checksums(self.precompiled_path)
 
     def deploy(
         self,
@@ -308,21 +310,22 @@ def register(
     default='http://127.0.0.1:8545',
     help='Address of the Ethereum RPC provider',
 )
+@click.option(
+    '--contracts-version',
+    help='Contracts version to verify. Current version will be used by default.',
+)
 @click.pass_context
-def verify(
-    ctx,
-    rpc_provider,
-):
+def verify(ctx, rpc_provider, contracts_version):
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
 
-    contract_manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
-
+    contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
     verify_deployed_contracts(
         web3,
         contract_manager,
-        get_deployment_path(web3),
+        int(web3.version.network),
+        contracts_version,
     )
 
 
@@ -385,10 +388,17 @@ def deploy_raiden_contracts(
         },
     }
 
-    deployment_file_path = get_deployment_path(deployer.web3)
-
-    store_deployment_info(deployed_contracts_info, deployment_file_path)
-    verify_deployed_contracts(deployer.web3, deployer.contract_manager, deployment_file_path)
+    store_deployment_info(
+        deployed_contracts_info,
+        int(deployer.web3.version.network),
+        deployer.contracts_version,
+    )
+    verify_deployed_contracts(
+        deployer.web3,
+        deployer.contract_manager,
+        int(deployer.web3.version.network),
+        deployer.contracts_version,
+    )
 
     return deployed_contracts
 
@@ -452,7 +462,8 @@ def register_token_network(
     )
 
 
-def store_deployment_info(deployment_info: dict, deployment_file_path: Path):
+def store_deployment_info(deployment_info: dict, chain_id: int, version: Optional[str] = None):
+    deployment_file_path = contracts_deployed_path(chain_id, version)
     with deployment_file_path.open(mode='w') as target_file:
         target_file.write(json.dumps(deployment_info))
 
@@ -462,13 +473,13 @@ def store_deployment_info(deployment_info: dict, deployment_file_path: Path):
     )
 
 
-def verify_deployed_contracts(web3, contract_manager, deployment_file_path: Path):
-    try:
-        with deployment_file_path.open() as deployment_file:
-            deployment_data = json.load(deployment_file)
-    except (JSONDecodeError, UnicodeDecodeError) as ex:
-        raise DeploymentVerificationError(f'Cannot load deployment data file: {ex}') from ex
-
+def verify_deployed_contracts(
+        web3: Web3,
+        contract_manager: ContractManager,
+        chain_id: int,
+        version: Optional[str] = None,
+):
+    deployment_data = get_contracts_deployed(chain_id, version)
     contracts = deployment_data['contracts']
 
     assert contract_manager.contracts_version == deployment_data['contracts_version']
@@ -587,16 +598,6 @@ def verify_deployed_contracts(web3, contract_manager, deployment_file_path: Path
         f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_registry_address} '
         f'matches the compiled data from contracts.json',
     )
-
-
-def get_deployment_path(web3: Web3):
-    chain_id = int(web3.version.network)
-    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
-
-    deployment_file_path = CONTRACTS_PRECOMPILED_PATH.parents[0].joinpath(
-        f'deployment_{chain_name}.json',
-    )
-    return deployment_file_path
 
 
 if __name__ == '__main__':

@@ -47,12 +47,12 @@ class VerifyContracts(Command):
     def run(self):
         from raiden_contracts.contract_manager import (
             ContractManager,
-            CONTRACTS_PRECOMPILED_PATH,
-            CONTRACTS_SOURCE_DIRS,
+            contracts_precompiled_path,
+            contracts_source_path,
         )
-        manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+        manager = ContractManager(contracts_source_path())
         manager.checksum_contracts()
-        manager.verify_precompiled_checksums(CONTRACTS_PRECOMPILED_PATH)
+        manager.verify_precompiled_checksums(contracts_precompiled_path())
 
 
 class CompileContracts(Command):
@@ -68,12 +68,13 @@ class CompileContracts(Command):
     def run(self):
         from raiden_contracts.contract_manager import (
             ContractManager,
-            CONTRACTS_PRECOMPILED_PATH,
-            CONTRACTS_SOURCE_DIRS,
+            contracts_precompiled_path,
+            contracts_source_path,
         )
 
-        contract_manager = ContractManager(CONTRACTS_SOURCE_DIRS)
-        contract_manager.compile_contracts(CONTRACTS_PRECOMPILED_PATH)
+        contract_manager = ContractManager(contracts_source_path())
+        contract_manager.compile_contracts(contracts_precompiled_path()
+        )
 
 
 requirements = read_requirements('requirements.txt')
