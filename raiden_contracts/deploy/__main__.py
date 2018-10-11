@@ -36,10 +36,6 @@ from raiden_libs.utils import get_private_key, private_key_to_address
 log = getLogger(__name__)
 
 
-class DeploymentVerificationError(RuntimeError):
-    pass
-
-
 def validate_address(ctx, param, value):
     if not value:
         return None
