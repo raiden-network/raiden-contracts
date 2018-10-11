@@ -97,29 +97,13 @@ class MessageTypeId(IntEnum):
 # Network configurations
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
 
-
-class ChainId(IntEnum):
-    MAINNET = 1
-    ROPSTEN = 3
-    RINKEBY = 4
-    KOVAN = 42
-    SMOKETEST = 627
-
-
-MAINNET = 'mainnet'
-ROPSTEN = 'ropsten'
-RINKEBY = 'rinkeby'
-KOVAN = 'kovan'
-SMOKETEST = 'smoketest'
-
 ID_TO_NETWORKNAME = {
-    ChainId.MAINNET: MAINNET,
-    ChainId.ROPSTEN: ROPSTEN,
-    ChainId.RINKEBY: RINKEBY,
-    ChainId.KOVAN: KOVAN,
-    ChainId.SMOKETEST: SMOKETEST,
+    1: 'mainnet',
+    3: 'ropsten',
+    4: 'rinkeby',
+    42: 'kovan',
+    627: 'smoketest',
 }
-
 
 NETWORKNAME_TO_ID = {
     name: id
@@ -133,7 +117,7 @@ class NetworkType(Enum):
 
 
 ID_TO_NETWORK_CONFIG = {
-    ChainId.ROPSTEN: {
+    3: {
         NetworkType.TEST: {
             'network_type': NetworkType.TEST,
             'contract_addresses': {

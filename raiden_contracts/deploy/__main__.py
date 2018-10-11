@@ -485,7 +485,7 @@ def verify_deployed_contracts(web3, contract_manager, deployment_file_path: Path
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(endpoint_registry_address).hex()
     compiled_bytecode = contract_manager.contracts[CONTRACT_ENDPOINT_REGISTRY]['bin']
-    # Compiled code contains some additional initial data compare to the blockchain bytecode
+    # Compiled code contains some additional initial data compared to the blockchain bytecode
     compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
     compiled_bytecode = hex(int(compiled_bytecode, 16))
     assert blockchain_bytecode == compiled_bytecode
