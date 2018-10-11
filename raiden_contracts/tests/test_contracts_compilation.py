@@ -82,6 +82,22 @@ def test_contracts_version():
     assert manager.contracts_version == CONTRACTS_VERSION
 
 
+def test_paths():
+    for _, source_path in contracts_source_path().items():
+        assert source_path.exists()
+    assert contracts_precompiled_path().exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby']).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten']).exists()
+
+
+def test_pre_limits_version():
+    manager = ContractManager(contracts_precompiled_path('pre_limits'))
+    assert manager.contracts_version == '0.3._'
+    assert contracts_precompiled_path('pre_limits').exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby'], 'pre_limits').exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten'], 'pre_limits').exists()
+
+
 def contract_manager_meta(contracts_path):
     manager = ContractManager(contracts_path)
 
