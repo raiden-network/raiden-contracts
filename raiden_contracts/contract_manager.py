@@ -3,21 +3,15 @@ import json
 import logging
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 from solc import compile_files
-from raiden_contracts.constants import CONTRACTS_VERSION
+from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
 
 
 log = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
-
-CONTRACTS_PRECOMPILED_PATH = _BASE.joinpath('data', 'contracts.json')
-CONTRACTS_SOURCE_DIRS = {
-    'raiden': _BASE.joinpath('contracts'),
-    'test': _BASE.joinpath('contracts/test'),
-}
 
 
 class ContractManagerCompilationError(RuntimeError):
@@ -189,6 +183,36 @@ class ContractManager:
                 f'overall checksum does not match '
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
+
+
+def contracts_source_path():
+    return {
+        'raiden': _BASE.joinpath('contracts'),
+        'test': _BASE.joinpath('contracts', 'test'),
+    }
+
+
+def contracts_precompiled_path(version: Optional[str] = None):
+    data_path = _BASE.joinpath('data') if version is None else _BASE.joinpath(f'data_{version}')
+    return _BASE.joinpath(data_path, 'contracts.json')
+
+
+def contracts_deployed_path(chain_id: int, version: Optional[str] = None):
+    data_path = _BASE.joinpath('data') if version is None else _BASE.joinpath(f'data_{version}')
+    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
+
+    return data_path.joinpath(f'deployment_{chain_name}.json')
+
+
+def get_contracts_deployed(chain_id: int, version: Optional[str] = None):
+    deployment_file_path = contracts_deployed_path(chain_id, version)
+
+    try:
+        with deployment_file_path.open() as deployment_file:
+            deployment_data = json.load(deployment_file)
+    except (JSONDecodeError, UnicodeDecodeError) as ex:
+        raise ValueError(f'Cannot load deployment data file: {ex}') from ex
+    return deployment_data
 
 
 def _fix_contract_key_names(input: Dict) -> Dict:

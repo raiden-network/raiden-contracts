@@ -36,16 +36,19 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
 
     from raiden_contracts.contract_manager import (
         ContractManager,
-        CONTRACTS_PRECOMPILED_PATH,
+        contracts_precompiled_path,
     )
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        ROPSTEN_TOKEN_NETWORK_REGISTRY_ADDRESS,
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
-    manager = ContractManager(CONTRACTS_PRECOMPILED_PATH)
+    manager = ContractManager(contracts_precompiled_path())
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
+
+    deployment_data = get_contracts_deployed(int(web3.version.network))
+    TOKEN_NETWORK_REGISTRY_ADDRESS = deployment_data['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY].address
+
     # And then use:
     # compiled_contract_data['abi']
     # compiled_contract_data['bin']
@@ -102,10 +105,10 @@ If you are using the ``raiden-contracts`` package in your project, you can also 
 
     from raiden_contracts.contract_manager import (
         ContractManager,
-        CONTRACTS_SOURCE_DIRS,
+        contracts_source_path,
     )
 
-    manager = ContractManager(CONTRACTS_SOURCE_DIRS)
+    manager = ContractManager(contracts_source_path())
 
 
 Deployment on a testnet
