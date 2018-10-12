@@ -6,7 +6,6 @@ compile_contracts:
 verify_contracts:
 	python setup.py verify_contracts
 
-
 install:
 	pip install -r requirements.txt
 	pip install -e .
