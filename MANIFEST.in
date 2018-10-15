@@ -1,5 +1,11 @@
 include requirements.txt
-recursive-include raiden_contracts/data/ *
-recursive-include raiden_contracts/data_pre_limits/ *
+include raiden_contracts/data/contracts.json
+include raiden_contracts/data/deployment_kovan.json
+include raiden_contracts/data/deployment_rinkeby.json
+include raiden_contracts/data/deployment_ropsten.json
+include raiden_contracts/data_pre_limits/contracts.json
+include raiden_contracts/data_pre_limits/deployment_kovan.json
+include raiden_contracts/data_pre_limits/deployment_rinkeby.json
+include raiden_contracts/data_pre_limits/deployment_ropsten.json
 recursive-include raiden_contracts/contracts/ *
 recursive-include raiden_contracts/contracts/test *
