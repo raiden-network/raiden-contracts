@@ -198,9 +198,16 @@ def raiden(
     gas_limit,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
-    deployed_contracts = deploy_raiden_contracts(
-        ctx.obj['deployer'],
-    )
+    deployer = ctx.obj['deployer']
+    deployed_contracts_info = deploy_raiden_contracts(deployer)
+    deployed_contracts = {
+        contract_name: info['address']
+        for contract_name, info in deployed_contracts_info['contracts'].items()
+    }
+
+    store_deployment_info(deployed_contracts_info)
+    verify_deployed_contracts(deployer.web3, deployer.contract_manager)
+
     print(json.dumps(deployed_contracts, indent=4))
     ctx.obj['deployed_contracts'].update(deployed_contracts)
 
@@ -283,10 +290,12 @@ def register(
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
+
     if token_address:
         ctx.obj['deployed_contracts'][token_type] = token_address
     if registry_address:
         ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = registry_address
+
     assert CONTRACT_TOKEN_NETWORK_REGISTRY in ctx.obj['deployed_contracts']
     assert token_type in ctx.obj['deployed_contracts']
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
@@ -317,34 +326,44 @@ def verify(ctx, rpc_provider, contracts_version):
     print('Web3 provider is', web3.providers[0])
 
     contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
-    verify_deployed_contracts(
-        web3,
-        contract_manager,
-        int(web3.version.network),
-        contracts_version,
-    )
+    verify_deployed_contracts(web3, contract_manager)
 
 
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
     """Deploy all required raiden contracts and return a dict of contract_name:address"""
-    deployed_contracts = {}
-    chain_id = int(deployer.web3.version.network)
+    deployed_contracts = {
+        'contracts_version': deployer.contract_manager.contracts_version,
+        'chain_id': int(deployer.web3.version.network),
+        'contracts': {},
+    }
 
     endpoint_registry_receipt = deployer.deploy(CONTRACT_ENDPOINT_REGISTRY)
-    deployed_contracts[CONTRACT_ENDPOINT_REGISTRY] = to_checksum_address(
-        endpoint_registry_receipt['contractAddress'],
-    )
+    deployed_contracts['contracts'][CONTRACT_ENDPOINT_REGISTRY] = {
+        'address': to_checksum_address(
+            endpoint_registry_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(endpoint_registry_receipt['transactionHash']),
+        'block_number': endpoint_registry_receipt['blockNumber'],
+        'gas_cost': endpoint_registry_receipt['gasUsed'],
+        'constructor_arguments': [],
+    }
 
     secret_registry_receipt = deployer.deploy(CONTRACT_SECRET_REGISTRY)
-    deployed_contracts[CONTRACT_SECRET_REGISTRY] = to_checksum_address(
-        secret_registry_receipt['contractAddress'],
-    )
+    deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY] = {
+        'address': to_checksum_address(
+            secret_registry_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(secret_registry_receipt['transactionHash']),
+        'block_number': secret_registry_receipt['blockNumber'],
+        'gas_cost': secret_registry_receipt['gasUsed'],
+        'constructor_arguments': [],
+    }
 
     token_network_constructor_arguments = [
-        deployed_contracts[CONTRACT_SECRET_REGISTRY],
-        chain_id,
+        deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY]['address'],
+        deployed_contracts['chain_id'],
         DEPLOY_SETTLE_TIMEOUT_MIN,
         DEPLOY_SETTLE_TIMEOUT_MAX,
     ]
@@ -352,49 +371,15 @@ def deploy_raiden_contracts(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_constructor_arguments,
     )
-    deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY] = to_checksum_address(
-        token_network_registry_receipt['contractAddress'],
-    )
-
-    deployed_contracts_info = {
-        'contracts_version': deployer.contract_manager.contracts_version,
-        'chain_id': chain_id,
-        'contracts': {
-            CONTRACT_ENDPOINT_REGISTRY: {
-                'address': deployed_contracts[CONTRACT_ENDPOINT_REGISTRY],
-                'transaction_hash': encode_hex(endpoint_registry_receipt['transactionHash']),
-                'block_number': endpoint_registry_receipt['blockNumber'],
-                'gas_cost': endpoint_registry_receipt['gasUsed'],
-                'constructor_arguments': [],
-            },
-            CONTRACT_SECRET_REGISTRY: {
-                'address': deployed_contracts[CONTRACT_SECRET_REGISTRY],
-                'transaction_hash': encode_hex(secret_registry_receipt['transactionHash']),
-                'block_number': secret_registry_receipt['blockNumber'],
-                'gas_cost': secret_registry_receipt['gasUsed'],
-                'constructor_arguments': [],
-            },
-            CONTRACT_TOKEN_NETWORK_REGISTRY: {
-                'address': deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY],
-                'transaction_hash': encode_hex(token_network_registry_receipt['transactionHash']),
-                'block_number': token_network_registry_receipt['blockNumber'],
-                'gas_cost': token_network_registry_receipt['gasUsed'],
-                'constructor_arguments': token_network_constructor_arguments,
-            },
-        },
+    deployed_contracts['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = {
+        'address': to_checksum_address(
+            token_network_registry_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(token_network_registry_receipt['transactionHash']),
+        'block_number': token_network_registry_receipt['blockNumber'],
+        'gas_cost': token_network_registry_receipt['gasUsed'],
+        'constructor_arguments': token_network_constructor_arguments,
     }
-
-    store_deployment_info(
-        deployed_contracts_info,
-        int(deployer.web3.version.network),
-        deployer.contracts_version,
-    )
-    verify_deployed_contracts(
-        deployer.web3,
-        deployer.contract_manager,
-        int(deployer.web3.version.network),
-        deployer.contracts_version,
-    )
 
     return deployed_contracts
 
@@ -408,14 +393,11 @@ def deploy_token_contract(
     token_type: str='CustomToken',
 ):
     """Deploy a token contract."""
-    deployed_contracts = {}
     receipt = deployer.deploy(
         token_type,
         [token_supply, token_decimals, token_name, token_symbol],
     )
-    deployed_contracts[token_type] = receipt['contractAddress']
-
-    token_address = deployed_contracts[token_type]
+    token_address = receipt['contractAddress']
     assert token_address and is_address(token_address)
     token_address = to_checksum_address(token_address)
     return {token_type: token_address}
@@ -459,8 +441,11 @@ def register_token_network(
     )
 
 
-def store_deployment_info(deployment_info: dict, chain_id: int, version: Optional[str] = None):
-    deployment_file_path = contracts_deployed_path(chain_id, version)
+def store_deployment_info(deployment_info: dict):
+    deployment_file_path = contracts_deployed_path(
+        deployment_info['chain_id'],
+        deployment_info['contracts_version'],
+    )
     with deployment_file_path.open(mode='w') as target_file:
         target_file.write(json.dumps(deployment_info))
 
@@ -470,17 +455,21 @@ def store_deployment_info(deployment_info: dict, chain_id: int, version: Optiona
     )
 
 
-def verify_deployed_contracts(
-        web3: Web3,
-        contract_manager: ContractManager,
-        chain_id: int,
-        version: Optional[str] = None,
-):
-    deployment_data = get_contracts_deployed(chain_id, version)
+def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, deployment_data=None):
+    chain_id = int(web3.version.network)
+    deployment_file_path = None
+
+    if deployment_data is None:
+        deployment_data = get_contracts_deployed(chain_id, contract_manager.contracts_version)
+        deployment_file_path = contracts_deployed_path(
+            chain_id,
+            contract_manager.contracts_version,
+        )
+
     contracts = deployment_data['contracts']
 
     assert contract_manager.contracts_version == deployment_data['contracts_version']
-    assert int(web3.version.network) == deployment_data['chain_id']
+    assert chain_id == deployment_data['chain_id']
 
     endpoint_registry_address = contracts[CONTRACT_ENDPOINT_REGISTRY]['address']
     endpoint_registry_abi = contract_manager.get_contract_abi(CONTRACT_ENDPOINT_REGISTRY)
@@ -595,6 +584,9 @@ def verify_deployed_contracts(
         f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_registry_address} '
         f'matches the compiled data from contracts.json',
     )
+
+    if deployment_file_path is not None:
+        print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
 
 
 if __name__ == '__main__':

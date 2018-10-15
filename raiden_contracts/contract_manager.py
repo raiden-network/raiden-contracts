@@ -192,13 +192,20 @@ def contracts_source_path():
     }
 
 
+def contracts_data_path(version: Optional[str] = None):
+    if version is None or version == CONTRACTS_VERSION:
+        return _BASE.joinpath('data')
+    else:
+        return _BASE.joinpath(f'data_{version}')
+
+
 def contracts_precompiled_path(version: Optional[str] = None):
-    data_path = _BASE.joinpath('data') if version is None else _BASE.joinpath(f'data_{version}')
+    data_path = contracts_data_path(version)
     return _BASE.joinpath(data_path, 'contracts.json')
 
 
 def contracts_deployed_path(chain_id: int, version: Optional[str] = None):
-    data_path = _BASE.joinpath('data') if version is None else _BASE.joinpath(f'data_{version}')
+    data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
     return data_path.joinpath(f'deployment_{chain_name}.json')
