@@ -188,6 +188,11 @@ def main():
 
 @main.command()
 @common_options
+@click.option(
+    '--save-info',
+    default=True,
+    help='Save deployment info to a file.',
+)
 @click.pass_context
 def raiden(
     ctx,
@@ -196,6 +201,7 @@ def raiden(
     wait,
     gas_price,
     gas_limit,
+    save_info,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     deployer = ctx.obj['deployer']
@@ -205,8 +211,15 @@ def raiden(
         for contract_name, info in deployed_contracts_info['contracts'].items()
     }
 
-    store_deployment_info(deployed_contracts_info)
-    verify_deployed_contracts(deployer.web3, deployer.contract_manager)
+    if save_info is True:
+        store_deployment_info(deployed_contracts_info)
+        verify_deployed_contracts(deployer.web3, deployer.contract_manager)
+    else:
+        verify_deployed_contracts(
+            deployer.web3,
+            deployer.contract_manager,
+            deployed_contracts_info,
+        )
 
     print(json.dumps(deployed_contracts, indent=4))
     ctx.obj['deployed_contracts'].update(deployed_contracts)
