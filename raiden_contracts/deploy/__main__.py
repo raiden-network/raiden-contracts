@@ -510,9 +510,15 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     receipt = web3.eth.getTransactionReceipt(
         contracts[CONTRACT_ENDPOINT_REGISTRY]['transaction_hash'],
     )
-    assert receipt['blockNumber'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number']
-    assert receipt['gasUsed'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost']
-    assert receipt['contractAddress'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['address']
+    assert receipt['blockNumber'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number'], \
+        f"We have block_number {contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number']} " \
+        f"instead of {receipt['blockNumber']}"
+    assert receipt['gasUsed'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost'], \
+        f"We have gasUsed {contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost']} " \
+        f"instead of {receipt['gasUsed']}"
+    assert receipt['contractAddress'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['address'], \
+        f"We have contractAddress {contracts[CONTRACT_ENDPOINT_REGISTRY]['address']} " \
+        f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
     version = endpoint_registry.functions.contract_version().call().decode()
@@ -542,9 +548,15 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     receipt = web3.eth.getTransactionReceipt(
         contracts[CONTRACT_SECRET_REGISTRY]['transaction_hash'],
     )
-    assert receipt['blockNumber'] == contracts[CONTRACT_SECRET_REGISTRY]['block_number']
-    assert receipt['gasUsed'] == contracts[CONTRACT_SECRET_REGISTRY]['gas_cost']
-    assert receipt['contractAddress'] == contracts[CONTRACT_SECRET_REGISTRY]['address']
+    assert receipt['blockNumber'] == contracts[CONTRACT_SECRET_REGISTRY]['block_number'], \
+        f"We have block_number {contracts[CONTRACT_SECRET_REGISTRY]['block_number']} " \
+        f"instead of {receipt['blockNumber']}"
+    assert receipt['gasUsed'] == contracts[CONTRACT_SECRET_REGISTRY]['gas_cost'], \
+        f"We have gasUsed {contracts[CONTRACT_SECRET_REGISTRY]['gas_cost']} " \
+        f"instead of {receipt['gasUsed']}"
+    assert receipt['contractAddress'] == contracts[CONTRACT_SECRET_REGISTRY]['address'], \
+        f"We have contractAddress {contracts[CONTRACT_SECRET_REGISTRY]['address']} " \
+        f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
     version = secret_registry.functions.contract_version().call().decode()
@@ -576,9 +588,15 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     receipt = web3.eth.getTransactionReceipt(
         contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['transaction_hash'],
     )
-    assert receipt['blockNumber'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number']
-    assert receipt['gasUsed'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost']
-    assert receipt['contractAddress'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']
+    assert receipt['blockNumber'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'], \
+        f"We have block_number {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number']} " \
+        f"instead of {receipt['blockNumber']}"
+    assert receipt['gasUsed'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost'], \
+        f"We have gasUsed {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost']} " \
+        f"instead of {receipt['gasUsed']}"
+    assert receipt['contractAddress'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'], \
+        f"We have contractAddress {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']} " \
+        f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
     version = token_network_registry.functions.contract_version().call().decode()
