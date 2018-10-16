@@ -1,4 +1,5 @@
 from raiden_contracts.constants import (
+    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_SECRET_REGISTRY,
@@ -84,13 +85,18 @@ def test_channel_cycle(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
-    (A, B) = get_accounts(2)
+    (A, B, C, D) = get_accounts(4)
     settle_timeout = 11
 
     (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
 
+    (channel_identifier2, txn_hash) = create_channel(C, D, settle_timeout)
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
+
     txn_hash = channel_deposit(channel_identifier, A, 20, B)
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.setTotalDeposit')
+
     txn_hash = channel_deposit(channel_identifier, B, 10, A)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.setTotalDeposit')
 
@@ -126,9 +132,10 @@ def test_channel_cycle(
 
     for lock in pending_transfers_tree1.unlockable:
         txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
+
     for lock in pending_transfers_tree2.unlockable:
         txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
-
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
     txn_hash = token_network.functions.closeChannel(
@@ -182,3 +189,12 @@ def test_channel_cycle(
         CONTRACT_TOKEN_NETWORK,
         len(pending_transfers_tree1.transfers),
     ))
+
+
+def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_gas):
+    (A, B) = get_accounts(2)
+    ENDPOINT = '127.0.0.1:38647'
+    txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({
+        'from': A,
+    })
+    print_gas(txn_hash, CONTRACT_ENDPOINT_REGISTRY + '.registerEndpoint')
