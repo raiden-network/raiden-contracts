@@ -217,7 +217,7 @@ def get_contracts_deployed(chain_id: int, version: Optional[str] = None):
     try:
         with deployment_file_path.open() as deployment_file:
             deployment_data = json.load(deployment_file)
-    except (JSONDecodeError, UnicodeDecodeError) as ex:
+    except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
         raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
 
