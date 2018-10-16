@@ -26,7 +26,7 @@ Recommended::
 Usage
 -----
 
-We do not recommend the smart contracts to be used in production before a stable ``1.0.0`` release is made. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+We do not recommend the smart contracts to be used in production as of this moment. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
 
 If you want to use the officially deployed contracts, please use the ``raiden_contracts/data/contracts.json`` file to get the ABI and bytecode for initializing the contract instances.
 
