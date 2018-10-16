@@ -1,7 +1,7 @@
 from enum import Enum, IntEnum
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
-CONTRACTS_VERSION = "0.3._"
+CONTRACTS_VERSION = "0.3.0"
 
 # Contract names
 CONTRACT_ENDPOINT_REGISTRY = 'EndpointRegistry'
