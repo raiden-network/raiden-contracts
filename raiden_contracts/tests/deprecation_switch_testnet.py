@@ -92,7 +92,7 @@ def deprecation_test(
     # Check that we cannot open more channels or deposit
     C = '0x5a23cedB607684118ccf7906dF3e24Efd2964719'
     D = '0x3827B9cDc68f061aa614F1b97E23664ef3b9220A'
-    open_and_deposit(C, D, token_network, deployer, channel_identifier)
+    open_and_deposit(C, D, token_network, deployer, channel_identifier, False)
 
     log.info('Deprecation switch test OK.')
 
@@ -180,7 +180,14 @@ def deprecation_test_setup(deployer, token_amount):
     return (token_network_registry, token_network, token_contract)
 
 
-def open_and_deposit(A, B, token_network, deployer, channel_identifier=None):
+def open_and_deposit(
+        A,
+        B,
+        token_network,
+        deployer,
+        channel_identifier=None,
+        txn_success_status=True,
+):
     try:
         txhash = token_network.functions.openChannel(A, B, DEPLOY_SETTLE_TIMEOUT_MIN).transact(
             deployer.transaction,
@@ -191,8 +198,13 @@ def open_and_deposit(A, B, token_network, deployer, channel_identifier=None):
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
+        success_status = True
     except ValueError as ex:
+        success_status = False
         log.info(f'Cannot open a new channel {ex}')
+
+    assert txn_success_status == success_status, \
+        f'openChannel txn status is {success_status} instead of {txn_success_status}'
 
     assert channel_identifier is not None
     try:
@@ -210,8 +222,13 @@ def open_and_deposit(A, B, token_network, deployer, channel_identifier=None):
             f'identifier={channel_identifier} and partner= {B} txHash={encode_hex(txhash)}',
         )
         check_succesful_tx(deployer.web3, txhash, deployer.wait)
+        success_status = True
     except ValueError as ex:
+        success_status = False
         log.info(f'Cannot deposit more tokens in channel={channel_identifier}, {ex}')
+
+    assert txn_success_status == success_status, \
+        f'setTotalDeposit txn status is {success_status} instead of {txn_success_status}'
 
     try:
         txhash = token_network.functions.setTotalDeposit(
@@ -228,8 +245,13 @@ def open_and_deposit(A, B, token_network, deployer, channel_identifier=None):
             f'identifier={channel_identifier} and partner= {A} txHash={encode_hex(txhash)}',
         )
         check_succesful_tx(deployer.web3, txhash, deployer.wait)
+        success_status = True
     except ValueError as ex:
+        success_status = False
         log.info(f'Cannot deposit more tokens in channel={channel_identifier}, {ex}')
+
+    assert txn_success_status == success_status, \
+        f'setTotalDeposit txn status is {success_status} instead of {txn_success_status}'
 
     return channel_identifier
 
