@@ -7,8 +7,8 @@ from raiden_contracts.tests.fixtures.config import fake_bytes
 
 
 def test_version(secret_registry_contract):
-    version = secret_registry_contract.functions.contract_version().call()[:2]
-    assert version == CONTRACTS_VERSION[:2]
+    version = secret_registry_contract.functions.contract_version().call()
+    assert version == CONTRACTS_VERSION
 
 
 def test_register_secret_call(secret_registry_contract, event_handler):

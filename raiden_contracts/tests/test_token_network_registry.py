@@ -15,8 +15,8 @@ from web3.exceptions import ValidationError
 
 
 def test_version(token_network_registry_contract):
-    version = token_network_registry_contract.functions.contract_version().call()[:2]
-    assert version == CONTRACTS_VERSION[:2]
+    version = token_network_registry_contract.functions.contract_version().call()
+    assert version == CONTRACTS_VERSION
 
 
 def test_constructor_call(

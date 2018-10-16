@@ -3,8 +3,8 @@ from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED, CONTRACTS_VERSI
 
 
 def test_version(endpoint_registry_contract):
-    version = endpoint_registry_contract.functions.contract_version().call()[:2]
-    assert version == CONTRACTS_VERSION[:2]
+    version = endpoint_registry_contract.functions.contract_version().call()
+    assert version == CONTRACTS_VERSION
 
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):

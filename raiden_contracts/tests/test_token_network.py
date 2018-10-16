@@ -14,7 +14,7 @@ from raiden_contracts.constants import (
 
 
 def test_version(token_network):
-    assert token_network.functions.contract_version().call()[:2] == CONTRACTS_VERSION[:2]
+    assert token_network.functions.contract_version().call() == CONTRACTS_VERSION
 
 
 def test_constructor_call(
