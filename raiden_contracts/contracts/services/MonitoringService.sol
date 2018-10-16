@@ -7,7 +7,7 @@ import "raiden/TokenNetwork.sol";
 import "raiden/RaidenServiceBundle.sol";
 
 contract MonitoringService is Utils {
-    string constant public contract_version = "0.3._";
+    string constant public contract_version = "0.3.0";
 
     // Token to be used for paying the rewards
     Token public token;
@@ -55,7 +55,7 @@ contract MonitoringService is Utils {
     event Withdrawn(address indexed account, uint amount);
 
     /*
-     *  Modifiers 
+     *  Modifiers
      */
 
     modifier canMonitor(address _ms_address) {
