@@ -59,8 +59,8 @@ class ContractDeployer:
         self.web3 = web3
         self.private_key = private_key
         self.wait = wait
-        owner = private_key_to_address(private_key)
-        self.transaction = {'from': owner, 'gas_limit': gas_limit}
+        self.owner = private_key_to_address(private_key)
+        self.transaction = {'from': self.owner, 'gas_limit': gas_limit}
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
@@ -446,12 +446,18 @@ def register_token_network(
     )
     receipt = check_succesful_tx(web3, txhash, wait)
 
+    token_network_address = token_network_registry.functions.token_to_token_networks(
+        token_address,
+    ).call()
+    token_network_address = to_checksum_address(token_network_address)
+
     print(
         'TokenNetwork address: {0} Gas used: {1}'.format(
-            token_network_registry.functions.token_to_token_networks(token_address).call(),
+            token_network_address,
             receipt['gasUsed'],
         ),
     )
+    return token_network_address
 
 
 def store_deployment_info(deployment_info: dict):
