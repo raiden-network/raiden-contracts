@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract RaidenServiceBundle is Utils {
-    string constant public contract_version = "0.3.0";
+    string constant public contract_version = "0.4.0";
     Token public token;
 
     mapping(address => uint256) public deposits;
