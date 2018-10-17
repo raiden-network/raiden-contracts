@@ -107,18 +107,18 @@ class ContractDeployer:
         return receipt
 
     def send_deployment_transaction(self, contract, args):
-        try:
-            txhash = contract.constructor(*args).transact(
-                self.transaction,
-                private_key=self.private_key,
-            )
-            return txhash
-        except ValueError as ex:
-            if ex.args[0]['code'] == -32015:
-                log.info(f'Deployment failed with {ex}. Retrying...')
-                txhash = self.send_deployment_transaction(contract, args)
-            else:
-                raise ValueError(ex)
+        txhash = None
+        while txhash is None:
+            try:
+                txhash = contract.constructor(*args).transact(
+                    self.transaction,
+                    private_key=self.private_key,
+                )
+            except ValueError as ex:
+                if ex.args[0]['code'] == -32015:
+                    log.info(f'Deployment failed with {ex}. Retrying...')
+                else:
+                    raise ex
 
         return txhash
 
