@@ -92,10 +92,7 @@ class ContractDeployer:
         contract = PrivateContract(contract)
 
         # Get transaction hash from deployed contract
-        txhash = contract.constructor(*args).transact(
-            self.transaction,
-            private_key=self.private_key,
-        )
+        txhash = self.send_deployment_transaction(contract, args)
 
         # Get tx receipt to get contract address
         log.debug("Deploying %s txHash=%s" % (contract_name, encode_hex(txhash)))
@@ -108,6 +105,22 @@ class ContractDeployer:
             ),
         )
         return receipt
+
+    def send_deployment_transaction(self, contract, args):
+        try:
+            txhash = contract.constructor(*args).transact(
+                self.transaction,
+                private_key=self.private_key,
+            )
+            return txhash
+        except ValueError as ex:
+            if ex.args[0]['code'] == -32015:
+                log.info(f'Deployment failed with {ex}. Retrying...')
+                txhash = self.send_deployment_transaction(contract, args)
+            else:
+                raise ValueError(ex)
+
+        return txhash
 
 
 def common_options(func):
