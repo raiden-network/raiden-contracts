@@ -139,3 +139,15 @@ Deployment information is stored in a ``deployment_[CHAIN_NAME].json`` file corr
 
     # Based on the network id, the script verifies the corresponding deployment_[CHAIN_NAME].json file
     # using the chain name-id mapping from constants.py
+
+
+Verification with Etherscan
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name EndpointRegistry --chain-id 3
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name SecretRegistry --chain-id 3
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name TokenNetworkRegistry --chain-id 3
