@@ -20,7 +20,7 @@ library ECVerify {
             r := mload(add(signature, 32))
             s := mload(add(signature, 64))
 
-            // Here we are loading the last 32 bytes, including 31 bytes of 's'.
+            // Here we are loading the last 32 bytes, including 31 bytes following the signature.
             v := byte(0, mload(add(signature, 96)))
         }
 
