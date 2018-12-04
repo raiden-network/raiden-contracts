@@ -204,9 +204,11 @@ contract MonitoringService is Utils {
             reward_proof_signature
         );
         TokenNetwork token_network = TokenNetwork(token_network_address);
+        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
+            channel_identifier,
             closing_participant,
             non_closing_participant,
             balance_hash,
@@ -249,13 +251,13 @@ contract MonitoringService is Utils {
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
-        uint8 channel_state;
-        (, , channel_state) = token_network.getChannelInfo(
+        TokenNetwork.ChannelState channel_state;
+        (, channel_state) = token_network.getChannelInfo(
+            channel_identifier,
             closing_participant,
             non_closing_participant
         );
-        // If channel.state is zero it means it's either non-existing or settled
-        require(channel_state == 0);
+        require(channel_state == TokenNetwork.ChannelState.Settled);
 
         Reward storage reward = rewards[reward_identifier];
 
