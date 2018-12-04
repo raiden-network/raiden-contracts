@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/lib/ECVerify.sol";
 import "raiden/TokenNetwork.sol";
-import "raiden/RaidenServiceBundle.sol";
+import "services/RaidenServiceBundle.sol";
 
 contract MonitoringService is Utils {
     string constant public contract_version = "0.4.0";
