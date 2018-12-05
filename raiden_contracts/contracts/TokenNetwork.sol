@@ -1547,8 +1547,8 @@ contract TokenNetwork is Utils {
     } */
 
     /// @dev Calculates the merkle root for the pending transfers data and
-    //calculates the amount / of tokens that can be unlocked because the secret
-    //was registered on-chain.
+    /// calculates the amount of tokens that can be unlocked because the secret
+    /// was registered on-chain.
     function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
         view
         internal
