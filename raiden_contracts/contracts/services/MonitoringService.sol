@@ -232,6 +232,7 @@ contract MonitoringService is Utils {
     /// @param closing_participant Address of the participant of the channel that called close
     /// @param non_closing_participant The other participant of the channel
     function claimReward(
+        uint256 channel_identifier,
         address token_network_address,
         address closing_participant,
         address non_closing_participant
@@ -240,10 +241,6 @@ contract MonitoringService is Utils {
         returns (bool)
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(
-            closing_participant,
-            non_closing_participant
-        );
         bytes32 reward_identifier = keccak256(abi.encodePacked(
             channel_identifier,
             token_network_address
@@ -257,7 +254,7 @@ contract MonitoringService is Utils {
             closing_participant,
             non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Settled);
+        require(channel_state == TokenNetwork.ChannelState.Removed);
 
         Reward storage reward = rewards[reward_identifier];
 
