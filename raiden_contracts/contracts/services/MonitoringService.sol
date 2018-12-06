@@ -263,6 +263,7 @@ contract MonitoringService is Utils {
         require(reward.reward_sender_address != 0x0);
 
         // Deduct reward from raiden_node deposit
+        require(balances[reward.reward_sender_address] >= reward.reward_amount);
         balances[reward.reward_sender_address] -= reward.reward_amount;
         // Add reward to the monitoring services' balance.
         // This minimizes the amount of gas cost
