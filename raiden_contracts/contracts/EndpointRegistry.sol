@@ -50,10 +50,6 @@ contract EndpointRegistry {
     /// @return result True if `a` and `b` are equal, false otherwise.
     function equals(string a, string b) internal pure returns (bool result)
     {
-        if (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b))) {
-            return true;
-        }
-
-        return false;
+        return (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b)));
     }
 }
