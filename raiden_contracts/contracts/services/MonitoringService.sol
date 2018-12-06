@@ -118,7 +118,7 @@ contract MonitoringService is Utils {
     /// @param token_network_address Address of the TokenNetwork being monitored
     /// @param closing_participant The address of the participant who closed the channel
     /// @param non_closing_participant Address of the other channel participant. This is
-    /// the participant on which behalf the MS acts.
+    /// the participant on whose behalf the MS acts.
     /// @param reward_amount The amount of tokens to be rewarded
     /// @param nonce The nonce of the newly provided balance_proof
     /// @param monitoring_service_address The address of the MS calling monitor()
@@ -171,7 +171,7 @@ contract MonitoringService is Utils {
 
     /// @notice Called by a registered MS, when providing a new balance proof
     /// to a monitored channel.
-    /// Can be called multiple times by different registered MSs as long as the PB provided
+    /// Can be called multiple times by different registered MSs as long as the BP provided
     /// is newer than the current newest registered BP.
     /// @param nonce Strictly monotonic value used to order BPs
     /// omitting PB specific params, since these will not be provided in the future
