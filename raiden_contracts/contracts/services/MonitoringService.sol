@@ -46,6 +46,8 @@ contract MonitoringService is Utils {
 
     event NewDeposit(address indexed receiver, uint amount);
     event NewBalanceProofReceived(
+        address token_network_address,
+        uint256 channel_identifier,
         uint256 reward_amount,
         uint256 indexed nonce,
         address indexed ms_address,
@@ -219,6 +221,8 @@ contract MonitoringService is Utils {
         );
 
         emit NewBalanceProofReceived(
+            token_network_address,
+            channel_identifier,
             reward_amount,
             nonce,
             msg.sender,
