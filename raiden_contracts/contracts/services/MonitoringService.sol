@@ -306,6 +306,7 @@ contract MonitoringService is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
+            "\x19Ethereum Signed Message:\n148",
             channel_identifier,
             reward_amount,
             token_network_address,
