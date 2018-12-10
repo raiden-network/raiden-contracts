@@ -105,12 +105,14 @@ def hash_reward_proof(
         chain_id,
         nonce):
     return Web3.soliditySha3([
+        'string',
         'uint256',
         'uint256',
         'address',
         'uint256',
         'uint256',
     ], [
+        "\x19Ethereum Signed Message:\n148",
         channel_identifier,
         reward_amount,
         token_network_address,
