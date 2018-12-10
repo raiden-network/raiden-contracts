@@ -189,6 +189,7 @@ def contracts_source_path():
     return {
         'raiden': _BASE.joinpath('contracts'),
         'test': _BASE.joinpath('contracts', 'test'),
+        'services': _BASE.joinpath('contracts', 'services'),
     }
 
 

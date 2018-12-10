@@ -37,7 +37,6 @@ def create_reward_proof(token_network, get_private_key):
     return get
 
 
-@pytest.mark.skip(reason='Monitoring Service implementation delayed to another milestone')
 def test_msc_happy_path(
     token_network,
     monitoring_service_external,
@@ -69,8 +68,8 @@ def test_msc_happy_path(
 
     # 1) open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
-    txn_hash = channel_deposit(A, 20, B)
-    txn_hash = channel_deposit(B, 20, A)
+    txn_hash = channel_deposit(channel_identifier, A, 20, B)
+    txn_hash = channel_deposit(channel_identifier, B, 20, A)
     # 2) create balance proof
     balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
     balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
@@ -88,8 +87,14 @@ def test_msc_happy_path(
         nonce=balance_proof_B[1],
     )
     # 3) c1 closes channel
-    txn_hash = token_network.functions.closeChannel(B, *balance_proof_A).transact({'from': A})
-    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A))
+    txn_hash = token_network.functions.closeChannel(
+        channel_identifier, B, *balance_proof_A,
+    ).transact({'from': A})
+    ev_handler.add(
+        txn_hash,
+        ChannelEvent.CLOSED,
+        check_channel_closed(channel_identifier, A, balance_proof_A[1]),
+    )
     ev_handler.check()
     # 4) MS calls `MSC::monitor()` using c1's BP and reward proof
 
@@ -109,6 +114,7 @@ def test_msc_happy_path(
     # 6) channel is settled
     token_network.web3.testing.mine(8)
     token_network.functions.settleChannel(
+        channel_identifier,
         B,                   # participant2
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
@@ -120,6 +126,7 @@ def test_msc_happy_path(
     ).transact()
     # 7) MS claims the reward
     monitoring_service_external.functions.claimReward(
+        channel_identifier,
         token_network.address,
         A,
         B,
