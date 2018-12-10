@@ -104,21 +104,13 @@ def hash_reward_proof(
         token_network_address,
         chain_id,
         nonce):
-    return Web3.soliditySha3([
-        'string',
-        'uint256',
-        'uint256',
-        'address',
-        'uint256',
-        'uint256',
-    ], [
-        "\x19Ethereum Signed Message:\n148",
-        channel_identifier,
-        reward_amount,
-        token_network_address,
-        chain_id,
-        nonce,
-    ])
+    return eth_sign_hash_message(
+        encode_single('uint256', channel_identifier) +
+        encode_single('uint256', reward_amount) +
+        Web3.toBytes(hexstr=token_network_address) +
+        encode_single('uint256', chain_id) +
+        encode_single('uint256', nonce),
+    )
 
 
 def sign_balance_proof(
