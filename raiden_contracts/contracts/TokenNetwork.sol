@@ -73,7 +73,7 @@ contract TokenNetwork is Utils {
         // the `setTotalDeposit` function, for a specific channel, in the
         // participant's benefit.
         // This is a strictly monotonic value. Note that direct token transfer
-        // cannot be tracked and will be burned.
+        // into the contract cannot be tracked and will be stuck.
         uint256 deposit;
 
         // Total amount of tokens withdrawn by the participant during the
