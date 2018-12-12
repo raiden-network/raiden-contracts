@@ -151,3 +151,11 @@ Verification with Etherscan
     python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name SecretRegistry --chain-id 3
 
     python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name TokenNetworkRegistry --chain-id 3
+
+
+Making a Release
+----------------
+
+See `Release Process Document`_.
+
+.. _Release Process Document: RELEASE.rst
