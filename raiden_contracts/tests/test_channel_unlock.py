@@ -14,10 +14,13 @@ from raiden_contracts.utils.utils import (
 )
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.tests.fixtures.config import fake_bytes, TestLockIndex
+from raiden_contracts.tests.utils.config import (
+    EMPTY_LOCKSROOT,
+    fake_bytes,
+    TestLockIndex,
+)
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.constants import ParticipantInfoIndex
-from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
 
 
 def test_merkle_root_0_items(token_network_test_utils, token_network):

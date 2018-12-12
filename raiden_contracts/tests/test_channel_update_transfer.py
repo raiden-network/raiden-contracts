@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.utils.events import check_transfer_updated
 from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.tests.fixtures.config import (
+from raiden_contracts.tests.utils.config import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,

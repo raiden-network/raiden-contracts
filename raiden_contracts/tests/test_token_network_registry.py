@@ -6,7 +6,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from .fixtures.config import (
+from raiden_contracts.tests.utils.config import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
@@ -159,21 +159,21 @@ def test_create_erc20_token_network(
 
 
 def test_create_erc20_token_network_twice_fails(
-        owner,
+        contract_deployer_address,
         token_network_registry_contract,
         custom_token,
 
 ):
 
     token_network_registry_contract.transact(
-        {'from': owner},
+        {'from': contract_deployer_address},
     ).createERC20TokenNetwork(
         custom_token.address,
     )
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.transact(
-            {'from': owner},
+            {'from': contract_deployer_address},
         ).createERC20TokenNetwork(
             custom_token.address,
         )

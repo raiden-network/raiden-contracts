@@ -1,19 +1,9 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.logs import LogHandler
-from raiden_libs.utils import private_key_to_address
-from .config import passphrase
+from raiden_contracts.utils.sign_utils import private_key_to_address
+from raiden_contracts.tests.utils.config import passphrase
 from eth_utils import denoms, is_same_address
-
-
-@pytest.fixture()
-def owner_index():
-    return 1
-
-
-@pytest.fixture()
-def owner(faucet_address):
-    return faucet_address
 
 
 @pytest.fixture()
@@ -81,12 +71,12 @@ def get_private_key(web3, ethereum_tester):
 
 
 @pytest.fixture
-def create_contract(chain, owner):
+def create_contract(chain, contract_deployer_address):
     def get(contract_type, arguments, transaction=None):
         if not transaction:
             transaction = {}
         if 'from' not in transaction:
-            transaction['from'] = owner
+            transaction['from'] = contract_deployer_address
 
         deploy_txn_hash = contract_type.deploy(transaction=transaction, args=arguments)
         contract_address = chain.wait.for_contract_address(deploy_txn_hash)

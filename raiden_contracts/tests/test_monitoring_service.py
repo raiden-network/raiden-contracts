@@ -10,7 +10,7 @@ from raiden_contracts.utils.events import (
     check_reward_claimed,
 )
 from raiden_contracts.utils.sign import sign_reward_proof
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT
 
 
 @pytest.fixture()
@@ -149,11 +149,11 @@ def test_msc_happy_path(
         B,                   # participant2
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
-        EMPTY_MERKLE_ROOT,        # participant2_locksroot
+        EMPTY_LOCKSROOT,        # participant2_locksroot
         A,                   # participant1
         20,                  # participant1_transferred_amount
         0,                   # participant1_locked_amount
-        EMPTY_MERKLE_ROOT,        # participant1_locksroot
+        EMPTY_LOCKSROOT,        # participant1_locksroot
     ).transact()
 
     # 7) MS claims the reward

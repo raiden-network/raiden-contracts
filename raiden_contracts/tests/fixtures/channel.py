@@ -22,11 +22,9 @@ from raiden_contracts.tests.utils import (
     are_balance_proofs_valid,
     is_balance_proof_old,
 )
-from raiden_contracts.tests.fixtures.config import EMPTY_LOCKSROOT
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT, fake_bytes
 from .token_network import *  # flake8: noqa
 from .secret_registry import *  # flake8: noqa
-from .config import fake_bytes
 
 
 @pytest.fixture()
@@ -54,8 +52,9 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def assign_tokens(owner, token_network, custom_token):
+def assign_tokens(contract_deployer_address, token_network, custom_token):
     def get(participant, deposit):
+        owner = contract_deployer_address
         balance = custom_token.functions.balanceOf(participant).call()
         owner_balance = custom_token.functions.balanceOf(owner).call()
         amount = max(deposit - balance, 0)
@@ -545,7 +544,7 @@ def withdraw_state_tests(custom_token, token_network):
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
-        assert locksroot == EMPTY_MERKLE_ROOT
+        assert locksroot == EMPTY_LOCKSROOT
         assert locked_amount == 0
 
         (
@@ -562,7 +561,7 @@ def withdraw_state_tests(custom_token, token_network):
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
-        assert locksroot == EMPTY_MERKLE_ROOT
+        assert locksroot == EMPTY_LOCKSROOT
         assert locked_amount == 0
 
         balance_participant = custom_token.functions.balanceOf(participant).call()
