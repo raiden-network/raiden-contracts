@@ -23,6 +23,10 @@ def test_verify(
         create_channel,
         create_balance_proof,
 ):
+    """ ECVerify.ecverify returns the correct address
+
+    This test checks if the signature test contract returns the correct
+    addresses on the balance hash signed by both ends of a channel """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
@@ -50,6 +54,11 @@ def test_verify(
 
 
 def test_verify_fail(signature_test_contract, get_accounts, get_private_key):
+    """ ECVerify.ecverify on failure cases
+
+    the signature test contract returns the correct address on a correct
+    message hash, returns a different address on a wrong message hash, and
+    fails on a too long signature """
     (A, B) = get_accounts(2)
     message_hash = Web3.soliditySha3(['string', 'uint256'], ['hello', 5])
     signature = sign(get_private_key(A), message_hash, v=27)
@@ -71,6 +80,7 @@ def test_ecrecover_output(
         get_accounts, create_channel,
         create_balance_proof,
 ):
+    """ ecrecover returns the address that was used to sign a balance proof """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
@@ -95,7 +105,7 @@ def test_ecrecover_output(
 
 
 def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_private_key):
-    """ ecrecover returns 0 due to an error caused by an incorrect value of the v parameter """
+    """ ecrecover returns 0 for an incorrect value of the v parameter """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     message_hash = Web3.soliditySha3(['string', 'uint256'], ['hello', 5])
@@ -110,6 +120,7 @@ def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_privat
 
 
 def test_ecrecover_output_fail(signature_test_contract, get_accounts, get_private_key):
+    """ ecrecover detects a wrong message content and returns zero """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     message_hash = Web3.soliditySha3(['string', 'uint256'], ['hello', 5])
