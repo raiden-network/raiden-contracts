@@ -1,6 +1,0 @@
-import random
-import string
-
-
-def make_address():
-    return bytes(''.join(random.choice(string.printable) for _ in range(20)), encoding='utf-8')
