@@ -2,6 +2,7 @@ from random import randint
 from collections import namedtuple
 from functools import reduce
 
+from web3 import Web3
 from eth_abi import encode_abi
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
