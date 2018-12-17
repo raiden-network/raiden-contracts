@@ -31,8 +31,8 @@ from raiden_contracts.contract_manager import (
     contracts_deployed_path,
     get_contracts_deployed,
 )
-from raiden_contracts.utils.utils import check_succesful_tx
-from raiden_contracts.utils.sign_utils import private_key_to_address
+from raiden_contracts.tests.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.sign import private_key_to_address
 
 
 log = getLogger(__name__)

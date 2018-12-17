@@ -6,7 +6,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from raiden_contracts.utils.utils import get_pending_transfers_tree, get_locked_amount
+from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree, get_locked_amount
 from raiden_contracts.utils.merkle import get_merkle_root
 
 

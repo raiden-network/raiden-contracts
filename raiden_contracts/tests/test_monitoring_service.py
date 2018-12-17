@@ -9,7 +9,7 @@ from raiden_contracts.utils.events import (
     check_new_balance_proof_received,
     check_reward_claimed,
 )
-from raiden_contracts.utils.sign import sign_reward_proof
+from raiden_contracts.utils.proofs import sign_reward_proof
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
 
 

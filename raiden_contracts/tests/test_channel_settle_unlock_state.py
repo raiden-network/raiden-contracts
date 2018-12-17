@@ -6,9 +6,11 @@ from raiden_contracts.tests.fixtures.channel_test_values import (
     channel_settle_test_values,
     channel_settle_invalid_test_values,
 )
+from raiden_contracts.utils import (
+    get_pending_transfers_tree,
+)
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
-    get_pending_transfers_tree,
     get_settlement_amounts,
     get_onchain_settlement_amounts,
     get_expected_after_settlement_unlock_amounts,

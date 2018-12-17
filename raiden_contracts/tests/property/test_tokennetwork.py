@@ -20,7 +20,7 @@ from hypothesis.strategies import (
     tuples,
 )
 from raiden_contracts.tests.fixtures.base.web3 import ethereum_tester
-from raiden_contracts.utils.sign_utils import private_key_to_address
+from raiden_contracts.utils.sign import private_key_to_address
 from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -28,13 +28,13 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils import (
+    EMPTY_LOCKSROOT,
     deploy_contract,
     deploy_custom_token,
     get_web3,
     get_token_network,
     make_address,
 )
-from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT
 from raiden_contracts.tests.property.strategies import direct_transfer
 from web3 import Web3
 from web3.exceptions import ValidationError
