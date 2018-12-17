@@ -1,7 +1,7 @@
 from web3 import Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
-from raiden_contracts.utils.sign_utils import private_key_to_address
+from raiden_contracts.utils.sign import private_key_to_address
 
 from raiden_contracts.tests.fixtures.base.web3 import FAUCET_ALLOWANCE
 from raiden_contracts.constants import (

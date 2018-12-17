@@ -2,7 +2,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, TEST_SETTLE_TIMEOUT_MAX
-from raiden_contracts.tests.fixtures import fake_bytes
+from raiden_contracts.tests.utils import fake_bytes
 
 
 def test_settle_timeout_inrange(

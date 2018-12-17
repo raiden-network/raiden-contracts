@@ -12,7 +12,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.utils.events import check_channel_opened
 from web3.exceptions import ValidationError
 from .utils import get_participants_hash
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,

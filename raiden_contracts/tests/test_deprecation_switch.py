@@ -8,7 +8,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from raiden_contracts.utils.utils import get_pending_transfers_tree
+from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree
 from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
 

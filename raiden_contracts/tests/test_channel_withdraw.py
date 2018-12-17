@@ -7,7 +7,7 @@ from raiden_contracts.constants import (
     ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,

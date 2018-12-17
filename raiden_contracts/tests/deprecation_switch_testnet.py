@@ -4,7 +4,7 @@ from eth_utils import encode_hex
 
 from raiden_libs.private_contract import PrivateContract
 
-from raiden_contracts.utils.utils import check_succesful_tx
+from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.deploy.__main__ import (
     setup_ctx,
     deploy_raiden_contracts,

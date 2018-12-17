@@ -3,15 +3,15 @@ from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
 from raiden_contracts.constants import ChannelEvent, TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.events import check_new_deposit
-from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
     MAX_UINT256,
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
+    ChannelValues,
 )
 
 

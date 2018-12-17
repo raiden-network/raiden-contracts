@@ -3,21 +3,19 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.utils.events import check_channel_unlocked
 from raiden_contracts.utils.merkle import get_merkle_root
-from .utils import (
-    get_unlocked_amount,
-)
-from raiden_contracts.utils.utils import (
+from raiden_contracts.utils import (
     get_pending_transfers_tree,
     get_packed_transfers,
     get_locked_amount,
     random_secret,
 )
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.tests.utils import ChannelValues
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     fake_bytes,
     TestLockIndex,
+    ChannelValues,
+    get_unlocked_amount,
 )
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.constants import ParticipantInfoIndex

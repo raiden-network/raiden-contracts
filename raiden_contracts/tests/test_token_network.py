@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
     MAX_UINT256,

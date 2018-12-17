@@ -1,8 +1,8 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.utils.logs import LogHandler
-from raiden_contracts.utils.sign_utils import private_key_to_address
-from raiden_contracts.tests.utils.config import passphrase
+from raiden_contracts.utils.sign import private_key_to_address
+from raiden_contracts.tests.utils.constants import passphrase
 from eth_utils import denoms, is_same_address
 
 

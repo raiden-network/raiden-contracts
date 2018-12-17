@@ -3,7 +3,7 @@ from web3 import Web3
 from web3.exceptions import ValidationError
 from raiden_contracts.constants import EVENT_SECRET_REVEALED, CONTRACTS_VERSION
 from raiden_contracts.utils.events import check_secret_revealed, check_secrets_revealed
-from raiden_contracts.tests.utils.config import fake_bytes
+from raiden_contracts.tests.utils.mock import fake_bytes
 
 
 def test_version(secret_registry_contract):
