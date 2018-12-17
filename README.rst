@@ -90,6 +90,8 @@ Make sure you have `solc` installed: https://solidity.readthedocs.io/en/latest/i
 Testing
 ^^^^^^^
 
+If you want to write tests, check `/raiden_contracts/tests/README.md` first.
+
 ::
 
     # tests
