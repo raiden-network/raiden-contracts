@@ -24,6 +24,7 @@ def ethereum_tester():
 
 @pytest.fixture(scope='session')
 def patch_genesis_gas_limit():
+    """Increases the block gas limit, to make the TokenNetworkRegistry contract deployable"""
     import eth_tester.backends.pyevm.main as pyevm_main
     original_gas_limit = pyevm_main.GENESIS_GAS_LIMIT
     pyevm_main.GENESIS_GAS_LIMIT = 6 * 10 ** 6

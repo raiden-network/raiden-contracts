@@ -39,6 +39,7 @@ def faucet_address(faucet_private_key):
 
 @pytest.fixture(scope='session')
 def contract_deployer_address(faucet_address):
+    """Returns address of the contract deployer used in tests"""
     return faucet_address
 
 
