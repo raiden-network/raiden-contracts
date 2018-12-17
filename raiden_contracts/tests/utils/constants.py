@@ -1,5 +1,3 @@
-import random
-import string
 from enum import IntEnum
 
 
@@ -20,15 +18,3 @@ class TestLockIndex(IntEnum):
     AMOUNT = 1
     SECRETHASH = 2
     SECRET = 3
-
-
-def fake_hex(size, fill='00'):
-    return '0x' + ''.join([fill for i in range(0, size)])
-
-
-def fake_bytes(size, fill='00'):
-    return bytes.fromhex(fake_hex(size, fill)[2:])
-
-
-def make_address():
-    return bytes(''.join(random.choice(string.printable) for _ in range(20)), encoding='utf-8')

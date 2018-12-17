@@ -6,7 +6,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     ChannelState,
 )
-from raiden_contracts.utils.sign import (
+from raiden_contracts.utils.proofs import (
     sign_balance_proof,
     hash_balance_data,
     sign_balance_proof_update_message,
@@ -21,10 +21,9 @@ from raiden_contracts.tests.utils import (
     get_participants_hash,
     are_balance_proofs_valid,
     is_balance_proof_old,
+    EMPTY_LOCKSROOT,
+    fake_bytes,
 )
-from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT, fake_bytes
-from .token_network import *  # flake8: noqa
-from .secret_registry import *  # flake8: noqa
 
 
 @pytest.fixture()

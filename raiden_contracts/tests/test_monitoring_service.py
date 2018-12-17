@@ -10,7 +10,7 @@ from raiden_contracts.utils.events import (
     check_reward_claimed,
 )
 from raiden_contracts.utils.sign import sign_reward_proof
-from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT
+from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
 
 
 @pytest.fixture()

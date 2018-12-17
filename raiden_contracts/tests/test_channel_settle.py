@@ -9,19 +9,17 @@ from raiden_contracts.constants import (
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
-    get_settlement_amounts,
-    get_onchain_settlement_amounts,
-    ChannelValues,
-)
-from raiden_contracts.utils.utils import get_pending_transfers_tree
-from raiden_contracts.tests.utils.config import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
     MAX_UINT256,
     fake_bytes,
+    get_settlement_amounts,
+    get_onchain_settlement_amounts,
+    ChannelValues,
 )
+from raiden_contracts.utils import get_pending_transfers_tree
 
 
 def test_settle_no_bp_success(

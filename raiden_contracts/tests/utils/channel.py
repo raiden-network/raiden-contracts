@@ -1,6 +1,6 @@
 from collections import namedtuple
 from eth_utils import keccak, to_canonical_address
-from raiden_contracts.tests.utils.config import (
+from raiden_contracts.tests.utils.constants import (
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,
     MAX_UINT256,

@@ -1,6 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.tests.fixtures import fake_bytes
+from raiden_contracts.tests.utils import fake_bytes
 
 
 @pytest.mark.skip(reason='Delayed to another milestone')
