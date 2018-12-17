@@ -12,7 +12,7 @@ from raiden_contracts.deploy.__main__ import (
     deploy_raiden_contracts,
     verify_deployed_contracts,
 )
-from raiden_contracts.tests.fixtures.config import EMPTY_ADDRESS
+from raiden_contracts.tests.utils.config import EMPTY_ADDRESS
 
 
 def test_deploy_script(

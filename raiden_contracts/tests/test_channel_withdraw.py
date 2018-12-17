@@ -7,13 +7,13 @@ from raiden_contracts.constants import (
     ChannelState,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from .utils import MAX_UINT256
-from raiden_contracts.tests.fixtures.config import (
+from raiden_contracts.tests.utils.config import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
     EMPTY_ADDRESS,
+    MAX_UINT256,
 )
 
 

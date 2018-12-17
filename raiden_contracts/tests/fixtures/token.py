@@ -1,14 +1,11 @@
 import pytest
 from raiden_contracts.constants import (
-    CONTRACT_CUSTOM_TOKEN,
     CONTRACT_HUMAN_STANDARD_TOKEN,
     CONTRACT_CUSTOM_TOKEN,
-    CONTRACT_CUSTOM_TOKEN_NO_DECIMALS,
 )
-from .utils import *  # flake8: noqa
 
 token_args = [
-    (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
+    (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN'),
 ]
 
 
@@ -23,7 +20,7 @@ def custom_token(deploy_tester_contract, custom_token_params):
     return deploy_tester_contract(
         CONTRACT_CUSTOM_TOKEN,
         [],
-        custom_token_params
+        custom_token_params,
     )
 
 
@@ -42,11 +39,10 @@ def deploy_token_contract(deploy_tester_contract):
         return deploy_tester_contract(
             CONTRACT_HUMAN_STANDARD_TOKEN,
             [],
-            [initial_amount, decimals, token_name, token_symbol]
+            [initial_amount, decimals, token_name, token_symbol],
         )
 
     return f
-
 
 
 @pytest.fixture

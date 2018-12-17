@@ -24,7 +24,7 @@ def get_token_network(web3, deploy_tester_contract):
 
 @pytest.fixture
 def register_token_network(
-    owner,
+    contract_deployer_address,
     web3,
     token_network_registry_contract,
     contracts_manager,
@@ -34,7 +34,7 @@ def register_token_network(
     def get(token_address):
         tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_address,
-        ).transact({'from': owner})
+        ).transact({'from': contract_deployer_address})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,

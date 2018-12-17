@@ -10,7 +10,7 @@ from raiden_contracts.utils.events import (
     check_reward_claimed,
 )
 from raiden_contracts.utils.sign import sign_reward_proof
-from raiden_contracts.utils.merkle import EMPTY_MERKLE_ROOT
+from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT
 
 
 @pytest.fixture()
@@ -118,14 +118,14 @@ def test_msc_happy_path(
     txn_hash = monitoring_service_external.functions.monitor(
         A,
         B,
-        balance_proof_B[0],  # balance_hash
-        balance_proof_B[1],  # nonce
-        balance_proof_B[2],  # additional_hash
-        balance_proof_B[3],  # closing signature
+        balance_proof_B[0],       # balance_hash
+        balance_proof_B[1],       # nonce
+        balance_proof_B[2],       # additional_hash
+        balance_proof_B[3],       # closing signature
         non_closing_signature_B,  # non-closing signature
-        reward_proof[1],     # reward amount
-        token_network.address,  # token network address
-        reward_proof[5],      # reward proof signature
+        reward_proof[1],          # reward amount
+        token_network.address,    # token network address
+        reward_proof[5],          # reward proof signature
     ).transact({'from': MS})
     ms_ev_handler.add(
         txn_hash,
@@ -149,11 +149,11 @@ def test_msc_happy_path(
         B,                   # participant2
         10,                  # participant2_transferred_amount
         0,                   # participant2_locked_amount
-        EMPTY_MERKLE_ROOT,        # participant2_locksroot
+        EMPTY_LOCKSROOT,     # participant2_locksroot
         A,                   # participant1
         20,                  # participant1_transferred_amount
         0,                   # participant1_locked_amount
-        EMPTY_MERKLE_ROOT,        # participant1_locksroot
+        EMPTY_LOCKSROOT,     # participant1_locksroot
     ).transact()
 
     # 7) MS claims the reward

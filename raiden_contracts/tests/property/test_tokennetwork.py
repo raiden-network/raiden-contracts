@@ -19,8 +19,8 @@ from hypothesis.strategies import (
     sampled_from,
     tuples,
 )
-from raiden_libs.test.fixtures.web3 import ethereum_tester
-from raiden_libs.utils import private_key_to_address
+from raiden_contracts.tests.fixtures.base.web3 import ethereum_tester
+from raiden_contracts.utils.sign_utils import private_key_to_address
 from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -34,6 +34,7 @@ from raiden_contracts.tests.utils import (
     get_token_network,
     make_address,
 )
+from raiden_contracts.tests.utils.config import EMPTY_LOCKSROOT
 from raiden_contracts.tests.property.strategies import direct_transfer
 from web3 import Web3
 from web3.exceptions import ValidationError
@@ -42,7 +43,6 @@ DEPOSIT = 'deposit'
 CLOSE = 'close'
 UPDATE_TRANSFER = 'updateTransfer'
 MINE = 'mine'
-EMPTY_MERKLE_ROOT = b'\x00' * 32
 GAS_LIMIT = 5942246
 
 
@@ -179,7 +179,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
             sampled_from(self.token_addresses),
             sampled_from(self.channel_addresses),
             sampled_from(self.addresses),
-            just(EMPTY_MERKLE_ROOT),
+            just(EMPTY_LOCKSROOT),
         )
 
         deposit_op = tuples(

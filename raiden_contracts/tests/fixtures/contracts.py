@@ -3,6 +3,7 @@ import logging
 from web3.utils.events import get_event_data
 from eth_utils import is_address
 
+from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -13,21 +14,11 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def contract_deployer_address(faucet_address) -> str:
-    """Reimplement this - fixture should return an address of the account
-    that has enough eth to deploy the contracts."""
-    raise NotImplementedError(
-        'Address of a deployer account must be overriden.',
-    )
-
-
-@pytest.fixture
 def deploy_tester_contract(
         web3,
         contracts_manager,
         deploy_contract,
         contract_deployer_address,
-        wait_for_transaction,
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
@@ -46,12 +37,47 @@ def deploy_tester_contract(
 
 
 @pytest.fixture
+def deploy_contract_txhash(revert_chain):
+    """Returns a function that deploys a compiled contract, returning a txhash"""
+    def fn(
+            web3,
+            deployer_address,
+            abi,
+            bytecode,
+            args,
+    ):
+        if args is None:
+            args = []
+        contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        return contract.constructor(*args).transact({'from': deployer_address})
+    return fn
+
+
+@pytest.fixture
+def deploy_contract(revert_chain, deploy_contract_txhash):
+    """Returns a function that deploys a compiled contract"""
+    def fn(
+            web3,
+            deployer_address,
+            abi,
+            bytecode,
+            args,
+    ):
+        contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        txhash = deploy_contract_txhash(web3, deployer_address, abi, bytecode, args)
+        contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
+        web3.testing.mine(1)
+
+        return contract(contract_address)
+    return fn
+
+
+@pytest.fixture
 def deploy_tester_contract_txhash(
         web3,
         contracts_manager,
         deploy_contract_txhash,
         contract_deployer_address,
-        wait_for_transaction,
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
@@ -79,7 +105,6 @@ def utils_contract(deploy_tester_contract):
 def standard_token_network_contract(
         web3,
         contracts_manager,
-        wait_for_transaction,
         token_network_registry_contract,
         standard_token_contract,
         contract_deployer_address,
@@ -88,7 +113,7 @@ def standard_token_network_contract(
     txid = token_network_registry_contract.functions.createERC20TokenNetwork(
         standard_token_contract.address,
     ).transact({'from': contract_deployer_address})
-    tx_receipt = wait_for_transaction(txid)
+    tx_receipt = check_succesful_tx(web3, txid)
     assert len(tx_receipt['logs']) == 1
     event_abi = contracts_manager.get_event_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY,

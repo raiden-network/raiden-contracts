@@ -1,10 +1,10 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.tests.utils import MAX_UINT256
-from raiden_contracts.tests.fixtures.config import (
+from raiden_contracts.tests.utils.config import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
+    MAX_UINT256,
 )
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,

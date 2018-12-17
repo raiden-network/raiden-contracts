@@ -1,4 +1,8 @@
 import pytest
+from web3.contract import get_event_data
+from eth_utils import is_address
+
+from raiden_contracts.utils.utils import check_succesful_tx
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -6,8 +10,6 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from web3.contract import get_event_data
-from eth_utils import is_address
 
 
 @pytest.fixture()
@@ -45,7 +47,6 @@ def token_network_registry_address(token_network_registry_contract):
 @pytest.fixture
 def add_and_register_token(
         web3,
-        wait_for_transaction,
         token_network_registry_contract,
         deploy_token_contract,
         contract_deployer_address,
@@ -57,7 +58,7 @@ def add_and_register_token(
         txid = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_contract.address,
         ).transact({'from': contract_deployer_address})
-        tx_receipt = wait_for_transaction(txid)
+        tx_receipt = check_succesful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
