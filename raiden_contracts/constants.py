@@ -92,6 +92,14 @@ class MessageTypeId(IntEnum):
     COOPERATIVE_SETTLE = 4
 
 
+# Message types used by MonitoringService contract
+class MonitoringServiceEvent(str, Enum):
+    NEW_DEPOSIT = 'NewDeposit'
+    NEW_BALANCE_PROOF_RECEIVED = 'NewBalanceProofReceived'
+    REWARD_CLAIMED = 'RewardClaimed'
+    WITHDRAWN = 'Withdrawn'
+
+
 # Network configurations
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
 
