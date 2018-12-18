@@ -6,7 +6,7 @@ from web3.exceptions import ValidationError
 
 
 def test_min_uses_usigned(token_network_test_utils):
-    """ Min cannot be called with negative values. """
+    """ Min cannot be called with negative values """
     INVALID_VALUES = [-UINT256_MAX, -1]
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
 
@@ -21,6 +21,7 @@ def test_min_uses_usigned(token_network_test_utils):
 
 
 def test_max_uses_usigned(token_network_test_utils):
+    """ Max cannot be called with negative values """
 
     INVALID_VALUES = [-UINT256_MAX, -1]
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
@@ -35,6 +36,7 @@ def test_max_uses_usigned(token_network_test_utils):
 
 
 def test_min(token_network_test_utils):
+    """ Min works like Python's min """
 
     VALUES = [UINT256_MIN, 1, UINT256_MAX, UINT256_MAX]
     for a, b in product(VALUES, VALUES):
@@ -42,6 +44,7 @@ def test_min(token_network_test_utils):
 
 
 def test_max(token_network_test_utils):
+    """ Max works like Python's max """
 
     VALUES = [UINT256_MIN, 1, UINT256_MAX, UINT256_MAX]
     for a, b in product(VALUES, VALUES):
