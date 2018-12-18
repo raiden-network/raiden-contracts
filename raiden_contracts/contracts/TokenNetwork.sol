@@ -1086,6 +1086,15 @@ contract TokenNetwork is Utils {
         }
     }
 
+    /// @dev Get the hash of the channel identifier and the participant
+    /// addresses (whose ordering matters). The hash might be useful for
+    /// the partner to look up the appropriate UnlockData to claim.
+    /// @param channel_identifier Identifier for the channel which the
+    /// UnlockData is about.
+    /// @param participant Sender of the pending transfers that the UnlockData
+    /// represents.
+    /// @param partner Receiver of the pending transfers that the UnlockData
+    /// represents.
     function getUnlockIdentifier(
         uint256 channel_identifier,
         address participant,
