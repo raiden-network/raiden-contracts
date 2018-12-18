@@ -16,6 +16,7 @@ from raiden_contracts.tests.utils import (
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
+    """ Calling setTotalDeposit() with various invalid inputs """
     (A, B) = get_accounts(2)
     deposit_A = 200
     channel_identifier = create_channel(A, B)[0]
@@ -24,6 +25,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
 
     custom_token.functions.approve(token_network.address, deposit_A).transact({'from': A})
 
+    # Validation failure with an invalid channel identifier
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             -1,
@@ -31,6 +33,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Validation failure with the empty string instead of a channel identifier
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             '',
@@ -38,6 +41,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Validation failure with a negative number instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -45,6 +49,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
         ).transact({'from': A})
+    # Validation failure with an empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -52,6 +57,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -59,6 +65,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -66,6 +73,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -73,6 +81,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             '',
         ).transact({'from': A})
+    # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -80,6 +89,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             FAKE_ADDRESS,
         ).transact({'from': A})
+    # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -87,6 +97,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             0x0,
         ).transact({'from': A})
+    # Validation failure with a negative amount of deposit
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -94,7 +105,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             -1,
             B,
         ).transact({'from': A})
-
+    # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -102,6 +113,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             B,
         ).transact({'from': A})
+    # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -109,6 +121,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             deposit_A,
             EMPTY_ADDRESS,
         ).transact({'from': A})
+    # Transaction failure with zero total deposit
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
@@ -131,6 +144,7 @@ def test_deposit_notapproved(
         create_channel,
         get_accounts,
 ):
+    """ Calling setTotalDeposit() without approving transfers on the token contract """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     deposit_A = 1
@@ -155,6 +169,7 @@ def test_null_or_negative_deposit_fail(
         assign_tokens,
         get_accounts,
 ):
+    """ setTotalDeposit() fails when the total deposit does not increase """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B)
@@ -169,6 +184,7 @@ def test_null_or_negative_deposit_fail(
 
 
 def test_deposit_delegate_works(token_network, get_accounts, create_channel, channel_deposit):
+    """ A third party can successfully call setTokenDeposit() """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
@@ -180,6 +196,7 @@ def test_deposit_wrong_channel(
         create_channel,
         assign_tokens,
 ):
+    """ setTotalDeposit() with a wrong channelID fails """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_identifier2 = create_channel(A, C)[0]
@@ -225,6 +242,7 @@ def test_channel_deposit_overflow(token_network, get_accounts, create_channel, c
 
 
 def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):
+    """ Observe how setTotalDeposit() changes the results of getChannelParticipantInfo() """
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 15
@@ -282,6 +300,7 @@ def test_deposit_wrong_state_fail(
         assign_tokens,
         close_and_update_channel,
 ):
+    """ setTotalDeposit() fails on Closed or Settled channels. """
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=2, transferred=0, locked=0)
     vals_B = ChannelValues(deposit=2, transferred=0, locked=0)
@@ -354,6 +373,7 @@ def test_deposit_channel_event(
         channel_deposit,
         event_handler,
 ):
+    """ setTotalDeposit() from each participant causes a DEPOSIT event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
