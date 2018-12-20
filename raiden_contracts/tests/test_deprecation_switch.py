@@ -21,6 +21,14 @@ def test_deprecation_executor(
         custom_token,
         get_accounts,
 ):
+    """ A creates a TokenNetworkRegistry and B registers a TokenNetwork
+
+    This test is mainly a happy-path scenario. One Ethereum account creates a
+    TokenNetworkRegistry, registers a TokenNetwork. TokenNetworkRegistry emits
+    events that shows the new TokenNetwork. The new TokenNetwork has the
+    original account as the deprecation executor. During these, this test also
+    tries to register more than one TokenNetworks and see a failure.
+    """
     (deprecation_executor, B) = get_accounts(2)
 
     json_contract = contracts_manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
@@ -80,6 +88,7 @@ def test_deprecation_executor(
 
 
 def test_set_deprecation_switch(get_accounts, token_network):
+    """ The deprecation executor deprecates a TokenNetwork contract """
     (A) = get_accounts(1)[0]
     deprecation_executor = token_network.functions.deprecation_executor().call()
 
@@ -103,6 +112,8 @@ def test_set_deprecation_switch(get_accounts, token_network):
 
 
 def test_deprecation_switch(get_accounts, token_network, create_channel, channel_deposit):
+    """ Test the effects of the deprecation switch on deposits and channel opening """
+
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B, C, D) = get_accounts(4)
     deposit = 100
@@ -138,6 +149,7 @@ def test_deprecation_switch_settle(
         channel_deposit,
         close_and_update_channel,
 ):
+    """ Channel close and settlement still work after the depracation switch is turned on """
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B) = get_accounts(2)
     deposit = 100

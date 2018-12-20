@@ -8,11 +8,13 @@ from raiden_contracts.constants import (
 
 
 def test_channel_participant_deposit_limit_value(token_network):
+    """ Check the channel participant deposit limit """
     limit = token_network.functions.channel_participant_deposit_limit().call()
     assert limit == MAX_ETH_CHANNEL_PARTICIPANT
 
 
 def test_network_deposit_limit_value(token_network):
+    """ Check the token network deposit limit """
     limit = token_network.functions.token_network_deposit_limit().call()
     assert limit == MAX_ETH_TOKEN_NETWORK
 
@@ -23,6 +25,7 @@ def test_participant_deposit_limit(
         create_channel,
         assign_tokens,
 ):
+    """ Observe failure to deposit a bit more tokens than the participant deposit limit """
     (A, B) = get_accounts(2)
     deposit_A = 100000
     deposit_B = 100000
