@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
 
 
 def test_version(token_network):
+    """ Check the output of contract_version() of the TokenNetwork contract """
     assert token_network.functions.contract_version().call() == CONTRACTS_VERSION
 
 
@@ -24,12 +25,18 @@ def test_constructor_call(
         secret_registry_contract,
         get_accounts,
 ):
+    """ Try to deploy TokenNetwork with various wrong arguments """
+
     (A, deprecation_executor) = get_accounts(2)
     chain_id = int(web3.version.network)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
+
+    # failure with no arguments
     with pytest.raises(TypeError):
         get_token_network([])
+
+    # failures with integers instead of a Token address
     with pytest.raises(TypeError):
         get_token_network([
             3,
@@ -48,6 +55,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with non-address strings instead of a Token address
     with pytest.raises(TypeError):
         get_token_network([
             '',
@@ -66,6 +75,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with integers instead of a SecretRegistry address
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -84,6 +95,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with non-address strings instead of a SecretRegistry address
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -102,6 +115,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with invalid chain_id
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -120,6 +135,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with invalid settle_min
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -138,6 +155,8 @@ def test_constructor_call(
             settle_max,
             deprecation_executor,
         ])
+
+    # failures with invalid settle_max
     with pytest.raises(TypeError):
         get_token_network([
             custom_token.address,
@@ -157,6 +176,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failures with Ethereum addresses that don't contain a Token contract
     with pytest.raises(TransactionFailed):
         get_token_network([
             EMPTY_ADDRESS,
@@ -185,6 +205,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failures with Ethereum addresses that don't contain the SecretRegistry contract
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
@@ -204,6 +225,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failure with chain_id zero
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
@@ -214,6 +236,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failure with a timeout min and max swapped
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
@@ -224,6 +247,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failure with settle_timeout_min being zero
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
@@ -234,6 +258,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # failure with settle_timeout_max being zero
     with pytest.raises(TransactionFailed):
         get_token_network([
             custom_token.address,
@@ -244,6 +269,7 @@ def test_constructor_call(
             deprecation_executor,
         ])
 
+    # see a success to make sure that the above failures are meaningful
     get_token_network([
         custom_token.address,
         secret_registry_contract.address,
@@ -255,6 +281,7 @@ def test_constructor_call(
 
 
 def test_token_network_variables(token_network, token_network_test_utils):
+    """ Check values of storage variables of the TokenNetwork contract """
     max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
 
     assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
@@ -270,12 +297,15 @@ def test_constructor_not_registered(
         token_network_registry_contract,
         token_network_external,
 ):
+    """ Check that the TokenNetwork refers to the right Token address and chain_id """
+
     token_network = token_network_external
     assert token_network.functions.token().call() == custom_token.address
     assert token_network.functions.secret_registry().call() == secret_registry_contract.address
     assert (token_network.functions.chain_id().call()
             == token_network_registry_contract.functions.chain_id().call())
 
+    # The TokenNetworkRegistry doesn't know about the TokenNetwork
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address,
     ).call() == EMPTY_ADDRESS
