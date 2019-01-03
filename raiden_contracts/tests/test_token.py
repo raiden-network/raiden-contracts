@@ -3,6 +3,8 @@ from eth_tester.exceptions import TransactionFailed
 
 
 def test_token_mint(web3, custom_token, get_accounts):
+    """ Use the mint() function of the custom token contract """
+
     (A, B) = get_accounts(2)
     token = custom_token
     multiplier = custom_token.functions.multiplier().call()
@@ -25,6 +27,8 @@ def test_token_mint(web3, custom_token, get_accounts):
 
 
 def test_approve_transfer(web3, custom_token, get_accounts):
+    """ Use the approve() function of the custom token contract """
+
     (A, B) = get_accounts(2)
     token = custom_token
     token.functions.mint(50).transact({'from': A})
@@ -43,6 +47,8 @@ def test_approve_transfer(web3, custom_token, get_accounts):
 
 
 def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
+    """ transferFunds() should fail when the ETH balance of the contract is zero """
+
     (A, B) = get_accounts(2)
     token = custom_token
     multiplier = custom_token.functions.multiplier().call()
@@ -52,6 +58,7 @@ def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
 
     owner = custom_token.functions.owner_address().call()
 
+    assert web3.eth.getBalance(token.address) == 0
     with pytest.raises(TransactionFailed):
         token.functions.transferFunds().transact({'from': owner})
 
@@ -60,8 +67,12 @@ def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
 
 
 def test_custom_token(custom_token, web3):
-    assert web3.eth.getCode(custom_token.address)
+    """ See custom_token.address contains some big code """
+
+    assert len(web3.eth.getCode(custom_token.address)) > 100
 
 
 def test_human_standard_token(human_standard_token, web3):
-    assert web3.eth.getCode(human_standard_token.address)
+    """ See human_standard_token.address contains some big code """
+
+    assert len(web3.eth.getCode(human_standard_token.address)) > 100
