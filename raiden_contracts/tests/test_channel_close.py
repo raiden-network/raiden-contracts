@@ -454,7 +454,7 @@ def test_close_channel_event_no_offchain_transfers(
         create_channel,
         event_handler,
 ):
-    """ closeChannel succeeds and emits an event even with no balance proofs """
+    """ closeChannel succeeds and emits an event even with nonce 0 and no balance proofs """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 

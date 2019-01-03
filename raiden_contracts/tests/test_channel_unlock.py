@@ -456,7 +456,9 @@ def test_channel_unlock_smaller_locked_amount(
     """ Test an unlock() call that claims too many tokens
 
     When settleChannel() call computes a smaller amount of locked tokens than
-    the following unlock() call,  """
+    the following unlock() call, the settleChannel() computation is stronger and
+    the participant receives less tokens. Stealing tokens from other channels
+    is then prevented. """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -617,7 +619,8 @@ def test_channel_unlock(
         reveal_secrets,
         event_handler,
 ):
-    """ unlock() on pending transfers should split the locked amount into both parties """
+    """ unlock() on pending transfers with unlockable and expired locks should
+    split the locked amount accordingly, to both parties """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 

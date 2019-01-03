@@ -16,7 +16,7 @@ from raiden_contracts.tests.utils import (
 
 
 def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
-    """ Calling setTotalDeposit() with various invalid inputs """
+    """ Calling setTotalDeposit() fails with various invalid inputs """
     (A, B) = get_accounts(2)
     deposit_A = 200
     channel_identifier = create_channel(A, B)[0]
@@ -144,7 +144,7 @@ def test_deposit_notapproved(
         create_channel,
         get_accounts,
 ):
-    """ Calling setTotalDeposit() without approving transfers on the token contract """
+    """ Calling setTotalDeposit() fails without approving transfers on the token contract """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     deposit_A = 1
