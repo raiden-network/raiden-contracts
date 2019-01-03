@@ -26,8 +26,10 @@ def sign(privkey: str, msg: bytes, v=0) -> bytes:
 def private_key_to_address(private_key: Union[str, bytes]) -> Address:
     """ Converts a private key to an Ethereum address. """
     if isinstance(private_key, str):
-        private_key = to_bytes(hexstr=private_key)
-    pk = PrivateKey(private_key)
+        private_key_bytes = to_bytes(hexstr=private_key)
+    else:
+        private_key_bytes = private_key
+    pk = PrivateKey(private_key_bytes)
     return public_key_to_address(pk.public_key)
 
 

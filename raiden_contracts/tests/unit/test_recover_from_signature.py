@@ -3,7 +3,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from raiden_contracts.utils.proofs import hash_balance_proof
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
-from raiden_contracts.utils.sign import sign
+from raiden_contracts.utils.signature import sign
 
 
 @pytest.fixture

@@ -7,7 +7,8 @@ import logging
 import click
 
 from logging import getLogger
-from typing import Dict, Optional
+from mypy_extensions import TypedDict
+from typing import Any, Dict, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
@@ -32,7 +33,8 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployed,
 )
 from raiden_contracts.tests.utils.transaction import check_succesful_tx
-from raiden_contracts.utils.sign import private_key_to_address
+from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.types import Address
 
 
 log = getLogger(__name__)
@@ -357,11 +359,26 @@ def verify(ctx, rpc_provider, contracts_version):
     verify_deployed_contracts(web3, contract_manager)
 
 
+class Contract(TypedDict):
+    address: Address
+    transaction_hash: str
+    block_number: int
+    gas_cost: int
+    constructor_arguments: Any
+
+
+class DeployedContracts(TypedDict):
+    chain_id: int
+    contracts: Dict[str, Contract]
+    contracts_version: str
+
+
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
     """Deploy all required raiden contracts and return a dict of contract_name:address"""
-    deployed_contracts = {
+
+    deployed_contracts: DeployedContracts = {
         'contracts_version': deployer.contract_manager.contracts_version,
         'chain_id': int(deployer.web3.version.network),
         'contracts': {},

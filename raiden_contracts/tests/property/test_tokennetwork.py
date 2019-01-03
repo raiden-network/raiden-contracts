@@ -19,8 +19,8 @@ from hypothesis.strategies import (
     sampled_from,
     tuples,
 )
-from raiden_contracts.tests.fixtures.base.web3 import ethereum_tester
-from raiden_contracts.utils.sign import private_key_to_address
+from raiden_contracts.tests.fixtures.base.web3_fixtures import ethereum_tester
+from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
