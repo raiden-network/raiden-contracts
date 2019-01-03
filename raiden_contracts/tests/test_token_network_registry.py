@@ -15,6 +15,7 @@ from web3.exceptions import ValidationError
 
 
 def test_version(token_network_registry_contract):
+    """ Check the result of contract_version() call on the TokenNetworkRegistry """
     version = token_network_registry_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION
 
@@ -25,32 +26,57 @@ def test_constructor_call(
         secret_registry_contract,
         get_accounts,
 ):
+    """ Try to create a TokenNetworkRegistry with various wrong arguments. """
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
+
+    # failure with no arguments
     with pytest.raises(TypeError):
         get_token_network_registry([])
+
+    # failure with an int instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry([3, chain_id, settle_min, settle_max])
+
+    # failure with zero instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry([0, chain_id, settle_min, settle_max])
+
+    # failure with the empty string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry(['', chain_id, settle_min, settle_max])
+
+    # failure with an odd-length hex string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry([FAKE_ADDRESS, chain_id, settle_min, settle_max])
+
+    # failure with the empty string instead of a chain ID
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, '', settle_min, settle_max])
+
+    # failure with a string instead of a chain ID
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, '1', settle_min, settle_max])
+
+    # failure with a negative integer instead of a chain ID
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, -3, settle_min, settle_max])
+
+    # failure with chain ID zero
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, 0, settle_min, settle_max])
+
+    # failure with strings instead of the minimal challenge period
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, chain_id, '', settle_max])
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, chain_id, '1', settle_max])
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, chain_id, -3, settle_max])
+
+    # failure with strings instead of the max challenge period
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, ''])
     with pytest.raises(TypeError):
@@ -58,20 +84,32 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, -3])
 
+    # failure with Ethereum accounts that doesn't look like a SecretRegistry
     with pytest.raises(TransactionFailed):
         get_token_network_registry([EMPTY_ADDRESS, chain_id, settle_min, settle_max])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([A, chain_id, settle_min, settle_max])
 
-    with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0, settle_min, settle_max])
-
+    # failures with chain_id zero
     with pytest.raises(TransactionFailed):
         get_token_network_registry([secret_registry_contract.address, 0, 0, settle_max])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([secret_registry_contract.address, 0, settle_min, 0])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([secret_registry_contract.address, 0, settle_max, settle_min])
+
+    # failures with nonsense challenge periods
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, chain_id, 0, settle_max])
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, 0])
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            settle_max,
+            settle_min,
+        ])
 
     get_token_network_registry([
         secret_registry_contract.address,
@@ -82,6 +120,8 @@ def test_constructor_call(
 
 
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
+    """ The constructor should set the parameters into the storage of the contract """
+
     chain_id = int(web3.version.network)
 
     registry = get_token_network_registry([
@@ -102,19 +142,28 @@ def test_create_erc20_token_network_call(
         custom_token,
         get_accounts,
 ):
+    """ Calling createERC20TokenNetwork() with various wrong arguments """
+
     A = get_accounts(1)[0]
     fake_token_contract = token_network_registry_contract.address
+
+    # failure with no arguments
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork().transact()
+
+    # failures with integers instead of a Token contract address
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(3).transact()
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(0).transact()
+
+    # failures with strings that are not addresses
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork('').transact()
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(FAKE_ADDRESS).transact()
 
+    # failures with addresses where no Token contract can be found
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(EMPTY_ADDRESS).transact()
     with pytest.raises(TransactionFailed):
@@ -124,6 +173,7 @@ def test_create_erc20_token_network_call(
             fake_token_contract,
         ).transact()
 
+    # see a success to make sure above tests were meaningful
     token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
     ).transact({'from': contract_deployer_address})
@@ -134,6 +184,8 @@ def test_create_erc20_token_network(
         token_network_registry_contract,
         custom_token,
 ):
+    """ Create a TokenNetwork through a TokenNetworkRegistry """
+
     assert token_network_registry_contract.functions.token_to_token_networks(
         custom_token.address,
     ).call() == EMPTY_ADDRESS
@@ -164,6 +216,7 @@ def test_create_erc20_token_network_twice_fails(
         custom_token,
 
 ):
+    """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
     token_network_registry_contract.transact(
         {'from': contract_deployer_address},
@@ -185,6 +238,8 @@ def test_events(
         custom_token,
         event_handler,
 ):
+    """ TokenNetwokRegistry should raise an event when deploying a new TokenNetwork """
+
     ev_handler = event_handler(token_network_registry_contract)
 
     new_token_network = register_token_network(custom_token.address)
