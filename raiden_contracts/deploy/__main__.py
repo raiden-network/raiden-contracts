@@ -15,7 +15,6 @@ from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
 from raiden_libs.private_contract import PrivateContract
-from raiden_libs.utils.private_key import get_private_key
 
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
@@ -33,6 +32,7 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployed,
 )
 from raiden_contracts.tests.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.types import Address
 
