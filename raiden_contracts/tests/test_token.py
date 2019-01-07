@@ -1,5 +1,10 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from raiden_contracts.constants import (
+    CONTRACT_HUMAN_STANDARD_TOKEN,
+    CONTRACT_CUSTOM_TOKEN,
+)
+from raiden_contracts.tests.utils.contracts import runtime_hexcode
 
 
 def test_token_mint(web3, custom_token, get_accounts):
@@ -66,13 +71,23 @@ def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
     assert web3.eth.getBalance(token.address) == 0
 
 
-def test_custom_token(custom_token, web3):
-    """ See custom_token.address contains some big code """
+def test_custom_token(custom_token, web3, contracts_manager):
+    """ See custom_token.address contains the expected code """
+    blockchain_bytecode = web3.eth.getCode(custom_token.address).hex()
+    compiled_bytecode = runtime_hexcode(
+        contracts_manager,
+        CONTRACT_CUSTOM_TOKEN,
+        len(blockchain_bytecode),
+    )
+    assert blockchain_bytecode == compiled_bytecode
 
-    assert len(web3.eth.getCode(custom_token.address)) > 100
 
-
-def test_human_standard_token(human_standard_token, web3):
-    """ See human_standard_token.address contains some big code """
-
-    assert len(web3.eth.getCode(human_standard_token.address)) > 100
+def test_human_standard_token(human_standard_token, web3, contracts_manager):
+    """ See human_standard_token.address contains the expected code """
+    blockchain_bytecode = web3.eth.getCode(human_standard_token.address).hex()
+    compiled_bytecode = runtime_hexcode(
+        contracts_manager,
+        CONTRACT_HUMAN_STANDARD_TOKEN,
+        len(blockchain_bytecode),
+    )
+    assert blockchain_bytecode == compiled_bytecode
