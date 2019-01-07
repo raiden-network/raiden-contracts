@@ -9,3 +9,4 @@ raiden-libs>=0.1.6
 bump2version
 hypothesis==3.44.14
 requests
+mypy==0.641

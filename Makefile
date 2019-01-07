@@ -13,6 +13,9 @@ install:
 lint:
 	flake8 raiden_contracts/
 
+mypy:
+	mypy --ignore-missing-imports raiden_contracts
+
 clean:
 	rm -rf build/ *egg-info/ dist .eggs
 

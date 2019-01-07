@@ -32,10 +32,10 @@ class ContractManager:
             path: either path to a precompiled contract JSON file, or a list of
                 directories which contain solidity files to compile
         """
-        self.contracts_source_dirs: Dict[str, Path] = None
-        self.contracts = dict()
+        self.contracts_source_dirs: Optional[Dict[str, Path]] = None
+        self.contracts: Dict[str, Dict] = dict()
         self.overall_checksum = None
-        self.contracts_checksums = None
+        self.contracts_checksums: Optional[Dict[str, str]] = None
         if isinstance(path, dict):
             self.contracts_source_dirs = path
             self.contracts_version = CONTRACTS_VERSION
@@ -147,7 +147,7 @@ class ContractManager:
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't checksum contracts.")
 
-        checksums = {}
+        checksums: Dict[str, str] = {}
         for contracts_dir in self.contracts_source_dirs.values():
             file: Path
             for file in contracts_dir.glob('*.sol'):
@@ -158,15 +158,20 @@ class ContractManager:
         ).hexdigest()
         self.contracts_checksums = checksums
 
-    def verify_precompiled_checksums(self, contracts_precompiled: str) -> None:
+    def verify_precompiled_checksums(self, contracts_precompiled_path: Path) -> None:
         """ Compare source code checksums with those from a precompiled file. """
 
         # We get the precompiled file data
-        contracts_precompiled = ContractManager(contracts_precompiled)
+        contracts_precompiled = ContractManager(contracts_precompiled_path)
+
+        # Silence mypy
+        assert self.contracts_checksums is not None
 
         # Compare each contract source code checksum with the one from the precompiled file
         for contract, checksum in self.contracts_checksums.items():
             try:
+                # Silence mypy
+                assert contracts_precompiled.contracts_checksums is not None
                 precompiled_checksum = contracts_precompiled.contracts_checksums[contract]
             except KeyError:
                 raise ContractManagerVerificationError(

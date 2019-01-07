@@ -1,6 +1,6 @@
 from web3 import Web3
 from eth_abi import encode_single
-from .sign import sign
+from .signature import sign
 from raiden_contracts.constants import MessageTypeId
 
 

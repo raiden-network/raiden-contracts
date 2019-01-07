@@ -5,5 +5,5 @@ from .logs import *
 from .merkle import *
 from .pending_transfers import *
 from .proofs import *
-from .sign import *
+from .signature import *
 from .types import *
