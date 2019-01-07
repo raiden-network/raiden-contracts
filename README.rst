@@ -80,6 +80,7 @@ For development and testing, you have to install additional dependencies::
 Compile the contracts
 ^^^^^^^^^^^^^^^^^^^^^
 
+Needed if you have made changes to the source code.
 Make sure you have `solc` installed: https://solidity.readthedocs.io/en/latest/installing-solidity.html
 
 ::
@@ -115,6 +116,9 @@ If you are using the ``raiden-contracts`` package in your project, you can also 
 
 Deployment on a testnet
 ^^^^^^^^^^^^^^^^^^^^^^^
+
+.. Note::
+    If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``.
 
 Check deployment options::
 
