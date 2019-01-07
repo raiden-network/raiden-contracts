@@ -21,6 +21,7 @@ def test_close_nonexistent_channel(
         token_network,
         get_accounts,
 ):
+    """ Test getChannelInfo and closeChannel on a not-yet opened channel """
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
 
@@ -50,6 +51,7 @@ def test_close_settled_channel_fail(
         channel_deposit,
         get_accounts,
 ):
+    """ Test getChannelInfo and closeChannel on an already settled channel """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
     channel_deposit(channel_identifier, A, 5, B)
@@ -103,6 +105,7 @@ def test_close_wrong_signature(
         get_accounts,
         create_balance_proof,
 ):
+    """ Closing a channel with a balance proof of the third party should fail """
     (A, B, C) = get_accounts(3)
     deposit_A = 6
     transferred_amount = 5
@@ -136,6 +139,7 @@ def test_close_call_twice_fail(
         channel_deposit,
         get_accounts,
 ):
+    """ The second of two same closeChannel calls should fail """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
@@ -166,6 +170,7 @@ def test_close_wrong_sender(
         channel_deposit,
         get_accounts,
 ):
+    """ A closeChannel call from a wrong Ethereum address should fail """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
@@ -187,6 +192,7 @@ def test_close_nonce_zero(
         create_channel,
         create_balance_proof,
 ):
+    """ closeChannel with a balance proof with nonce zero should not change the channel state """
     (A, B) = get_accounts(2)
     vals_B = ChannelValues(
         deposit=20,
@@ -249,6 +255,7 @@ def test_close_first_argument_is_for_partner_transfer(
         get_accounts,
         create_balance_proof,
 ):
+    """ closeChannel fails on a self-submitted balance proof """
     (A, B) = get_accounts(2)
 
     # Create channel
@@ -281,6 +288,7 @@ def test_close_first_participant_can_close(
         create_channel,
         get_accounts,
 ):
+    """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
@@ -299,6 +307,7 @@ def test_close_second_participant_can_close(
         create_channel,
         get_accounts,
 ):
+    """ Simplest successful closeChannel by the second participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
@@ -323,6 +332,11 @@ def test_close_channel_state(
         create_balance_proof,
         txn_cost,
 ):
+    """ Observe the effect of a successful closeChannel
+
+    This test compares the state of the channel and the balances of Ethereum
+    accounts before/after a successful closeChannel call.
+    """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     vals_B = ChannelValues(
@@ -338,16 +352,7 @@ def test_close_channel_state(
     channel_identifier = create_channel(A, B, settle_timeout)[0]
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
-    # Create balance proofs
-    balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B,
-        vals_B.transferred,
-        vals_B.locked,
-        vals_B.nonce,
-        vals_B.locksroot,
-    )
-
+    # Check the state of the openned channel
     (
         settle_block_number,
         state,
@@ -385,6 +390,16 @@ def test_close_channel_state(
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+
+    # Create a balance proof
+    balance_proof_B = create_balance_proof(
+        channel_identifier,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        vals_B.nonce,
+        vals_B.locksroot,
+    )
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
@@ -439,6 +454,7 @@ def test_close_channel_event_no_offchain_transfers(
         create_channel,
         event_handler,
 ):
+    """ closeChannel succeeds and emits an event even with nonce 0 and no balance proofs """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
@@ -467,6 +483,7 @@ def test_close_replay_reopened_channel(
         channel_deposit,
         create_balance_proof,
 ):
+    """ The same balance proof cannot close another channel between the same participants """
     (A, B) = get_accounts(2)
     nonce = 3
     values_A = ChannelValues(
@@ -546,6 +563,7 @@ def test_close_channel_event(
         create_balance_proof,
         event_handler,
 ):
+    """ A successful closeChannel call produces a CLOSED event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10

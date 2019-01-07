@@ -3,11 +3,13 @@ from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED, CONTRACTS_VERSI
 
 
 def test_version(endpoint_registry_contract):
+    """ EndpointRegistry has the right contracts version """
     version = endpoint_registry_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION
 
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
+    """ Overwrite an endpoint registration """
     (A, B) = get_accounts(2)
     ENDPOINT = '127.0.0.1:38647'
     endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({'from': A})
@@ -19,6 +21,7 @@ def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
 
 
 def test_events(endpoint_registry_contract, get_accounts, event_handler):
+    """ An endpoint registration causes an EVENT_ADDRESS_REGISTERED event """
     (A, B) = get_accounts(2)
     ev_handler = event_handler(endpoint_registry_contract)
 

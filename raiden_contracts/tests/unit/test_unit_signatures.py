@@ -81,6 +81,13 @@ def test_recover_address_from_balance_proof(
         create_balance_proof,
         get_accounts,
 ):
+    """ TokenNetwork can recover the signer's address from a balance proof
+
+    This test checks that the TokenNetwork contract
+    1) can recover the signer's address from a balance proof
+    2) even when the signer and the balance proof's original sender are different
+    3) recovers a wrong address when the balance proof is for a wrong token network
+    """
     (A, B) = get_accounts(2)
 
     channel_identifier = 4
@@ -120,7 +127,13 @@ def test_recover_address_from_balance_proof_update(
         create_balance_proof_update_signature,
         get_accounts,
 ):
+    """ TokenNetwork can recover the signer's address from a balance proof update
 
+    This test checks that the TokenNetwork contract
+    1) can recover the signer's address from a balance proof update
+    2) recovers a wrong address if the balance proof update is for a wrong token network
+    3) recovers a wrong address if the balance proof update is signed by the same secret key twice
+    """
     (A, B) = get_accounts(2)
     other_token_network = token_network_test_signatures
 

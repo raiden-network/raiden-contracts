@@ -22,6 +22,7 @@ from raiden_contracts.constants import ParticipantInfoIndex
 
 
 def test_merkle_root_0_items(token_network_test_utils, token_network):
+    """ getMerkleRootAndUnlockedAmount() returns a reasonable return value for no items """
     (
         locksroot,
         unlocked_amount,
@@ -36,6 +37,7 @@ def test_merkle_root_1_item_unlockable(
         token_network_test_utils,
         secret_registry_contract,
 ):
+    """ Test getMerkleRootAndUnlockedAmount() on a single item whose secret has been registered """
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [6])
 
@@ -64,6 +66,7 @@ def test_merkle_tree_length_fail(
         token_network_test_utils,
         secret_registry_contract,
 ):
+    """ Test getMerkleRootAndUnlockedAmount() on inputs of irregular lengths """
     network_utils = token_network_test_utils
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
@@ -99,6 +102,7 @@ def test_merkle_root_odd_even_components(
         secret_registry_contract,
         reveal_secrets,
 ):
+    """ Test getMerkleRootAndUnlockedAmount() on an odd/even number of locks """
     (A, B) = get_accounts(2)
 
     # Even number of merkle tree components
@@ -141,6 +145,7 @@ def test_merkle_tree_components_order(
         token_network,
         create_settled_channel,
 ):
+    """ Shuffling the leaves usually changes the root, but sometimes not """
     network_utils = token_network_test_utils
     (A, B) = get_accounts(2)
     types = ['uint256', 'uint256', 'bytes32']
@@ -242,6 +247,7 @@ def test_lock_data_from_merkle_tree(
         secret_registry_contract,
         reveal_secrets,
 ):
+    """ Test getLockDataFromMerkleTreePublic() on various offsets """
     network_utils = token_network_test_utils
     (A, B) = get_accounts(2)
 
@@ -333,6 +339,7 @@ def test_unlock_wrong_locksroot(
         create_settled_channel,
         get_accounts,
 ):
+    """ Test unlocking with wrong Merkle tree entries """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -383,6 +390,12 @@ def test_channel_unlock_bigger_locked_amount(
         get_accounts,
         reveal_secrets,
 ):
+    """ Test an unlock() call that claims too little tokens"
+
+    When an unlock() call does not contain enough Merkle tree leaves to claim
+    the locked amount declared in the settleChannel() call, the difference goes
+    to the other party.
+    """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -440,6 +453,12 @@ def test_channel_unlock_smaller_locked_amount(
         get_accounts,
         reveal_secrets,
 ):
+    """ Test an unlock() call that claims too many tokens
+
+    When settleChannel() call computes a smaller amount of locked tokens than
+    the following unlock() call, the settleChannel() computation is stronger and
+    the participant receives less tokens. Stealing tokens from other channels
+    is then prevented. """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -498,6 +517,7 @@ def test_channel_unlock_bigger_unlocked_amount(
         get_accounts,
         reveal_secrets,
 ):
+    """ unlock() transfers not more than the locked amount for more expensive unlock() demands """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -527,8 +547,8 @@ def test_channel_unlock_bigger_unlocked_amount(
     assert balance_contract == unlocked_amount - 1
 
     # This should pass, even though the locked amount in storage is smaller.
-    # A will receive the entire locked amount, corresponding to the locks that have been unlocked
-    # and B will receive nothing.
+    # B will receive the entire locked amount, corresponding to the locks that have been unlocked
+    # and A will receive nothing.
     token_network.functions.unlock(
         channel_identifier,
         B,
@@ -553,6 +573,7 @@ def test_channel_unlock_no_locked_amount_fail(
         get_accounts,
         reveal_secrets,
 ):
+    """ After settleChannel() is called with zero locked amount, unlock() calls fail """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -598,6 +619,8 @@ def test_channel_unlock(
         reveal_secrets,
         event_handler,
 ):
+    """ unlock() on pending transfers with unlockable and expired locks should
+    split the locked amount accordingly, to both parties """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -681,10 +704,9 @@ def test_channel_settle_and_unlock(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock """
     (A, B) = get_accounts(2)
     settle_timeout = 8
-
-    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
 
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -788,6 +810,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         reveal_secrets,
         close_and_update_channel,
 ):
+    """ unlock() should refund tokens locked with secrets revealed after the expiration """
     (A, B) = get_accounts(2)
     max_lock_expiration = 3
     settle_timeout = 8
@@ -872,6 +895,7 @@ def test_channel_unlock_unregistered_locks(
         close_and_update_channel,
         custom_token,
 ):
+    """ unlock() should refund tokens locked by secrets not registered before settlement """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
@@ -926,6 +950,7 @@ def test_channel_unlock_before_settlement_fails(
         close_and_update_channel,
         reveal_secrets,
 ):
+    """ unlock() should not work before settlement """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -1031,6 +1056,7 @@ def test_unlock_fails_with_partial_merkle_proof(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ unlock() should fail when one Merkle leaf is missing """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -1079,10 +1105,9 @@ def test_unlock_tampered_merkle_proof_fails(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ unlock() should fail when the submitted proofs are tampered """
     (A, B) = get_accounts(2)
     settle_timeout = 8
-
-    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1133,6 +1158,7 @@ def test_channel_unlock_both_participants(
         close_and_update_channel,
         reveal_secrets,
 ):
+    """ A scenario where both parties get some of the pending transfers """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -1234,10 +1260,9 @@ def test_unlock_twice_fails(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ The same unlock() call twice do not work """
     (A, B) = get_accounts(2)
     settle_timeout = 8
-
-    # Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock
 
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1281,6 +1306,7 @@ def test_channel_unlock_with_a_large_expiration(
         close_and_update_channel,
         reveal_secrets,
 ):
+    """ unlock() should still work after a delayed settleChannel() call """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -1353,6 +1379,7 @@ def test_reverse_participants_unlock(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ unlock() with wrong argument orders """
     (A, B, C) = get_accounts(3)
     settle_timeout = 12
 
@@ -1452,6 +1479,7 @@ def test_unlock_different_channel_same_participants_fail(
         create_settled_channel,
         reveal_secrets,
 ):
+    """ Try to confuse unlock() with two channels between the same participants """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -1521,6 +1549,7 @@ def test_unlock_channel_event(
         reveal_secrets,
         event_handler,
 ):
+    """ Successful unlock() should cause an UNLOCKED event """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 

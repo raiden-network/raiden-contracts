@@ -7,11 +7,13 @@ from raiden_contracts.tests.utils.mock import fake_bytes
 
 
 def test_version(secret_registry_contract):
+    """ Test the return value of contract_version() """
     version = secret_registry_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION
 
 
 def test_register_secret_call(secret_registry_contract, event_handler):
+    """ Test the registrable and not registrable secrets """
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret().transact()
     with pytest.raises(ValidationError):
@@ -29,6 +31,7 @@ def test_register_secret_call(secret_registry_contract, event_handler):
 
 
 def test_register_secret_return_value(secret_registry_contract, get_accounts):
+    """ The same secret cannot be registered twice """
     (A, B) = get_accounts(2)
     secret = b'secretsecretsecretsecretsecretse'
 
@@ -44,6 +47,7 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts):
 
 
 def test_register_secret(secret_registry_contract, get_accounts, get_block):
+    """ Register a secret and see it's registered """
     (A, B) = get_accounts(2)
     secret = b'secretsecretsecretsecretsecretse'
     secret2 = b'secretsecretsecretsecretsecretss'
@@ -62,6 +66,7 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
 
 
 def test_register_secret_batch(secret_registry_contract, get_accounts, get_block):
+    """ Register four secrets and see them registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, fill) for fill in ('02', '03', '04', '05')]
     secret_hashes = [Web3.sha3(secret) for secret in secrets]
@@ -79,6 +84,7 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
 
 
 def test_register_secret_batch_return_value(secret_registry_contract, get_accounts, get_block):
+    """ See registerSecret returns True only when all secrets are registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, '02'), fake_bytes(32, '03'), fake_bytes(11)]
 
@@ -92,6 +98,7 @@ def test_register_secret_batch_return_value(secret_registry_contract, get_accoun
 
 
 def test_events(secret_registry_contract, event_handler):
+    """ A successful registerSecret() call causes an EVENT_SECRET_REVEALED event """
     secret = b'secretsecretsecretsecretsecretse'
     secrethash = Web3.sha3(secret)
     ev_handler = event_handler(secret_registry_contract)
@@ -103,6 +110,7 @@ def test_events(secret_registry_contract, event_handler):
 
 
 def test_register_secret_batch_events(secret_registry_contract, event_handler):
+    """ A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events """
     secrets = [fake_bytes(32, '02'), fake_bytes(32, '03'), fake_bytes(32, '04')]
     secret_hashes = [Web3.sha3(secret) for secret in secrets]
 
