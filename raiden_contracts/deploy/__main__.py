@@ -359,20 +359,6 @@ def verify(ctx, rpc_provider, contracts_version):
     verify_deployed_contracts(web3, contract_manager)
 
 
-class Contract(TypedDict):
-    address: Address
-    transaction_hash: str
-    block_number: int
-    gas_cost: int
-    constructor_arguments: Any
-
-
-class DeployedContracts(TypedDict):
-    chain_id: int
-    contracts: Dict[str, Contract]
-    contracts_version: str
-
-
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
@@ -656,6 +642,22 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
+
+
+# Classes for static type checking of deployed_contracts dictionary.
+
+class DeployedContract(TypedDict):
+    address: Address
+    transaction_hash: str
+    block_number: int
+    gas_cost: int
+    constructor_arguments: Any
+
+
+class DeployedContracts(TypedDict):
+    chain_id: int
+    contracts: Dict[str, DeployedContract]
+    contracts_version: str
 
 
 if __name__ == '__main__':
