@@ -58,6 +58,7 @@ def deprecation_test(
     gas_price,
     gas_limit,
 ):
+    """ Turn on the deprecation switch and see channel opening fails """
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
     deployer = ctx.obj['deployer']
 
@@ -79,6 +80,7 @@ def deprecation_test(
     log.info('Seding transaction to activate the deprecation switch.')
 
     # Activate deprecation switch
+    assert token_network.functions.safety_deprecation_switch().call() is False
     txhash = token_network.functions.deprecate().transact(
         deployer.transaction,
         private_key=deployer.private_key,

@@ -23,6 +23,7 @@ def test_deploy_script(
     faucet_address,
     get_random_privkey,
 ):
+    """ Tamper with deployed_contracts_info and see failures in verify_deployed_contracts() """
     # normal deployment
     gas_limit = 5900000
     deployer = ContractDeployer(
