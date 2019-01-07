@@ -17,6 +17,7 @@ from raiden_contracts.constants import (
 
 
 def test_verification_overall_checksum():
+    """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
     manager = ContractManager(contracts_source_path())
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
@@ -49,6 +50,7 @@ def test_verification_overall_checksum():
 
 
 def test_verification_contracts_checksums():
+    """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
     manager = ContractManager(contracts_source_path())
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
@@ -78,11 +80,13 @@ def test_verification_contracts_checksums():
 
 
 def test_contracts_version():
+    """ Check the value of contracts_version """
     manager = ContractManager(contracts_precompiled_path())
     assert manager.contracts_version == CONTRACTS_VERSION
 
 
 def test_paths():
+    """ contracts_source_path() exists and contains the expected files """
     for _, source_path in contracts_source_path().items():
         assert source_path.exists()
     assert contracts_precompiled_path().exists()
@@ -92,6 +96,7 @@ def test_paths():
 
 
 def test_pre_limits_version():
+    """ contracts_source_path('pre_limits') exists and contains the expected files """
     manager = ContractManager(contracts_precompiled_path('pre_limits'))
     assert manager.contracts_version == '0.3._'
     assert contracts_precompiled_path('pre_limits').exists()
@@ -101,6 +106,7 @@ def test_pre_limits_version():
 
 
 def contract_manager_meta(contracts_path):
+    """ See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED """
     manager = ContractManager(contracts_path)
 
     abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
@@ -115,10 +121,12 @@ def contract_manager_meta(contracts_path):
 
 
 def test_contract_manager_compile():
+    """ Check the ABI in the sources """
     contract_manager_meta(contracts_source_path())
 
 
 def test_contract_manager_json(tmpdir):
+    """ Check the ABI in contracts.json """
     precompiled_path = Path(str(tmpdir)).joinpath('contracts.json')
     ContractManager(contracts_source_path()).compile_contracts(precompiled_path)
     # try to load contracts from a precompiled file

@@ -23,6 +23,7 @@ from raiden_contracts.tests.utils import (
 
 
 def test_open_channel_call(token_network, get_accounts):
+    """ Calling openChannel() with various wrong arguments """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
