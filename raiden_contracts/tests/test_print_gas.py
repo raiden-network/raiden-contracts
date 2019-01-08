@@ -17,6 +17,7 @@ def test_token_network_registry(
         custom_token,
         print_gas,
 ):
+    """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [],
@@ -38,6 +39,7 @@ def test_token_network_deployment(
         secret_registry_contract,
         deploy_tester_contract_txhash,
 ):
+    """ Abusing pytest to print the deployment gas cost of TokenNetwork """
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
@@ -61,6 +63,7 @@ def test_token_network_create(
         token_network_registry_contract,
         contract_deployer_address,
 ):
+    """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
     ).transact({'from': contract_deployer_address})
@@ -69,6 +72,7 @@ def test_token_network_create(
 
 
 def test_secret_registry(secret_registry_contract, print_gas):
+    """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b'secretsecretsecretsecretsecretse'
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
@@ -85,6 +89,7 @@ def test_channel_cycle(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
     settle_timeout = 11
 
@@ -192,6 +197,7 @@ def test_channel_cycle(
 
 
 def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_gas):
+    """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
     (A, B) = get_accounts(2)
     ENDPOINT = '127.0.0.1:38647'
     txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({

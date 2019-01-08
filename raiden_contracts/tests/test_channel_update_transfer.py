@@ -330,6 +330,16 @@ def test_update_wrong_signatures(
         *balance_proof_A,
     )
 
+    # Close the channel so updateNonClosingBalanceProof() is possible
+    token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+    ).transact({'from': A})
+
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
