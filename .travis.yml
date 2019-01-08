@@ -33,6 +33,7 @@ before_script:
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
+  - python raiden_contracts/tests/deprecation_switch_testnet.py; [ -eq $$? 2 ]
 
 deploy:
   provider: pypi
