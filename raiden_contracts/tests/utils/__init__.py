@@ -2,6 +2,6 @@
 
 from .constants import *
 from .mock import *
-from .contracts import *
+# from .contracts import *
 from .transaction import *
 from .channel import *
