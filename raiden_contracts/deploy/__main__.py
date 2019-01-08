@@ -73,9 +73,9 @@ class ContractDeployer:
         self.contract_manager = ContractManager(self.precompiled_path)
 
         # Check that the precompiled data is correct
-        self.contract_manager = ContractManager(contracts_source_path())
-        self.contract_manager.checksum_contracts()
-        self.contract_manager.verify_precompiled_checksums(self.precompiled_path)
+        contract_manager_source = ContractManager(contracts_source_path())
+        contract_manager_source.checksum_contracts()
+        contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
 
     def deploy(
         self,
