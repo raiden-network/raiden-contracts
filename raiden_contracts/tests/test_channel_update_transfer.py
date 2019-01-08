@@ -28,6 +28,7 @@ def test_update_call(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ Call updateNonClosingBalanceProof() with various wrong arguments """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 15, B)
@@ -48,6 +49,7 @@ def test_update_call(
     )
     (balance_hash, nonce, additional_hash, closing_signature) = balance_proof_A
 
+    # Failure with the zero address instead of A's address
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -56,6 +58,8 @@ def test_update_call(
             *balance_proof_A,
             balance_proof_update_signature_B,
         ).transact({'from': C})
+
+    # Failure with the zero address instead of B's address
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -64,6 +68,8 @@ def test_update_call(
             *balance_proof_A,
             balance_proof_update_signature_B,
         ).transact({'from': C})
+
+    # Failure with the zero signature
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -72,6 +78,8 @@ def test_update_call(
             *balance_proof_A,
             EMPTY_SIGNATURE,
         ).transact({'from': C})
+
+    # Failure with the empty balance hash
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -83,6 +91,8 @@ def test_update_call(
             closing_signature,
             balance_proof_update_signature_B,
         ).transact({'from': C})
+
+    # Failure with nonce zero
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -94,6 +104,8 @@ def test_update_call(
             closing_signature,
             balance_proof_update_signature_B,
         ).transact({'from': C})
+
+    # Failure with the empty signature
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -106,6 +118,18 @@ def test_update_call(
             balance_proof_update_signature_B,
         ).transact({'from': C})
 
+    # See a success to make sure the above failures are not spurious
+    token_network.functions.updateNonClosingBalanceProof(
+        channel_identifier,
+        A,
+        B,
+        balance_hash,
+        nonce,
+        additional_hash,
+        closing_signature,
+        balance_proof_update_signature_B,
+    ).transact({'from': C})
+
 
 def test_update_nonexistent_fail(
         get_accounts,
@@ -113,6 +137,7 @@ def test_update_nonexistent_fail(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ updateNonClosingBalanceProof() on a not-yet openned channel should fail """
     (A, B, C) = get_accounts(3)
     channel_identifier = 1
 
@@ -148,6 +173,7 @@ def test_update_notclosed_fail(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ updateNonClosingBalanceProof() on an Opened channel should fail """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
@@ -277,6 +303,7 @@ def test_update_wrong_signatures(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ updateNonClosingBalanceProof() should fail with wrong signatures """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
@@ -303,6 +330,16 @@ def test_update_wrong_signatures(
         *balance_proof_A,
     )
 
+    # Close the channel so updateNonClosingBalanceProof() is possible
+    token_network.functions.closeChannel(
+        channel_identifier,
+        B,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+    ).transact({'from': A})
+
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -320,6 +357,15 @@ def test_update_wrong_signatures(
             balance_proof_update_signature_B_fake,
         ).transact({'from': C})
 
+    # See a success to make sure that the above failures are not spurious
+    token_network.functions.updateNonClosingBalanceProof(
+        channel_identifier,
+        A,
+        B,
+        *balance_proof_A,
+        balance_proof_update_signature_B,
+    ).transact({'from': C})
+
 
 def test_update_channel_state(
         web3,
@@ -333,6 +379,7 @@ def test_update_channel_state(
         update_state_tests,
         txn_cost,
 ):
+    """ A successful updateNonClosingBalanceProof() call should not change token/ETH balances """
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
     deposit_A = 20
@@ -398,6 +445,7 @@ def test_update_channel_fail_no_offchain_transfers(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ Calls to updateNonClosingBalanceProof() fail with the zero nonce """
     (A, B) = get_accounts(2)
 
     channel_identifier = create_channel(A, B)[0]
@@ -448,7 +496,6 @@ def test_update_not_allowed_after_settlement_period(
         create_balance_proof_update_signature,
         web3,
 ):
-
     """ updateNonClosingBalanceProof cannot be called after the settlement period. """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -486,7 +533,6 @@ def test_update_not_allowed_for_the_closing_address(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
-
     """ Closing address cannot call updateNonClosingBalanceProof. """
     (A, B, M) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -550,6 +596,7 @@ def test_update_invalid_balance_proof_arguments(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ updateNonClosingBalanceProof() should fail on balance proofs with various wrong params """
     (A, B, C) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -776,7 +823,7 @@ def test_update_signature_on_invalid_arguments(
         create_balance_proof_update_signature,
 ):
 
-    """ Call updateNonClosingBalanceProof with signature on invalid argument fails. """
+    """ Call updateNonClosingBalanceProof with signature on invalid argument fails """
     (A, B, C) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -949,6 +996,7 @@ def test_update_replay_reopened_channel(
         create_balance_proof,
         create_balance_proof_update_signature,
 ):
+    """ updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id """
     (A, B) = get_accounts(2)
     nonce_B = 5
     values_A = ChannelValues(
@@ -1075,6 +1123,7 @@ def test_update_channel_event(
         create_balance_proof_update_signature,
         event_handler,
 ):
+    """ Successful updateNonClosingBalanceProof() emit BALANCE_PROOF_UPDATED events """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10

@@ -24,6 +24,7 @@ def test_withdraw_call(
         get_accounts,
         create_withdraw_signatures,
 ):
+    """ setTotalWithdraw() fails with various wrong arguments """
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
@@ -35,6 +36,7 @@ def test_withdraw_call(
         withdraw_A,
     )
 
+    # Failure with zero (integer) instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -43,6 +45,8 @@ def test_withdraw_call(
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with the empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -51,6 +55,8 @@ def test_withdraw_call(
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with a negative number as the total withdrawn amount
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -59,6 +65,8 @@ def test_withdraw_call(
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with an overflown number as the total withdrawn amount
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -68,6 +76,7 @@ def test_withdraw_call(
             signature_B_for_A,
         ).transact({'from': A})
 
+    # Failure with the zero address insted of a participant's address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -76,6 +85,8 @@ def test_withdraw_call(
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with zero as the total withdrawn amount
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -84,6 +95,8 @@ def test_withdraw_call(
             signature_A_for_A,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with the empty signature instead of A's
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -92,6 +105,8 @@ def test_withdraw_call(
             EMPTY_SIGNATURE,
             signature_B_for_A,
         ).transact({'from': A})
+
+    # Failure with the empty signature instead of B's
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -118,6 +133,7 @@ def test_withdraw_wrong_state(
         get_accounts,
         withdraw_channel,
 ):
+    """ setTotalWithdraw() should fail on a closed or settled channel """
     (A, B) = get_accounts(2)
     withdraw_A = 1
 
