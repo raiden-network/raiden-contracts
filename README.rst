@@ -115,7 +115,12 @@ If you are using the ``raiden-contracts`` package in your project, you can also 
 
 
 Deployment on a testnet
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
+
+- get the source code from the latest stable release
+- install development dependencies::
+
+    pip install -r requirements-dev.txt
 
 .. Note::
     If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``.
