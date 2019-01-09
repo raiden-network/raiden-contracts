@@ -167,7 +167,7 @@ def deprecation_test_setup(deployer, token_amount):
         deployer.transaction,
         private_key=deployer.private_key,
     )
-    log.debug(f'Aproving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}')
+    log.debug(f'Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}')
     check_succesful_tx(deployer.web3, txhash, deployer.wait)
 
     assert token_contract.functions.allowance(
