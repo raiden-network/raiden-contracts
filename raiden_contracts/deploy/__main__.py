@@ -32,6 +32,7 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployed,
 )
 from raiden_contracts.tests.utils.transaction import check_succesful_tx
+from raiden_contracts.tests.utils.contracts import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.types import Address
@@ -518,10 +519,11 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(endpoint_registry_address).hex()
-    compiled_bytecode = contract_manager.contracts[CONTRACT_ENDPOINT_REGISTRY]['bin']
-    # Compiled code contains some additional initial data compared to the blockchain bytecode
-    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
-    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    compiled_bytecode = runtime_hexcode(
+        contract_manager,
+        CONTRACT_ENDPOINT_REGISTRY,
+        len(blockchain_bytecode),
+    )
     assert blockchain_bytecode == compiled_bytecode
 
     # Check blockchain transaction hash & block information
@@ -557,9 +559,11 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(secret_registry_address).hex()
-    compiled_bytecode = contract_manager.contracts[CONTRACT_SECRET_REGISTRY]['bin']
-    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
-    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    compiled_bytecode = runtime_hexcode(
+        contract_manager,
+        CONTRACT_SECRET_REGISTRY,
+        len(blockchain_bytecode),
+    )
     assert blockchain_bytecode == compiled_bytecode
 
     # Check blockchain transaction hash & block information
@@ -597,9 +601,11 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(token_registry_address).hex()
-    compiled_bytecode = contract_manager.contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['bin']
-    compiled_bytecode = compiled_bytecode[-len(blockchain_bytecode):]
-    compiled_bytecode = hex(int(compiled_bytecode, 16))
+    compiled_bytecode = runtime_hexcode(
+        contract_manager,
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        len(blockchain_bytecode),
+    )
     assert blockchain_bytecode == compiled_bytecode
 
     # Check blockchain transaction hash & block information
