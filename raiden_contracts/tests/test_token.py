@@ -4,7 +4,7 @@ from raiden_contracts.constants import (
     CONTRACT_HUMAN_STANDARD_TOKEN,
     CONTRACT_CUSTOM_TOKEN,
 )
-from raiden_contracts.tests.utils.contracts import runtime_hexcode
+from raiden_contracts.utils.bytecode import runtime_hexcode
 
 
 def test_token_mint(web3, custom_token, get_accounts):

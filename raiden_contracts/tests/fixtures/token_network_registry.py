@@ -2,7 +2,7 @@ import pytest
 from web3.contract import get_event_data
 from eth_utils import is_address
 
-from raiden_contracts.tests.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,

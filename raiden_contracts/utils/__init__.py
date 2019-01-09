@@ -7,3 +7,4 @@ from .pending_transfers import *
 from .proofs import *
 from .signature import *
 from .types import *
+from .bytecode import *
