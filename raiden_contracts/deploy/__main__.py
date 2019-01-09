@@ -101,7 +101,10 @@ class ContractDeployer:
 
         # Get tx receipt to get contract address
         log.debug("Deploying %s txHash=%s" % (contract_name, encode_hex(txhash)))
-        receipt = check_succesful_tx(self.web3, txhash, self.wait)
+        (receipt, tx) = check_succesful_tx(self.web3, txhash, self.wait)
+        if not receipt['contractAddress']:  # happens with Parity
+            receipt = dict(receipt)
+            receipt['contractAddress'] = tx['creates']
         log.info(
             '{0} address: {1}. Gas used: {2}'.format(
                 contract_name,
@@ -463,7 +466,7 @@ def register_token_network(
             encode_hex(txhash),
         ),
     )
-    receipt = check_succesful_tx(web3, txhash, wait)
+    (receipt, _) = check_succesful_tx(web3, txhash, wait)
 
     token_network_address = token_network_registry.functions.token_to_token_networks(
         token_address,

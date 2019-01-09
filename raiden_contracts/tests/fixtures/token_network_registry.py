@@ -58,7 +58,7 @@ def add_and_register_token(
         txid = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_contract.address,
         ).transact({'from': contract_deployer_address})
-        tx_receipt = check_succesful_tx(web3, txid)
+        (tx_receipt, _) = check_succesful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
