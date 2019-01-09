@@ -1,13 +1,13 @@
 from random import randint
 from collections import namedtuple
 from functools import reduce
+from os import urandom
 
 from web3 import Web3
 from eth_abi import encode_abi
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
-from raiden_contracts.tests.utils.mock import random_secret, get_random_values_for_sum
 
 
 PendingTransfersTree = namedtuple('PendingTransfersTree', [
@@ -109,3 +109,18 @@ def get_packed_transfers(pending_transfers, types):
 
 def get_locked_amount(pending_transfers):
     return reduce((lambda x, y: x + y[1]), pending_transfers, 0)
+
+
+def random_secret():
+    secret = urandom(32)
+    return (Web3.soliditySha3(['bytes32'], [secret]), secret)
+
+
+def get_random_values_for_sum(values_sum):
+    amount = 0
+    values = []
+    while amount < values_sum:
+        value = randint(1, values_sum - amount)
+        values.append(value)
+        amount += value
+    return values

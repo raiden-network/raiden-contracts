@@ -31,8 +31,8 @@ from raiden_contracts.contract_manager import (
     contracts_deployed_path,
     get_contracts_deployed,
 )
-from raiden_contracts.tests.utils.transaction import check_succesful_tx
-from raiden_contracts.tests.utils.contracts import runtime_hexcode
+from raiden_contracts.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.bytecode import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.types import Address
