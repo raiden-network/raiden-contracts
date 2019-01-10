@@ -172,7 +172,7 @@ def common_options(func):
 
 
 def setup_ctx(
-    ctx: dict,
+    ctx: click.Context,
     private_key: str,
     rpc_provider: str,
     wait: int,
