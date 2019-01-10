@@ -12,7 +12,6 @@ from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
 log = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
-_BASE = _BASE.relative_to(Path.cwd())
 
 
 class ContractManagerCompilationError(RuntimeError):
@@ -71,7 +70,7 @@ class ContractManager:
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't compile contracts.")
 
-        import_dir_map = ['=.'] + ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
+        import_dir_map = ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
         try:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
@@ -208,7 +207,7 @@ def contracts_data_path(version: Optional[str] = None):
 
 def contracts_precompiled_path(version: Optional[str] = None):
     data_path = contracts_data_path(version)
-    return data_path.joinpath('contracts.json')
+    return _BASE.joinpath(data_path, 'contracts.json')
 
 
 def contracts_deployed_path(chain_id: int, version: Optional[str] = None):
