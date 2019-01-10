@@ -540,7 +540,7 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
-    version = endpoint_registry.functions.contract_version().call().decode()
+    version = endpoint_registry.functions.contract_version().call()
     assert version == deployment_data['contracts_version']
 
     print(
@@ -579,7 +579,7 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
-    version = secret_registry.functions.contract_version().call().decode()
+    version = secret_registry.functions.contract_version().call()
     assert version == deployment_data['contracts_version']
 
     print(
@@ -620,7 +620,7 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         f"instead of {receipt['contractAddress']}"
 
     # Check the contract version
-    version = token_network_registry.functions.contract_version().call().decode()
+    version = token_network_registry.functions.contract_version().call()
     assert version == deployment_data['contracts_version']
 
     # Check constructor parameters
