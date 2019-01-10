@@ -80,6 +80,8 @@ class ContractDeployer:
             contract_manager_source = ContractManager(contracts_source_path())
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
+        else:
+            log.info('Skipped checks against the source code because it is not available.')
 
     def deploy(
         self,
