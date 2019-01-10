@@ -202,6 +202,10 @@ def contracts_data_path(version: Optional[str] = None):
     if version is None or version == CONTRACTS_VERSION:
         return _BASE.joinpath('data')
     else:
+        # Temporary fix for the pre_limits version
+        # to avoid breaking changes
+        version = 'pre_limits' if version == '0.3._' else version
+
         return _BASE.joinpath(f'data_{version}')
 
 

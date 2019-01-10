@@ -23,6 +23,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
+    CONTRACTS_VERSION,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
@@ -73,10 +74,12 @@ class ContractDeployer:
         self.precompiled_path = contracts_precompiled_path(self.contracts_version)
         self.contract_manager = ContractManager(self.precompiled_path)
 
-        # Check that the precompiled data is correct
-        contract_manager_source = ContractManager(contracts_source_path())
-        contract_manager_source.checksum_contracts()
-        contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
+        # Check that the precompiled data matches the source code
+        # Only for current version, because this is the only one with source code
+        if self.contracts_version in [None, CONTRACTS_VERSION]:
+            contract_manager_source = ContractManager(contracts_source_path())
+            contract_manager_source.checksum_contracts()
+            contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
 
     def deploy(
         self,
@@ -100,7 +103,10 @@ class ContractDeployer:
         txhash = self.send_deployment_transaction(contract, args)
 
         # Get tx receipt to get contract address
-        log.debug("Deploying %s txHash=%s" % (contract_name, encode_hex(txhash)))
+        log.debug(
+            f'Deploying {contract_name} txHash={encode_hex(txhash)}, '
+            f'contracts version {self.contract_manager.contracts_version}',
+        )
         receipt = check_succesful_tx(self.web3, txhash, self.wait)
         log.info(
             '{0} address: {1}. Gas used: {2}'.format(
@@ -154,6 +160,11 @@ def common_options(func):
         '--gas-limit',
         default=5_500_000,
     )
+    @click.option(
+        '--contracts-version',
+        default=None,
+        help='Contracts version to verify. Current version will be used by default.',
+    )
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
@@ -161,12 +172,13 @@ def common_options(func):
 
 
 def setup_ctx(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
+    ctx: dict,
+    private_key: str,
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+    contracts_version: None = None,
 ):
     """Set up deployment context according to common options (shared among all
     subcommands).
@@ -191,6 +203,7 @@ def setup_ctx(
         gas_limit,
         gas_price,
         wait,
+        contracts_version,
     )
     ctx.obj = {}
     ctx.obj['deployer'] = deployer
@@ -220,8 +233,9 @@ def raiden(
     gas_price,
     gas_limit,
     save_info,
+    contracts_version,
 ):
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj['deployer']
     deployed_contracts_info = deploy_raiden_contracts(deployer)
     deployed_contracts = {
@@ -273,12 +287,13 @@ def token(
     wait,
     gas_price,
     gas_limit,
+    contracts_version,
     token_supply,
     token_name,
     token_decimals,
     token_symbol,
 ):
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj['deployer']
     token_supply *= 10 ** token_decimals
     deployed_token = deploy_token_contract(
@@ -315,10 +330,11 @@ def register(
     wait,
     gas_price,
     gas_limit,
+    contracts_version,
     token_address,
     registry_address,
 ):
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
 
