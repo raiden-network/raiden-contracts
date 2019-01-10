@@ -9,7 +9,7 @@
         - `test` - test contracts used to test core contracts
         - raiden core contracts files
     - `data` - compiled contracts data & deployment information
-    - `data_pre_limits` - compiled contracts data & deployment information for an older version with no limits
+    - `data_0.3._` - compiled contracts data & deployment information for an older version with only a channel limit of 100 tokens
     - `deploy` - deployment & verification scripts
     - `tests`
         - `fixtures` - fixtures used by all tests

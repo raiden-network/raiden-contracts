@@ -125,6 +125,8 @@ Deployment on a testnet
 .. Note::
     If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``.
 
+    If you want to use the development version with no limits on the number of registered tokens (there is a limit on the number of tokens per channel: ``100``), you can use the ``deploy`` script with ``-- contracts-version "0.3._"``. Be aware that this version is not production ready and is equivalent to this source code version: https://github.com/raiden-network/raiden-contracts/tree/7105cf818fc290107ad48df9497bddcdec5c540e/raiden_contracts/contracts.
+
 Check deployment options::
 
     python -m raiden_contracts.deploy --help
