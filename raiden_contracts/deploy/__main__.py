@@ -12,9 +12,8 @@ from typing import Any, Dict, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 
-from raiden_libs.private_contract import PrivateContract
 
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
@@ -62,16 +61,18 @@ class ContractDeployer:
         contracts_version: Optional[str]=None,
     ):
         self.web3 = web3
-        self.private_key = private_key
         self.wait = wait
         self.owner = private_key_to_address(private_key)
-        self.transaction = {'from': self.owner, 'gas_limit': gas_limit}
+        self.transaction = {'from': self.owner, 'gas': gas_limit}
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
         self.contracts_version = contracts_version
         self.precompiled_path = contracts_precompiled_path(self.contracts_version)
         self.contract_manager = ContractManager(self.precompiled_path)
+        self.web3.middleware_stack.add(
+            construct_sign_and_send_raw_middleware(private_key),
+        )
 
         # Check that the precompiled data is correct
         contract_manager_source = ContractManager(contracts_source_path())
@@ -94,7 +95,6 @@ class ContractDeployer:
             abi=contract_interface['abi'],
             bytecode=contract_interface['bin'],
         )
-        contract = PrivateContract(contract)
 
         # Get transaction hash from deployed contract
         txhash = self.send_deployment_transaction(contract, args)
@@ -117,7 +117,6 @@ class ContractDeployer:
             try:
                 txhash = contract.constructor(*args).transact(
                     self.transaction,
-                    private_key=self.private_key,
                 )
             except ValueError as ex:
                 if ex.args[0]['code'] == -32015:
@@ -332,7 +331,7 @@ def register(
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
     register_token_network(
         web3=deployer.web3,
-        private_key=deployer.private_key,
+        caller=deployer.owner,
         token_registry_abi=abi,
         token_registry_address=ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj['deployed_contracts'][token_type],
@@ -437,7 +436,7 @@ def deploy_token_contract(
 
 def register_token_network(
     web3: Web3,
-    private_key: str,
+    caller: str,
     token_registry_abi: Dict,
     token_registry_address: str,
     token_address: str,
@@ -449,12 +448,13 @@ def register_token_network(
         abi=token_registry_abi,
         address=token_registry_address,
     )
-    token_network_registry = PrivateContract(token_network_registry)
     txhash = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
     ).transact(
-        {'gas_limit': gas_limit},
-        private_key=private_key,
+        {
+            'from': caller,
+            'gas': gas_limit,
+        },
     )
     log.debug(
         "calling createERC20TokenNetwork(%s) txHash=%s" %
@@ -515,7 +515,6 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         abi=endpoint_registry_abi,
         address=endpoint_registry_address,
     )
-    endpoint_registry = PrivateContract(endpoint_registry)
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(endpoint_registry_address).hex()
@@ -555,7 +554,6 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         abi=secret_registry_abi,
         address=secret_registry_address,
     )
-    secret_registry = PrivateContract(secret_registry)
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(secret_registry_address).hex()
@@ -597,7 +595,6 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         abi=token_registry_abi,
         address=token_registry_address,
     )
-    token_network_registry = PrivateContract(token_network_registry)
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(token_registry_address).hex()

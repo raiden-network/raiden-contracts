@@ -2,8 +2,6 @@ import click
 from logging import getLogger
 from eth_utils import encode_hex
 
-from raiden_libs.private_contract import PrivateContract
-
 from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.deploy.__main__ import (
     setup_ctx,
@@ -83,7 +81,6 @@ def deprecation_test(
     assert token_network.functions.safety_deprecation_switch().call() is False
     txhash = token_network.functions.deprecate().transact(
         deployer.transaction,
-        private_key=deployer.private_key,
     )
     log.debug(f'Deprecation txHash={encode_hex(txhash)}')
     check_succesful_tx(deployer.web3, txhash, deployer.wait)
@@ -109,7 +106,6 @@ def deprecation_test_setup(deployer, token_amount):
         abi=token_network_registry_abi,
         address=deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'],
     )
-    token_network_registry = PrivateContract(token_network_registry)
 
     token_decimals = 18
     multiplier = 10 ** token_decimals
@@ -130,12 +126,10 @@ def deprecation_test_setup(deployer, token_amount):
         abi=token_abi,
         address=token_address,
     )
-    token_contract = PrivateContract(token_contract)
 
     # Mint some tokens for the owner
     txhash = token_contract.functions.mint(token_amount).transact(
         deployer.transaction,
-        private_key=deployer.private_key,
     )
 
     log.debug(f'Minting tokens txHash={encode_hex(txhash)}')
@@ -145,7 +139,7 @@ def deprecation_test_setup(deployer, token_amount):
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
     token_network_address = register_token_network(
         web3=deployer.web3,
-        private_key=deployer.private_key,
+        caller=deployer.owner,
         token_registry_abi=abi,
         token_registry_address=deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'],
         token_address=token_address,
@@ -157,15 +151,12 @@ def deprecation_test_setup(deployer, token_amount):
         abi=token_network_abi,
         address=token_network_address,
     )
-    token_network = PrivateContract(token_network)
-
     log.info(
         f'Registered the token and created a TokenNetwork contract at {token_network_address}.',
     )
 
     txhash = token_contract.functions.approve(token_network.address, token_amount).transact(
         deployer.transaction,
-        private_key=deployer.private_key,
     )
     log.debug(f'Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}')
     check_succesful_tx(deployer.web3, txhash, deployer.wait)
@@ -193,7 +184,6 @@ def open_and_deposit(
     try:
         txhash = token_network.functions.openChannel(A, B, DEPLOY_SETTLE_TIMEOUT_MIN).transact(
             deployer.transaction,
-            private_key=deployer.private_key,
         )
         log.debug(f'Opening a channel between {A} and {B} txHash={encode_hex(txhash)}')
         check_succesful_tx(deployer.web3, txhash, deployer.wait)
@@ -217,7 +207,6 @@ def open_and_deposit(
             B,
         ).transact(
             deployer.transaction,
-            private_key=deployer.private_key,
         )
         log.debug(
             f'Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {A} in a channel with '
@@ -240,7 +229,6 @@ def open_and_deposit(
             A,
         ).transact(
             deployer.transaction,
-            private_key=deployer.private_key,
         )
         log.debug(
             f'Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {B} in a channel with '
