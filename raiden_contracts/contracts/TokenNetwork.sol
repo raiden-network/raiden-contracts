@@ -769,7 +769,7 @@ contract TokenNetwork is Utils {
     /// @notice Unlocks all pending off-chain transfers from `partner` to
     /// `participant` and sends the locked tokens corresponding to locks with
     /// secrets registered on-chain to the `participant`. Locked tokens
-    /// corresponding to locks where the secret was not revelead on-chain will
+    /// corresponding to locks where the secret was not revealed on-chain will
     /// return to the `partner`. Anyone can call unlock.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place.
