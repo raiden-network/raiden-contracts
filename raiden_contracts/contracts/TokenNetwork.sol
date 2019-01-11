@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
@@ -473,7 +473,7 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes signature
+        bytes memory signature
     )
         isOpen(channel_identifier)
         public
@@ -540,8 +540,8 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes closing_signature,
-        bytes non_closing_signature
+        bytes calldata closing_signature,
+        bytes calldata non_closing_signature
     )
         external
     {
@@ -783,7 +783,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         address partner,
-        bytes merkle_tree_leaves
+        bytes memory merkle_tree_leaves
     )
         public
     {
@@ -1349,8 +1349,8 @@ contract TokenNetwork is Utils {
     }
 
     function getMaxPossibleReceivableAmount(
-        SettlementData participant1_settlement,
-        SettlementData participant2_settlement
+        SettlementData memory participant1_settlement,
+        SettlementData memory participant2_settlement
     )
         pure
         internal
@@ -1442,7 +1442,7 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes signature
+        bytes memory signature
     )
         view
         internal
@@ -1471,8 +1471,8 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes closing_signature,
-        bytes non_closing_signature
+        bytes memory closing_signature,
+        bytes memory non_closing_signature
     )
         view
         internal
@@ -1558,7 +1558,7 @@ contract TokenNetwork is Utils {
     /// @dev Calculates the merkle root for the pending transfers data and
     /// calculates the amount of tokens that can be unlocked because the secret
     /// was registered on-chain.
-    function getMerkleRootAndUnlockedAmount(bytes merkle_tree_leaves)
+    function getMerkleRootAndUnlockedAmount(bytes memory merkle_tree_leaves)
         view
         internal
         returns (bytes32, uint256)
@@ -1609,7 +1609,7 @@ contract TokenNetwork is Utils {
         return (merkle_root, total_unlocked_amount);
     }
 
-    function getLockDataFromMerkleTree(bytes merkle_tree_leaves, uint256 offset)
+    function getLockDataFromMerkleTree(bytes memory merkle_tree_leaves, uint256 offset)
         view
         internal
         returns (bytes32, uint256)

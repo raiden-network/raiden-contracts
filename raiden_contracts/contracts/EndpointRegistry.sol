@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 /// @title Endpoint Registry
 /// @notice This contract is a registry which maps an Ethereum address to its
@@ -9,14 +9,14 @@ contract EndpointRegistry {
     event AddressRegistered(address indexed eth_address, string endpoint);
     mapping (address => string) private address_to_endpoint;
 
-    modifier noEmptyString(string str) {
+    modifier noEmptyString(string memory str) {
         require(equals(str, "") != true);
         _;
     }
 
     /// @notice Registers the Ethereum address to the given endpoint.
     /// @param endpoint String in the format "127.0.0.1:38647".
-    function registerEndpoint(string endpoint)
+    function registerEndpoint(string memory endpoint)
         public
         noEmptyString(endpoint)
     {
@@ -39,7 +39,7 @@ contract EndpointRegistry {
     function findEndpointByAddress(address eth_address)
         public
         view
-        returns (string endpoint)
+        returns (string memory endpoint)
     {
         return address_to_endpoint[eth_address];
     }
@@ -48,7 +48,7 @@ contract EndpointRegistry {
     /// @param a First string.
     /// @param b Second string.
     /// @return result True if `a` and `b` are equal, false otherwise.
-    function equals(string a, string b) internal pure returns (bool result)
+    function equals(string memory a, string memory b) internal pure returns (bool result)
     {
         return (keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b)));
     }

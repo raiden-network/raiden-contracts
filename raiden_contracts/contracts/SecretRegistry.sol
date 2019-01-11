@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 /// @title SecretRegistry
 /// @notice SecretRegistry contract for registering secrets from Raiden Network
@@ -31,7 +31,7 @@ contract SecretRegistry {
     /// number.
     /// @param secrets The array of secrets to be registered.
     /// @return true if all secrets could be registered, false otherwise.
-    function registerSecretBatch(bytes32[] secrets) public returns (bool) {
+    function registerSecretBatch(bytes32[] memory secrets) public returns (bool) {
         bool completeSuccess = true;
         for(uint i = 0; i < secrets.length; i++) {
             if(!registerSecret(secrets[i])) {

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
@@ -26,7 +26,7 @@ contract CustomToken is StandardToken {
     uint8 public _decimals;
     uint256 public multiplier;
 
-    address public owner_address;
+    address payable public owner_address;
 
     /*
      * Events
@@ -44,8 +44,8 @@ contract CustomToken is StandardToken {
     constructor(
         uint256 initial_supply,
         uint8 decimal_units,
-        string token_name,
-        string token_symbol
+        string memory token_name,
+        string memory token_symbol
     )
         public
     {

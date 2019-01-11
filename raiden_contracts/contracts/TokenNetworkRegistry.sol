@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 import "raiden/Utils.sol";
 import "raiden/Token.sol";
