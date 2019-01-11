@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 from json import JSONDecodeError
+from os import chdir
 from pathlib import Path
 from typing import Dict, Union, Optional
 
@@ -70,11 +71,17 @@ class ContractManager:
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't compile contracts.")
 
-        import_dir_map = ['%s=%s' % (k, v) for k, v in self.contracts_source_dirs.items()]
+        old_working_dir = Path.cwd()
+        chdir(_BASE)
+
+        def relativise(path):
+            return path.relative_to(_BASE)
+        import_dir_map = ['=.'] + ['%s=%s' % (k, relativise(v))
+                                   for k, v in self.contracts_source_dirs.items()]
         try:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
-                    [str(file) for file in contracts_dir.glob('*.sol')],
+                    [str(relativise(file)) for file in contracts_dir.glob('*.sol')],
                     output_values=('abi', 'bin', 'bin-runtime', 'ast', 'metadata'),
                     import_remappings=import_dir_map,
                     optimize=False,
@@ -94,6 +101,8 @@ class ContractManager:
             raise ContractManagerCompilationError(
                 'Could not compile the contract. Check that solc is available.',
             ) from ex
+        finally:
+            chdir(old_working_dir)
 
     def compile_contracts(self, target_path: Path) -> None:
         """ Store compiled contracts JSON at `target_path`. """
@@ -207,7 +216,7 @@ def contracts_data_path(version: Optional[str] = None):
 
 def contracts_precompiled_path(version: Optional[str] = None):
     data_path = contracts_data_path(version)
-    return _BASE.joinpath(data_path, 'contracts.json')
+    return data_path.joinpath('contracts.json')
 
 
 def contracts_deployed_path(chain_id: int, version: Optional[str] = None):
