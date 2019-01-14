@@ -76,8 +76,10 @@ class ContractManager:
 
         def relativise(path):
             return path.relative_to(_BASE)
-        import_dir_map = ['=.'] + ['%s=%s' % (k, relativise(v))
-                                   for k, v in self.contracts_source_dirs.items()]
+        import_dir_map = [
+            '%s=%s' % (k, relativise(v))
+            for k, v in self.contracts_source_dirs.items()
+        ]
         try:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
