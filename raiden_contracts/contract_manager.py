@@ -6,7 +6,9 @@ from os import chdir
 from pathlib import Path
 from typing import Dict, Union, Optional
 
-from solc import compile_files
+from solc import compile_files, get_solc_version
+import semantic_version
+import warnings
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
 
 
@@ -71,6 +73,9 @@ class ContractManager:
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't compile contracts.")
 
+        # Raise an error if solc version goes down.
+        self.compare_old_solc_version()
+
         old_working_dir = Path.cwd()
         chdir(_BASE)
 
@@ -103,6 +108,43 @@ class ContractManager:
             ) from ex
         finally:
             chdir(old_working_dir)
+
+    def compare_old_solc_version(self) -> None:
+        """ Raise an error if solc version goes down. """
+        try:
+            current_solc_version = get_solc_version()
+        except FileNotFoundError as ex:
+            raise ContractManagerCompilationError(
+                'Could not compile the contract. Check that solc is available.',
+            ) from ex
+
+        precompiled_path = contracts_precompiled_path(self.contracts_version)
+        if not precompiled_path.exists():
+            warnings.warn(
+                f'Skip comparing solc versions to make sure no downgrade happened.'
+                f'No precompiled data file found in {precompiled_path}.',
+            )
+            return
+
+        precompiled_manager = ContractManager(precompiled_path)
+        for contract_name in precompiled_manager.contracts:
+            try:
+                metadata = json.loads(precompiled_manager.contracts[contract_name]['metadata'])
+                old_version = semantic_version.Version(metadata['compiler']['version'])
+
+                if current_solc_version < old_version:
+                    raise ContractManagerCompilationError(
+                        f'Solc version went down. '
+                        f'Current version is {current_solc_version}, '
+                        f'old version was {old_version}. If you really want to do this,'
+                        f'delete the old precompiled data file from {precompiled_path}',
+                    )
+            except (JSONDecodeError, UnicodeDecodeError) as ex:
+                warnings.warn(
+                    f'Comparing old solc version with new one. '
+                    f'Cannot load precompiled smart contract metadata from {contract_name}. '
+                    f'Do not panic, it probably does not exist. {ex}',
+                )
 
     def compile_contracts(self, target_path: Path) -> None:
         """ Store compiled contracts JSON at `target_path`. """
