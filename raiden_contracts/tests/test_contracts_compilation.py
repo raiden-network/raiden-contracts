@@ -10,11 +10,17 @@ from raiden_contracts.contract_manager import (
 )
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
+    PRECOMPILED_DATA_FIELDS,
     CONTRACT_TOKEN_NETWORK,
     NETWORKNAME_TO_ID,
     ChannelEvent,
 )
 
+
+def check_precompiled_content(manager, contract_names, fields):
+    for contract_name in contract_names:
+        for field in fields:
+            assert manager.contracts[contract_name][field]
 
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
@@ -87,6 +93,21 @@ def test_contracts_version():
 
 def test_current_development_version():
     """ contracts_source_path() exists and contains the expected files """
+    contracts_version = CONTRACTS_VERSION
+    contract_names = [
+        'Utils',
+        'EndpointRegistry',
+        'SecretRegistry',
+        'TokenNetworkRegistry',
+        'TokenNetwork',
+        'MonitoringService',
+        'RaidenServiceBundle',
+    ]
+
+    manager = ContractManager(contracts_precompiled_path(contracts_version))
+    assert manager.contracts_version == contracts_version
+    check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
+
     for _, source_path in contracts_source_path().items():
         assert source_path.exists()
     assert contracts_precompiled_path().exists()
@@ -101,8 +122,18 @@ def test_current_development_version():
 def test_red_eyes_version():
     """ contracts_source_path('0.4.0') exists and contains the expected files """
     contracts_version = '0.4.0'
+    contract_names = [
+        'Utils',
+        'EndpointRegistry',
+        'SecretRegistry',
+        'TokenNetworkRegistry',
+        'TokenNetwork',
+    ]
+
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     assert manager.contracts_version == contracts_version
+    check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
+
     assert contracts_precompiled_path(contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['mainnet'], contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby'], contracts_version).exists()
@@ -113,8 +144,18 @@ def test_red_eyes_version():
 def test_pre_limits_version():
     """ contracts_source_path('0.3._') exists and contains the expected files """
     contracts_version = '0.3._'
+    contract_names = [
+        'Utils',
+        'EndpointRegistry',
+        'SecretRegistry',
+        'TokenNetworkRegistry',
+        'TokenNetwork',
+    ]
+
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     assert manager.contracts_version == contracts_version
+    check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
+
     assert contracts_precompiled_path(contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby'], contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten'], contracts_version).exists()
