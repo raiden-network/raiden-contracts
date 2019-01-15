@@ -1,3 +1,7 @@
+pragma solidity ^0.5.2;
+
+import "raiden/Token.sol";
+
 /*
 This implements ONLY the standard functions and NOTHING else.
 For a token like you would want to deploy in something like Mist, see HumanStandardToken.sol.
@@ -6,8 +10,6 @@ If you deploy this, you won't have anything useful.
 
 Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
 .*/
-pragma solidity ^0.4.23;
-import "raiden/Token.sol";
 
 contract StandardToken is Token {
     uint256 internal _total_supply;
@@ -45,7 +47,7 @@ contract StandardToken is Token {
         } else { return false; }
     }
 
-    function balanceOf(address _owner) public constant returns (uint256 balance) {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         return balances[_owner];
     }
 
@@ -55,11 +57,11 @@ contract StandardToken is Token {
         return true;
     }
 
-    function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
       return allowed[_owner][_spender];
     }
 
-    function totalSupply() public constant returns (uint256 supply) {
+    function totalSupply() public view returns (uint256 supply) {
         return _total_supply;
     }
 }

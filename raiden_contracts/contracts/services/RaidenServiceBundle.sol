@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
@@ -10,7 +10,7 @@ contract RaidenServiceBundle is Utils {
     mapping(address => uint256) public deposits;
 
     constructor(address _token_address) public {
-        require(_token_address != 0x0);
+        require(_token_address != address(0x0));
         require(contractExists(_token_address));
 
         token = Token(_token_address);

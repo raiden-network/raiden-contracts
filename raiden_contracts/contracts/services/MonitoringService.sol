@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
@@ -78,8 +78,8 @@ contract MonitoringService is Utils {
     )
         public
     {
-        require(_token_address != 0x0);
-        require(_rsb_address != 0x0);
+        require(_token_address != address(0x0));
+        require(_rsb_address != address(0x0));
         require(contractExists(_token_address));
         require(contractExists(_rsb_address));
 
@@ -132,7 +132,7 @@ contract MonitoringService is Utils {
         uint256 reward_amount,
         uint256 nonce,
         address monitoring_service_address,
-        bytes reward_proof_signature
+        bytes memory reward_proof_signature
     )
     internal
     {
@@ -187,11 +187,11 @@ contract MonitoringService is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes closing_signature,
-        bytes non_closing_signature,
+        bytes memory closing_signature,
+        bytes memory non_closing_signature,
         uint256 reward_amount,
         address token_network_address,
-        bytes reward_proof_signature
+        bytes memory reward_proof_signature
     )
         canMonitor(msg.sender)
         public
@@ -263,7 +263,7 @@ contract MonitoringService is Utils {
         Reward storage reward = rewards[reward_identifier];
 
         // Make sure that the Reward exists
-        require(reward.reward_sender_address != 0x0);
+        require(reward.reward_sender_address != address(0x0));
 
         // Deduct reward from raiden_node deposit
         require(balances[reward.reward_sender_address] >= reward.reward_amount);
@@ -299,7 +299,7 @@ contract MonitoringService is Utils {
         address token_network_address,
         uint256 chain_id,
         uint256 nonce,
-        bytes signature
+        bytes memory signature
     )
         pure
         internal

@@ -1,3 +1,7 @@
+pragma solidity ^0.5.2;
+
+import "test/StandardToken.sol";
+
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20) as well as the following OPTIONAL extras intended for use by humans.
 
@@ -10,9 +14,6 @@ Machine-based, rapid creation of many tokens would not necessarily need these ex
 3) Optional approveAndCall() functionality to notify a contract if an approval() has occurred.
 
 .*/
-
-pragma solidity ^0.4.23;
-import "test/StandardToken.sol";
 
 contract HumanStandardToken is StandardToken {
     /* Public variables of the token */
@@ -31,8 +32,8 @@ contract HumanStandardToken is StandardToken {
     constructor(
         uint256 _initialAmount,
         uint8 _decimalUnits,
-        string _tokenName,
-        string _tokenSymbol
+        string memory _tokenName,
+        string memory _tokenSymbol
     )
         public
     {
@@ -44,20 +45,22 @@ contract HumanStandardToken is StandardToken {
     }
 
     /* Approves and then calls the receiving contract */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)
+    function approveAndCall(address _spender, uint256 _value, bytes memory _extraData)
         public
         returns (bool success)
     {
         allowed[msg.sender][_spender] = _value;
         //call the receiveApproval function on the contract you want to be notified. This crafts the function signature manually so one doesn't have to include a contract in here just for this.
         //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)
-        require(_spender.call(
-            bytes4(bytes32(keccak256("receiveApproval(address,uint256,address,bytes)"))),
+        (bool success, bytes memory data) = _spender.call(abi.encodeWithSignature(
+            "receiveApproval(address,uint256,address,bytes)",
             msg.sender,
             _value,
             this,
-            _extraData)
-        );
+            _extraData
+        ));
+        require(success);
+
         emit Approval(msg.sender, _spender, _value);
         return true;
     }

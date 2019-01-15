@@ -1,6 +1,6 @@
-pragma solidity ^0.4.23;
-import "raiden/TokenNetwork.sol";
+pragma solidity ^0.5.2;
 
+import "raiden/TokenNetwork.sol";
 
 contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
@@ -164,7 +164,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes signature
+        bytes memory signature
     )
         view
         public
@@ -184,8 +184,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes closing_signature,
-        bytes non_closing_signature
+        bytes memory closing_signature,
+        bytes memory non_closing_signature
     )
         view
         public
@@ -263,7 +263,7 @@ contract TokenNetworkUtilsTest is TokenNetwork {
 
     }
 
-    function getMerkleRootAndUnlockedAmountPublic(bytes merkle_tree_leaves)
+    function getMerkleRootAndUnlockedAmountPublic(bytes memory merkle_tree_leaves)
         view
         public
         returns (bytes32, uint256)
@@ -271,7 +271,7 @@ contract TokenNetworkUtilsTest is TokenNetwork {
         return getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
     }
 
-    function getLockDataFromMerkleTreePublic(bytes merkle_tree_leaves, uint256 offset)
+    function getLockDataFromMerkleTreePublic(bytes memory merkle_tree_leaves, uint256 offset)
         view
         public
         returns (bytes32, uint256)
