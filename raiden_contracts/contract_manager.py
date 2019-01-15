@@ -9,7 +9,11 @@ from typing import Dict, Union, Optional
 from solc import compile_files, get_solc_version
 import semantic_version
 import warnings
-from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, PRECOMPILED_DATA_FIELDS
+from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
+    ID_TO_NETWORKNAME,
+    PRECOMPILED_DATA_FIELDS,
+)
 
 
 log = logging.getLogger(__name__)

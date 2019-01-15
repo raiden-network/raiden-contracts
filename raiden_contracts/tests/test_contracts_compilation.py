@@ -22,6 +22,7 @@ def check_precompiled_content(manager, contract_names, fields):
         for field in fields:
             assert manager.contracts[contract_name][field]
 
+
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
     manager = ContractManager(contracts_source_path())
