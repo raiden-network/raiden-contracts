@@ -28,9 +28,18 @@ Usage
 
 We do not recommend the smart contracts to be used in production as of this moment. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
 
-If you want to use the officially deployed contracts, please use the ``raiden_contracts/data/contracts.json`` file to get the ABI and bytecode for initializing the contract instances.
+If you want to use the officially deployed contracts, please use the ``raiden_contracts/data_<CONTRACTS_VERSION>`` files to get the precompiled data (ABI, bytecode etc.) and addresses for initializing the contract instances.
 
-You can find the addresses of the deployed contracts in ``raiden_contracts/constants.py``, along with other useful constants that you can import.
+You can find other useful constants that you can import in ``raiden_contracts/constants.py``.
+
+.. Note::
+    There are currently three versions supported in this package:
+
+    * Development ``0.3._`` contracts version (from ``0.3.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.3.0). No limits on the number of tokens registered; has a limit of 100 tokens per channel). Source code: https://github.com/raiden-network/raiden-contracts/tree/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts
+    * Red Eyes Mainnet ``0.4.0`` contracts version (from ``0.7.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.7.0). Source code: https://github.com/raiden-network/raiden-contracts/tree/fac73623d5b92b7c070fdde2b446648ec9117474/raiden_contracts/contracts
+    * current !development version corresponding with the ``master`` branch (might not be stable).
+
+    These are temporary and will be removed in favor of only one contracts version in the Ithaca Milestone.
 
 If you are using the ``raiden-contracts`` package in your project, you can use::
 
@@ -43,7 +52,11 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
-    manager = ContractManager(contracts_precompiled_path())
+    contracts_version = None     # uses current development! version
+    contracts_version = '0.4.0'  # uses Red Eyes, Mainnet enabled version
+    contracts_version = '0.3._'  # uses the pre-red-eyes development version
+
+    manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
 
     deployment_data = get_contracts_deployed(int(web3.version.network))
@@ -111,7 +124,7 @@ If you are using the ``raiden-contracts`` package in your project, you can also 
         contracts_source_path,
     )
 
-    manager = ContractManager(contracts_source_path())
+    manager = ContractManager(contracts_source_path(<CONTRACTS_VERSION>))
 
 
 Deployment on a testnet
@@ -125,7 +138,7 @@ Deployment on a testnet
 .. Note::
     If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``.
 
-    If you want to use the development version with no limits on the number of registered tokens (there is a limit on the number of tokens per channel: ``100``), you can use the ``deploy`` script with ``-- contracts-version "0.3._"``. Be aware that this version is not production ready and is equivalent to this source code version: https://github.com/raiden-network/raiden-contracts/tree/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts.
+    If you want to use a particular version of the contracts that is supported, you can use the ``deploy`` script with ``-- contracts-version "0.4.0"``.
 
 Check deployment options::
 

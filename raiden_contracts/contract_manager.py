@@ -9,7 +9,11 @@ from typing import Dict, Union, Optional
 from solc import compile_files, get_solc_version
 import semantic_version
 import warnings
-from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
+from raiden_contracts.constants import (
+    CONTRACTS_VERSION,
+    ID_TO_NETWORKNAME,
+    PRECOMPILED_DATA_FIELDS,
+)
 
 
 log = logging.getLogger(__name__)
@@ -89,7 +93,7 @@ class ContractManager:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
                     [str(relativise(file)) for file in contracts_dir.glob('*.sol')],
-                    output_values=('abi', 'bin', 'bin-runtime', 'ast', 'metadata'),
+                    output_values=PRECOMPILED_DATA_FIELDS + ['ast'],
                     import_remappings=import_dir_map,
                     optimize=False,
                 )
