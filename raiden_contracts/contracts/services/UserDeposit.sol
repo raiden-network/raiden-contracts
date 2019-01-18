@@ -19,7 +19,7 @@ contract UserDeposit is Utils {
      */
     struct WithdrawPlan {
         uint256 amount;
-        uint256 earliest_withdraw;  // earliest block at which withdraw is allowed
+        uint256 withdraw_block;  // earliest block at which withdraw is allowed
     }
 
     /*
@@ -97,7 +97,7 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Announce intention to withdraw tokens.
-    /// Sets the planned withdraw amount and resets the earliest_withdraw
+    /// Sets the planned withdraw amount and resets the withdraw_block
     /// @param amount Maximum amount of tokens to be withdrawn
     function planWithdraw(uint256 amount) public {
         require(amount > 0);
@@ -105,7 +105,7 @@ contract UserDeposit is Utils {
 
         withdraw_plans[msg.sender] = WithdrawPlan({
             amount: amount,
-            earliest_withdraw: block.number + withdraw_delay
+            withdraw_block: block.number + withdraw_delay
         });
         emit WithdrawPlanned(msg.sender, balances[msg.sender] - amount);
     }
@@ -119,7 +119,7 @@ contract UserDeposit is Utils {
     function withdraw(uint256 amount) public {
         WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
         require(amount <= withdraw_plan.amount);
-        require(withdraw_plan.earliest_withdraw <= block.number);
+        require(withdraw_plan.withdraw_block <= block.number);
         //amount = min(amount, balances[msg.sender]);
         amount = amount < balances[msg.sender] ? amount : balances[msg.sender];
         balances[msg.sender] -= amount;
