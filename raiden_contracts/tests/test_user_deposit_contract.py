@@ -1,6 +1,6 @@
 import pytest
 
-from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
+from raiden_contracts.constants import CONTRACT_USER_DEPOSIT, CONTRACTS_VERSION
 
 
 @pytest.fixture
@@ -77,3 +77,9 @@ def test_withdraw(
     user_deposit_contract.functions.withdraw(18).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 12
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
+
+
+def test_version(user_deposit_contract):
+    """ Check the result of contract_version() call on the UserDeposit """
+    version = user_deposit_contract.functions.contract_version().call()
+    assert version == CONTRACTS_VERSION
