@@ -1,3 +1,6 @@
+import pytest
+from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.constants import CONTRACTS_VERSION
 
 
@@ -13,14 +16,25 @@ def test_deposit(
     # deposit to A's own balance
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 10
+    assert custom_token.functions.balanceOf(A).call() == 20
 
     # increase A's deposit
     user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 20
+    assert custom_token.functions.balanceOf(A).call() == 10
+
+    # a deposit can't be decreased by calling deposit
+    with pytest.raises(TransactionFailed):
+        user_deposit_contract.functions.deposit(A, 19).transact({'from': A})
 
     # A deposits to the benefit of B
     user_deposit_contract.functions.deposit(B, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(B).call() == 10
+    assert custom_token.functions.balanceOf(A).call() == 0
+
+    # can't deposit if not enough tokens are approved
+    with pytest.raises(TransactionFailed):
+        user_deposit_contract.functions.deposit(A, 21).transact({'from': A})
 
 
 def test_transfer(
@@ -57,9 +71,18 @@ def test_withdraw(
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 10
 
-    # actually withdraw 18 tokens
+    # withdraw won't work before withdraw_delay elapsed
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.testing.mine(withdraw_delay)
+    web3.testing.mine(withdraw_delay - 2)
+    with pytest.raises(TransactionFailed):
+        user_deposit_contract.functions.withdraw(18).transact({'from': A})
+
+    # can't withdraw more then planned
+    web3.testing.mine(1)  # now withdraw_delay is over
+    with pytest.raises(TransactionFailed):
+        user_deposit_contract.functions.withdraw(21).transact({'from': A})
+
+    # actually withdraw 18 tokens
     user_deposit_contract.functions.withdraw(18).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 12
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
