@@ -45,9 +45,7 @@ contract UserDeposit is Utils {
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    constructor(
-        address _token_address
-    )
+    constructor(address _token_address)
         public
     {
         require(_token_address != address(0x0));
@@ -63,7 +61,8 @@ contract UserDeposit is Utils {
     /// Can be called by anyone several times and on behalf of other accounts
     /// @param beneficiary The account benefiting from the deposit
     /// @param total_deposit The sum of tokens, that have been deposited
-    function deposit(address beneficiary, uint256 total_deposit) public
+    function deposit(address beneficiary, uint256 total_deposit)
+        public
     {
         require(total_deposit > balances[beneficiary]);
 
@@ -78,13 +77,15 @@ contract UserDeposit is Utils {
     /// The amount will be deducted from the msg sender's balance
     /// @param receiver Account to which the amount will be credited
     /// @param amount Amount of tokens to be withdrawn
+    /// @return true if transfer has been done successfully, otherwise false
     function transfer(
         address sender,
         address receiver,
         uint256 amount
     )
         canTransfer()
-        public returns (bool success)
+        public
+        returns (bool success)
     {
         if (balances[sender] >= amount && amount > 0) {
             balances[sender] -= amount;
@@ -99,7 +100,9 @@ contract UserDeposit is Utils {
     /// @notice Announce intention to withdraw tokens.
     /// Sets the planned withdraw amount and resets the withdraw_block
     /// @param amount Maximum amount of tokens to be withdrawn
-    function planWithdraw(uint256 amount) public {
+    function planWithdraw(uint256 amount)
+        public
+    {
         require(amount > 0);
         require(balances[msg.sender] >= amount);
 
@@ -116,7 +119,9 @@ contract UserDeposit is Utils {
     /// Removes the withdraw plan even if not the full amount has been
     /// withdrawn.
     /// @param amount Amount of tokens to be withdrawn
-    function withdraw(uint256 amount) public {
+    function withdraw(uint256 amount)
+        public
+    {
         WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
         require(amount <= withdraw_plan.amount);
         require(withdraw_plan.withdraw_block <= block.number);
@@ -131,10 +136,10 @@ contract UserDeposit is Utils {
 
     /// @notice The owner's balance with planned withdrawals deducted
     /// @param owner Address for which the balance should be returned
-    function effectiveBalance(
-        address owner
-    )
-        public returns (uint256 remaining_balance)
+    /// @return The remaining balance after planned withdrawals
+    function effectiveBalance(address owner)
+        public
+        returns (uint256 remaining_balance)
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[owner];
         return balances[owner] - withdraw_plan.amount;
