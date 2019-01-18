@@ -3,7 +3,7 @@ pragma solidity ^0.5.2;
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
-contract UserDepositContract is Utils {
+contract UserDeposit is Utils {
     string constant public contract_version = "0.1.0";
     uint constant public withdraw_delay = 100;  // time before withdraw is allowed in blocks
 
