@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
+from web3.contract import Contract
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 
 
@@ -524,132 +525,48 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
             chain_id,
             contract_manager.contracts_version,
         )
-
-    contracts = deployment_data['contracts']
+    assert deployment_data is not None
 
     assert contract_manager.contracts_version == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
-    endpoint_registry_address = contracts[CONTRACT_ENDPOINT_REGISTRY]['address']
-    endpoint_registry_abi = contract_manager.get_contract_abi(CONTRACT_ENDPOINT_REGISTRY)
-    endpoint_registry = web3.eth.contract(
-        abi=endpoint_registry_abi,
-        address=endpoint_registry_address,
-    )
-
-    # Check that the deployed bytecode matches the precompiled data
-    blockchain_bytecode = web3.eth.getCode(endpoint_registry_address).hex()
-    compiled_bytecode = runtime_hexcode(
+    endpoint_registry = verify_deployed_contract(
+        web3,
         contract_manager,
+        deployment_data,
         CONTRACT_ENDPOINT_REGISTRY,
-        len(blockchain_bytecode),
     )
-    assert blockchain_bytecode == compiled_bytecode
-
-    # Check blockchain transaction hash & block information
-    receipt = web3.eth.getTransactionReceipt(
-        contracts[CONTRACT_ENDPOINT_REGISTRY]['transaction_hash'],
-    )
-    assert receipt['blockNumber'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number'], \
-        f"We have block_number {contracts[CONTRACT_ENDPOINT_REGISTRY]['block_number']} " \
-        f"instead of {receipt['blockNumber']}"
-    assert receipt['gasUsed'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost'], \
-        f"We have gasUsed {contracts[CONTRACT_ENDPOINT_REGISTRY]['gas_cost']} " \
-        f"instead of {receipt['gasUsed']}"
-    assert receipt['contractAddress'] == contracts[CONTRACT_ENDPOINT_REGISTRY]['address'], \
-        f"We have contractAddress {contracts[CONTRACT_ENDPOINT_REGISTRY]['address']} " \
-        f"instead of {receipt['contractAddress']}"
-
-    # Check the contract version
-    version = endpoint_registry.functions.contract_version().call()
-    assert version == deployment_data['contracts_version']
-
     print(
-        f'{CONTRACT_ENDPOINT_REGISTRY} at {endpoint_registry_address} '
+        f'{CONTRACT_ENDPOINT_REGISTRY} at {endpoint_registry.address} '
         f'matches the compiled data from contracts.json',
     )
 
-    secret_registry_address = contracts[CONTRACT_SECRET_REGISTRY]['address']
-    secret_registry_abi = contract_manager.get_contract_abi(CONTRACT_SECRET_REGISTRY)
-    secret_registry = web3.eth.contract(
-        abi=secret_registry_abi,
-        address=secret_registry_address,
-    )
-
-    # Check that the deployed bytecode matches the precompiled data
-    blockchain_bytecode = web3.eth.getCode(secret_registry_address).hex()
-    compiled_bytecode = runtime_hexcode(
+    secret_registry = verify_deployed_contract(
+        web3,
         contract_manager,
+        deployment_data,
         CONTRACT_SECRET_REGISTRY,
-        len(blockchain_bytecode),
     )
-    assert blockchain_bytecode == compiled_bytecode
-
-    # Check blockchain transaction hash & block information
-    receipt = web3.eth.getTransactionReceipt(
-        contracts[CONTRACT_SECRET_REGISTRY]['transaction_hash'],
-    )
-    assert receipt['blockNumber'] == contracts[CONTRACT_SECRET_REGISTRY]['block_number'], \
-        f"We have block_number {contracts[CONTRACT_SECRET_REGISTRY]['block_number']} " \
-        f"instead of {receipt['blockNumber']}"
-    assert receipt['gasUsed'] == contracts[CONTRACT_SECRET_REGISTRY]['gas_cost'], \
-        f"We have gasUsed {contracts[CONTRACT_SECRET_REGISTRY]['gas_cost']} " \
-        f"instead of {receipt['gasUsed']}"
-    assert receipt['contractAddress'] == contracts[CONTRACT_SECRET_REGISTRY]['address'], \
-        f"We have contractAddress {contracts[CONTRACT_SECRET_REGISTRY]['address']} " \
-        f"instead of {receipt['contractAddress']}"
-
-    # Check the contract version
-    version = secret_registry.functions.contract_version().call()
-    assert version == deployment_data['contracts_version']
-
     print(
-        f'{CONTRACT_SECRET_REGISTRY} at {secret_registry_address} '
+        f'{CONTRACT_SECRET_REGISTRY} at {secret_registry.address} '
         f'matches the compiled data from contracts.json',
     )
 
-    token_registry_address = contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']
-    token_registry_abi = contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-    )
-    token_network_registry = web3.eth.contract(
-        abi=token_registry_abi,
-        address=token_registry_address,
-    )
-
-    # Check that the deployed bytecode matches the precompiled data
-    blockchain_bytecode = web3.eth.getCode(token_registry_address).hex()
-    compiled_bytecode = runtime_hexcode(
+    token_network_registry = verify_deployed_contract(
+        web3,
         contract_manager,
+        deployment_data,
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        len(blockchain_bytecode),
     )
-    assert blockchain_bytecode == compiled_bytecode
 
-    # Check blockchain transaction hash & block information
-    receipt = web3.eth.getTransactionReceipt(
-        contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['transaction_hash'],
-    )
-    assert receipt['blockNumber'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'], \
-        f"We have block_number {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number']} " \
-        f"instead of {receipt['blockNumber']}"
-    assert receipt['gasUsed'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost'], \
-        f"We have gasUsed {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost']} " \
-        f"instead of {receipt['gasUsed']}"
-    assert receipt['contractAddress'] == contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'], \
-        f"We have contractAddress {contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address']} " \
-        f"instead of {receipt['contractAddress']}"
-
-    # Check the contract version
-    version = token_network_registry.functions.contract_version().call()
-    assert version == deployment_data['contracts_version']
-
-    # Check constructor parameters
-    constructor_arguments = contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['constructor_arguments']
+    # We need to also check the constructor parameters against the chain
+    constructor_arguments = deployment_data['contracts'][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]['constructor_arguments']
     assert to_checksum_address(
         token_network_registry.functions.secret_registry_address().call(),
-    ) == secret_registry_address
-    assert secret_registry_address == constructor_arguments[0]
+    ) == secret_registry.address
+    assert secret_registry.address == constructor_arguments[0]
 
     chain_id = token_network_registry.functions.chain_id().call()
     assert chain_id == constructor_arguments[1]
@@ -660,12 +577,63 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     assert settlement_timeout_max == constructor_arguments[3]
 
     print(
-        f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_registry_address} '
+        f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_network_registry.address} '
         f'matches the compiled data from contracts.json',
     )
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
+
+
+def verify_deployed_contract(
+    web3: Web3,
+    contract_manager: ContractManager,
+    deployment_data: dict,
+    contract_name: str,
+) -> Contract:
+    """ Verify deployment info against the chain
+
+    Verifies:
+    - the runtime bytecode - precompiled data against the chain
+    - information stored in deployment_*.json against the chain,
+    except for the constructor arguments, which have to be checked
+    separately.
+    """
+    contracts = deployment_data['contracts']
+
+    contract_address = contracts[contract_name]['address']
+    contract_instance = web3.eth.contract(
+        abi=contract_manager.get_contract_abi(contract_name),
+        address=contract_address,
+    )
+
+    # Check that the deployed bytecode matches the precompiled data
+    blockchain_bytecode = web3.eth.getCode(contract_address).hex()
+    compiled_bytecode = runtime_hexcode(contract_manager, contract_name)
+    assert blockchain_bytecode == compiled_bytecode
+
+    # Check blockchain transaction hash & block information
+    receipt = web3.eth.getTransactionReceipt(
+        contracts[contract_name]['transaction_hash'],
+    )
+    assert receipt['blockNumber'] == contracts[contract_name]['block_number'], (
+        f"We have block_number {contracts[contract_name]['block_number']} "
+        f"instead of {receipt['blockNumber']}"
+    )
+    assert receipt['gasUsed'] == contracts[contract_name]['gas_cost'], (
+        f"We have gasUsed {contracts[contract_name]['gas_cost']} "
+        f"instead of {receipt['gasUsed']}"
+    )
+    assert receipt['contractAddress'] == contracts[contract_name]['address'], (
+        f"We have contractAddress {contracts[contract_name]['address']} "
+        f"instead of {receipt['contractAddress']}"
+    )
+
+    # Check the contract version
+    version = contract_instance.functions.contract_version().call()
+    assert version == deployment_data['contracts_version']
+
+    return contract_instance
 
 
 # Classes for static type checking of deployed_contracts dictionary.
