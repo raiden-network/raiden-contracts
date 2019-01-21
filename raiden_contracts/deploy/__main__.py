@@ -21,6 +21,8 @@ from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_RAIDEN_SERVICE_BUNDLE,
+    CONTRACT_MONITORING_SERVICE,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
     CONTRACTS_VERSION,
@@ -265,6 +267,55 @@ def raiden(
 @main.command()
 @common_options
 @click.option(
+    '--token-address',
+    default=None,
+    callback=validate_address,
+    help='Address of token used to pay for the services (MS, PFS).',
+)
+@click.option(
+    '--save-info',
+    default=True,
+    help='Save deployment info to a file.',
+)
+@click.pass_context
+def services(
+    ctx,
+    private_key,
+    rpc_provider,
+    wait,
+    gas_price,
+    gas_limit,
+    token_address,
+    save_info,
+    contracts_version,
+):
+    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    deployer = ctx.obj['deployer']
+
+    deployed_contracts_info = deploy_service_contracts(deployer, token_address)
+    deployed_contracts = {
+        contract_name: info['address']
+        for contract_name, info in deployed_contracts_info['contracts'].items()
+    }
+
+    if save_info is True:
+        store_deployment_info(deployed_contracts_info, services=True)
+        verify_deployed_service_contracts(deployer.web3, deployer.contract_manager, token_address)
+    else:
+        verify_deployed_service_contracts(
+            deployer.web3,
+            deployer.contract_manager,
+            token_address,
+            deployed_contracts_info,
+        )
+
+    print(json.dumps(deployed_contracts, indent=4))
+    ctx.obj['deployed_contracts'].update(deployed_contracts)
+
+
+@main.command()
+@common_options
+@click.option(
     '--token-supply',
     default=10000000,
     help='Token contract supply (number of total issued tokens).',
@@ -437,6 +488,49 @@ def deploy_raiden_contracts(
     return deployed_contracts
 
 
+def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
+    """Deploy 3rd party service contracts"""
+    deployed_contracts: DeployedContracts = {
+        'contracts_version': deployer.contract_manager.contracts_version,
+        'chain_id': int(deployer.web3.version.network),
+        'contracts': {},
+    }
+
+    service_bundle_constructor_arguments = [token_address]
+    service_bundle_receipt = deployer.deploy(
+        CONTRACT_RAIDEN_SERVICE_BUNDLE,
+        service_bundle_constructor_arguments,
+    )
+    deployed_contracts['contracts'][CONTRACT_RAIDEN_SERVICE_BUNDLE] = {
+        'address': to_checksum_address(
+            service_bundle_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(service_bundle_receipt['transactionHash']),
+        'block_number': service_bundle_receipt['blockNumber'],
+        'gas_cost': service_bundle_receipt['gasUsed'],
+        'constructor_arguments': service_bundle_constructor_arguments,
+    }
+
+    monitoring_service_constructor_args = [
+        token_address,
+        deployed_contracts['contracts'][CONTRACT_RAIDEN_SERVICE_BUNDLE]['address'],
+    ]
+    monitoring_service_receipt = deployer.deploy(
+        CONTRACT_MONITORING_SERVICE,
+        monitoring_service_constructor_args,
+    )
+    deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE] = {
+        'address': to_checksum_address(
+            monitoring_service_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(monitoring_service_receipt['transactionHash']),
+        'block_number': monitoring_service_receipt['blockNumber'],
+        'gas_cost': monitoring_service_receipt['gasUsed'],
+        'constructor_arguments': monitoring_service_constructor_args,
+    }
+    return deployed_contracts
+
+
 def deploy_token_contract(
     deployer: ContractDeployer,
     token_supply: int,
@@ -501,10 +595,11 @@ def register_token_network(
     return token_network_address
 
 
-def store_deployment_info(deployment_info: dict):
+def store_deployment_info(deployment_info: dict, services: bool=False):
     deployment_file_path = contracts_deployed_path(
         deployment_info['chain_id'],
         deployment_info['contracts_version'],
+        services,
     )
     with deployment_file_path.open(mode='w') as target_file:
         target_file.write(json.dumps(deployment_info))
@@ -578,6 +673,83 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
 
     print(
         f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_network_registry.address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    if deployment_file_path is not None:
+        print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
+
+
+def verify_deployed_service_contracts(
+    web3: Web3,
+    contract_manager: ContractManager,
+    token_address: str,
+    deployment_data: dict=None,
+):
+    chain_id = int(web3.version.network)
+    deployment_file_path = None
+
+    if deployment_data is None:
+        deployment_data = get_contracts_deployed(
+            chain_id,
+            contract_manager.contracts_version,
+            services=True,
+        )
+        deployment_file_path = contracts_deployed_path(
+            chain_id,
+            contract_manager.contracts_version,
+            services=True,
+        )
+    assert deployment_data is not None
+
+    assert contract_manager.contracts_version == deployment_data['contracts_version']
+    assert chain_id == deployment_data['chain_id']
+
+    service_bundle = verify_deployed_contract(
+        web3,
+        contract_manager,
+        deployment_data,
+        CONTRACT_RAIDEN_SERVICE_BUNDLE,
+    )
+
+    # We need to also check the constructor parameters against the chain
+    constructor_arguments = deployment_data['contracts'][
+        CONTRACT_RAIDEN_SERVICE_BUNDLE
+    ]['constructor_arguments']
+    assert to_checksum_address(
+        service_bundle.functions.token().call(),
+    ) == token_address
+    assert token_address == constructor_arguments[0]
+
+    print(
+        f'{CONTRACT_RAIDEN_SERVICE_BUNDLE} at {service_bundle.address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    monitoring_service = verify_deployed_contract(
+        web3,
+        contract_manager,
+        deployment_data,
+        CONTRACT_MONITORING_SERVICE,
+    )
+
+    # We need to also check the constructor parameters against the chain
+    constructor_arguments = deployment_data['contracts'][
+        CONTRACT_MONITORING_SERVICE
+    ]['constructor_arguments']
+
+    assert to_checksum_address(
+        monitoring_service.functions.token().call(),
+    ) == token_address
+    assert token_address == constructor_arguments[0]
+
+    assert to_checksum_address(
+        monitoring_service.functions.rsb().call(),
+    ) == service_bundle.address
+    assert service_bundle.address == constructor_arguments[1]
+
+    print(
+        f'{CONTRACT_MONITORING_SERVICE} at {monitoring_service.address} '
         f'matches the compiled data from contracts.json',
     )
 

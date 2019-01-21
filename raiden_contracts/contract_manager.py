@@ -267,15 +267,15 @@ def contracts_precompiled_path(version: Optional[str] = None):
     return data_path.joinpath('contracts.json')
 
 
-def contracts_deployed_path(chain_id: int, version: Optional[str] = None):
+def contracts_deployed_path(chain_id: int, version: Optional[str] = None, services: bool = False):
     data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
-    return data_path.joinpath(f'deployment_{chain_name}.json')
+    return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
 
-def get_contracts_deployed(chain_id: int, version: Optional[str] = None):
-    deployment_file_path = contracts_deployed_path(chain_id, version)
+def get_contracts_deployed(chain_id: int, version: Optional[str] = None, services: bool = False):
+    deployment_file_path = contracts_deployed_path(chain_id, version, services)
 
     try:
         with deployment_file_path.open() as deployment_file:
