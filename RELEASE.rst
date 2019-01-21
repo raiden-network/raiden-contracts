@@ -32,6 +32,8 @@ When we want to release another version of the ``raiden-contracts`` package, we 
 Check Source Code Changes
 -------------------------
 
+First, identify the last release in `the GitHub page <https://github.com/raiden-network/raiden-contracts/releases>`__ and find the corresponding tag in Git.
+
 For a package release, source code changes imply changes in:
 
 **Compiled Data**
