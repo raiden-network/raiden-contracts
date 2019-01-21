@@ -74,20 +74,12 @@ def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
 def test_custom_token(custom_token, web3, contracts_manager):
     """ See custom_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(custom_token.address).hex()
-    compiled_bytecode = runtime_hexcode(
-        contracts_manager,
-        CONTRACT_CUSTOM_TOKEN,
-        len(blockchain_bytecode),
-    )
+    compiled_bytecode = runtime_hexcode(contracts_manager, CONTRACT_CUSTOM_TOKEN)
     assert blockchain_bytecode == compiled_bytecode
 
 
 def test_human_standard_token(human_standard_token, web3, contracts_manager):
     """ See human_standard_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(human_standard_token.address).hex()
-    compiled_bytecode = runtime_hexcode(
-        contracts_manager,
-        CONTRACT_HUMAN_STANDARD_TOKEN,
-        len(blockchain_bytecode),
-    )
+    compiled_bytecode = runtime_hexcode(contracts_manager, CONTRACT_HUMAN_STANDARD_TOKEN)
     assert blockchain_bytecode == compiled_bytecode
