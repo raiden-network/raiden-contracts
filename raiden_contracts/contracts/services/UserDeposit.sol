@@ -62,7 +62,7 @@ contract UserDeposit is Utils {
     /// @param beneficiary The account benefiting from the deposit
     /// @param total_deposit The sum of tokens, that have been deposited
     function deposit(address beneficiary, uint256 total_deposit)
-        public
+        external
     {
         require(total_deposit > balances[beneficiary]);
 
@@ -84,7 +84,7 @@ contract UserDeposit is Utils {
         uint256 amount
     )
         canTransfer()
-        public
+        external
         returns (bool success)
     {
         if (balances[sender] >= amount && amount > 0) {
@@ -101,7 +101,7 @@ contract UserDeposit is Utils {
     /// Sets the planned withdraw amount and resets the withdraw_block
     /// @param amount Maximum amount of tokens to be withdrawn
     function planWithdraw(uint256 amount)
-        public
+        external
     {
         require(amount > 0);
         require(balances[msg.sender] >= amount);
@@ -120,15 +120,15 @@ contract UserDeposit is Utils {
     /// withdrawn.
     /// @param amount Amount of tokens to be withdrawn
     function withdraw(uint256 amount)
-        public
+        external
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
         require(amount <= withdraw_plan.amount);
         require(withdraw_plan.withdraw_block <= block.number);
-        //amount = min(amount, balances[msg.sender]);
-        amount = amount < balances[msg.sender] ? amount : balances[msg.sender];
-        balances[msg.sender] -= amount;
-        require(token.transfer(msg.sender, amount));
+        //withdrawable = min(amount, balances[msg.sender]);
+        uint256 withdrawable = amount < balances[msg.sender] ? amount : balances[msg.sender];
+        balances[msg.sender] -= withdrawable;
+        require(token.transfer(msg.sender, withdrawable));
 
         emit BalanceReduced(msg.sender, balances[msg.sender]);
         delete withdraw_plans[msg.sender];
@@ -138,7 +138,7 @@ contract UserDeposit is Utils {
     /// @param owner Address for which the balance should be returned
     /// @return The remaining balance after planned withdrawals
     function effectiveBalance(address owner)
-        public
+        external
         returns (uint256 remaining_balance)
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[owner];
