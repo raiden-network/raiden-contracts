@@ -46,9 +46,17 @@ def test_transfer(
     custom_token.functions.mint(10).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+
+    # happy case
     user_deposit_contract.functions.transfer(A, B, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 10
+
+    # no tokens left
+    assert not user_deposit_contract.functions.transfer(A, B, 1).call({'from': A})
+
+    # not enough tokens left
+    assert not user_deposit_contract.functions.transfer(B, A, 11).call({'from': A})
 
 
 def test_withdraw(
