@@ -89,6 +89,16 @@ class LogHandler:
                 raise Exception(message + ' waiting_events ' + str(waiting_events),
                                 ' len(self.event_unkown) ' + str(len(self.event_unknown)))
 
+    def assert_event(self, txn_hash, event_name, args, timeout=5):
+        """ Assert that `event_name` is emmited with the `args`
+
+        For use in tests only.
+        """
+        def assert_args(event):
+            assert event['args'] == args, f"{event['args']} == {args}"
+        self.add(txn_hash, event_name, assert_args)
+        self.check(timeout=timeout)
+
 
 class LogFilter:
     def __init__(self,

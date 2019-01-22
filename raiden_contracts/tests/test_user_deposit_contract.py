@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.constants import CONTRACTS_VERSION
+from raiden_contracts.constants import CONTRACTS_VERSION, UserDepositEvent
 
 
 def test_deposit(
@@ -41,14 +41,17 @@ def test_transfer(
     user_deposit_contract,
     custom_token,
     get_accounts,
+    event_handler,
 ):
+    ev_handler = event_handler(user_deposit_contract)
     (A, B) = get_accounts(2)
     custom_token.functions.mint(10).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
 
     # happy case
-    user_deposit_contract.functions.transfer(A, B, 10).transact({'from': A})
+    tx_hash = user_deposit_contract.functions.transfer(A, B, 10).transact({'from': A})
+    ev_handler.assert_event(tx_hash, UserDepositEvent.BALANCE_REDUCED, dict(owner=A, newBalance=0))
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 10
 
@@ -64,9 +67,11 @@ def test_withdraw(
     custom_token,
     get_accounts,
     web3,
+    event_handler,
 ):
     """ Test the interaction between planWithdraw, widthdraw and effectiveBalance
     """
+    ev_handler = event_handler(user_deposit_contract)
     (A,) = get_accounts(1)
     custom_token.functions.mint(30).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
@@ -75,7 +80,12 @@ def test_withdraw(
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 30
 
     # plan withdraw of 20 tokens
-    user_deposit_contract.functions.planWithdraw(20).transact({'from': A})
+    tx_hash = user_deposit_contract.functions.planWithdraw(20).transact({'from': A})
+    ev_handler.assert_event(
+        tx_hash,
+        UserDepositEvent.WITHDRAW_PLANNED,
+        dict(withdrawer=A, plannedBalance=10),
+    )
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 10
 
