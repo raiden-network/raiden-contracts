@@ -103,6 +103,12 @@ class MonitoringServiceEvent(str, Enum):
     WITHDRAWN = 'Withdrawn'
 
 
+# Message types used by UserDeposit contract
+class UserDepositEvent(str, Enum):
+    BALANCE_REDUCED = 'BalanceReduced'
+    WITHDRAW_PLANNED = 'WithdrawPlanned'
+
+
 # Network configurations
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
 
