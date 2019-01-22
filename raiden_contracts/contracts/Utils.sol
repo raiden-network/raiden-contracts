@@ -4,7 +4,7 @@ pragma solidity ^0.5.2;
 /// @notice Utils contract for various helpers used by the Raiden Network smart
 /// contracts.
 contract Utils {
-    string constant public contract_version = "0.4.1";
+    string constant public contract_version = "0.5.0";
 
     /// @notice Check if a contract exists
     /// @param contract_address The address to check whether a contract is

@@ -7,7 +7,7 @@ import "raiden/TokenNetwork.sol";
 import "services/RaidenServiceBundle.sol";
 
 contract MonitoringService is Utils {
-    string constant public contract_version = "0.4.1";
+    string constant public contract_version = "0.5.0";
 
     // Token to be used for paying the rewards
     Token public token;
