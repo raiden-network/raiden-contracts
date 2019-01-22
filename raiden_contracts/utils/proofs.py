@@ -220,3 +220,20 @@ def sign_reward_proof(
     )
 
     return sign(privatekey, message_hash, v)
+
+
+def sign_one_to_n_iou(
+        privatekey,
+        sender,
+        receiver,
+        amount,
+        expiration,
+        v=27,
+):
+    iou_hash = eth_sign_hash_message(
+        Web3.toBytes(hexstr=sender) +
+        Web3.toBytes(hexstr=receiver) +
+        encode_single('uint256', amount) +
+        encode_single('uint256', expiration),
+    )
+    return sign(privatekey, iou_hash, v)
