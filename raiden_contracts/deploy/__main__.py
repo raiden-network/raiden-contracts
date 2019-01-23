@@ -409,6 +409,7 @@ def register(
         token_registry_address=ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj['deployed_contracts'][token_type],
         wait=ctx.obj['wait'],
+        gas_price=gas_price,
     )
 
 
@@ -558,6 +559,7 @@ def register_token_network(
     token_address: str,
     wait=10,
     gas_limit=4000000,
+    gas_price=10,
 ):
     """Register token with a TokenNetworkRegistry contract."""
     token_network_registry = web3.eth.contract(
@@ -570,6 +572,7 @@ def register_token_network(
         {
             'from': caller,
             'gas': gas_limit,
+            'gasPrice': gas_price * denoms.gwei,
         },
     )
     log.debug(
