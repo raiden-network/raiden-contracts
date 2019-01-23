@@ -25,6 +25,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+raiden_contracts/deploy/flatten.sol
 
 # ignore private keys
 *.pem
