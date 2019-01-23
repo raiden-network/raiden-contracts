@@ -113,6 +113,8 @@ Note that we currently have some issues with the script: https://github.com/raid
 Bump Package Version
 --------------------
 
+Before bumping the package version, ``git add`` the deployment data at ``data/deployment_[CHAIN_NAME].json``.  Then run
+
 ::
 
     bumpversion --config-file ./.bumpversion.cfg [PART]
