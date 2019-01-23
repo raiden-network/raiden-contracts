@@ -1,8 +1,6 @@
 Release Process Document
 ========================
 
-**This document has not been tested by someone else than @loredanacirstea.**
-
 Package Deliverables
 ^^^^^^^^^^^^^^^^^^^^
 
