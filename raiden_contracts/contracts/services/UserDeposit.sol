@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    string constant public contract_version = "0.4.1";
+    string constant public contract_version = "0.5.0";
     uint constant public withdraw_delay = 100;  // time before withdraw is allowed in blocks
 
     // Token to be used for the deposit
@@ -76,7 +76,7 @@ contract UserDeposit is Utils {
     /// total_deposit of tokens of the beneficiary.
     /// Can be called by anyone several times and on behalf of other accounts
     /// @param beneficiary The account benefiting from the deposit
-    /// @param total_deposit The sum of tokens, that have been deposited
+    /// @param total_deposit The amount tokens in the user's deposit after the call
     function deposit(address beneficiary, uint256 total_deposit)
         external
     {
@@ -85,14 +85,14 @@ contract UserDeposit is Utils {
         // Calculate the actual amount of tokens that will be transferred
         uint256 added_deposit = total_deposit - balances[beneficiary];
 
-        balances[beneficiary] += added_deposit;
         require(token.transferFrom(msg.sender, address(this), added_deposit));
+        balances[beneficiary] += added_deposit;
     }
 
-    /// @notice Internally transfer deposits between two addresses
-    /// The amount will be deducted from the msg sender's balance
+    /// @notice Internally transfer deposits between two addresses.
+    /// @param sender Account from which the amount will be deducted
     /// @param receiver Account to which the amount will be credited
-    /// @param amount Amount of tokens to be withdrawn
+    /// @param amount Amount of tokens to be transferred
     /// @return true if transfer has been done successfully, otherwise false
     function transfer(
         address sender,
@@ -114,7 +114,8 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Announce intention to withdraw tokens.
-    /// Sets the planned withdraw amount and resets the withdraw_block
+    /// Sets the planned withdraw amount and resets the withdraw_block.
+    /// There is only one planned withdrawal at a time, the old one gets overwritten.
     /// @param amount Maximum amount of tokens to be withdrawn
     function planWithdraw(uint256 amount)
         external
@@ -141,8 +142,7 @@ contract UserDeposit is Utils {
         WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
         require(amount <= withdraw_plan.amount);
         require(withdraw_plan.withdraw_block <= block.number);
-        //withdrawable = min(amount, balances[msg.sender]);
-        uint256 withdrawable = amount < balances[msg.sender] ? amount : balances[msg.sender];
+        uint256 withdrawable = min(amount, balances[msg.sender]);
         balances[msg.sender] -= withdrawable;
         require(token.transfer(msg.sender, withdrawable));
 
@@ -158,6 +158,14 @@ contract UserDeposit is Utils {
         returns (uint256 remaining_balance)
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[owner];
+        if (withdraw_plan.amount > balances[owner]) {
+            return 0;
+        }
         return balances[owner] - withdraw_plan.amount;
+    }
+
+    function min(uint256 a, uint256 b) pure internal returns (uint256)
+    {
+        return a > b ? b : a;
     }
 }

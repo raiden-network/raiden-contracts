@@ -64,7 +64,8 @@ def test_transfer(
     # no tokens left
     assert not udc_transfer_contract.functions.transfer(A, B, 1).call()
 
-    # not enough tokens left
+    # (not) enough tokens left
+    assert udc_transfer_contract.functions.transfer(B, A, 10).call()
     assert not udc_transfer_contract.functions.transfer(B, A, 11).call()
 
 
