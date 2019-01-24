@@ -10,6 +10,9 @@ contract UserDeposit is Utils {
     // Token to be used for the deposit
     Token public token;
 
+    // Trusted contract (can execute `transfer`)
+    address public msc_address;
+
     // Keep track of balances
     mapping(address => uint256) public balances;
     mapping(address => WithdrawPlan) public withdraw_plans;
@@ -34,8 +37,7 @@ contract UserDeposit is Utils {
      */
 
     modifier canTransfer() {
-        // TODO: allow only access from MSC and 1-n payment contract
-        require(true);
+        require(msg.sender == msc_address);
         _;
     }
 
@@ -48,12 +50,26 @@ contract UserDeposit is Utils {
     constructor(address _token_address)
         public
     {
+        // check token contract
         require(_token_address != address(0x0));
         require(contractExists(_token_address));
-
         token = Token(_token_address);
-        // Check if the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0); // Check if the contract is indeed a token contract
+    }
+
+    /// @notice Specify trusted contracts. This has to be done outside of the
+    /// constructor to avoid cyclic dependencies.
+    /// @param _msc_address Address of the MonitoringService contract
+    function init(address _msc_address)
+        external
+    {
+        // prevent changes of trusted contract after initialization
+        require(msc_address == address(0x0));
+
+        // check monitoring service contract
+        require(_msc_address != address(0x0));
+        require(contractExists(_msc_address));
+        msc_address = _msc_address;
     }
 
     /// @notice Deposit tokens. Idempotent function that sets the

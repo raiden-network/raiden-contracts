@@ -39,6 +39,7 @@ def test_deposit(
 
 def test_transfer(
     user_deposit_contract,
+    udc_transfer_contract,
     custom_token,
     get_accounts,
     event_handler,
@@ -49,17 +50,22 @@ def test_transfer(
     custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
 
+    # only trusted contracts can call transfer (init has not been called, yet)
+    with pytest.raises(TransactionFailed):
+        udc_transfer_contract.functions.transfer(A, B, 10).transact()
+
     # happy case
-    tx_hash = user_deposit_contract.functions.transfer(A, B, 10).transact({'from': A})
+    user_deposit_contract.functions.init(udc_transfer_contract.address).transact()
+    tx_hash = udc_transfer_contract.functions.transfer(A, B, 10).transact()
     ev_handler.assert_event(tx_hash, UserDepositEvent.BALANCE_REDUCED, dict(owner=A, newBalance=0))
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 10
 
     # no tokens left
-    assert not user_deposit_contract.functions.transfer(A, B, 1).call({'from': A})
+    assert not udc_transfer_contract.functions.transfer(A, B, 1).call()
 
     # not enough tokens left
-    assert not user_deposit_contract.functions.transfer(B, A, 11).call({'from': A})
+    assert not udc_transfer_contract.functions.transfer(B, A, 11).call()
 
 
 def test_withdraw(
