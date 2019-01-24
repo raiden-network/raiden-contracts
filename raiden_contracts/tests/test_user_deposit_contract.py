@@ -10,18 +10,20 @@ def test_deposit(
     get_accounts,
 ):
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(30).transact({'from': A})
+    custom_token.functions.mint(100).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
 
     # deposit to A's own balance
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 10
-    assert custom_token.functions.balanceOf(A).call() == 20
+    assert custom_token.functions.balanceOf(A).call() == 90
+    assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 10
 
     # increase A's deposit
     user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 20
-    assert custom_token.functions.balanceOf(A).call() == 10
+    assert custom_token.functions.balanceOf(A).call() == 80
+    assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 20
 
     # a deposit can't be decreased by calling deposit
     with pytest.raises(TransactionFailed):
@@ -30,7 +32,8 @@ def test_deposit(
     # A deposits to the benefit of B
     user_deposit_contract.functions.deposit(B, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(B).call() == 10
-    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(A).call() == 70
+    assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 30
 
     # can't deposit if not enough tokens are approved
     with pytest.raises(TransactionFailed):
