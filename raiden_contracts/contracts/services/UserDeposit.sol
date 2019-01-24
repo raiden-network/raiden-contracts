@@ -85,8 +85,8 @@ contract UserDeposit is Utils {
         // Calculate the actual amount of tokens that will be transferred
         uint256 added_deposit = total_deposit - balances[beneficiary];
 
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
         balances[beneficiary] += added_deposit;
+        require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
     /// @notice Internally transfer deposits between two addresses.
@@ -103,6 +103,7 @@ contract UserDeposit is Utils {
         external
         returns (bool success)
     {
+        require(sender != receiver);
         if (balances[sender] >= amount && amount > 0) {
             balances[sender] -= amount;
             balances[receiver] += amount;
