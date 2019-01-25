@@ -113,11 +113,10 @@ def test_current_development_version():
         assert source_path.exists()
     assert contracts_precompiled_path().exists()
 
-    # TODO: uncomment after testnet deployment
-    # see https://github.com/raiden-network/raiden-contracts/issues/444)
-    # assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby']).exists()
-    # assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten']).exists()
-    # assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan']).exists()
+    # deployment files exist
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby']).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten']).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan']).exists()
 
 
 def test_red_eyes_version():
