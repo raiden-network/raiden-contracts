@@ -90,6 +90,7 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Internally transfer deposits between two addresses.
+    /// Sender and receiver must be different or the transaction will fail.
     /// @param sender Account from which the amount will be deducted
     /// @param receiver Account to which the amount will be credited
     /// @param amount Amount of tokens to be transferred

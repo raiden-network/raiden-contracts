@@ -35,7 +35,7 @@ def test_deposit(
     assert custom_token.functions.balanceOf(A).call() == 70
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 30
 
-    # can't deposit if not enough tokens are approved
+    # Can't deposit more than the token contract allows
     with pytest.raises(TransactionFailed):
         user_deposit_contract.functions.deposit(A, 21).transact({'from': A})
 
