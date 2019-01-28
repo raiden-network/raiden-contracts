@@ -35,8 +35,7 @@ def check_channel_opened(channel_identifier, participant1, participant2, settle_
     return get
 
 
-# Check TokenNetwork.ChannelNewDeposit events. Use check_ms_new_deposit for
-# MonitoringService.NewDeposit events.
+# Check TokenNetwork.ChannelNewDeposit events. Not for UDC deposits!
 def check_new_deposit(channel_identifier, participant, deposit):
     def get(event):
         assert event['args']['channel_identifier'] == channel_identifier
@@ -92,13 +91,6 @@ def check_channel_settled(channel_identifier, participant1_amount, participant2_
         assert event['args']['channel_identifier'] == channel_identifier
         assert event['args']['participant1_amount'] == participant1_amount
         assert event['args']['participant2_amount'] == participant2_amount
-    return get
-
-
-def check_ms_new_deposit(receiver, amount):
-    def get(event):
-        assert event['args']['receiver'] == receiver
-        assert event['args']['amount'] == amount
     return get
 
 

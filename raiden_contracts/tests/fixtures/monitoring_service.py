@@ -18,8 +18,10 @@ def monitoring_service_external(
     get_monitoring_service,
     custom_token,
     raiden_service_bundle,
+    user_deposit_contract,
 ):
     return get_monitoring_service([
         custom_token.address,
         raiden_service_bundle.address,
+        user_deposit_contract.address,
     ])

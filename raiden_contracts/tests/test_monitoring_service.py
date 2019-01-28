@@ -5,7 +5,6 @@ from web3 import Web3
 from raiden_contracts.constants import ChannelEvent, MonitoringServiceEvent
 from raiden_contracts.utils.events import (
     check_channel_closed,
-    check_ms_new_deposit,
     check_new_balance_proof_received,
     check_reward_claimed,
 )
@@ -57,7 +56,9 @@ def test_msc_happy_path(
     event_handler,
     raiden_service_bundle,
     custom_token,
+    user_deposit_contract,
 ):
+    user_deposit_contract.functions.init(monitoring_service_external.address).transact()
     # setup: two parties + MS
     token_network_ev_handler = event_handler(token_network)
     ms_ev_handler = event_handler(monitoring_service_external)
@@ -70,16 +71,9 @@ def test_msc_happy_path(
     # register MS in the RaidenServiceBundle contract
     custom_token.functions.approve(raiden_service_bundle.address, 20).transact({'from': MS})
     raiden_service_bundle.functions.deposit(20).transact({'from': MS})
-    ms_balance_after_deposit = monitoring_service_external.functions.balances(MS).call()
     # raiden node deposit
-    custom_token.functions.approve(monitoring_service_external.address, 20).transact({'from': B})
-    txn_hash = monitoring_service_external.functions.deposit(B, 20).transact({'from': B})
-    ms_ev_handler.add(
-        txn_hash,
-        MonitoringServiceEvent.NEW_DEPOSIT,
-        check_ms_new_deposit(B, 20),
-    )
-    ms_ev_handler.check()
+    custom_token.functions.approve(user_deposit_contract.address, 20).transact({'from': B})
+    txn_hash = user_deposit_contract.functions.deposit(B, 20).transact({'from': B})
 
     # 1) open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
@@ -177,5 +171,5 @@ def test_msc_happy_path(
         ),
     )
     ms_ev_handler.check()
-    ms_balance_after_reward = monitoring_service_external.functions.balances(MS).call()
-    assert ms_balance_after_reward == (ms_balance_after_deposit + reward_amount)
+    ms_balance_after_reward = user_deposit_contract.functions.balances(MS).call()
+    assert ms_balance_after_reward == reward_amount
