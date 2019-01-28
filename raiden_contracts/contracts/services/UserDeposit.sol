@@ -13,7 +13,10 @@ contract UserDeposit is Utils {
     // Trusted contract (can execute `transfer`)
     address public msc_address;
 
-    // Keep track of balances
+    // Total amount of tokens that have been deposited. This is monotonous and
+    // doing a transfer or withdrawing tokens will not decrease total_deposit!
+    mapping(address => uint256) public total_deposit;
+    // Current user's balance, ignoring planned withdraws
     mapping(address => uint256) public balances;
     mapping(address => WithdrawPlan) public withdraw_plans;
 
@@ -72,20 +75,23 @@ contract UserDeposit is Utils {
         msc_address = _msc_address;
     }
 
-    /// @notice Deposit tokens. Idempotent function that sets the
-    /// total_deposit of tokens of the beneficiary.
-    /// Can be called by anyone several times and on behalf of other accounts
+    /// @notice Deposit tokens. The amount of transferred tokens will be
+    /// `new_total_deposit - total_deposit[beneficiary]`. This makes the
+    /// function behavior predictable and idempotent. Can be called several
+    /// times and on behalf of other accounts.
     /// @param beneficiary The account benefiting from the deposit
-    /// @param total_deposit The amount tokens in the user's deposit after the call
-    function deposit(address beneficiary, uint256 total_deposit)
+    /// @param new_total_deposit The total sum of tokens that have been
+    /// deposited by the user by calling this function.
+    function deposit(address beneficiary, uint256 new_total_deposit)
         external
     {
-        require(total_deposit > balances[beneficiary]);
+        require(new_total_deposit > total_deposit[beneficiary]);
 
         // Calculate the actual amount of tokens that will be transferred
-        uint256 added_deposit = total_deposit - balances[beneficiary];
+        uint256 added_deposit = new_total_deposit - total_deposit[beneficiary];
 
         balances[beneficiary] += added_deposit;
+        total_deposit[beneficiary] += added_deposit;
         require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
