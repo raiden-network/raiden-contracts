@@ -49,6 +49,7 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     )
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
+        CONTRACT_MONITORING_SERVICE,
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
@@ -65,8 +66,13 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     # And then use:
     # compiled_contract_data['abi']
     # compiled_contract_data['bin']
-    # ROPSTEN_TOKEN_NETWORK_REGISTRY_ADDRESS
+    # TOKEN_NETWORK_REGISTRY_ADDRESS
     # to initialize the contract instance
+
+    # To use one of the 3rd party services contracts:
+    compiled_ms_contract = manager.get_contract(CONTRACT_MONITORING_SERVICE)
+    deployed_services = get_contracts_deployed(int(web3.version.network), services=True)
+    MONITORING_SERVICE_ADDRESS = deployed_services['contracts'][CONTRACT_MONITORING_SERVICE].address
 
 
 All contracts under ``raiden_contracts/contracts/test/`` are only for testing purposes and they should not be used in production.
