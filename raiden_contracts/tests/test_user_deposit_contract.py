@@ -16,12 +16,14 @@ def test_deposit(
     # deposit to A's own balance
     user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 10
+    assert user_deposit_contract.functions.total_deposit(A).call() == 10
     assert custom_token.functions.balanceOf(A).call() == 90
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 10
 
     # increase A's deposit
     user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 20
+    assert user_deposit_contract.functions.total_deposit(A).call() == 20
     assert custom_token.functions.balanceOf(A).call() == 80
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 20
 
@@ -32,6 +34,7 @@ def test_deposit(
     # A deposits to the benefit of B
     user_deposit_contract.functions.deposit(B, 10).transact({'from': A})
     assert user_deposit_contract.functions.balances(B).call() == 10
+    assert user_deposit_contract.functions.total_deposit(B).call() == 10
     assert custom_token.functions.balanceOf(A).call() == 70
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 30
 
@@ -70,6 +73,38 @@ def test_transfer(
     # (not) enough tokens left
     assert udc_transfer_contract.functions.transfer(B, A, 10).call()
     assert not udc_transfer_contract.functions.transfer(B, A, 11).call()
+
+
+def test_deposit_after_transfer(
+    user_deposit_contract,
+    udc_transfer_contract,
+    custom_token,
+    get_accounts,
+):
+    """ Make sure that `total_deposit` and `balance` are not mixed up.
+
+    When doing a deposit followed by a transfer, both variables start to differ
+    and we can use another deposit to verify that each is handled correctly.
+    """
+    user_deposit_contract.functions.init(udc_transfer_contract.address).transact()
+    (A, B) = get_accounts(2)
+    custom_token.functions.mint(100).transact({'from': A})
+    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
+
+    # deposit + transact
+    user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    udc_transfer_contract.functions.transfer(A, B, 10).transact()
+    assert user_deposit_contract.functions.balances(A).call() == 0
+    assert user_deposit_contract.functions.total_deposit(A).call() == 10
+    assert custom_token.functions.balanceOf(A).call() == 90
+    assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 10
+
+    # check after another deposit
+    user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
+    assert user_deposit_contract.functions.balances(A).call() == 10
+    assert user_deposit_contract.functions.total_deposit(A).call() == 20
+    assert custom_token.functions.balanceOf(A).call() == 80
+    assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 20
 
 
 def test_withdraw(
