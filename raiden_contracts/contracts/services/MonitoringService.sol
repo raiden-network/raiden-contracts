@@ -5,6 +5,7 @@ import "raiden/Utils.sol";
 import "raiden/lib/ECVerify.sol";
 import "raiden/TokenNetwork.sol";
 import "services/RaidenServiceBundle.sol";
+import "services/UserDeposit.sol";
 
 contract MonitoringService is Utils {
     string constant public contract_version = "0.5.0";
@@ -14,13 +15,11 @@ contract MonitoringService is Utils {
 
     // Raiden Service Bundle contract to use for checking if MS has deposits
     RaidenServiceBundle public rsb;
+    UserDeposit public user_deposit;
 
     // keccak256(channel_identifier, token_network_address) => Struct
     // Keep track of the rewards per channel
     mapping(bytes32 => Reward) rewards;
-
-    // Keep track of balances
-    mapping(address => uint256) public balances;
 
     /*
      *  Structs
@@ -36,7 +35,7 @@ contract MonitoringService is Utils {
         // This is also the address that has the reward deducted from its deposit
         address reward_sender_address;
 
-        // Address of the Monitoring Service who is currenly eligible to claim the reward
+        // Address of the Monitoring Service who is currently eligible to claim the reward
         address monitoring_service_address;
     }
 
@@ -44,7 +43,6 @@ contract MonitoringService is Utils {
      *  Events
      */
 
-    event NewDeposit(address indexed receiver, uint amount);
     event NewBalanceProofReceived(
         address token_network_address,
         uint256 channel_identifier,
@@ -54,7 +52,6 @@ contract MonitoringService is Utils {
         address indexed raiden_node_address
     );
     event RewardClaimed(address indexed ms_address, uint amount, bytes32 indexed reward_identifier);
-    event Withdrawn(address indexed account, uint amount);
 
     /*
      *  Modifiers
@@ -74,45 +71,25 @@ contract MonitoringService is Utils {
     /// @param _rsb_address The address of the RaidenServiceBundle contract
     constructor(
         address _token_address,
-        address _rsb_address
+        address _rsb_address,
+        address _udc_address
     )
         public
     {
         require(_token_address != address(0x0));
         require(_rsb_address != address(0x0));
+        require(_udc_address != address(0x0));
         require(contractExists(_token_address));
         require(contractExists(_rsb_address));
+        require(contractExists(_udc_address));
 
         token = Token(_token_address);
         rsb = RaidenServiceBundle(_rsb_address);
+        user_deposit = UserDeposit(_udc_address);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
         // Check if the contract is indeed an rsb contract
         // TODO: Check that some function exists in the contract
-    }
-
-    /// @notice Deposit tokens used to reward MSs. Idempotent function that sets the
-    /// total_deposit of tokens of the beneficiary
-    /// Can be called by anyone several times and on behalf of other accounts
-    /// @param beneficiary The account benefiting from the deposit
-    /// @param total_deposit The sum of tokens, that have been deposited
-    function deposit(address beneficiary, uint256 total_deposit) public
-    {
-        require(total_deposit > balances[beneficiary]);
-
-        uint256 added_deposit;
-
-        // Calculate the actual amount of tokens that will be transferred
-        added_deposit = total_deposit - balances[beneficiary];
-
-        // This also allows for MSs to deposit and use other MSs
-        balances[beneficiary] += added_deposit;
-
-        emit NewDeposit(beneficiary, added_deposit);
-
-        // Transfer the deposit to the smart contract
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
-
     }
 
     /// @notice Internal function that updates the Reward struct if a newer balance proof
@@ -265,13 +242,12 @@ contract MonitoringService is Utils {
         // Make sure that the Reward exists
         require(reward.reward_sender_address != address(0x0));
 
-        // Deduct reward from raiden_node deposit
-        require(balances[reward.reward_sender_address] >= reward.reward_amount);
-        balances[reward.reward_sender_address] -= reward.reward_amount;
-        // Add reward to the monitoring services' balance.
-        // This minimizes the amount of gas cost
-        // Only use token.transfer in the withdraw function
-        balances[reward.monitoring_service_address] += reward.reward_amount;
+        // Add reward to the monitoring services' balance
+        require(user_deposit.transfer(
+            reward.reward_sender_address,
+            reward.monitoring_service_address,
+            reward.reward_amount
+        ));
 
         emit RewardClaimed(
             reward.monitoring_service_address,
@@ -281,16 +257,6 @@ contract MonitoringService is Utils {
 
         // delete storage
         delete rewards[reward_identifier];
-    }
-
-    /// @notice Withdraw deposited tokens.
-    /// Can be called by addresses with a deposit as long as they have a positive balance
-    /// @param amount Amount of tokens to be withdrawn
-    function withdraw(uint256 amount) public {
-        require(balances[msg.sender] >= amount);
-        balances[msg.sender] -= amount;
-        require(token.transfer(msg.sender, amount));
-        emit Withdrawn(msg.sender, amount);
     }
 
     function recoverAddressFromRewardProof(

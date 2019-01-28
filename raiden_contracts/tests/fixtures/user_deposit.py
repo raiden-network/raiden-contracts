@@ -7,7 +7,6 @@ from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
 def user_deposit_contract(
     deploy_tester_contract,
     custom_token,
-    monitoring_service_external,
 ):
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
