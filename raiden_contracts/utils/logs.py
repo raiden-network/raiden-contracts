@@ -87,10 +87,10 @@ class LogHandler:
                 print('----------------------------------')
             else:
                 raise Exception(message + ' waiting_events ' + str(waiting_events),
-                                ' len(self.event_unkown) ' + str(len(self.event_unknown)))
+                                ' len(self.event_unknown) ' + str(len(self.event_unknown)))
 
     def assert_event(self, txn_hash, event_name, args, timeout=5):
-        """ Assert that `event_name` is emmited with the `args`
+        """ Assert that `event_name` is emitted with the `args`
 
         For use in tests only.
         """
