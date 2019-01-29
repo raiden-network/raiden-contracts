@@ -117,6 +117,10 @@ def test_current_development_version():
     assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby']).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten']).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan']).exists()
+    # deployment files for service contracts also exist
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['rinkeby'], None, True).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['ropsten'], None, True).exists()
+    assert contracts_deployed_path(NETWORKNAME_TO_ID['kovan'], None, True).exists()
 
 
 def test_red_eyes_version():
