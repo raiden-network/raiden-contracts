@@ -1,7 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.constants import CONTRACTS_VERSION
+from raiden_contracts.constants import CONTRACTS_VERSION, OneToNEvent
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
@@ -12,8 +12,10 @@ def test_claim(
     get_accounts,
     get_private_key,
     web3,
+    event_handler,
 ):
     user_deposit_contract.functions.init(one_to_n_contract.address).transact()
+    ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     custom_token.functions.mint(30).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
@@ -29,10 +31,15 @@ def test_claim(
         amount=amount,
         expiration=expiration,
     )
-    one_to_n_contract.functions.claim(
+    tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
     ).transact({'from': A})
 
+    ev_handler.assert_event(
+        tx_hash,
+        OneToNEvent.CLAIMED,
+        dict(sender=A, receiver=B, expiration_block=expiration, transferred=amount),
+    )
     assert user_deposit_contract.functions.balances(A).call() == 20
     assert user_deposit_contract.functions.balances(B).call() == 10
 
@@ -78,8 +85,10 @@ def test_claim_with_insufficient_deposit(
     get_accounts,
     get_private_key,
     web3,
+    event_handler,
 ):
     user_deposit_contract.functions.init(one_to_n_contract.address).transact()
+    ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     custom_token.functions.mint(10).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
@@ -121,9 +130,14 @@ def test_claim_with_insufficient_deposit(
         A, B, amount, expiration, signature,
     ).transact({'from': A})
     user_deposit_contract.functions.deposit(A, 6 + 4).transact({'from': A})
-    one_to_n_contract.functions.claim(
+    tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
     ).transact({'from': A})
+    ev_handler.assert_event(
+        tx_hash,
+        OneToNEvent.CLAIMED,
+        dict(sender=A, receiver=B, expiration_block=expiration, transferred=4),
+    )
 
 
 def test_version(one_to_n_contract):

@@ -8,10 +8,31 @@ contract OneToN is Utils {
     string constant public contract_version = "0.5.0";
 
     UserDeposit deposit_contract;
+
+    // Indicates which sessions have already been settled by storing
+    // keccak256(receiver, sender, expiration_block) => expiration_block.
     mapping (bytes32 => uint256) public settled_sessions;
 
     /*
      *  Events
+     */
+
+    // The session has been settled and can't be claimed again. The receiver is
+    // indexed to allow services to know when claims have been successfully
+    // processed.
+    // When users want to get notified about low balances, they should listen
+    // for UserDeposit.BalanceReduced, instead.
+    // The first three values identify the session, `transferred` is the amount
+    // of tokens that has actually been transferred during the claim.
+    event Claimed(
+        address sender,
+        address indexed receiver,
+        uint256 expiration_block,
+        uint256 transferred
+    );
+
+    /*
+     *  Constructor
      */
 
     /// @param _deposit_contract Address of UserDeposit contract
@@ -61,6 +82,7 @@ contract OneToN is Utils {
         if (transferable > 0) {
             // register to avoid double claiming
             settled_sessions[_key] = expiration_block;
+            emit Claimed(sender, receiver, expiration_block, transferable);
 
             // event SessionSettled(_key, expiration_block);
             require(deposit_contract.transfer(sender, receiver, transferable));
