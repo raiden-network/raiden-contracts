@@ -1,3 +1,4 @@
+include Changelog.md
 include requirements.txt
 include raiden_contracts/data/contracts.json
 include raiden_contracts/data/deployment_kovan.json
