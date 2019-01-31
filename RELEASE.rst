@@ -127,6 +127,13 @@ Before bumping the package version, ``git add`` the deployment data at ``data/de
 
 This command triggers a commit and a local tag is created. A PR must be made with the commit changes.
 
+.. _change-changelog:
+
+Change the Versions of CHANGELOG.md
+-----------------------------------
+
+* Make sure all significant changes from the last release are listed.
+* Turn the existing ``Unreleased`` section into a new release section.
 
 .. _release-package:
 

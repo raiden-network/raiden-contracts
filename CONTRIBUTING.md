@@ -26,6 +26,11 @@ function iDoSomething(uint awesome_argument) {
 
 This repository follows the same guidelines as the Raiden Client, regarding the Python code used in tests and scripts: https://github.com/raiden-network/raiden/blob/master/CONTRIBUTING.md#coding-style.
 
+## Making a Pull-Request
+
+* If you're fixing a bug or adding a feature, add an entry to CHANGELOG.md.
+* If you've changed a Solidity source, run `make compile_contracts` and add the resulting `contracts.json` in the PR.
+
 ## Testing
 
 Read our [Test Guide](./raiden_contracts/tests/README.md)

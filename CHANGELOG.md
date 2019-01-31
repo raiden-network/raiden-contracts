@@ -7,7 +7,14 @@ Documents changes that result in:
 
 ## Unreleased
 
-- https://github.com/raiden-network/raiden-contracts/compare/v0.8.0...master
+- https://github.com/raiden-network/raiden-contracts/compare/v0.9.0...master
+- [#485](https://github.com/raiden-network/raiden-contracts/pull/485) Add OneToN contract
+- [#468](https://github.com/raiden-network/raiden-contracts/pull/468) Remove `raiden-libs` dependency
+- [#448](https://github.com/raiden-network/raiden-contracts/pull/448) Add UserDepositContract
+
+## [0.9.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.8.0) - 2019-01-23
+
+- https://github.com/raiden-network/raiden-contracts/compare/v0.8.0...v0.9.0
 - various changes in the smart contract comments
 - various documentation updates
 - internal tests structure updates
