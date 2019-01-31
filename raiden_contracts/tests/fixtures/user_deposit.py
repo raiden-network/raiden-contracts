@@ -25,3 +25,27 @@ def udc_transfer_contract(
         {},
         [user_deposit_contract.address],
     )
+
+
+@pytest.fixture
+def deposit_to_udc(
+    user_deposit_contract,
+    custom_token,
+    get_accounts,
+    get_private_key,
+    web3,
+    event_handler,
+):
+    def deposit(receiver, amount):
+        """ Uses UDC's monotonous deposit amount handling
+
+        If you call it twice, only amount2 - amount1 will be deposited. More
+        will be mined and approved to keep the implementation simple, though.
+        """
+        custom_token.functions.mint(amount).transact({'from': receiver})
+        custom_token.functions.approve(
+            user_deposit_contract.address,
+            amount,
+        ).transact({'from': receiver})
+        user_deposit_contract.functions.deposit(receiver, amount).transact({'from': receiver})
+    return deposit

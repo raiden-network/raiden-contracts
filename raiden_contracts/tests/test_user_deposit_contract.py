@@ -46,15 +46,13 @@ def test_deposit(
 def test_transfer(
     user_deposit_contract,
     udc_transfer_contract,
-    custom_token,
+    deposit_to_udc,
     get_accounts,
     event_handler,
 ):
     ev_handler = event_handler(user_deposit_contract)
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(10).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    deposit_to_udc(A, 10)
 
     # only trusted contracts can call transfer (init has not been called, yet)
     with pytest.raises(TransactionFailed):
@@ -109,7 +107,7 @@ def test_deposit_after_transfer(
 
 def test_withdraw(
     user_deposit_contract,
-    custom_token,
+    deposit_to_udc,
     get_accounts,
     web3,
     event_handler,
@@ -118,9 +116,7 @@ def test_withdraw(
     """
     ev_handler = event_handler(user_deposit_contract)
     (A,) = get_accounts(1)
-    custom_token.functions.mint(30).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 30).transact({'from': A})
+    deposit_to_udc(A, 30)
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 30
 

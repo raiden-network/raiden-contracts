@@ -8,7 +8,7 @@ from raiden_contracts.utils.proofs import sign_one_to_n_iou
 def test_claim(
     user_deposit_contract,
     one_to_n_contract,
-    custom_token,
+    deposit_to_udc,
     get_accounts,
     get_private_key,
     web3,
@@ -17,9 +17,7 @@ def test_claim(
     user_deposit_contract.functions.init(one_to_n_contract.address).transact()
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(30).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 30).transact({'from': A})
+    deposit_to_udc(A, 30)
 
     # happy case
     amount = 10
@@ -81,7 +79,7 @@ def test_claim(
 def test_claim_with_insufficient_deposit(
     user_deposit_contract,
     one_to_n_contract,
-    custom_token,
+    deposit_to_udc,
     get_accounts,
     get_private_key,
     web3,
@@ -90,9 +88,7 @@ def test_claim_with_insufficient_deposit(
     user_deposit_contract.functions.init(one_to_n_contract.address).transact()
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(10).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 6).transact({'from': A})
+    deposit_to_udc(A, 6)
 
     amount = 10
     expiration = web3.eth.blockNumber + 1
@@ -118,7 +114,7 @@ def test_claim_with_insufficient_deposit(
     assert user_deposit_contract.functions.balances(B).call() == 6
 
     # claim can be retried when transferred amount was 0
-    expiration = web3.eth.blockNumber + 3
+    expiration = web3.eth.blockNumber + 10
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -129,7 +125,7 @@ def test_claim_with_insufficient_deposit(
     one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
     ).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 6 + 4).transact({'from': A})
+    deposit_to_udc(A, 6 + 4)
     tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
     ).transact({'from': A})

@@ -57,28 +57,22 @@ def test_msc_happy_path(
     raiden_service_bundle,
     custom_token,
     user_deposit_contract,
+    deposit_to_udc,
 ):
     user_deposit_contract.functions.init(monitoring_service_external.address).transact()
-    # setup: two parties + MS
     token_network_ev_handler = event_handler(token_network)
     ms_ev_handler = event_handler(monitoring_service_external)
+    # setup: two parties + MS
     (A, B, MS) = get_accounts(3)
     reward_amount = 10
-    # mint some tokens
-    custom_token.functions.mint(50).transact({'from': MS})
-    custom_token.functions.mint(50).transact({'from': A})
-    custom_token.functions.mint(50).transact({'from': B})
+    deposit_to_udc(B, reward_amount)
     # register MS in the RaidenServiceBundle contract
+    custom_token.functions.mint(50).transact({'from': MS})
     custom_token.functions.approve(raiden_service_bundle.address, 20).transact({'from': MS})
     raiden_service_bundle.functions.deposit(20).transact({'from': MS})
-    # raiden node deposit
-    custom_token.functions.approve(user_deposit_contract.address, 20).transact({'from': B})
-    txn_hash = user_deposit_contract.functions.deposit(B, 20).transact({'from': B})
 
     # 1) open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
-    txn_hash = channel_deposit(channel_identifier, A, 20, B)
-    txn_hash = channel_deposit(channel_identifier, B, 20, A)
 
     # 2) create balance proof
     balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
