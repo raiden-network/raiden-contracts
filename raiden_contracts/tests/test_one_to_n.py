@@ -14,7 +14,6 @@ def test_claim(
     web3,
     event_handler,
 ):
-    user_deposit_contract.functions.init(one_to_n_contract.address).transact()
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
@@ -85,7 +84,6 @@ def test_claim_with_insufficient_deposit(
     web3,
     event_handler,
 ):
-    user_deposit_contract.functions.init(one_to_n_contract.address).transact()
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 6)

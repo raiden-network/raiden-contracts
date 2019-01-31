@@ -59,7 +59,6 @@ def test_msc_happy_path(
     user_deposit_contract,
     deposit_to_udc,
 ):
-    user_deposit_contract.functions.init(monitoring_service_external.address).transact()
     token_network_ev_handler = event_handler(token_network)
     ms_ev_handler = event_handler(monitoring_service_external)
     # setup: two parties + MS
