@@ -12,3 +12,4 @@ from .channel import *
 from .monitoring_service import *
 from .raiden_service_bundle_fixtures import *
 from .user_deposit import *
+from .one_to_n import *

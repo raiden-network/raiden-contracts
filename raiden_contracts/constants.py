@@ -16,6 +16,7 @@ CONTRACT_CUSTOM_TOKEN_NO_DECIMALS = 'CustomTokenNoDecimals'
 CONTRACT_MONITORING_SERVICE = 'MonitoringService'
 CONTRACT_RAIDEN_SERVICE_BUNDLE = 'RaidenServiceBundle'
 CONTRACT_USER_DEPOSIT = 'UserDeposit'
+CONTRACT_ONE_TO_N = 'OneToN'
 
 # Timeouts
 TEST_SETTLE_TIMEOUT_MIN = 5
@@ -97,16 +98,19 @@ class MessageTypeId(IntEnum):
 
 # Message types used by MonitoringService contract
 class MonitoringServiceEvent(str, Enum):
-    NEW_DEPOSIT = 'NewDeposit'
     NEW_BALANCE_PROOF_RECEIVED = 'NewBalanceProofReceived'
     REWARD_CLAIMED = 'RewardClaimed'
-    WITHDRAWN = 'Withdrawn'
 
 
 # Message types used by UserDeposit contract
 class UserDepositEvent(str, Enum):
     BALANCE_REDUCED = 'BalanceReduced'
     WITHDRAW_PLANNED = 'WithdrawPlanned'
+
+
+# Message types used by OneToN contract
+class OneToNEvent(str, Enum):
+    CLAIMED = 'Claimed'
 
 
 # Network configurations

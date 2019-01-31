@@ -10,8 +10,9 @@ contract UserDeposit is Utils {
     // Token to be used for the deposit
     Token public token;
 
-    // Trusted contract (can execute `transfer`)
+    // Trusted contracts (can execute `transfer`)
     address public msc_address;
+    address public one_to_n_address;
 
     // Total amount of tokens that have been deposited. This is monotonous and
     // doing a transfer or withdrawing tokens will not decrease total_deposit!
@@ -40,7 +41,7 @@ contract UserDeposit is Utils {
      */
 
     modifier canTransfer() {
-        require(msg.sender == msc_address);
+        require(msg.sender == msc_address || msg.sender == one_to_n_address);
         _;
     }
 
@@ -63,16 +64,22 @@ contract UserDeposit is Utils {
     /// @notice Specify trusted contracts. This has to be done outside of the
     /// constructor to avoid cyclic dependencies.
     /// @param _msc_address Address of the MonitoringService contract
-    function init(address _msc_address)
+    /// @param _one_to_n_address Address of the OneToN contract
+    function init(address _msc_address, address _one_to_n_address)
         external
     {
-        // prevent changes of trusted contract after initialization
-        require(msc_address == address(0x0));
+        // prevent changes of trusted contracts after initialization
+        require(msc_address == address(0x0) && one_to_n_address == address(0x0));
 
         // check monitoring service contract
         require(_msc_address != address(0x0));
         require(contractExists(_msc_address));
         msc_address = _msc_address;
+
+        // check one to n contract
+        require(_one_to_n_address != address(0x0));
+        require(contractExists(_one_to_n_address));
+        one_to_n_address = _one_to_n_address;
     }
 
     /// @notice Deposit tokens. The amount of transferred tokens will be

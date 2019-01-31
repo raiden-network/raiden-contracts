@@ -44,12 +44,13 @@ def test_deposit(
 
 
 def test_transfer(
-    user_deposit_contract,
+    uninitialized_user_deposit_contract,
     udc_transfer_contract,
-    custom_token,
     get_accounts,
     event_handler,
+    custom_token,
 ):
+    user_deposit_contract = uninitialized_user_deposit_contract
     ev_handler = event_handler(user_deposit_contract)
     (A, B) = get_accounts(2)
     custom_token.functions.mint(10).transact({'from': A})
@@ -61,7 +62,10 @@ def test_transfer(
         udc_transfer_contract.functions.transfer(A, B, 10).transact()
 
     # happy case
-    user_deposit_contract.functions.init(udc_transfer_contract.address).transact()
+    user_deposit_contract.functions.init(
+        udc_transfer_contract.address,
+        udc_transfer_contract.address,
+    ).transact()
     tx_hash = udc_transfer_contract.functions.transfer(A, B, 10).transact()
     ev_handler.assert_event(tx_hash, UserDepositEvent.BALANCE_REDUCED, dict(owner=A, newBalance=0))
     assert user_deposit_contract.functions.balances(A).call() == 0
@@ -76,7 +80,7 @@ def test_transfer(
 
 
 def test_deposit_after_transfer(
-    user_deposit_contract,
+    uninitialized_user_deposit_contract,
     udc_transfer_contract,
     custom_token,
     get_accounts,
@@ -86,7 +90,11 @@ def test_deposit_after_transfer(
     When doing a deposit followed by a transfer, both variables start to differ
     and we can use another deposit to verify that each is handled correctly.
     """
-    user_deposit_contract.functions.init(udc_transfer_contract.address).transact()
+    user_deposit_contract = uninitialized_user_deposit_contract
+    user_deposit_contract.functions.init(
+        udc_transfer_contract.address,
+        udc_transfer_contract.address,
+    ).transact()
     (A, B) = get_accounts(2)
     custom_token.functions.mint(100).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
@@ -109,7 +117,7 @@ def test_deposit_after_transfer(
 
 def test_withdraw(
     user_deposit_contract,
-    custom_token,
+    deposit_to_udc,
     get_accounts,
     web3,
     event_handler,
@@ -118,9 +126,7 @@ def test_withdraw(
     """
     ev_handler = event_handler(user_deposit_contract)
     (A,) = get_accounts(1)
-    custom_token.functions.mint(30).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 30).transact({'from': A})
+    deposit_to_udc(A, 30)
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 30
 
