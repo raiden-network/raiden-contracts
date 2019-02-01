@@ -21,7 +21,7 @@ from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_RAIDEN_SERVICE_BUNDLE,
+    CONTRACT_SERVICE_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
@@ -499,10 +499,10 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
 
     service_bundle_constructor_arguments = [token_address]
     service_bundle_receipt = deployer.deploy(
-        CONTRACT_RAIDEN_SERVICE_BUNDLE,
+        CONTRACT_SERVICE_REGISTRY,
         service_bundle_constructor_arguments,
     )
-    deployed_contracts['contracts'][CONTRACT_RAIDEN_SERVICE_BUNDLE] = {
+    deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY] = {
         'address': to_checksum_address(
             service_bundle_receipt['contractAddress'],
         ),
@@ -514,7 +514,7 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
 
     monitoring_service_constructor_args = [
         token_address,
-        deployed_contracts['contracts'][CONTRACT_RAIDEN_SERVICE_BUNDLE]['address'],
+        deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY]['address'],
     ]
     monitoring_service_receipt = deployer.deploy(
         CONTRACT_MONITORING_SERVICE,
@@ -712,12 +712,12 @@ def verify_deployed_service_contracts(
         web3,
         contract_manager,
         deployment_data,
-        CONTRACT_RAIDEN_SERVICE_BUNDLE,
+        CONTRACT_SERVICE_REGISTRY,
     )
 
     # We need to also check the constructor parameters against the chain
     constructor_arguments = deployment_data['contracts'][
-        CONTRACT_RAIDEN_SERVICE_BUNDLE
+        CONTRACT_SERVICE_REGISTRY
     ]['constructor_arguments']
     assert to_checksum_address(
         service_bundle.functions.token().call(),
@@ -725,7 +725,7 @@ def verify_deployed_service_contracts(
     assert token_address == constructor_arguments[0]
 
     print(
-        f'{CONTRACT_RAIDEN_SERVICE_BUNDLE} at {service_bundle.address} '
+        f'{CONTRACT_SERVICE_REGISTRY} at {service_bundle.address} '
         f'matches the compiled data from contracts.json',
     )
 
@@ -747,7 +747,7 @@ def verify_deployed_service_contracts(
     assert token_address == constructor_arguments[0]
 
     assert to_checksum_address(
-        monitoring_service.functions.rsb().call(),
+        monitoring_service.functions.service_registry().call(),
     ) == service_bundle.address
     assert service_bundle.address == constructor_arguments[1]
 

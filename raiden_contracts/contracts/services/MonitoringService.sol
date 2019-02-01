@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/lib/ECVerify.sol";
 import "raiden/TokenNetwork.sol";
-import "services/RaidenServiceBundle.sol";
+import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
 
 contract MonitoringService is Utils {
@@ -14,7 +14,7 @@ contract MonitoringService is Utils {
     Token public token;
 
     // Raiden Service Bundle contract to use for checking if MS has deposits
-    RaidenServiceBundle public rsb;
+    ServiceRegistry public service_registry;
     UserDeposit public user_deposit;
 
     // keccak256(channel_identifier, token_network_address) => Struct
@@ -58,7 +58,7 @@ contract MonitoringService is Utils {
      */
 
     modifier canMonitor(address _ms_address) {
-        require(rsb.deposits(_ms_address) > 0);
+        require(service_registry.deposits(_ms_address) > 0);
         _;
     }
 
@@ -68,27 +68,27 @@ contract MonitoringService is Utils {
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    /// @param _rsb_address The address of the RaidenServiceBundle contract
+    /// @param _service_registry_address The address of the ServiceRegistry contract
     constructor(
         address _token_address,
-        address _rsb_address,
+        address _service_registry_address,
         address _udc_address
     )
         public
     {
         require(_token_address != address(0x0));
-        require(_rsb_address != address(0x0));
+        require(_service_registry_address != address(0x0));
         require(_udc_address != address(0x0));
         require(contractExists(_token_address));
-        require(contractExists(_rsb_address));
+        require(contractExists(_service_registry_address));
         require(contractExists(_udc_address));
 
         token = Token(_token_address);
-        rsb = RaidenServiceBundle(_rsb_address);
+        service_registry = ServiceRegistry(_service_registry_address);
         user_deposit = UserDeposit(_udc_address);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
-        // Check if the contract is indeed an rsb contract
+        // Check if the contract is indeed a service_registry contract
         // TODO: Check that some function exists in the contract
     }
 
