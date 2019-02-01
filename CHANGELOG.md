@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- rename RaidenServiceBundle contract to ServiceRegistry
 - https://github.com/raiden-network/raiden-contracts/compare/v0.9.0...master
 - [#485](https://github.com/raiden-network/raiden-contracts/pull/485) Add OneToN contract
 - [#468](https://github.com/raiden-network/raiden-contracts/pull/468) Remove `raiden-libs` dependency
