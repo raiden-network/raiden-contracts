@@ -10,6 +10,6 @@ from .token_network_fixtures import *
 from .token_network_registry import *
 from .channel import *
 from .monitoring_service import *
-from .service_registry import *
+from .service_registry_fixtures import *
 from .user_deposit import *
 from .one_to_n import *
