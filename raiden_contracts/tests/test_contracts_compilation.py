@@ -102,7 +102,7 @@ def test_current_development_version():
         'TokenNetworkRegistry',
         'TokenNetwork',
         'MonitoringService',
-        'RaidenServiceBundle',
+        'ServiceRegistry',
     ]
 
     manager = ContractManager(contracts_precompiled_path(contracts_version))

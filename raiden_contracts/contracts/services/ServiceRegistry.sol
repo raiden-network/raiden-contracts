@@ -3,7 +3,7 @@ pragma solidity ^0.5.2;
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
-contract RaidenServiceBundle is Utils {
+contract ServiceRegistry is Utils {
     string constant public contract_version = "0.5.0";
     Token public token;
 

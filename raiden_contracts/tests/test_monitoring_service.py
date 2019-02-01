@@ -54,7 +54,7 @@ def test_msc_happy_path(
     create_balance_proof_update_signature,
     create_reward_proof,
     event_handler,
-    raiden_service_bundle,
+    service_registry,
     custom_token,
     user_deposit_contract,
     deposit_to_udc,
@@ -65,10 +65,10 @@ def test_msc_happy_path(
     (A, B, MS) = get_accounts(3)
     reward_amount = 10
     deposit_to_udc(B, reward_amount)
-    # register MS in the RaidenServiceBundle contract
+    # register MS in the ServiceRegistry contract
     custom_token.functions.mint(50).transact({'from': MS})
-    custom_token.functions.approve(raiden_service_bundle.address, 20).transact({'from': MS})
-    raiden_service_bundle.functions.deposit(20).transact({'from': MS})
+    custom_token.functions.approve(service_registry.address, 20).transact({'from': MS})
+    service_registry.functions.deposit(20).transact({'from': MS})
 
     # 1) open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
