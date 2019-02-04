@@ -30,6 +30,8 @@ This repository follows the same guidelines as the Raiden Client, regarding the 
 
 * If you're fixing a bug or adding a feature, add an entry to CHANGELOG.md.
 * If you've changed a Solidity source, run `make compile_contracts` and add the resulting `contracts.json` in the PR.
+* If you're changing documentation only, add `[skip ci]` in the commit message so Travis does not waste time.
+    * But, if you've changed comments in a Solidity source, do not add `[skip ci]` and let Travis check the hash of the source.
 
 ## Testing
 
