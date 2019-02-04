@@ -540,6 +540,17 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         one_to_n_constructor_args,
     )
 
+    # Tell the UserDeposit instance about other contracts.
+    user_deposit_instance = deployer.web3.eth.contract(
+        abi=deployer.contract_manager.get_contract_abi(CONTRACT_USER_DEPOSIT),
+        address=deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
+    )
+    msc_address = deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE]['address']
+    one_to_n_address = deployed_contracts['contracts'][CONTRACT_ONE_TO_N]['address']
+    user_deposit_instance.functions.init(msc_address, one_to_n_address).transact(
+        deployer.transaction,
+    )
+
     return deployed_contracts
 
 
