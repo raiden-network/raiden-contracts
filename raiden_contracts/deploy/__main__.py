@@ -21,6 +21,7 @@ from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_USER_DEPOSIT,
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     DEPLOY_SETTLE_TIMEOUT_MAX,
@@ -512,9 +513,25 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         'constructor_arguments': service_bundle_constructor_arguments,
     }
 
+    user_deposit_constructor_arguments = [token_address]
+    user_deposit_receipt = deployer.deploy(
+        CONTRACT_USER_DEPOSIT,
+        user_deposit_constructor_arguments,
+    )
+    deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT] = {
+        'address': to_checksum_address(
+            user_deposit_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(user_deposit_receipt['transactionHash']),
+        'block_number': user_deposit_receipt['blockNumber'],
+        'gas_cost': user_deposit_receipt['gasUsed'],
+        'constructor_arguments': user_deposit_constructor_arguments,
+    }
+
     monitoring_service_constructor_args = [
         token_address,
         deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY]['address'],
+        deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
     ]
     monitoring_service_receipt = deployer.deploy(
         CONTRACT_MONITORING_SERVICE,
@@ -726,6 +743,28 @@ def verify_deployed_service_contracts(
 
     print(
         f'{CONTRACT_SERVICE_REGISTRY} at {service_bundle.address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    user_deposit = verify_deployed_contract(
+        web3,
+        contract_manager,
+        deployment_data,
+        CONTRACT_USER_DEPOSIT,
+    )
+
+    # We need to also check the constructor parameters against the chain
+    constructor_arguments = deployment_data['contracts'][
+        CONTRACT_USER_DEPOSIT
+    ]['constructor_arguments']
+    assert len(constructor_arguments) == 1
+    assert to_checksum_address(
+        user_deposit.functions.token().call(),
+    ) == token_address
+    assert token_address == constructor_arguments[0]
+
+    print(
+        f'{CONTRACT_USER_DEPOSIT} at {user_deposit.address} '
         f'matches the compiled data from contracts.json',
     )
 
