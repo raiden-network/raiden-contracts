@@ -19,6 +19,7 @@ from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_mid
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_ENDPOINT_REGISTRY,
+    CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
@@ -546,6 +547,24 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         'gas_cost': monitoring_service_receipt['gasUsed'],
         'constructor_arguments': monitoring_service_constructor_args,
     }
+
+    one_to_n_constructor_args = [
+        deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
+    ]
+    one_to_n_receipt = deployer.deploy(
+        CONTRACT_ONE_TO_N,
+        one_to_n_constructor_args,
+    )
+    deployed_contracts['contracts'][CONTRACT_ONE_TO_N] = {
+        'address': to_checksum_address(
+            one_to_n_receipt['contractAddress'],
+        ),
+        'transaction_hash': encode_hex(one_to_n_receipt['transactionHash']),
+        'block_number': one_to_n_receipt['blockNumber'],
+        'gas_cost': one_to_n_receipt['gasUsed'],
+        'constructor_arguments': one_to_n_constructor_args,
+    }
+
     return deployed_contracts
 
 
@@ -792,6 +811,29 @@ def verify_deployed_service_contracts(
 
     print(
         f'{CONTRACT_MONITORING_SERVICE} at {monitoring_service.address} '
+        f'matches the compiled data from contracts.json',
+    )
+
+    one_to_n = verify_deployed_contract(
+        web3,
+        contract_manager,
+        deployment_data,
+        CONTRACT_ONE_TO_N,
+    )
+
+    # We need to also check the constructor parameters against the chain
+    constructor_arguments = deployment_data['contracts'][
+        CONTRACT_ONE_TO_N
+    ]['constructor_arguments']
+
+    assert to_checksum_address(
+        one_to_n.functions.deposit_contract().call(),
+    ) == user_deposit.address
+    assert user_deposit.address == constructor_arguments[0]
+    assert len(constructor_arguments) == 1
+
+    print(
+        f'{CONTRACT_ONE_TO_N} at {one_to_n.address} '
         f'matches the compiled data from contracts.json',
     )
 

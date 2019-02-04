@@ -7,7 +7,7 @@ import "raiden/lib/ECVerify.sol";
 contract OneToN is Utils {
     string constant public contract_version = "0.5.0";
 
-    UserDeposit deposit_contract;
+    UserDeposit public deposit_contract;
 
     // Indicates which sessions have already been settled by storing
     // keccak256(receiver, sender, expiration_block) => expiration_block.
