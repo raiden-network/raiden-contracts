@@ -142,7 +142,7 @@ Deployment on a testnet
     pip install -r requirements-dev.txt
 
 .. Note::
-    If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``.
+    If deploying on your own private chain, you need to start ``geth`` with ``--networkid <chainID_from_genesis.json>``. The private chain must be running the Byzantium protocol (or a later version) at the time of deployment.
 
     If you want to use a particular version of the contracts that is supported, you can use the ``deploy`` script with ``-- contracts-version "0.4.0"``.
 
