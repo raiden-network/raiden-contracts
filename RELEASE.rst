@@ -7,6 +7,7 @@ Package Deliverables
 - smart contracts source code from ``raiden_contracts/contracts``
 - compiled contracts data from ``raiden_contracts/data/contracts.json``
 - deployment information from ``raiden_contracts/data/deployment_*.json``, with Ethereum addresses, transaction data (transaction hash, block number, constructor arguments, gas cost)
+- gas costs information from ``raiden_contracts/constants.py``
 - scripts for deployment & contract verification on Etherscan from ``raiden_contracts/deploy``
 - source code tests from ``raiden_contracts/tests``
 
@@ -21,6 +22,7 @@ When we want to release another version of the ``raiden-contracts`` package, we 
    #. `Bump the version on the smart contracts <bump-contracts>`_
    #. `Deploy smart contracts <_deploy-contracts>`_ on all the supported chains and overwrite ``deployment_*,json`` files with the new deployment data.
    #. `Verify the deployed smart contracts on Etherscan <verify-contracts>`_
+   #. `Measure Gas Costs <measure-gas>`_ and update ``constants.py``
 
 #. `Bump the package version <bump-package>`_
 #. `Release the new package version <_release-package>`_
@@ -104,6 +106,25 @@ Etherscan Verification
 Etherscan verification is documented here: https://github.com/raiden-network/raiden-contracts#verification-with-etherscan.
 
 Note that we currently have some issues with the script: https://github.com/raiden-network/raiden-contracts/issues/349.
+
+
+.. _measure-gas:
+
+Measure Gas Costs
+-----------------
+
+``raiden_contracts`` package provides `some constants <https://github.com/raiden-network/raiden-contracts/blob/de13cf9aa7ad7ed230ff204e47103def6a14b0be/raiden_contracts/constants.py#L35>`__ showing the amount of gas that each operation requires. This information is manually updated. The amounts can be measured with a script
+
+::
+
+    pytest -s raiden_contracts/tests/test_print_gas.py
+
+The script prints many numbers like
+
+::
+    ----------------------------------
+    GAS USED TokenNetwork.unlock 6 locks 66019
+    ----------------------------------
 
 
 .. _bump-package:
