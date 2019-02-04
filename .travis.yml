@@ -2,7 +2,7 @@ dist: xenial
 sudo: true
 language: python
 python:
-  - '3.6'
+  - '3.7'
 
 env:
   global:
@@ -40,7 +40,7 @@ deploy:
   user: raiden_pypi_automated
   password:
     secure: "Lzq5jhpMQukBKLk+cdGS2JjJFwfmhdJT8tF2ZpHwaOLR5EDFtbdmAYu43Tg+GUB0AUaFrdaZ388opZHQjEBNmGbWrJRpbls7yfBjIksNAFQcwTUzk1AhQ1qwUZbeMATy3IE6VVrWka0ovO0Ey3eReOstCVYVrYvaa4ee0uQm3+Vrw8dIrKSgKH8OqaGFC0tH2ycFJlWk2i60fIDqsW+XlLzEVxL8oPzEcW6JtUPgSmkHP3Su/egyfHwckB/NvtS3qG/lPBhzHZKbH6BYyqucatX3e/gZRb0QYnM80nrBzMu7wo/J89WP6ZI6QQwgvW5VumbSbNEBNPqhf1qAuOE1UwgRk6qYuf8EXAhM2gjyWzvCZVDGu0vuBCaj+fscXkIN1wlLZyS1ocGnjyc3jJlG6mgCD8GlQska0uEsgEgrxJbAz3RIEb5GQ2a4jhcsHH5qHrBWGwAGKlYNnIbBHDZoP7cc2vBzHxYwPPizLG81NrvgQVTpaFOZu0+f5tWL3yAHNLiuwDktbj9hg+QtqVEBWE7efWkvw7/FRSMumX3TfFBeAW2UrG5gY2KJNPRmiL4MO1csM6c9gtYiVFAV5ByQjrZfpBmdcxXnItuQbZ731uKWLJZK+cbkDpbsbMAKkrUrpspoz0R+7YHEO6r6/uNgayFVNDQjEBEEg6rqGjrapZI="
-  python: 3.6
+  python: 3.7
   distributions: sdist bdist_wheel
   on:
     tags: true

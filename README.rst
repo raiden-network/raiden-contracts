@@ -12,7 +12,7 @@ Raiden Network Smart Contracts
 Prerequisites
 -------------
 
--  Python 3.6
+-  Python 3.7
 -  https://pip.pypa.io/en/stable/
 
 Installation
