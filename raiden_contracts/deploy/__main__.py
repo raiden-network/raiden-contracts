@@ -435,6 +435,16 @@ def verify(ctx, rpc_provider, contracts_version):
     verify_deployed_contracts(web3, contract_manager)
 
 
+def deployed_data_from_receipt(receipt, constructor_arguments):
+    return {
+        'address': to_checksum_address(receipt['contractAddress']),
+        'transaction_hash': encode_hex(receipt['transactionHash']),
+        'block_number': receipt['blockNumber'],
+        'gas_cost': receipt['gasUsed'],
+        'constructor_arguments': constructor_arguments,
+    }
+
+
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
@@ -447,26 +457,16 @@ def deploy_raiden_contracts(
     }
 
     endpoint_registry_receipt = deployer.deploy(CONTRACT_ENDPOINT_REGISTRY)
-    deployed_contracts['contracts'][CONTRACT_ENDPOINT_REGISTRY] = {
-        'address': to_checksum_address(
-            endpoint_registry_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(endpoint_registry_receipt['transactionHash']),
-        'block_number': endpoint_registry_receipt['blockNumber'],
-        'gas_cost': endpoint_registry_receipt['gasUsed'],
-        'constructor_arguments': [],
-    }
+    deployed_contracts['contracts'][CONTRACT_ENDPOINT_REGISTRY] = deployed_data_from_receipt(
+        endpoint_registry_receipt,
+        [],
+    )
 
     secret_registry_receipt = deployer.deploy(CONTRACT_SECRET_REGISTRY)
-    deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY] = {
-        'address': to_checksum_address(
-            secret_registry_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(secret_registry_receipt['transactionHash']),
-        'block_number': secret_registry_receipt['blockNumber'],
-        'gas_cost': secret_registry_receipt['gasUsed'],
-        'constructor_arguments': [],
-    }
+    deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY] = deployed_data_from_receipt(
+        secret_registry_receipt,
+        [],
+    )
 
     token_network_constructor_arguments = [
         deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY]['address'],
@@ -478,15 +478,10 @@ def deploy_raiden_contracts(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_constructor_arguments,
     )
-    deployed_contracts['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = {
-        'address': to_checksum_address(
-            token_network_registry_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(token_network_registry_receipt['transactionHash']),
-        'block_number': token_network_registry_receipt['blockNumber'],
-        'gas_cost': token_network_registry_receipt['gasUsed'],
-        'constructor_arguments': token_network_constructor_arguments,
-    }
+    deployed_contracts['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = deployed_data_from_receipt(
+        token_network_registry_receipt,
+        token_network_constructor_arguments,
+    )
 
     return deployed_contracts
 
@@ -504,30 +499,20 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         CONTRACT_SERVICE_REGISTRY,
         service_bundle_constructor_arguments,
     )
-    deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY] = {
-        'address': to_checksum_address(
-            service_bundle_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(service_bundle_receipt['transactionHash']),
-        'block_number': service_bundle_receipt['blockNumber'],
-        'gas_cost': service_bundle_receipt['gasUsed'],
-        'constructor_arguments': service_bundle_constructor_arguments,
-    }
+    deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY] = deployed_data_from_receipt(
+        service_bundle_receipt,
+        service_bundle_constructor_arguments,
+    )
 
     user_deposit_constructor_arguments = [token_address]
     user_deposit_receipt = deployer.deploy(
         CONTRACT_USER_DEPOSIT,
         user_deposit_constructor_arguments,
     )
-    deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT] = {
-        'address': to_checksum_address(
-            user_deposit_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(user_deposit_receipt['transactionHash']),
-        'block_number': user_deposit_receipt['blockNumber'],
-        'gas_cost': user_deposit_receipt['gasUsed'],
-        'constructor_arguments': user_deposit_constructor_arguments,
-    }
+    deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT] = deployed_data_from_receipt(
+        user_deposit_receipt,
+        user_deposit_constructor_arguments,
+    )
 
     monitoring_service_constructor_args = [
         token_address,
@@ -538,15 +523,10 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         CONTRACT_MONITORING_SERVICE,
         monitoring_service_constructor_args,
     )
-    deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE] = {
-        'address': to_checksum_address(
-            monitoring_service_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(monitoring_service_receipt['transactionHash']),
-        'block_number': monitoring_service_receipt['blockNumber'],
-        'gas_cost': monitoring_service_receipt['gasUsed'],
-        'constructor_arguments': monitoring_service_constructor_args,
-    }
+    deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE] = deployed_data_from_receipt(
+        monitoring_service_receipt,
+        monitoring_service_constructor_args,
+    )
 
     one_to_n_constructor_args = [
         deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
@@ -555,15 +535,10 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         CONTRACT_ONE_TO_N,
         one_to_n_constructor_args,
     )
-    deployed_contracts['contracts'][CONTRACT_ONE_TO_N] = {
-        'address': to_checksum_address(
-            one_to_n_receipt['contractAddress'],
-        ),
-        'transaction_hash': encode_hex(one_to_n_receipt['transactionHash']),
-        'block_number': one_to_n_receipt['blockNumber'],
-        'gas_cost': one_to_n_receipt['gasUsed'],
-        'constructor_arguments': one_to_n_constructor_args,
-    }
+    deployed_contracts['contracts'][CONTRACT_ONE_TO_N] = deployed_data_from_receipt(
+        one_to_n_receipt,
+        one_to_n_constructor_args,
+    )
 
     return deployed_contracts
 
