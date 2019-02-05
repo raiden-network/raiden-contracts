@@ -15,8 +15,8 @@ resolving imports.
 
 example usage:
 
-$ cd raiden/smart_contracts
-$ python ../../tools/join-contracts.py SomeContractWithImports.sol joined.sol
+$ cd raiden-contracts/raiden_contracts
+$ python ./utils/join-contracts.py --import-map {} ./contracts/TokenNetwork.sol joined.sol
 
 """
 
