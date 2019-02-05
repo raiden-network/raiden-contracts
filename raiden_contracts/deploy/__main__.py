@@ -689,14 +689,11 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
         token_network_registry.functions.secret_registry_address().call(),
     ) == secret_registry.address
     assert secret_registry.address == constructor_arguments[0]
-
-    chain_id = token_network_registry.functions.chain_id().call()
-    assert chain_id == constructor_arguments[1]
-
-    settlement_timeout_min = token_network_registry.functions.settlement_timeout_min().call()
-    settlement_timeout_max = token_network_registry.functions.settlement_timeout_max().call()
-    assert settlement_timeout_min == constructor_arguments[2]
-    assert settlement_timeout_max == constructor_arguments[3]
+    assert token_network_registry.functions.chain_id().call() == constructor_arguments[1]
+    assert token_network_registry.functions.settlement_timeout_min().call() == \
+        constructor_arguments[2]
+    assert token_network_registry.functions.settlement_timeout_max().call() == \
+        constructor_arguments[3]
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
