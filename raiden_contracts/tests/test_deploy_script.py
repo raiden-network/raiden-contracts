@@ -15,7 +15,7 @@ from raiden_contracts.deploy.__main__ import (
     verify_deployed_contracts,
 )
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
-from raiden_contracts.utils.types import T_Address
+from raiden_contracts.utils.type_aliases import T_Address
 
 
 def test_deploy_script_raiden(
