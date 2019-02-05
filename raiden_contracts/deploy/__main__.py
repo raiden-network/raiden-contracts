@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
-from web3.contract import Contract
+from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 
 
@@ -129,7 +129,7 @@ class ContractDeployer:
 
     def transact(
         self,
-        contract_method: Contract,
+        contract_method: ContractFunction,
     ):
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
