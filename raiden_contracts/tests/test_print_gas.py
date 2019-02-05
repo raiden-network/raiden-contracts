@@ -3,11 +3,15 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_SECRET_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
+from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
 from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree, get_locked_amount
 from raiden_contracts.utils.merkle import get_merkle_root
+from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
 def test_token_network_registry(
@@ -204,3 +208,118 @@ def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_ga
         'from': A,
     })
     print_gas(txn_hash, CONTRACT_ENDPOINT_REGISTRY + '.registerEndpoint')
+
+
+def test_monitoring_service_gas(
+    token_network,
+    monitoring_service_external,
+    get_accounts,
+    create_channel,
+    create_balance_proof,
+    create_balance_proof_update_signature,
+    create_reward_proof,
+    service_registry,
+    custom_token,
+    deposit_to_udc,
+    print_gas,
+):
+    """ Abusing pytest to print gas cost of MonitoringService functions """
+    # setup: two parties + MS
+    (A, B, MS) = get_accounts(3)
+    reward_amount = 10
+    deposit_to_udc(B, reward_amount)
+
+    # register MS in the ServiceRegistry contract
+    custom_token.functions.mint(50).transact({'from': MS})
+    custom_token.functions.approve(service_registry.address, 20).transact({'from': MS})
+    service_registry.functions.deposit(20).transact({'from': MS})
+
+    # open a channel (c1, c2)
+    channel_identifier = create_channel(A, B)[0]
+
+    # create balance and reward proofs
+    balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
+    balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
+    non_closing_signature_B = create_balance_proof_update_signature(
+        B,
+        channel_identifier,
+        *balance_proof_B,
+    )
+    reward_proof = create_reward_proof(
+        B,
+        channel_identifier,
+        reward_amount,
+        token_network.address,
+        nonce=balance_proof_B[1],
+    )
+
+    # c1 closes channel
+    txn_hash = token_network.functions.closeChannel(
+        channel_identifier, B, *balance_proof_A,
+    ).transact({'from': A})
+
+    # MS calls `MSC::monitor()` using c1's BP and reward proof
+    txn_hash = monitoring_service_external.functions.monitor(
+        A,
+        B,
+        balance_proof_B[0],       # balance_hash
+        balance_proof_B[1],       # nonce
+        balance_proof_B[2],       # additional_hash
+        balance_proof_B[3],       # closing signature
+        non_closing_signature_B,  # non-closing signature
+        reward_proof[1],          # reward amount
+        token_network.address,    # token network address
+        reward_proof[5],          # reward proof signature
+    ).transact({'from': MS})
+    print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.monitor')
+
+    # settle channel
+    token_network.web3.testing.mine(8)
+    token_network.functions.settleChannel(
+        channel_identifier,
+        B,                   # participant2
+        10,                  # participant2_transferred_amount
+        0,                   # participant2_locked_amount
+        EMPTY_LOCKSROOT,     # participant2_locksroot
+        A,                   # participant1
+        20,                  # participant1_transferred_amount
+        0,                   # participant1_locked_amount
+        EMPTY_LOCKSROOT,     # participant1_locksroot
+    ).transact()
+
+    # MS claims the reward
+    txn_hash = monitoring_service_external.functions.claimReward(
+        channel_identifier,
+        token_network.address,
+        A,
+        B,
+    ).transact({'from': MS})
+    print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.claimReward')
+
+
+def test_one_to_n_gas(
+    one_to_n_contract,
+    deposit_to_udc,
+    get_accounts,
+    get_private_key,
+    web3,
+    print_gas,
+):
+    """ Abusing pytest to print gas cost of OneToN functions """
+    (A, B) = get_accounts(2)
+    deposit_to_udc(A, 30)
+
+    # happy case
+    amount = 10
+    expiration = web3.eth.blockNumber + 2
+    signature = sign_one_to_n_iou(
+        get_private_key(A),
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration=expiration,
+    )
+    txn_hash = one_to_n_contract.functions.claim(
+        A, B, amount, expiration, signature,
+    ).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')

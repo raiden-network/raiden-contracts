@@ -1,4 +1,3 @@
-import pytest
 from eth_abi import encode_single
 from web3 import Web3
 
@@ -8,40 +7,7 @@ from raiden_contracts.utils.events import (
     check_new_balance_proof_received,
     check_reward_claimed,
 )
-from raiden_contracts.utils.proofs import sign_reward_proof
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
-
-
-@pytest.fixture()
-def create_reward_proof(token_network, get_private_key):
-    def get(
-            signer,
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            nonce=0,
-            v=27,
-    ):
-        private_key = get_private_key(signer)
-
-        signature = sign_reward_proof(
-            private_key,
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            int(token_network.functions.chain_id().call()),
-            nonce,
-            v,
-        )
-        return (
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            int(token_network.functions.chain_id().call()),
-            nonce,
-            signature,
-        )
-    return get
 
 
 def test_msc_happy_path(
@@ -49,7 +15,6 @@ def test_msc_happy_path(
     monitoring_service_external,
     get_accounts,
     create_channel,
-    channel_deposit,
     create_balance_proof,
     create_balance_proof_update_signature,
     create_reward_proof,
