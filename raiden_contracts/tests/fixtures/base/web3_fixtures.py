@@ -6,7 +6,7 @@ from eth_tester import EthereumTester, PyEVMBackend
 from web3 import Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
-from raiden_contracts.utils.types import Address
+from raiden_contracts.utils.type_aliases import Address
 
 DEFAULT_TIMEOUT = 5
 DEFAULT_RETRY_INTERVAL = 3

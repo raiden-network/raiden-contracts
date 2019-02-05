@@ -40,7 +40,7 @@ from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.utils.bytecode import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.utils.types import Address
+from raiden_contracts.utils.type_aliases import Address
 
 
 log = getLogger(__name__)
