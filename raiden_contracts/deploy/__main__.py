@@ -129,10 +129,10 @@ class ContractDeployer:
 
     def transact(
         self,
-        to_be_called,
+        contract_method: Contract,
     ):
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
-        txhash = to_be_called.transact(self.transaction)
+        txhash = contract_method.transact(self.transaction)
         log.debug(f'Sending txHash={encode_hex(txhash)}')
         (receipt, _) = check_succesful_tx(self.web3, txhash, self.wait)
         return receipt
