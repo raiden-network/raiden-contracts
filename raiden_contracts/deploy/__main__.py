@@ -663,29 +663,21 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     assert contract_manager.contracts_version == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
-    endpoint_registry = verify_deployed_contract(
+    endpoint_registry, _ = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_ENDPOINT_REGISTRY,
     )
-    print(
-        f'{CONTRACT_ENDPOINT_REGISTRY} at {endpoint_registry.address} '
-        f'matches the compiled data from contracts.json',
-    )
 
-    secret_registry = verify_deployed_contract(
+    secret_registry, _ = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_SECRET_REGISTRY,
     )
-    print(
-        f'{CONTRACT_SECRET_REGISTRY} at {secret_registry.address} '
-        f'matches the compiled data from contracts.json',
-    )
 
-    token_network_registry = verify_deployed_contract(
+    token_network_registry, constructor_arguments = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
@@ -693,9 +685,6 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     )
 
     # We need to also check the constructor parameters against the chain
-    constructor_arguments = deployment_data['contracts'][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['constructor_arguments']
     assert to_checksum_address(
         token_network_registry.functions.secret_registry_address().call(),
     ) == secret_registry.address
@@ -708,11 +697,6 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     settlement_timeout_max = token_network_registry.functions.settlement_timeout_max().call()
     assert settlement_timeout_min == constructor_arguments[2]
     assert settlement_timeout_max == constructor_arguments[3]
-
-    print(
-        f'{CONTRACT_TOKEN_NETWORK_REGISTRY} at {token_network_registry.address} '
-        f'matches the compiled data from contracts.json',
-    )
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
@@ -743,65 +727,33 @@ def verify_deployed_service_contracts(
     assert contract_manager.contracts_version == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
-    service_bundle = verify_deployed_contract(
+    service_bundle, constructor_arguments = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_SERVICE_REGISTRY,
     )
-
-    # We need to also check the constructor parameters against the chain
-    constructor_arguments = deployment_data['contracts'][
-        CONTRACT_SERVICE_REGISTRY
-    ]['constructor_arguments']
-    assert to_checksum_address(
-        service_bundle.functions.token().call(),
-    ) == token_address
+    assert to_checksum_address(service_bundle.functions.token().call()) == token_address
     assert token_address == constructor_arguments[0]
 
-    print(
-        f'{CONTRACT_SERVICE_REGISTRY} at {service_bundle.address} '
-        f'matches the compiled data from contracts.json',
-    )
-
-    user_deposit = verify_deployed_contract(
+    user_deposit, constructor_arguments = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_USER_DEPOSIT,
     )
-
-    # We need to also check the constructor parameters against the chain
-    constructor_arguments = deployment_data['contracts'][
-        CONTRACT_USER_DEPOSIT
-    ]['constructor_arguments']
     assert len(constructor_arguments) == 1
-    assert to_checksum_address(
-        user_deposit.functions.token().call(),
-    ) == token_address
+    assert to_checksum_address(user_deposit.functions.token().call()) == token_address
     assert token_address == constructor_arguments[0]
 
-    print(
-        f'{CONTRACT_USER_DEPOSIT} at {user_deposit.address} '
-        f'matches the compiled data from contracts.json',
-    )
-
-    monitoring_service = verify_deployed_contract(
+    monitoring_service, constructor_arguments = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_MONITORING_SERVICE,
     )
-
-    # We need to also check the constructor parameters against the chain
-    constructor_arguments = deployment_data['contracts'][
-        CONTRACT_MONITORING_SERVICE
-    ]['constructor_arguments']
     assert len(constructor_arguments) == 3
-
-    assert to_checksum_address(
-        monitoring_service.functions.token().call(),
-    ) == token_address
+    assert to_checksum_address(monitoring_service.functions.token().call()) == token_address
     assert token_address == constructor_arguments[0]
 
     assert to_checksum_address(
@@ -814,33 +766,17 @@ def verify_deployed_service_contracts(
     ) == user_deposit.address
     assert user_deposit.address == constructor_arguments[2]
 
-    print(
-        f'{CONTRACT_MONITORING_SERVICE} at {monitoring_service.address} '
-        f'matches the compiled data from contracts.json',
-    )
-
-    one_to_n = verify_deployed_contract(
+    one_to_n, constructor_arguments = verify_deployed_contract(
         web3,
         contract_manager,
         deployment_data,
         CONTRACT_ONE_TO_N,
     )
-
-    # We need to also check the constructor parameters against the chain
-    constructor_arguments = deployment_data['contracts'][
-        CONTRACT_ONE_TO_N
-    ]['constructor_arguments']
-
     assert to_checksum_address(
         one_to_n.functions.deposit_contract().call(),
     ) == user_deposit.address
     assert user_deposit.address == constructor_arguments[0]
     assert len(constructor_arguments) == 1
-
-    print(
-        f'{CONTRACT_ONE_TO_N} at {one_to_n.address} '
-        f'matches the compiled data from contracts.json',
-    )
 
     # Check that UserDeposit.init() had the right effect
     onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
@@ -849,8 +785,6 @@ def verify_deployed_service_contracts(
     assert to_checksum_address(
         user_deposit.functions.one_to_n_address().call(),
     ) == one_to_n.address
-
-    print(f"UserDeposit at {user_deposit.address} was correctly initialized with an init() call.")
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
@@ -869,6 +803,8 @@ def verify_deployed_contract(
     - information stored in deployment_*.json against the chain,
     except for the constructor arguments, which have to be checked
     separately.
+
+    Returns: (onchain_instance, constructor_arguments)
     """
     contracts = deployment_data['contracts']
 
@@ -882,6 +818,11 @@ def verify_deployed_contract(
     blockchain_bytecode = web3.eth.getCode(contract_address).hex()
     compiled_bytecode = runtime_hexcode(contract_manager, contract_name)
     assert blockchain_bytecode == compiled_bytecode
+
+    print(
+        f'{contract_name} at {contract_address} '
+        f'matches the compiled data from contracts.json',
+    )
 
     # Check blockchain transaction hash & block information
     receipt = web3.eth.getTransactionReceipt(
@@ -904,7 +845,7 @@ def verify_deployed_contract(
     version = contract_instance.functions.contract_version().call()
     assert version == deployment_data['contracts_version']
 
-    return contract_instance
+    return contract_instance, contracts[contract_name]['constructor_arguments']
 
 
 # Classes for static type checking of deployed_contracts dictionary.
