@@ -127,6 +127,16 @@ class ContractDeployer:
         )
         return receipt
 
+    def transact(
+        self,
+        contract_method: Contract,
+    ):
+        """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
+        txhash = contract_method.transact(self.transaction)
+        log.debug(f'Sending txHash={encode_hex(txhash)}')
+        (receipt, _) = check_succesful_tx(self.web3, txhash, self.wait)
+        return receipt
+
     def send_deployment_transaction(self, contract, args):
         txhash = None
         while txhash is None:
@@ -540,6 +550,20 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         one_to_n_constructor_args,
     )
 
+    # Tell the UserDeposit instance about other contracts.
+    user_deposit_instance = deployer.web3.eth.contract(
+        abi=deployer.contract_manager.get_contract_abi(CONTRACT_USER_DEPOSIT),
+        address=deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
+    )
+    msc_address = deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE]['address']
+    one_to_n_address = deployed_contracts['contracts'][CONTRACT_ONE_TO_N]['address']
+    log.debug(
+        "Calling UserDeposit.init() with "
+        f"msc_address={msc_address} "
+        f"one_to_n_address={one_to_n_address}",
+    )
+    deployer.transact(user_deposit_instance.functions.init(msc_address, one_to_n_address))
+
     return deployed_contracts
 
 
@@ -811,6 +835,16 @@ def verify_deployed_service_contracts(
         f'{CONTRACT_ONE_TO_N} at {one_to_n.address} '
         f'matches the compiled data from contracts.json',
     )
+
+    # Check that UserDeposit.init() had the right effect
+    onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
+    assert onchain_msc_address == monitoring_service.address, \
+        f"MSC address found onchain: {onchain_msc_address}, expected: {monitoring_service.address}"
+    assert to_checksum_address(
+        user_deposit.functions.one_to_n_address().call(),
+    ) == one_to_n.address
+
+    print(f"UserDeposit at {user_deposit.address} was correctly initialized with an init() call.")
 
     if deployment_file_path is not None:
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
