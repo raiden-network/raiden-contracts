@@ -16,7 +16,7 @@ resolving imports.
 example usage:
 
 $ cd raiden-contracts/raiden_contracts
-$ python ./utils/join-contracts.py --import-map {} ./contracts/TokenNetwork.sol joined.sol
+$ python ./utils/join-contracts.py ./contracts/TokenNetwork.sol joined.sol
 
 """
 
@@ -59,7 +59,11 @@ class ContractJoiner:
 
 
 @click.command()
-@click.option('--import-map', default='', help='JSON mapping {"path-prefix": "/file/system/path"}')
+@click.option(
+    '--import-map',
+    default='{}',
+    help='JSON mapping {"path-prefix": "/file/system/path"}',
+)
 @click.argument('contract', type=File())
 @click.argument('output', type=File('w'))
 def main(contract, output, import_map):
