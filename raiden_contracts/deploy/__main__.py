@@ -797,6 +797,7 @@ def verify_deployed_service_contracts(
     constructor_arguments = deployment_data['contracts'][
         CONTRACT_MONITORING_SERVICE
     ]['constructor_arguments']
+    assert len(constructor_arguments) == 3
 
     assert to_checksum_address(
         monitoring_service.functions.token().call(),
@@ -807,6 +808,11 @@ def verify_deployed_service_contracts(
         monitoring_service.functions.service_registry().call(),
     ) == service_bundle.address
     assert service_bundle.address == constructor_arguments[1]
+
+    assert to_checksum_address(
+        monitoring_service.functions.user_deposit().call(),
+    ) == user_deposit.address
+    assert user_deposit.address == constructor_arguments[2]
 
     print(
         f'{CONTRACT_MONITORING_SERVICE} at {monitoring_service.address} '
