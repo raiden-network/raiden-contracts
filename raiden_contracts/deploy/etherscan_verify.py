@@ -43,8 +43,6 @@ def etherscan_verify(chain_id, apikey, guid, contract_name):
     contract_manager = ContractManager(contracts_precompiled_path())
     source_path = contracts_source_path()
 
-    deployment_info = get_contracts_deployed(chain_id)
-
     if chain_id == 3:
         etherscan_api = 'https://api-ropsten.etherscan.io/api'
     elif chain_id == 4:
@@ -53,6 +51,11 @@ def etherscan_verify(chain_id, apikey, guid, contract_name):
         etherscan_api = 'https://api-kovan.etherscan.io/api'
     elif chain_id == 1:
         etherscan_api = 'https://api.etherscan.io/api'
+    else:
+        click.echo(f"Unknown chain_id {chain_id}", err=True)
+        exit(1)
+
+    deployment_info = get_contracts_deployed(chain_id)
 
     if guid:
         guid_status(etherscan_api, guid)
