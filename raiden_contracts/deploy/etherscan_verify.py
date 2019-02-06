@@ -80,11 +80,11 @@ def join_sources(source_module, contract_name):
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     joined_file = Path(__file__).parent.joinpath('joined.sol')
-
+    remapping = {module: str(path) for module, path in contracts_source_path().items()}
     command = [
         './utils/join-contracts.py',
         '--import-map',
-        '{"raiden": "contracts", "test": "contracts/test", "services": "contracts/services"}',
+        json.dumps(remapping),
         str(contracts_source_path()[source_module].joinpath(contract_name + ".sol")),
         str(joined_file),
     ]
