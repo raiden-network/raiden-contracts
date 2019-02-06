@@ -16,7 +16,6 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     contracts_precompiled_path,
-    contracts_source_path,
     get_contracts_deployed,
 )
 
@@ -42,95 +41,83 @@ from raiden_contracts.contract_manager import (
     help='Contract name. Options: EndpointRegistry | SecretRegistry | TokenNetworkRegistry',
 )
 def etherscan_verify(chain_id, apikey, guid, contract_name):
-    contract_manager = ContractManager(contracts_precompiled_path())
-    source_path = contracts_source_path()
-
-    if chain_id == 3:
-        etherscan_api = 'https://api-ropsten.etherscan.io/api'
-    elif chain_id == 4:
-        etherscan_api = 'https://api-rinkeby.etherscan.io/api'
-    elif chain_id == 42:
-        etherscan_api = 'https://api-kovan.etherscan.io/api'
-    elif chain_id == 1:
-        etherscan_api = 'https://api.etherscan.io/api'
-    else:
-        click.echo(f"Unknown chain_id {chain_id}", err=True)
-        exit(1)
-
-    deployment_info = get_contracts_deployed(chain_id)
-
     if guid:
-        guid_status(etherscan_api, guid)
+        guid_status(api_of_chain_id(chain_id), guid)
         return
 
     if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
-        path = source_path['raiden'].joinpath(f'{CONTRACT_ENDPOINT_REGISTRY}.sol')
-        source = path.read_text()
-        constructor_args = ''
-        etherscan_verify_contract(
-            etherscan_api,
-            apikey,
-            contract_manager.contracts[CONTRACT_ENDPOINT_REGISTRY],
-            CONTRACT_ENDPOINT_REGISTRY,
-            deployment_info['contracts'][CONTRACT_ENDPOINT_REGISTRY],
-            source,
-            constructor_args,
-        )
+        etherscan_verify_a_contract(chain_id, apikey, CONTRACT_ENDPOINT_REGISTRY)
 
     if contract_name is None or contract_name == CONTRACT_SECRET_REGISTRY:
-        path = source_path['raiden'].joinpath(f'{CONTRACT_SECRET_REGISTRY}.sol')
-        source = path.read_text()
-        constructor_args = ''
-        etherscan_verify_contract(
-            etherscan_api,
-            apikey,
-            contract_manager.contracts[CONTRACT_SECRET_REGISTRY],
-            CONTRACT_SECRET_REGISTRY,
-            deployment_info['contracts'][CONTRACT_SECRET_REGISTRY],
-            source,
-            constructor_args,
-        )
+        etherscan_verify_a_contract(chain_id, apikey, CONTRACT_SECRET_REGISTRY)
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
-        joined_file = Path(__file__).parent.joinpath('joined.sol')
-        command = [
-            './utils/join-contracts.py',
-            '--import-map',
-            '{"raiden": "contracts", "test": "contracts/test", "services": "contracts/services"}',
-            'contracts/TokenNetworkRegistry.sol',
-            str(joined_file),
-        ]
-        old_working_dir = Path.cwd()
-        chdir(Path(__file__).parent.parent)
-        try:
-            combiner = subprocess.Popen(command)
-            combiner.wait()
-        finally:
-            chdir(old_working_dir)
+        etherscan_verify_a_contract(chain_id, apikey, CONTRACT_TOKEN_NETWORK_REGISTRY)
 
-        source = joined_file.read_text()
 
-        constructor_arguments = deployment_info['contracts'][
-            CONTRACT_TOKEN_NETWORK_REGISTRY
-        ]['constructor_arguments']
-        abi = contract_manager.contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['abi']
+def api_of_chain_id(chain_id):
+    if chain_id == 3:
+        return 'https://api-ropsten.etherscan.io/api'
+    elif chain_id == 4:
+        return 'https://api-rinkeby.etherscan.io/api'
+    elif chain_id == 42:
+        return 'https://api-kovan.etherscan.io/api'
+    elif chain_id == 1:
+        return 'https://api.etherscan.io/api'
+    else:
+        raise ValueError(
+            "Unknown chain_id {chain_id}",
+            err=True,
+        )
+
+
+def etherscan_verify_a_contract(chain_id, apikey, contract_name):
+    etherscan_api = api_of_chain_id(chain_id)
+
+    joined_file = Path(__file__).parent.joinpath('joined.sol')
+    deployment_info = get_contracts_deployed(chain_id)
+    contract_manager = ContractManager(contracts_precompiled_path())
+
+    command = [
+        './utils/join-contracts.py',
+        '--import-map',
+        '{"raiden": "contracts", "test": "contracts/test", "services": "contracts/services"}',
+        'contracts/' + contract_name + '.sol',
+        str(joined_file),
+    ]
+    old_working_dir = Path.cwd()
+    chdir(Path(__file__).parent.parent)
+    try:
+        combiner = subprocess.Popen(command)
+        combiner.wait()
+    finally:
+        chdir(old_working_dir)
+
+    source = joined_file.read_text()
+
+    constructor_arguments = deployment_info['contracts'][contract_name]['constructor_arguments']
+    if constructor_arguments != []:
+        abi = contract_manager.contracts[contract_name]['abi']
         constructor_types = [
             arg['type'] for arg in list(
                 filter(lambda x: x['type'] == 'constructor', abi),
             )[0]['inputs']
         ]
         constructor_args = encode_abi(constructor_types, constructor_arguments).hex()
-        print('constructor_args', constructor_arguments, constructor_types, constructor_args)
+    else:
+        constructor_types = []
+        constructor_args = ''
+    print('constructor_args', constructor_arguments, constructor_types, constructor_args)
 
-        etherscan_verify_contract(
-            etherscan_api,
-            apikey,
-            contract_manager.contracts[CONTRACT_TOKEN_NETWORK_REGISTRY],
-            CONTRACT_TOKEN_NETWORK_REGISTRY,
-            deployment_info['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
-            source,
-            constructor_args,
-        )
+    etherscan_verify_contract(
+        etherscan_api,
+        apikey,
+        contract_manager.contracts[contract_name],
+        contract_name,
+        deployment_info['contracts'][contract_name],
+        source,
+        constructor_args,
+    )
 
 
 def etherscan_verify_contract(
