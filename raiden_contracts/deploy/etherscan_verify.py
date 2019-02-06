@@ -118,28 +118,14 @@ def get_constructor_args(deployment_info, contract_name, contract_manager):
     return constructor_args
 
 
-def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
-    """ Calls Etherscan API for verifying the Solidity source of a contract.
-
-    Args:
-        chain_id: EIP-155 chain id of the Ethereum chain
-        apikey: key for calling Etherscan API
-        source_module: a module name to look up contracts_source_path()
-        contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
-    """
-    source = join_sources(source_module, contract_name)
-
-    etherscan_api = api_of_chain_id(chain_id)
-    deployment_info = get_contracts_deployed(chain_id)
-    contract_manager = ContractManager(contracts_precompiled_path())
-
-    constructor_args = get_constructor_args(deployment_info, contract_name, contract_manager)
-
-    compiled_info = contract_manager.contracts[contract_name]
-
-    deployment_info = deployment_info['contracts'][contract_name]
-
-    metadata = json.loads(compiled_info['metadata'])
+def post_data_for_etherscan_verification(
+        apikey,
+        deployment_info,
+        source,
+        contract_name,
+        metadata,
+        constructor_args,
+):
     data = {
         # A valid API-Key is required
         'apikey': apikey,
@@ -157,7 +143,30 @@ def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
         'constructorArguments': constructor_args,
     }
     print({k: v for k, v in data.items() if k is not 'sourceCode'})
+    return data
 
+
+def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
+    """ Calls Etherscan API for verifying the Solidity source of a contract.
+
+    Args:
+        chain_id: EIP-155 chain id of the Ethereum chain
+        apikey: key for calling Etherscan API
+        source_module: a module name to look up contracts_source_path()
+        contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
+    """
+    etherscan_api = api_of_chain_id(chain_id)
+    deployment_info = get_contracts_deployed(chain_id)
+    contract_manager = ContractManager(contracts_precompiled_path())
+
+    data = post_data_for_etherscan_verification(
+        apikey,
+        deployment_info['contracts'][contract_name],
+        join_sources(source_module, contract_name),
+        contract_name,
+        json.loads(contract_manager.contracts[contract_name]['metadata']),
+        get_constructor_args(deployment_info, contract_name, contract_manager),
+    )
     response = requests.post(etherscan_api, data=data)
     content = json.loads(response.content.decode())
     print(content)
