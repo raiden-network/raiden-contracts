@@ -101,6 +101,23 @@ def join_sources(source_module, contract_name):
     return joined_file.read_text()
 
 
+def get_constructor_args(deployment_info, contract_name, contract_manager):
+    constructor_arguments = deployment_info['contracts'][contract_name]['constructor_arguments']
+    if constructor_arguments != []:
+        abi = contract_manager.contracts[contract_name]['abi']
+        constructor_types = [
+            arg['type'] for arg in list(
+                filter(lambda x: x['type'] == 'constructor', abi),
+            )[0]['inputs']
+        ]
+        constructor_args = encode_abi(constructor_types, constructor_arguments).hex()
+    else:
+        constructor_types = []
+        constructor_args = ''
+    print('constructor_args', constructor_arguments, constructor_types, constructor_args)
+    return constructor_args
+
+
 def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
     """ Calls Etherscan API for verifying the Solidity source of a contract.
 
@@ -116,19 +133,7 @@ def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
     deployment_info = get_contracts_deployed(chain_id)
     contract_manager = ContractManager(contracts_precompiled_path())
 
-    constructor_arguments = deployment_info['contracts'][contract_name]['constructor_arguments']
-    if constructor_arguments != []:
-        abi = contract_manager.contracts[contract_name]['abi']
-        constructor_types = [
-            arg['type'] for arg in list(
-                filter(lambda x: x['type'] == 'constructor', abi),
-            )[0]['inputs']
-        ]
-        constructor_args = encode_abi(constructor_types, constructor_arguments).hex()
-    else:
-        constructor_types = []
-        constructor_args = ''
-    print('constructor_args', constructor_arguments, constructor_types, constructor_args)
+    constructor_args = get_constructor_args(deployment_info, contract_name, contract_manager)
 
     compiled_info = contract_manager.contracts[contract_name]
 
