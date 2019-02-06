@@ -175,8 +175,17 @@ def etherscan_verify_contract(
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
                 return
+            if r['result'] == 'Pass - Verified':
+                return
             print('Retrying...')
             sleep(5)
+        etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
+        etherscan_url += '/verifyContract2?a=' + data['contractaddress']
+        raise TimeoutError(
+            'Usually a manual submission to Etherscan works.\n' +
+            'Visit ' + etherscan_url +
+            '\nUse raiden_contracts/deploy/joined.sol.',
+        )
 
 
 def guid_status(etherscan_api, guid):
