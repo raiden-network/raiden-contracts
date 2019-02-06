@@ -12,6 +12,10 @@ from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
+    CONTRACT_USER_DEPOSIT,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
@@ -59,6 +63,18 @@ def etherscan_verify(
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
         etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
+
+    if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_SERVICE_REGISTRY)
+
+    if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_MONITORING_SERVICE)
+
+    if contract_name is None or contract_name == CONTRACT_ONE_TO_N:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_ONE_TO_N)
+
+    if contract_name is None or contract_name == CONTRACT_USER_DEPOSIT:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_USER_DEPOSIT)
 
 
 api_of_chain_id = {
@@ -154,7 +170,10 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     etherscan_api = api_of_chain_id[chain_id]
-    deployment_info = get_contracts_deployed(chain_id)
+    deployment_info = get_contracts_deployed(
+        chain_id,
+        services=(source_module == 'services'),
+    )
     contract_manager = ContractManager(contracts_precompiled_path())
 
     data = post_data_for_etherscan_verification(
