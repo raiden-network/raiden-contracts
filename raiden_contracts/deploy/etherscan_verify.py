@@ -4,7 +4,6 @@ import requests
 import subprocess
 from time import sleep
 from typing import Dict, Optional
-from os import chdir
 from pathlib import Path
 
 from eth_abi import encode_abi
@@ -91,15 +90,12 @@ def join_sources(source_module: str, contract_name: str):
         str(contracts_source_path()[source_module].joinpath(contract_name + ".sol")),
         str(joined_file),
     ]
-    old_working_dir = Path.cwd()
-    chdir(Path(__file__).parent.parent)
+    working_dir = Path(__file__).parent.parent
     try:
-        subprocess.check_call(command)
+        subprocess.check_call(command, cwd=working_dir)
     except subprocess.CalledProcessError as ex:
-        print(f"cd {Path.cwd()}; {subprocess.list2cmdline(command)} failed.")
+        print(f"cd {str(working_dir)}; {subprocess.list2cmdline(command)} failed.")
         raise ex
-    finally:
-        chdir(old_working_dir)
 
     return joined_file.read_text()
 
