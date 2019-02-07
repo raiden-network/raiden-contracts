@@ -189,6 +189,12 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
     print(content)
     print(f'Status: {content["status"]}; {content["message"]} ; GUID = {content["result"]}')
 
+    etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
+    etherscan_url += '/verifyContract2?a=' + data['contractaddress']
+    manual_submission_guide = f"""Usually a manual submission to Etherscan works.
+    Visit {etherscan_url}
+    Use raiden_contracts/deploy/joined.sol."""
+
     if content["status"] == "1":  # submission succeeded, obtained GUID
         guid = content["result"]
         status = '0'
@@ -198,18 +204,12 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
             r = guid_status(etherscan_api, guid)
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
-                return
+                raise ValueError(manual_submission_guide)
             if r['result'] == 'Pass - Verified':
                 return
             print('Retrying...')
             sleep(5)
-        etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
-        etherscan_url += '/verifyContract2?a=' + data['contractaddress']
-        raise TimeoutError(
-            'Usually a manual submission to Etherscan works.\n' +
-            'Visit ' + etherscan_url +
-            '\nUse raiden_contracts/deploy/joined.sol.',
-        )
+        raise TimeoutError(manual_submission_guide)
 
 
 def guid_status(etherscan_api: str, guid: str):
