@@ -3,6 +3,7 @@ import click
 import requests
 import subprocess
 from time import sleep
+from typing import Dict, Optional
 from os import chdir
 from pathlib import Path
 
@@ -41,7 +42,12 @@ from raiden_contracts.contract_manager import (
     default=None,
     help='Contract name. Options: EndpointRegistry | SecretRegistry | TokenNetworkRegistry',
 )
-def etherscan_verify(chain_id, apikey, guid, contract_name):
+def etherscan_verify(
+        chain_id: int,
+        apikey: str,
+        guid: Optional[str],
+        contract_name: Optional[str],
+):
     if guid:
         guid_status(api_of_chain_id(chain_id), guid)
         return
@@ -56,7 +62,7 @@ def etherscan_verify(chain_id, apikey, guid, contract_name):
         etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
 
 
-def api_of_chain_id(chain_id):
+def api_of_chain_id(chain_id: int) -> str:
     if chain_id == 3:
         return 'https://api-ropsten.etherscan.io/api'
     elif chain_id == 4:
@@ -66,13 +72,10 @@ def api_of_chain_id(chain_id):
     elif chain_id == 1:
         return 'https://api.etherscan.io/api'
     else:
-        raise ValueError(
-            "Unknown chain_id {chain_id}",
-            err=True,
-        )
+        raise ValueError("Unknown chain_id {chain_id}")
 
 
-def join_sources(source_module, contract_name):
+def join_sources(source_module: str, contract_name: str):
     """ Use join-contracts.py to concatenate all imported Solidity files.
 
     Args:
@@ -101,7 +104,11 @@ def join_sources(source_module, contract_name):
     return joined_file.read_text()
 
 
-def get_constructor_args(deployment_info, contract_name, contract_manager):
+def get_constructor_args(
+        deployment_info: Dict,
+        contract_name: str,
+        contract_manager: ContractManager,
+):
     constructor_arguments = deployment_info['contracts'][contract_name]['constructor_arguments']
     if constructor_arguments != []:
         abi = contract_manager.contracts[contract_name]['abi']
@@ -119,12 +126,12 @@ def get_constructor_args(deployment_info, contract_name, contract_manager):
 
 
 def post_data_for_etherscan_verification(
-        apikey,
-        deployment_info,
-        source,
-        contract_name,
-        metadata,
-        constructor_args,
+        apikey: str,
+        deployment_info: Dict,
+        source: str,
+        contract_name: str,
+        metadata: Dict,
+        constructor_args: str,
 ):
     data = {
         # A valid API-Key is required
@@ -146,7 +153,7 @@ def post_data_for_etherscan_verification(
     return data
 
 
-def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
+def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, contract_name: str):
     """ Calls Etherscan API for verifying the Solidity source of a contract.
 
     Args:
@@ -195,7 +202,7 @@ def etherscan_verify_contract(chain_id, apikey, source_module, contract_name):
         )
 
 
-def guid_status(etherscan_api, guid):
+def guid_status(etherscan_api: str, guid: str):
     data = {
         'guid': guid,
         'module': "contract",
