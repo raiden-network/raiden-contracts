@@ -184,19 +184,9 @@ Verification with Etherscan
 
 ::
 
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name EndpointRegistry --chain-id 3
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --chain-id 3
 
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name SecretRegistry --chain-id 3
-
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name TokenNetworkRegistry --chain-id 3
-
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name ServiceRegistry --chain-id 3
-
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name MonitoringService --chain-id 3
-
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name OneToN --chain-id 3
-
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name UserDeposit --chain-id 3
+If the command exists with status code 0, Etherscan has verified all contracts against Solidity sources.
 
 
 Making a Release
