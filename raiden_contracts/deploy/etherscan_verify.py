@@ -12,6 +12,10 @@ from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
+    CONTRACT_USER_DEPOSIT,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
@@ -59,6 +63,18 @@ def etherscan_verify(
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
         etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
+
+    if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_SERVICE_REGISTRY)
+
+    if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_MONITORING_SERVICE)
+
+    if contract_name is None or contract_name == CONTRACT_ONE_TO_N:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_ONE_TO_N)
+
+    if contract_name is None or contract_name == CONTRACT_USER_DEPOSIT:
+        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_USER_DEPOSIT)
 
 
 api_of_chain_id = {
@@ -138,7 +154,8 @@ def post_data_for_etherscan_verification(
         # 0 = Optimization used, 1 = No Optimization
         'optimizationUsed': 0 if metadata['settings']['optimizer']['enabled'] is False else 1,
         'runs': metadata['settings']['optimizer']['runs'],
-        'constructorArguments': constructor_args,
+        # Typo is intentional. Etherscan does not like the correct spelling.
+        'constructorArguements': constructor_args,
     }
     print({k: v for k, v in data.items() if k is not 'sourceCode'})
     return data
@@ -154,7 +171,10 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     etherscan_api = api_of_chain_id[chain_id]
-    deployment_info = get_contracts_deployed(chain_id)
+    deployment_info = get_contracts_deployed(
+        chain_id,
+        services=(source_module == 'services'),
+    )
     contract_manager = ContractManager(contracts_precompiled_path())
 
     data = post_data_for_etherscan_verification(
@@ -170,6 +190,12 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
     print(content)
     print(f'Status: {content["status"]}; {content["message"]} ; GUID = {content["result"]}')
 
+    etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
+    etherscan_url += '/verifyContract2?a=' + data['contractaddress']
+    manual_submission_guide = f"""Usually a manual submission to Etherscan works.
+    Visit {etherscan_url}
+    Use raiden_contracts/deploy/joined.sol."""
+
     if content["status"] == "1":  # submission succeeded, obtained GUID
         guid = content["result"]
         status = '0'
@@ -179,18 +205,12 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
             r = guid_status(etherscan_api, guid)
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
-                return
+                raise ValueError(manual_submission_guide)
             if r['result'] == 'Pass - Verified':
                 return
             print('Retrying...')
             sleep(5)
-        etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
-        etherscan_url += '/verifyContract2?a=' + data['contractaddress']
-        raise TimeoutError(
-            'Usually a manual submission to Etherscan works.\n' +
-            'Visit ' + etherscan_url +
-            '\nUse raiden_contracts/deploy/joined.sol.',
-        )
+        raise TimeoutError(manual_submission_guide)
 
 
 def guid_status(etherscan_api: str, guid: str):

@@ -190,6 +190,14 @@ Verification with Etherscan
 
     python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name TokenNetworkRegistry --chain-id 3
 
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name ServiceRegistry --chain-id 3
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name MonitoringService --chain-id 3
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name OneToN --chain-id 3
+
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --contract-name UserDeposit --chain-id 3
+
 
 Making a Release
 ----------------
