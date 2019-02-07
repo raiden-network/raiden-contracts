@@ -8,7 +8,7 @@ import click
 
 from logging import getLogger
 from mypy_extensions import TypedDict
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
@@ -455,6 +455,17 @@ def deployed_data_from_receipt(receipt, constructor_arguments):
     }
 
 
+def deploy_and_remember(
+        contract_name: str,
+        arguments: List,
+        deployer: ContractDeployer,
+        deployed_contracts: "DeployedContracts",
+):
+    """ Deployes contract_name with arguments and store the result in deployed_contracts. """
+    receipt = deployer.deploy(contract_name, arguments)
+    deployed_contracts['contracts'][contract_name] = deployed_data_from_receipt(receipt, arguments)
+
+
 def deploy_raiden_contracts(
     deployer: ContractDeployer,
 ):
@@ -466,17 +477,8 @@ def deploy_raiden_contracts(
         'contracts': {},
     }
 
-    endpoint_registry_receipt = deployer.deploy(CONTRACT_ENDPOINT_REGISTRY)
-    deployed_contracts['contracts'][CONTRACT_ENDPOINT_REGISTRY] = deployed_data_from_receipt(
-        endpoint_registry_receipt,
-        [],
-    )
-
-    secret_registry_receipt = deployer.deploy(CONTRACT_SECRET_REGISTRY)
-    deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY] = deployed_data_from_receipt(
-        secret_registry_receipt,
-        [],
-    )
+    deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployer, deployed_contracts)
+    deploy_and_remember(CONTRACT_SECRET_REGISTRY, [], deployer, deployed_contracts)
 
     token_network_constructor_arguments = [
         deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY]['address'],
@@ -484,13 +486,11 @@ def deploy_raiden_contracts(
         DEPLOY_SETTLE_TIMEOUT_MIN,
         DEPLOY_SETTLE_TIMEOUT_MAX,
     ]
-    token_network_registry_receipt = deployer.deploy(
+    deploy_and_remember(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_constructor_arguments,
-    )
-    deployed_contracts['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = deployed_data_from_receipt(
-        token_network_registry_receipt,
-        token_network_constructor_arguments,
+        deployer,
+        deployed_contracts,
     )
 
     return deployed_contracts
@@ -504,51 +504,25 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
         'contracts': {},
     }
 
-    service_bundle_constructor_arguments = [token_address]
-    service_bundle_receipt = deployer.deploy(
-        CONTRACT_SERVICE_REGISTRY,
-        service_bundle_constructor_arguments,
-    )
-    deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY] = deployed_data_from_receipt(
-        service_bundle_receipt,
-        service_bundle_constructor_arguments,
-    )
-
-    user_deposit_constructor_arguments = [token_address]
-    user_deposit_receipt = deployer.deploy(
-        CONTRACT_USER_DEPOSIT,
-        user_deposit_constructor_arguments,
-    )
-    deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT] = deployed_data_from_receipt(
-        user_deposit_receipt,
-        user_deposit_constructor_arguments,
-    )
+    deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployer, deployed_contracts)
+    deploy_and_remember(CONTRACT_USER_DEPOSIT, [token_address], deployer, deployed_contracts)
 
     monitoring_service_constructor_args = [
         token_address,
         deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY]['address'],
         deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
     ]
-    monitoring_service_receipt = deployer.deploy(
+    deploy_and_remember(
         CONTRACT_MONITORING_SERVICE,
         monitoring_service_constructor_args,
-    )
-    deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE] = deployed_data_from_receipt(
-        monitoring_service_receipt,
-        monitoring_service_constructor_args,
+        deployer,
+        deployed_contracts,
     )
 
     one_to_n_constructor_args = [
         deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
     ]
-    one_to_n_receipt = deployer.deploy(
-        CONTRACT_ONE_TO_N,
-        one_to_n_constructor_args,
-    )
-    deployed_contracts['contracts'][CONTRACT_ONE_TO_N] = deployed_data_from_receipt(
-        one_to_n_receipt,
-        one_to_n_constructor_args,
-    )
+    deploy_and_remember(CONTRACT_ONE_TO_N, one_to_n_constructor_args, deployer, deployed_contracts)
 
     # Tell the UserDeposit instance about other contracts.
     user_deposit_instance = deployer.web3.eth.contract(
