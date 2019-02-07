@@ -211,6 +211,14 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
             print('Retrying...')
             sleep(5)
         raise TimeoutError(manual_submission_guide)
+    else:
+        if content["result"] == "Contract source code already verified":
+            return
+        else:
+            raise ValueError(
+                'Etherscan submission failed for an unknown reason\n' +
+                manual_submission_guide,
+            )
 
 
 def guid_status(etherscan_api: str, guid: str):
