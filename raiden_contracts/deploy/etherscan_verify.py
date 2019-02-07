@@ -154,7 +154,8 @@ def post_data_for_etherscan_verification(
         # 0 = Optimization used, 1 = No Optimization
         'optimizationUsed': 0 if metadata['settings']['optimizer']['enabled'] is False else 1,
         'runs': metadata['settings']['optimizer']['runs'],
-        'constructorArguments': constructor_args,
+        # Typo is intentional. Etherscan does not like the correct spelling.
+        'constructorArguements': constructor_args,
     }
     print({k: v for k, v in data.items() if k is not 'sourceCode'})
     return data
