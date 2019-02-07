@@ -166,12 +166,13 @@ def etherscan_verify_contract(
     print(content)
     print(f'Status: {content["status"]}; {content["message"]} ; GUID = {content["result"]}')
 
-    if content["status"] == "1":
+    if content["status"] == "1":  # submission succeeded, obtained GUID
+        guid = content["result"]
         status = '0'
         retries = 10
         while status == '0' and retries > 0:
             retries -= 1
-            r = guid_status(etherscan_api, content["result"])
+            r = guid_status(etherscan_api, guid)
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
                 return
