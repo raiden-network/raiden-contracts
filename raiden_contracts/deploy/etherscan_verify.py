@@ -48,7 +48,7 @@ def etherscan_verify(
         contract_name: Optional[str],
 ):
     if guid:
-        guid_status(api_of_chain_id(chain_id), guid)
+        guid_status(api_of_chain_id[chain_id], guid)
         return
 
     if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
@@ -61,17 +61,12 @@ def etherscan_verify(
         etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
 
 
-def api_of_chain_id(chain_id: int) -> str:
-    if chain_id == 3:
-        return 'https://api-ropsten.etherscan.io/api'
-    elif chain_id == 4:
-        return 'https://api-rinkeby.etherscan.io/api'
-    elif chain_id == 42:
-        return 'https://api-kovan.etherscan.io/api'
-    elif chain_id == 1:
-        return 'https://api.etherscan.io/api'
-    else:
-        raise ValueError("Unknown chain_id {chain_id}")
+api_of_chain_id = {
+    1: 'https://api.etherscan.io/api',
+    3: 'https://api-ropsten.etherscan.io/api',
+    4: 'https://api-rinkeby.etherscan.io/api',
+    42: 'https://api-kovan.etherscan.io/api',
+}
 
 
 def join_sources(source_module: str, contract_name: str):
@@ -158,7 +153,7 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
         source_module: a module name to look up contracts_source_path()
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
-    etherscan_api = api_of_chain_id(chain_id)
+    etherscan_api = api_of_chain_id[chain_id]
     deployment_info = get_contracts_deployed(chain_id)
     contract_manager = ContractManager(contracts_precompiled_path())
 
