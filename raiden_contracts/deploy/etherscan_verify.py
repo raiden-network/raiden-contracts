@@ -1,7 +1,9 @@
 import json
 import click
 import requests
+import subprocess
 from time import sleep
+from os import chdir
 from pathlib import Path
 
 from eth_abi import encode_abi
@@ -90,24 +92,23 @@ def etherscan_verify(chain_id, apikey, guid, contract_name):
         )
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
-        source = (
-            source_path['raiden'].joinpath('Utils.sol').read_text() +
-            source_path['raiden'].joinpath('Token.sol').read_text() +
-            source_path['raiden'].joinpath('lib', 'ECVerify.sol').read_text() +
-            source_path['raiden'].joinpath('SecretRegistry.sol').read_text() +
-            source_path['raiden'].joinpath('TokenNetwork.sol').read_text() +
-            source_path['raiden'].joinpath('TokenNetworkRegistry.sol').read_text()
-        )
+        joined_file = Path(__file__).parent.joinpath('joined.sol')
+        command = [
+            './utils/join-contracts.py',
+            '--import-map',
+            '{"raiden": "contracts", "test": "contracts/test", "services": "contracts/services"}',
+            'contracts/TokenNetworkRegistry.sol',
+            str(joined_file),
+        ]
+        old_working_dir = Path.cwd()
+        chdir(Path(__file__).parent.parent)
+        try:
+            combiner = subprocess.Popen(command)
+            combiner.wait()
+        finally:
+            chdir(old_working_dir)
 
-        source = 'pragma solidity ^0.4.23;' + source.replace('pragma solidity ^0.4.23;', '')
-        source = source.replace('import "raiden/Token.sol";\n', '')
-        source = source.replace('import "raiden/Utils.sol";\n', '')
-        source = source.replace('import "raiden/lib/ECVerify.sol";\n', '')
-        source = source.replace('import "raiden/SecretRegistry.sol";\n', '')
-        source = source.replace('import "raiden/TokenNetwork.sol";\n', '')
-
-        flatten_path = Path(__file__).parent.joinpath('flatten.sol')
-        flatten_path.open('w').write(source)
+        source = joined_file.read_text()
 
         constructor_arguments = deployment_info['contracts'][
             CONTRACT_TOKEN_NETWORK_REGISTRY
@@ -165,17 +166,27 @@ def etherscan_verify_contract(
     print(content)
     print(f'Status: {content["status"]}; {content["message"]} ; GUID = {content["result"]}')
 
-    if content["status"] == "1":
+    if content["status"] == "1":  # submission succeeded, obtained GUID
+        guid = content["result"]
         status = '0'
         retries = 10
         while status == '0' and retries > 0:
             retries -= 1
-            r = guid_status(etherscan_api, content["result"])
+            r = guid_status(etherscan_api, guid)
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
                 return
+            if r['result'] == 'Pass - Verified':
+                return
             print('Retrying...')
             sleep(5)
+        etherscan_url = etherscan_api.replace('api-', '').replace('api', '')
+        etherscan_url += '/verifyContract2?a=' + data['contractaddress']
+        raise TimeoutError(
+            'Usually a manual submission to Etherscan works.\n' +
+            'Visit ' + etherscan_url +
+            '\nUse raiden_contracts/deploy/joined.sol.',
+        )
 
 
 def guid_status(etherscan_api, guid):
