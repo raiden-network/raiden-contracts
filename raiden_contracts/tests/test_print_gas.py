@@ -5,6 +5,7 @@ from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
+    CONTRACT_USER_DEPOSIT,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
@@ -323,3 +324,36 @@ def test_one_to_n_gas(
         A, B, amount, expiration, signature,
     ).transact({'from': A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')
+
+
+def test_user_deposit_gas(
+    user_deposit_contract,
+    custom_token,
+    get_accounts,
+    web3,
+    print_gas,
+):
+    """ Abusing pytest to print gas cost of UserDeposit functions
+
+    The `transfer` function is not included because it's only called by trusted
+    contracts as part of another function.
+    """
+    (A, ) = get_accounts(1)
+    custom_token.functions.mint(20).transact({'from': A})
+    custom_token.functions.approve(user_deposit_contract.address, 20).transact({'from': A})
+
+    # deposit
+    txn_hash = user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.deposit')
+    txn_hash = user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.deposit (increase balance)')
+
+    # plan withdraw
+    txn_hash = user_deposit_contract.functions.planWithdraw(10).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.planWithdraw')
+
+    # withdraw
+    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
+    web3.testing.mine(withdraw_delay - 1)
+    txn_hash = user_deposit_contract.functions.withdraw(10).transact({'from': A})
+    print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.withdraw')
