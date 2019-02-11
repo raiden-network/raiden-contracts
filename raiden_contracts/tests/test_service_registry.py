@@ -23,6 +23,30 @@ def test_deposit(
         service_registry.functions.deposit(1).transact({'from': A})
 
 
+def test_setURL(
+    service_registry,
+    get_accounts,
+):
+    (A, ) = get_accounts(1)
+    url1 = 'http://example.com'
+    url2 = 'http://raiden.example.com'
+
+    # First setHost call, should add to `service_addresses`
+    service_registry.functions.setURL(url1).transact({'from': A})
+    assert service_registry.functions.urls(A).call() == url1
+    assert service_registry.functions.service_addresses(0).call() == A
+    assert service_registry.functions.serviceCount().call() == 1
+    with pytest.raises(TransactionFailed):
+        assert service_registry.functions.service_addresses(1).call()
+
+    # Setting the host for the second time must not add the service address a
+    # second time.
+    service_registry.functions.setURL(url2).transact({'from': A})
+    assert service_registry.functions.urls(A).call() == url2
+    assert service_registry.functions.service_addresses(0).call() == A
+    assert service_registry.functions.serviceCount().call() == 1
+
+
 def test_version(service_registry):
     """ Check the result of contract_version() call on the ServiceRegistry """
     version = service_registry.functions.contract_version().call()
