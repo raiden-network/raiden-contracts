@@ -4,8 +4,12 @@ from copy import deepcopy
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_USER_DEPOSIT,
 )
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
@@ -274,3 +278,34 @@ def test_deploy_script_service(
         token_address,
         deployed_service_contracts,
     )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail['contracts_version'] = '0.0.0'
+    with pytest.raises(AssertionError):
+        verify_deployed_service_contracts(
+            deployer.web3,
+            deployer.contract_manager,
+            token_address=token_address,
+            deployment_data=deployed_info_fail,
+        )
+
+    def test_missing_deployment(contract_name):
+        deployed_info_fail = deepcopy(deployed_service_contracts)
+        deployed_info_fail['contracts'][
+            contract_name
+        ]['address'] = EMPTY_ADDRESS
+        with pytest.raises(AssertionError):
+            verify_deployed_service_contracts(
+                deployer.web3,
+                deployer.contract_manager,
+                token_address=token_address,
+                deployment_data=deployed_info_fail,
+            )
+
+    for contract_name in [
+            CONTRACT_SERVICE_REGISTRY,
+            CONTRACT_MONITORING_SERVICE,
+            CONTRACT_ONE_TO_N,
+            CONTRACT_USER_DEPOSIT,
+    ]:
+        test_missing_deployment(contract_name)
