@@ -10,9 +10,11 @@ from raiden_contracts.constants import (
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     deploy_raiden_contracts,
+    deploy_service_contracts,
     deploy_token_contract,
     register_token_network,
     verify_deployed_contracts,
+    verify_deployed_service_contracts,
 )
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import T_Address
@@ -233,3 +235,42 @@ def test_deploy_script_register(
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
+
+
+def test_deploy_script_service(
+        web3,
+        faucet_private_key,
+        get_random_privkey,
+):
+    """ Run deploy_service_contracts() used in the deployment script
+
+    This checks if deploy_service_contracts() works correctly in the happy case.
+    """
+    gas_limit = 5900000
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=faucet_private_key,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
+    )
+
+    token_type = 'CustomToken'
+    deployed_token = deploy_token_contract(
+        deployer,
+        token_supply=10000000,
+        token_decimals=18,
+        token_name='TestToken',
+        token_symbol='TTT',
+        token_type=token_type,
+    )
+    token_address = deployed_token[token_type]
+    assert isinstance(token_address, T_Address)
+
+    deployed_service_contracts = deploy_service_contracts(deployer, token_address)
+    verify_deployed_service_contracts(
+        deployer.web3,
+        deployer.contract_manager,
+        token_address,
+        deployed_service_contracts,
+    )
