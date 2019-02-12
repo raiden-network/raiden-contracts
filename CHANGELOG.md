@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.10.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.10.1) - 2019-02-13
+
+- [#557](https://github.com/raiden-network/raiden-contracts/pull/557) Revert the new gas measurements
+
 ## [0.10.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.10.0) - 2019-02-13
 
 - https://github.com/raiden-network/raiden-contracts/compare/v0.9.0...master
