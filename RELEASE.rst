@@ -22,8 +22,9 @@ When we want to release another version of the ``raiden-contracts`` package, we 
    #. `Bump the version on the smart contracts <bump-contracts>`_
    #. `Deploy smart contracts <_deploy-contracts>`_ on all the supported chains and overwrite ``deployment_*,json`` files with the new deployment data.
    #. `Verify the deployed smart contracts on Etherscan <verify-contracts>`_
-   #. `Measure Gas Costs <measure-gas>`_ and update ``constants.py``
+   #. (SKIP `Measure Gas Costs <measure-gas>`_ and update ``constants.py``; this likely annoys existing users.  See `#547 <https://github.com/raiden-network/raiden-contracts/issues/547>`__)
 
+#. `Update Changelog <change-changelog>`_
 #. `Bump the package version <bump-package>`_
 #. `Release the new package version <_release-package>`_
 
