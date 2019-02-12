@@ -53,9 +53,19 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
-    contracts_version = None     # uses current development! version
-    contracts_version = '0.4.0'  # uses Red Eyes, Mainnet enabled version
-    contracts_version = '0.3._'  # uses the pre-red-eyes development version
+    # Uses the newest version. Available on Kovan, Rinkeby and Ropsten.
+    # Mainnet deployments should not be accessed with contract_version == None.
+    contracts_version = None
+
+    # Uses Red Eyes, Mainnet enabled version with deposit limits.
+    # The version is also available on Kovan, Rinkeby and Ropsten.
+    contracts_version = '0.4.0'
+
+    # Uses the pre-red-eyes development version, probably without
+    # deposit limits. Available only on Kovan, Rinkeby and Ropsten.
+    # The Solidity source of this version is unknown on Etherscan.
+    # See https://github.com/raiden-network/raiden-contracts/issues/543
+    contracts_version = '0.3._'
 
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
