@@ -316,4 +316,6 @@ def get_unlocked_amount(secret_registry, merkle_tree_leaves):
 def get_participants_hash(A, B):
     A = to_canonical_address(A)
     B = to_canonical_address(B)
+    if A == B:
+        raise ValueError('get_participants_hash got the same address twice')
     return keccak(A + B) if A < B else keccak(B + A)

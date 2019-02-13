@@ -96,6 +96,16 @@ def test_participants_hash(token_network, get_accounts):
     assert token_network.functions.getParticipantsHash(B, A).call() == AB_hash
 
 
+def test_participants_hash_equal(token_network, get_accounts):
+    """ getParticipantsHash() behaves as get_participants_hash on equal addresses """
+    (A,) = get_accounts(1)
+
+    with pytest.raises(ValueError):
+        get_participants_hash(A, A)
+    with pytest.raises(TransactionFailed):
+        token_network.functions.getParticipantsHash(A, A).call()
+
+
 def test_counter(token_network, get_accounts, create_channel):
     """ Open three channels and observe states """
     (A, B, C, D) = get_accounts(4)
