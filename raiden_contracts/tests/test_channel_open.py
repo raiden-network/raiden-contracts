@@ -93,6 +93,7 @@ def test_participants_hash(token_network, get_accounts):
 
     AB_hash = get_participants_hash(A, B)
     assert token_network.functions.getParticipantsHash(A, B).call() == AB_hash
+    assert token_network.functions.getParticipantsHash(B, A).call() == AB_hash
 
 
 def test_counter(token_network, get_accounts, create_channel):
