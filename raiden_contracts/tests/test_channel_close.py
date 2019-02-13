@@ -293,12 +293,14 @@ def test_close_first_participant_can_close(
         token_network,
         create_channel,
         get_accounts,
+        get_block,
 ):
     """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     channel_identifier = create_channel(A, B)[0]
 
-    token_network.functions.closeChannel(
+    close_tx = token_network.functions.closeChannel(
         channel_identifier,
         B,
         EMPTY_BALANCE_HASH,
@@ -306,6 +308,37 @@ def test_close_first_participant_can_close(
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
     ).transact({'from': A})
+
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, B, A).call()
+    assert settle_block_number == settle_timeout + get_block(close_tx)
+    assert state == ChannelState.CLOSED
+
+    (
+        _, _,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    assert A_is_the_closer is True
+    assert A_balance_hash == EMPTY_BALANCE_HASH
+    assert A_nonce == 0
+
+    (
+        _, _,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_is_the_closer is False
+    assert B_balance_hash == EMPTY_BALANCE_HASH
+    assert B_nonce == 0
 
 
 def test_close_second_participant_can_close(
