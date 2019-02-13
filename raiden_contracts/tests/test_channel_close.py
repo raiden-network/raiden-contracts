@@ -191,6 +191,7 @@ def test_close_nonce_zero(
         token_network,
         create_channel,
         create_balance_proof,
+        event_handler,
 ):
     """ closeChannel with a balance proof with nonce zero should not change the channel state """
     (A, B) = get_accounts(2)
@@ -227,11 +228,16 @@ def test_close_nonce_zero(
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
 
-    token_network.functions.closeChannel(
+    ev_handler = event_handler(token_network)
+
+    close_tx = token_network.functions.closeChannel(
         channel_identifier,
         B,
         *balance_proof_B,
     ).transact({'from': A})
+
+    ev_handler.add(close_tx, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
+    ev_handler.check()
 
     # Even though we somehow provide valid values for the balance proof, they are not taken into
     # consideration if the nonce is 0.
