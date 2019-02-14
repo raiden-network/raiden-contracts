@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Deployed on testnets with a new fake token for service payments.
+
 ## [0.10.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.10.1) - 2019-02-13
 
 - [#557](https://github.com/raiden-network/raiden-contracts/pull/557) Revert the new gas measurements
