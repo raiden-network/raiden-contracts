@@ -1,4 +1,4 @@
-pragma solidity 0.5.2;
+pragma solidity 0.5.4;
 
 import "raiden/Utils.sol";
 import "services/UserDeposit.sol";
