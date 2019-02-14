@@ -460,10 +460,14 @@ def deploy_and_remember(
         arguments: List,
         deployer: ContractDeployer,
         deployed_contracts: "DeployedContracts",
-):
+) -> Contract:
     """ Deployes contract_name with arguments and store the result in deployed_contracts. """
     receipt = deployer.deploy(contract_name, arguments)
     deployed_contracts['contracts'][contract_name] = deployed_data_from_receipt(receipt, arguments)
+    return deployer.web3.eth.contract(
+        abi=deployer.contract_manager.get_contract_abi(contract_name),
+        address=deployed_contracts['contracts'][contract_name]['address'],
+    )
 
 
 def deploy_raiden_contracts(
@@ -478,17 +482,20 @@ def deploy_raiden_contracts(
     }
 
     deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployer, deployed_contracts)
-    deploy_and_remember(CONTRACT_SECRET_REGISTRY, [], deployer, deployed_contracts)
-
-    token_network_constructor_arguments = [
-        deployed_contracts['contracts'][CONTRACT_SECRET_REGISTRY]['address'],
-        deployed_contracts['chain_id'],
-        DEPLOY_SETTLE_TIMEOUT_MIN,
-        DEPLOY_SETTLE_TIMEOUT_MAX,
-    ]
+    secret_registry = deploy_and_remember(
+        CONTRACT_SECRET_REGISTRY,
+        [],
+        deployer,
+        deployed_contracts,
+    )
     deploy_and_remember(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        token_network_constructor_arguments,
+        [
+            secret_registry.address,
+            deployed_contracts['chain_id'],
+            DEPLOY_SETTLE_TIMEOUT_MIN,
+            DEPLOY_SETTLE_TIMEOUT_MAX,
+        ],
         deployer,
         deployed_contracts,
     )
@@ -505,38 +512,39 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
     }
 
     deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployer, deployed_contracts)
-    deploy_and_remember(CONTRACT_USER_DEPOSIT, [token_address], deployer, deployed_contracts)
+    user_deposit = deploy_and_remember(
+        CONTRACT_USER_DEPOSIT,
+        [token_address],
+        deployer,
+        deployed_contracts,
+    )
 
     monitoring_service_constructor_args = [
         token_address,
         deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY]['address'],
         deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
     ]
-    deploy_and_remember(
+    msc = deploy_and_remember(
         CONTRACT_MONITORING_SERVICE,
         monitoring_service_constructor_args,
         deployer,
         deployed_contracts,
     )
 
-    one_to_n_constructor_args = [
-        deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
-    ]
-    deploy_and_remember(CONTRACT_ONE_TO_N, one_to_n_constructor_args, deployer, deployed_contracts)
+    one_to_n = deploy_and_remember(
+        CONTRACT_ONE_TO_N,
+        [user_deposit.address],
+        deployer,
+        deployed_contracts,
+    )
 
     # Tell the UserDeposit instance about other contracts.
-    user_deposit_instance = deployer.web3.eth.contract(
-        abi=deployer.contract_manager.get_contract_abi(CONTRACT_USER_DEPOSIT),
-        address=deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
-    )
-    msc_address = deployed_contracts['contracts'][CONTRACT_MONITORING_SERVICE]['address']
-    one_to_n_address = deployed_contracts['contracts'][CONTRACT_ONE_TO_N]['address']
     log.debug(
         "Calling UserDeposit.init() with "
-        f"msc_address={msc_address} "
-        f"one_to_n_address={one_to_n_address}",
+        f"msc_address={msc.address} "
+        f"one_to_n_address={one_to_n.address}",
     )
-    deployer.transact(user_deposit_instance.functions.init(msc_address, one_to_n_address))
+    deployer.transact(user_deposit.functions.init(msc.address, one_to_n.address))
 
     return deployed_contracts
 
