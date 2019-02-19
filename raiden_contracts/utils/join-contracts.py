@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+from typing import Set
 
 import click
 from click.types import File
@@ -24,7 +25,7 @@ $ python ./utils/join-contracts.py ./contracts/TokenNetwork.sol joined.sol
 class ContractJoiner:
     def __init__(self, import_map=None):
         self.have_pragma = False
-        self.seen = set()
+        self.seen: Set[str] = set()
         self.import_map = import_map if import_map else {}
 
     def join(self, contract_file):
@@ -47,6 +48,7 @@ class ContractJoiner:
                 match = IMPORT_RE.match(stripped_line)
                 if match:
                     next_file = match.groupdict().get('contract')
+                    assert next_file
                     for prefix, path in self.import_map.items():
                         if next_file.startswith(prefix):
                             next_file = next_file.replace(prefix, path)

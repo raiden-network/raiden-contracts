@@ -1,5 +1,7 @@
+from typing import Dict, List
 import functools
 from collections import defaultdict
+
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from inspect import getframeinfo, stack
@@ -13,10 +15,10 @@ class LogHandler:
         self.web3 = web3
         self.address = address
         self.abi = abi
-        self.event_waiting = {}
-        self.event_filters = {}
-        self.event_count = defaultdict(lambda: defaultdict(lambda: 0))
-        self.event_unknown = []
+        self.event_waiting: Dict[str, dict] = {}
+        self.event_filters: Dict[str, 'LogFilter'] = {}
+        self.event_count: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(lambda: 0))
+        self.event_unknown: List[dict] = []
 
     def add(self, txn_hash, event_name, callback=None, count=1):
         caller = getframeinfo(stack()[1][0])
@@ -40,7 +42,7 @@ class LogHandler:
 
         self.wait(timeout)
 
-    def handle_log(self, event):
+    def handle_log(self, event: dict):
         txn_hash = event['transactionHash']
         event_name = event['event']
 

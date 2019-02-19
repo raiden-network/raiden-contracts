@@ -1,14 +1,5 @@
 import pytest
 import logging
-from web3.utils.events import get_event_data
-from eth_utils import is_address
-
-from raiden_contracts.utils.transaction import check_succesful_tx
-from raiden_contracts.constants import (
-    CONTRACT_TOKEN_NETWORK,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    EVENT_TOKEN_NETWORK_CREATED,
-)
 
 log = logging.getLogger(__name__)
 
@@ -99,30 +90,3 @@ def deploy_tester_contract_txhash(
 def utils_contract(deploy_tester_contract):
     """Deployed Utils contract"""
     return deploy_tester_contract('Utils')
-
-
-@pytest.fixture
-def standard_token_network_contract(
-        web3,
-        contracts_manager,
-        token_network_registry_contract,
-        standard_token_contract,
-        contract_deployer_address,
-):
-    """Return instance of a deployed TokenNetwork for HumanStandardToken."""
-    txid = token_network_registry_contract.functions.createERC20TokenNetwork(
-        standard_token_contract.address,
-    ).transact({'from': contract_deployer_address})
-    tx_receipt = check_succesful_tx(web3, txid)
-    assert len(tx_receipt['logs']) == 1
-    event_abi = contracts_manager.get_event_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-        EVENT_TOKEN_NETWORK_CREATED,
-    )
-    decoded_event = get_event_data(event_abi, tx_receipt['logs'][0])
-    assert decoded_event is not None
-    assert is_address(decoded_event['args']['token_address'])
-    assert is_address(decoded_event['args']['token_network_address'])
-    token_network_address = decoded_event['args']['token_network_address']
-    token_network_abi = contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
-    return web3.eth.contract(abi=token_network_abi, address=token_network_address)
