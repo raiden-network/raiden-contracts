@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Move Raiden contracts to "raiden" subdir, so that the imports match the directory layout.
+
 ## [0.11.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.11.0) - 2019-02-14
 
 - Deployed on testnets with a new fake token for service payments.
