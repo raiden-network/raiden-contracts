@@ -297,7 +297,6 @@ def test_close_first_participant_can_close(
 ):
     """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     channel_identifier = create_channel(A, B)[0]
 
     close_tx = token_network.functions.closeChannel(
@@ -313,7 +312,7 @@ def test_close_first_participant_can_close(
         settle_block_number,
         state,
     ) = token_network.functions.getChannelInfo(channel_identifier, B, A).call()
-    assert settle_block_number == settle_timeout + get_block(close_tx)
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(close_tx)
     assert state == ChannelState.CLOSED
 
     (
