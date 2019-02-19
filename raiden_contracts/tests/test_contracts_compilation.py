@@ -29,6 +29,7 @@ def test_verification_overall_checksum():
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
+    assert manager.overall_checksum
     original_checksum = manager.overall_checksum
 
     # We change the source code overall checksum
@@ -62,12 +63,13 @@ def test_verification_contracts_checksums():
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
+    assert manager.contracts_checksums
     for contract, checksum in manager.contracts_checksums.items():
         manager.contracts_checksums[contract] += '2'
         with pytest.raises(ContractManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
-        manager.contracts_checksums[contract] = None
+        manager.contracts_checksums[contract] = None  # type: ignore
         with pytest.raises(ContractManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
