@@ -42,7 +42,7 @@ contract ServiceRegistry is Utils {
     }
 
     /// Returns number of registered services. Useful for accessing service_addresses.
-    function serviceCount() public returns(uint) {
+    function serviceCount() public view returns(uint) {
         return service_addresses.length;
     }
 }

@@ -114,7 +114,9 @@ contract MonitoringService is Utils {
     internal
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
@@ -183,7 +185,9 @@ contract MonitoringService is Utils {
             reward_proof_signature
         );
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
@@ -209,7 +213,7 @@ contract MonitoringService is Utils {
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward
     /// Can be called once per settled channel by everyone on behalf of MS
-    /// @param token_network_address Address of the Token Network in which the channel
+    /// @param token_network_address Address of the Token Network in which the channel exists
     /// @param closing_participant Address of the participant of the channel that called close
     /// @param non_closing_participant The other participant of the channel
     function claimReward(
@@ -242,7 +246,7 @@ contract MonitoringService is Utils {
         // Make sure that the Reward exists
         require(reward.reward_sender_address != address(0x0));
 
-        // Add reward to the monitoring services' balance
+        // Add reward to the monitoring service's balance
         require(user_deposit.transfer(
             reward.reward_sender_address,
             reward.monitoring_service_address,

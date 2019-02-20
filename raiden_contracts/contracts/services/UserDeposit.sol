@@ -170,6 +170,7 @@ contract UserDeposit is Utils {
     /// @return The remaining balance after planned withdrawals
     function effectiveBalance(address owner)
         external
+        view
         returns (uint256 remaining_balance)
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[owner];
