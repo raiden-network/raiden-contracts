@@ -134,6 +134,8 @@ class ContractManager:
                         overall_checksum=self.overall_checksum,
                         contracts_version=self.contracts_version,
                     ),
+                    sort_keys=True,
+                    indent=4,
                 ),
             )
 
