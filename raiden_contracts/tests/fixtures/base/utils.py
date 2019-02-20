@@ -114,8 +114,14 @@ def txn_gas(web3):
     return get
 
 
+@pytest.fixture(scope="session")
+def gas_measurement_results():
+    results = {}
+    return results
+
+
 @pytest.fixture
-def print_gas(web3, txn_gas):
+def print_gas(web3, txn_gas, gas_measurement_results):
     def get(txn_hash, message=None, additional_gas=0):
         gas_used = txn_gas(txn_hash)
         if not message:
@@ -124,6 +130,9 @@ def print_gas(web3, txn_gas):
         print('----------------------------------')
         print('GAS USED ' + message, gas_used + additional_gas)
         print('----------------------------------')
+        gas_measurement_results[message] = gas_used + additional_gas
+        print('---gas measurements so far---')
+        print(gas_measurement_results)
     return get
 
 
