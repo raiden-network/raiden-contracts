@@ -208,6 +208,7 @@ class ContractManager:
 
 def contracts_source_path():
     return {
+        'lib': _BASE.joinpath('contracts', 'lib'),
         'raiden': _BASE.joinpath('contracts', 'raiden'),
         'test': _BASE.joinpath('contracts', 'test'),
         'services': _BASE.joinpath('contracts', 'services'),

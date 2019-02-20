@@ -4,7 +4,7 @@ pragma solidity 0.5.4;
  * This is a contract used for testing the ECVerify library and ecrecover behaviour.
  */
 
-import "raiden/lib/ECVerify.sol";
+import "lib/ECVerify.sol";
 
 contract SignatureVerifyTest {
     function verify(bytes32 _message_hash, bytes memory _signed_message)
