@@ -22,7 +22,7 @@ When we want to release another version of the ``raiden-contracts`` package, we 
    #. `Bump the version on the smart contracts <bump-contracts>`_
    #. `Deploy smart contracts <_deploy-contracts>`_ on all the supported chains and overwrite ``deployment_*,json`` files with the new deployment data.
    #. `Verify the deployed smart contracts on Etherscan <verify-contracts>`_
-   #. (SKIP `Measure Gas Costs <measure-gas>`_ and update ``constants.py``; this likely annoys existing users.  See `#547 <https://github.com/raiden-network/raiden-contracts/issues/547>`__)
+   #. `Measure Gas Costs <measure-gas>`_
 
 #. `Update Changelog <change-changelog>`_
 #. `Bump the package version <bump-package>`_
@@ -114,19 +114,11 @@ Note that we currently have some issues with the script: https://github.com/raid
 Measure Gas Costs
 -----------------
 
-``raiden_contracts`` package provides `some constants <https://github.com/raiden-network/raiden-contracts/blob/de13cf9aa7ad7ed230ff204e47103def6a14b0be/raiden_contracts/constants.py#L35>`__ showing the amount of gas that each operation requires. This information is manually updated. The amounts can be measured with a script
+``raiden_contracts`` package provides ``data/gas.json`` showing the amount of gas that each operation requires. A ``pytest`` execution updates the JSON file:
 
 ::
 
-    pytest -s raiden_contracts/tests/test_print_gas.py
-
-The script prints many numbers like
-
-::
-    ----------------------------------
-    GAS USED TokenNetwork.unlock 6 locks 66019
-    ----------------------------------
-
+    pytest raiden_contracts/tests/test_print_gas.py
 
 .. _bump-package:
 
