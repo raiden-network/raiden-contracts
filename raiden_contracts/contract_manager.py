@@ -227,6 +227,11 @@ def contracts_precompiled_path(version: Optional[str] = None):
     return data_path.joinpath('contracts.json')
 
 
+def contracts_gas_path(version: Optional[str] = None):
+    data_path = contracts_data_path(version)
+    return data_path.joinpath('gas.json')
+
+
 def contracts_deployed_path(chain_id: int, version: Optional[str] = None, services: bool = False):
     data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
