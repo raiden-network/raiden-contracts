@@ -191,6 +191,7 @@ def test_close_nonce_zero(
         token_network,
         create_channel,
         create_balance_proof,
+        event_handler,
 ):
     """ closeChannel with a balance proof with nonce zero should not change the channel state """
     (A, B) = get_accounts(2)
@@ -227,11 +228,16 @@ def test_close_nonce_zero(
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
 
-    token_network.functions.closeChannel(
+    ev_handler = event_handler(token_network)
+
+    close_tx = token_network.functions.closeChannel(
         channel_identifier,
         B,
         *balance_proof_B,
     ).transact({'from': A})
+
+    ev_handler.add(close_tx, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
+    ev_handler.check()
 
     # Even though we somehow provide valid values for the balance proof, they are not taken into
     # consideration if the nonce is 0.
@@ -287,12 +293,13 @@ def test_close_first_participant_can_close(
         token_network,
         create_channel,
         get_accounts,
+        get_block,
 ):
     """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
-    token_network.functions.closeChannel(
+    close_tx = token_network.functions.closeChannel(
         channel_identifier,
         B,
         EMPTY_BALANCE_HASH,
@@ -300,6 +307,37 @@ def test_close_first_participant_can_close(
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
     ).transact({'from': A})
+
+    (
+        settle_block_number,
+        state,
+    ) = token_network.functions.getChannelInfo(channel_identifier, B, A).call()
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(close_tx)
+    assert state == ChannelState.CLOSED
+
+    (
+        _, _,
+        A_is_the_closer,
+        A_balance_hash,
+        A_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    assert A_is_the_closer is True
+    assert A_balance_hash == EMPTY_BALANCE_HASH
+    assert A_nonce == 0
+
+    (
+        _, _,
+        B_is_the_closer,
+        B_balance_hash,
+        B_nonce,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    assert B_is_the_closer is False
+    assert B_balance_hash == EMPTY_BALANCE_HASH
+    assert B_nonce == 0
 
 
 def test_close_second_participant_can_close(
