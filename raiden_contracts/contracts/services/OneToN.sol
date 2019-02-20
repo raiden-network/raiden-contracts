@@ -2,7 +2,7 @@ pragma solidity 0.5.4;
 
 import "raiden/Utils.sol";
 import "services/UserDeposit.sol";
-import "raiden/lib/ECVerify.sol";
+import "lib/ECVerify.sol";
 
 contract OneToN is Utils {
     string constant public contract_version = "0.7.0";

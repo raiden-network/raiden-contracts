@@ -1,8 +1,8 @@
 pragma solidity 0.5.4;
 
+import "lib/ECVerify.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
-import "raiden/lib/ECVerify.sol";
 import "raiden/TokenNetwork.sol";
 import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";

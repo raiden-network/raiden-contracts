@@ -84,6 +84,7 @@ class ContractManager:
             '%s=%s' % (k, relativise(v))
             for k, v in self.contracts_source_dirs.items()
         ]
+        import_dir_map.insert(0, '.=.')  # allow solc to compile contracts in all subdirs
         try:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = compile_files(
@@ -207,7 +208,8 @@ class ContractManager:
 
 def contracts_source_path():
     return {
-        'raiden': _BASE.joinpath('contracts'),
+        'lib': _BASE.joinpath('contracts', 'lib'),
+        'raiden': _BASE.joinpath('contracts', 'raiden'),
         'test': _BASE.joinpath('contracts', 'test'),
         'services': _BASE.joinpath('contracts', 'services'),
     }
