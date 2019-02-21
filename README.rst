@@ -37,6 +37,7 @@ You can find other useful constants that you can import in ``raiden_contracts/co
 
     * Development ``0.3._`` contracts version (from ``0.3.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.3.0). No limits on the number of tokens registered; has a limit of 100 tokens per channel). Source code: https://github.com/raiden-network/raiden-contracts/tree/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts
     * Red Eyes Mainnet ``0.4.0`` contracts version (from ``0.7.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.7.0). Source code: https://github.com/raiden-network/raiden-contracts/tree/fac73623d5b92b7c070fdde2b446648ec9117474/raiden_contracts/contracts
+    * Unlimited testnet ``0.8._`` contract version (from ``0.12.0`` package release)
     * current !development version corresponding with the ``master`` branch (might not be stable).
 
     These are temporary and will be removed in favor of only one contracts version in the Ithaca Milestone.
