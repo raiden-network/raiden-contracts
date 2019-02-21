@@ -45,7 +45,6 @@ def test_token_network_deployment(
         deploy_tester_contract_txhash,
 ):
     """ Abusing pytest to print the deployment gas cost of TokenNetwork """
-    deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
         [],
