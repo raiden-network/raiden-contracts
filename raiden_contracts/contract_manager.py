@@ -134,6 +134,8 @@ class ContractManager:
                         overall_checksum=self.overall_checksum,
                         contracts_version=self.contracts_version,
                     ),
+                    sort_keys=True,
+                    indent=4,
                 ),
             )
 
@@ -225,6 +227,11 @@ def contracts_data_path(version: Optional[str] = None):
 def contracts_precompiled_path(version: Optional[str] = None):
     data_path = contracts_data_path(version)
     return data_path.joinpath('contracts.json')
+
+
+def contracts_gas_path(version: Optional[str] = None):
+    data_path = contracts_data_path(version)
+    return data_path.joinpath('gas.json')
 
 
 def contracts_deployed_path(chain_id: int, version: Optional[str] = None, services: bool = False):
