@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract ServiceRegistry is Utils {
-    string constant public contract_version = "0.7.0";
+    string constant public contract_version = "0.8._";
     Token public token;
 
     mapping(address => uint256) public deposits;  // token amount staked by the service provider

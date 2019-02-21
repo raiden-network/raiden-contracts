@@ -8,7 +8,7 @@ import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
 
 contract MonitoringService is Utils {
-    string constant public contract_version = "0.7.0";
+    string constant public contract_version = "0.8._";
 
     // Token to be used for paying the rewards
     Token public token;
