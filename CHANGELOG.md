@@ -7,6 +7,9 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.12.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.12.0) - 2019-02-22
+
+- Remove limits temporarily for 0.8._ deployment.
 - Add data/gas.json that contains gas measurements on the development version.
 - Move Raiden contracts to "raiden" subdir, so that the imports match the directory layout.
 
