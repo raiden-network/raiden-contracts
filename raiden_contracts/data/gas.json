@@ -1,1 +1,21 @@
-{"TokenNetworkRegistry DEPLOYMENT": 4708232, "TokenNetwork DEPLOYMENT": 3992894, "TokenNetworkRegistry createERC20TokenNetwork": 3060600, "SecretRegistry.registerSecret": 45757, "TokenNetwork.openChannel": 97545, "TokenNetwork.setTotalDeposit": 44509, "TokenNetwork.closeChannel": 111172, "TokenNetwork.updateNonClosingBalanceProof": 93705, "TokenNetwork.settleChannel": 123370, "TokenNetwork.unlock 1 locks": 32192, "TokenNetwork.unlock 6 locks": 65955, "EndpointRegistry.registerEndpoint": 48408, "MonitoringService.monitor": 203777, "MonitoringService.claimReward": 42647, "OneToN.claim": 90830, "UserDeposit.deposit": 101311, "UserDeposit.deposit (increase balance)": 28156, "UserDeposit.planWithdraw": 64021, "UserDeposit.withdraw": 40079}
+{
+    "EndpointRegistry.registerEndpoint": 48408,
+    "MonitoringService.claimReward": 42636,
+    "MonitoringService.monitor": 203882,
+    "OneToN.claim": 90830,
+    "SecretRegistry.registerSecret": 45757,
+    "TokenNetwork DEPLOYMENT": 3827606,
+    "TokenNetwork.closeChannel": 111219,
+    "TokenNetwork.openChannel": 97205,
+    "TokenNetwork.setTotalDeposit": 44076,
+    "TokenNetwork.settleChannel": 123296,
+    "TokenNetwork.unlock 1 locks": 32041,
+    "TokenNetwork.unlock 6 locks": 65878,
+    "TokenNetwork.updateNonClosingBalanceProof": 93624,
+    "TokenNetworkRegistry DEPLOYMENT": 4416376,
+    "TokenNetworkRegistry createERC20TokenNetwork": 2933128,
+    "UserDeposit.deposit": 101311,
+    "UserDeposit.deposit (increase balance)": 28156,
+    "UserDeposit.planWithdraw": 64021,
+    "UserDeposit.withdraw": 40079
+}

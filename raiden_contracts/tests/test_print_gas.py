@@ -55,7 +55,6 @@ def test_token_network_deployment(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
-            deprecation_executor,
         ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
