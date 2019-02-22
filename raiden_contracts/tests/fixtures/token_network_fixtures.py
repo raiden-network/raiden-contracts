@@ -108,5 +108,4 @@ def token_network_external(
         int(web3.version.network),
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
-        contract_deployer_address,
     ])
