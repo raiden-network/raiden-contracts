@@ -7,7 +7,6 @@ from raiden_contracts.constants import (
 )
 
 
-
 @pytest.mark.skip(reason='Temporarily for v0.12.0')
 def test_channel_participant_deposit_limit_value(token_network):
     """ Check the channel participant deposit limit """
