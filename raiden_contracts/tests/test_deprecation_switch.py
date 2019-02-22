@@ -13,6 +13,7 @@ from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
 
 
+@pytest.mark.skip(reason="Only for v0.12.0 release")
 def test_deprecation_executor(
         web3,
         contracts_manager,
@@ -87,6 +88,7 @@ def test_deprecation_executor(
     assert token_network.functions.deprecation_executor().call() == deprecation_executor
 
 
+@pytest.mark.skip(reason="Only for v0.12.0 release")
 def test_set_deprecation_switch(get_accounts, token_network):
     """ The deprecation executor deprecates a TokenNetwork contract """
     (A) = get_accounts(1)[0]
@@ -111,6 +113,7 @@ def test_set_deprecation_switch(get_accounts, token_network):
         })
 
 
+@pytest.mark.skip(reason="Only for v0.12.0 release")
 def test_deprecation_switch(get_accounts, token_network, create_channel, channel_deposit):
     """ Test the effects of the deprecation switch on deposits and channel opening """
 
@@ -139,6 +142,7 @@ def test_deprecation_switch(get_accounts, token_network, create_channel, channel
         channel_identifier = create_channel(C, D)[0]
 
 
+@pytest.mark.skip(reason="Only for v0.12.0 release")
 def test_deprecation_switch_settle(
         web3,
         get_accounts,

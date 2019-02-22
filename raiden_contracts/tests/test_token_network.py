@@ -18,6 +18,7 @@ def test_version(token_network):
     assert token_network.functions.contract_version().call() == CONTRACTS_VERSION
 
 
+@pytest.mark.skip(reason="Only for v0.12.0 release")
 def test_constructor_call(
         web3,
         get_token_network,
