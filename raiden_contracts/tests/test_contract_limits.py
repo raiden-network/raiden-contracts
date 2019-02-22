@@ -7,18 +7,22 @@ from raiden_contracts.constants import (
 )
 
 
+
+@pytest.mark.skip(reason='Temporarily for v0.12.0')
 def test_channel_participant_deposit_limit_value(token_network):
     """ Check the channel participant deposit limit """
     limit = token_network.functions.channel_participant_deposit_limit().call()
     assert limit == MAX_ETH_CHANNEL_PARTICIPANT
 
 
+@pytest.mark.skip(reason='Temporarily for v0.12.0')
 def test_network_deposit_limit_value(token_network):
     """ Check the token network deposit limit """
     limit = token_network.functions.token_network_deposit_limit().call()
     assert limit == MAX_ETH_TOKEN_NETWORK
 
 
+@pytest.mark.skip(reason='Temporarily for v0.12.0')
 def test_participant_deposit_limit(
         get_accounts,
         token_network,
