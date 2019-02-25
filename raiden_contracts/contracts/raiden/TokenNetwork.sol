@@ -31,6 +31,7 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
+    /*LIMITED-VERSION-START*/
     // Red Eyes release deposit limits
     // The combined deposit of one channel is limited to 0.15 ETH.
     // So 0.075 ETH per participant.
@@ -38,6 +39,7 @@ contract TokenNetwork is Utils {
     // The total combined deposit of all channels across the whole network is
     // limited to 250 ETH.
     uint256 constant public token_network_deposit_limit = 250000000000000000000 wei;
+    /*LIMITED-VERSION-END*/
 
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
@@ -45,9 +47,11 @@ contract TokenNetwork is Utils {
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
 
+    /*LIMITED-VERSION-START*/
     // Only for the limited Red Eyes release
     address public deprecation_executor;
     bool public safety_deprecation_switch = false;
+    /*LIMITED-VERSION-END*/
 
     // channel_identifier => Channel
     // channel identifier is the channel_counter value at the time of opening
@@ -192,10 +196,12 @@ contract TokenNetwork is Utils {
         _;
     }
 
+    /*LIMITED-VERSION-START*/
     modifier isSafe() {
         require(safety_deprecation_switch == false);
         _;
     }
+    /*LIMITED-VERSION-END*/
 
     modifier isOpen(uint256 channel_identifier) {
         require(channels[channel_identifier].state == ChannelState.Opened);
@@ -240,9 +246,11 @@ contract TokenNetwork is Utils {
         deprecation_executor = _deprecation_executor;
     }
 
+    /*LIMITED-VERSION-START*/
     function deprecate() isSafe onlyDeprecationExecutor public {
         safety_deprecation_switch = true;
     }
+    /*LIMITED-VERSION-END*/
 
     /// @notice Opens a new channel between `participant1` and `participant2`.
     /// Can be called by anyone.
@@ -251,7 +259,7 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
-        isSafe
+        /*LIMITED-VERSION-START*/ isSafe /*LIMITED-VERSION-END*/
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -259,8 +267,10 @@ contract TokenNetwork is Utils {
         bytes32 pair_hash;
         uint256 channel_identifier;
 
+        /*LIMITED-VERSION-START*/
         // Red Eyes release token network limit
         require(token.balanceOf(address(this)) < token_network_deposit_limit);
+        /*LIMITED-VERSION-END*/
 
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
@@ -310,13 +320,15 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
-        isSafe
+        /*LIMITED-VERSION-START*/ isSafe /*LIMITED-VERSION-END*/
         isOpen(channel_identifier)
         public
     {
         require(channel_identifier == getChannelIdentifier(participant, partner));
         require(total_deposit > 0);
+        /*LIMITED-VERSION-START*/
         require(total_deposit <= channel_participant_deposit_limit);
+        /*LIMITED-VERSION-END*/
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -339,8 +351,10 @@ contract TokenNetwork is Utils {
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
 
+        /*LIMITED-VERSION-START*/
         // Red Eyes release token network limit
         require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
+        /*LIMITED-VERSION-END*/
 
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;
