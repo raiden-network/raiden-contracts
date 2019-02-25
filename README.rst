@@ -104,7 +104,7 @@ If you want to produce Solidity sources without deposit limits and deprecation s
 
     make remove_limits
 
-then such souces will appear in ``raiden_contracts/contracts-without-limits``.
+then such sources will appear in ``raiden_contracts/contracts-without-limits``.
 
 
 If you want to install the package from source::
