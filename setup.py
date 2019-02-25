@@ -5,6 +5,7 @@ except ImportError:
     from distutils.core import setup
 
 import os
+import pystache
 from typing import List
 
 from setuptools import Command
@@ -70,7 +71,7 @@ def render_templates_leaf(mustache_hash, src, dst):
     with src.open(mode='r') as src_file:
         content = src_file.read()
     with dst.open(mode='w') as dst_file:
-        dst_file.write(content)
+        dst_file.write(pystache.render(content, mustache_hash))
 
 
 def render_templates(mustache_hash, src, dst):  # TODO: there has to be a template thing
