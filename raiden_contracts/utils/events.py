@@ -92,29 +92,3 @@ def check_channel_settled(channel_identifier, participant1_amount, participant2_
         assert event['args']['participant1_amount'] == participant1_amount
         assert event['args']['participant2_amount'] == participant2_amount
     return get
-
-
-def check_new_balance_proof_received(
-        token_network_address,
-        channel_identifier,
-        reward_amount,
-        nonce,
-        ms_address,
-        raiden_node_address,
-):
-    def get(event):
-        assert event['args']['token_network_address'] == token_network_address
-        assert event['args']['channel_identifier'] == channel_identifier
-        assert event['args']['reward_amount'] == reward_amount
-        assert event['args']['nonce'] == nonce
-        assert event['args']['ms_address'] == ms_address
-        assert event['args']['raiden_node_address'] == raiden_node_address
-    return get
-
-
-def check_reward_claimed(ms_address, amount, reward_identifier):
-    def get(event):
-        assert event['args']['ms_address'] == ms_address
-        assert event['args']['amount'] == amount
-        assert event['args']['reward_identifier'] == reward_identifier
-    return get
