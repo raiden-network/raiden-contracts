@@ -29,6 +29,24 @@ def monitoring_service_external(
 
 
 @pytest.fixture()
+def monitoring_service_internals(
+    custom_token,
+    service_registry,
+    uninitialized_user_deposit_contract,
+    deploy_tester_contract,
+):
+    return deploy_tester_contract(
+        'MonitoringServiceInternalsTest',
+        {},
+        [
+            custom_token.address,
+            service_registry.address,
+            uninitialized_user_deposit_contract.address,
+        ],
+    )
+
+
+@pytest.fixture()
 def create_reward_proof(token_network, get_private_key):
     def get(
             signer,
