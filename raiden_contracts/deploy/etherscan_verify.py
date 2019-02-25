@@ -61,6 +61,8 @@ def etherscan_verify(
         contract_name: Optional[str],
 ):
     try:
+        if flavor is None:  # To silence mypy
+            raise KeyError
         flavor_enum = flavor_of_lower_name[flavor]
     except KeyError:
         print("specify --flavor unlimited or --flavor limited")
@@ -70,10 +72,22 @@ def etherscan_verify(
         return
 
     if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
-        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'raiden', CONTRACT_ENDPOINT_REGISTRY)
+        etherscan_verify_contract(
+            chain_id,
+            flavor_enum,
+            apikey,
+            'raiden',
+            CONTRACT_ENDPOINT_REGISTRY,
+        )
 
     if contract_name is None or contract_name == CONTRACT_SECRET_REGISTRY:
-        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'raiden', CONTRACT_SECRET_REGISTRY)
+        etherscan_verify_contract(
+            chain_id,
+            flavor_enum,
+            apikey,
+            'raiden',
+            CONTRACT_SECRET_REGISTRY,
+        )
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
         etherscan_verify_contract(
@@ -85,7 +99,13 @@ def etherscan_verify(
         )
 
     if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
-        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'services', CONTRACT_SERVICE_REGISTRY)
+        etherscan_verify_contract(
+            chain_id,
+            flavor_enum,
+            apikey,
+            'services',
+            CONTRACT_SERVICE_REGISTRY,
+        )
 
     if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
         etherscan_verify_contract(
