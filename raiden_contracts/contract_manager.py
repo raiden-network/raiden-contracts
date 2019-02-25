@@ -225,21 +225,41 @@ class ContractManager:
 
 def contracts_source_path(flavor: Flavor):
     upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
-    return {
-        'lib': _BASE.joinpath(upper_dir, 'lib'),
-        'raiden': _BASE.joinpath(upper_dir, 'raiden'),
-        'test': _BASE.joinpath(upper_dir, 'test'),
-        'services': _BASE.joinpath(upper_dir, 'services'),
-    }
+    return contracts_source_path_with_stem(upper_dir)
 
 
 def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
     flavor_suffix = '_unlimited' if flavor == Flavor.Unlimited else ''
-
     if version is None or version == CONTRACTS_VERSION:
         return _BASE.joinpath('data' + flavor_suffix)
     else:
         return _BASE.joinpath(f'data_{version}' + flavor_suffix)
+
+
+def contracts_source_path_with_stem(stem):
+    return {
+        'lib': _BASE.joinpath(stem, 'lib'),
+        'raiden': _BASE.joinpath(stem, 'raiden'),
+        'test': _BASE.joinpath(stem, 'test'),
+        'services': _BASE.joinpath(stem, 'services'),
+    }
+
+
+def contracts_template_path():
+    return contracts_source_path_with_stem('contracts_template')
+
+
+def contracts_source_root(flavor: Flavor):
+    if flavor == Flavor.Limited:
+        return _BASE.joinpath('contracts')
+    if flavor == Flavor.Unlimited:
+        return _BASE.joinpath('contracts_without_limits')
+    else:
+        raise ValueError(f"unknown flavor {flavor}")
+
+
+def contracts_template_root():
+    return _BASE.joinpath('contracts_template')
 
 
 def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):

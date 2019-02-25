@@ -56,6 +56,50 @@ class VerifyContracts(Command):
         manager.verify_precompiled_checksums(contracts_precompiled_path(Flavor.Limited))
 
 
+def render_templates_dir(src, dst):
+    assert src.exists(), "cannot use a nonexistent source directory"
+    assert src.is_dir(), "render_templates_dir called with a non-directory"
+    dst.mkdir(parents=True, exist_ok=True)
+    for src_item in src.iterdir():
+        render_templates(src_item, dst / src_item.name)
+
+
+def render_templates_leaf(src, dst):
+    assert src.exists(), "cannot use a nonexistent source"
+    assert not src.is_dir(), "render_template_leaf called with a directory"
+    with src.open(mode='r') as src_file:
+        content = src_file.read()
+    with dst.open(mode='w') as dst_file:
+        dst_file.write(content)
+
+
+def render_templates(src, dst):  # TODO: there has to be a template thing
+    assert src.exists(), "cannot use a nonexistent template"
+    if src.is_dir():
+        render_templates_dir(src, dst)
+    else:
+        render_templates_leaf(src, dst)
+
+
+class RenderTemplates(Command):
+    description = 'use pystache to produce contracts_template contracts'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        from raiden_contracts.contract_manager import (
+            contracts_source_root,
+            contracts_template_root,
+            Flavor,
+        )
+        render_templates(contracts_template_root(), contracts_source_root(Flavor.Unlimited))
+
+
 class CompileContracts(Command):
     description = 'Compile contracts and add ABI and checksums to a json file'
     user_options = []
@@ -110,6 +154,7 @@ config = {
     },
     'cmdclass': {
         'compile_contracts': CompileContracts,
+        'render_templates': RenderTemplates,
         'verify_contracts': VerifyContracts,
         'build_py': BuildPyCommand,
     },
