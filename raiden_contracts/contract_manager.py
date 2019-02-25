@@ -218,7 +218,7 @@ def contracts_source_path():
 
 
 def contracts_data_path(version: Optional[str] = None):
-    if version is None or version == CONTRACTS_VERSION:
+    if version is None:
         return _BASE.joinpath('data')
     else:
         return _BASE.joinpath(f'data_{version}')

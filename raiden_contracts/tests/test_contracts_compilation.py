@@ -28,6 +28,12 @@ def test_nonexistent_precompiled_path():
     nonexistent_version = '0.6.0'
     with pytest.raises(FileNotFoundError):
         ContractManager(contracts_precompiled_path(nonexistent_version))
+    nonexistent_version = '0.7.0'
+    with pytest.raises(FileNotFoundError):
+        ContractManager(contracts_precompiled_path(nonexistent_version))
+    nonexistent_version = CONTRACTS_VERSION
+    with pytest.raises(FileNotFoundError):
+        ContractManager(contracts_precompiled_path(nonexistent_version))
 
 
 def test_verification_overall_checksum():
@@ -114,7 +120,7 @@ def test_current_development_version():
         'ServiceRegistry',
     ]
 
-    manager = ContractManager(contracts_precompiled_path(contracts_version))
+    manager = ContractManager(contracts_precompiled_path(None))
     assert manager.contracts_version == contracts_version
     check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
 

@@ -9,6 +9,7 @@ Documents changes that result in:
 
 - Add data/gas.json that contains gas measurements on the development version.
 - Move Raiden contracts to "raiden" subdir, so that the imports match the directory layout.
+- Remove a shortcut `contracts_precompiled_path(version)` when `version` is the current development version. The same path is accessible with `contracts_precompiled_path(None)`.
 
 ## [0.11.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.11.0) - 2019-02-14
 
