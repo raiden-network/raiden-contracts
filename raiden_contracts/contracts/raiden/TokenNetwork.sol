@@ -985,6 +985,9 @@ contract TokenNetwork is Utils {
     /// @param participant1 Address of a channel participant.
     /// @param participant2 Address of the other channel participant.
     /// @return Channel settle_block_number and state.
+    /// @note The contract cannot really distinguish Settled and Removed
+    /// states, especially when wrong participants are given as input.
+    /// The contract does not remember the participants of the channel.
     function getChannelInfo(
         uint256 channel_identifier,
         address participant1,
