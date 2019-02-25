@@ -264,9 +264,9 @@ def raiden(
 
     if save_info is True:
         store_deployment_info(deployed_contracts_info)
-        verify_deployed_contracts(deployer.web3, deployer.contract_manager)
+        verify_deployed_contracts_in_filesystem(deployer.web3, deployer.contract_manager)
     else:
-        verify_deployed_contracts(
+        verify_deployment_data(
             deployer.web3,
             deployer.contract_manager,
             deployed_contracts_info,
@@ -312,9 +312,13 @@ def services(
 
     if save_info is True:
         store_deployment_info(deployed_contracts_info, services=True)
-        verify_deployed_service_contracts(deployer.web3, deployer.contract_manager, token_address)
+        verify_deployed_service_contracts_in_filesystem(
+            deployer.web3,
+            deployer.contract_manager,
+            token_address,
+        )
     else:
-        verify_deployed_service_contracts(
+        verify_service_contracts_deployment_data(
             deployer.web3,
             deployer.contract_manager,
             token_address,
@@ -442,7 +446,7 @@ def verify(ctx, rpc_provider, contracts_version):
     print('Web3 provider is', web3.providers[0])
 
     contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
-    verify_deployed_contracts(web3, contract_manager)
+    verify_deployed_contracts_in_filesystem(web3, contract_manager)
 
 
 def deployed_data_from_receipt(receipt, constructor_arguments):
@@ -630,16 +634,8 @@ def store_deployment_info(deployment_info: dict, services: bool=False):
     )
 
 
-def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, deployment_data=None):
+def verify_deployment_data(web3: Web3, contract_manager: ContractManager, deployment_data):
     chain_id = int(web3.version.network)
-    deployment_file_path = None
-
-    if deployment_data is None:
-        deployment_data = get_contracts_deployed(chain_id, contract_manager.contracts_version)
-        deployment_file_path = contracts_deployed_path(
-            chain_id,
-            contract_manager.contracts_version,
-        )
     assert deployment_data is not None
 
     assert contract_manager.contracts_version == deployment_data['contracts_version']
@@ -677,30 +673,30 @@ def verify_deployed_contracts(web3: Web3, contract_manager: ContractManager, dep
     assert token_network_registry.functions.settlement_timeout_max().call() == \
         constructor_arguments[3]
 
-    if deployment_file_path is not None:
+    return True
+
+
+def verify_deployed_contracts_in_filesystem(web3: Web3, contract_manager: ContractManager):
+    chain_id = int(web3.version.network)
+
+    deployment_data = get_contracts_deployed(chain_id, contract_manager.contracts_version)
+    deployment_file_path = contracts_deployed_path(
+        chain_id,
+        contract_manager.contracts_version,
+    )
+    assert deployment_data is not None
+
+    if verify_deployment_data(web3, contract_manager, deployment_data):
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
 
 
-def verify_deployed_service_contracts(
+def verify_service_contracts_deployment_data(
     web3: Web3,
     contract_manager: ContractManager,
     token_address: str,
-    deployment_data: dict=None,
+    deployment_data: dict,
 ):
     chain_id = int(web3.version.network)
-    deployment_file_path = None
-
-    if deployment_data is None:
-        deployment_data = get_contracts_deployed(
-            chain_id,
-            contract_manager.contracts_version,
-            services=True,
-        )
-        deployment_file_path = contracts_deployed_path(
-            chain_id,
-            contract_manager.contracts_version,
-            services=True,
-        )
     assert deployment_data is not None
 
     assert contract_manager.contracts_version == deployment_data['contracts_version']
@@ -765,7 +761,33 @@ def verify_deployed_service_contracts(
         user_deposit.functions.one_to_n_address().call(),
     ) == one_to_n.address
 
-    if deployment_file_path is not None:
+    return True
+
+
+def verify_deployed_service_contracts_in_filesystem(
+    web3: Web3,
+    contract_manager: ContractManager,
+    token_address: str,
+):
+    chain_id = int(web3.version.network)
+
+    deployment_data = get_contracts_deployed(
+        chain_id,
+        contract_manager.contracts_version,
+        services=True,
+    )
+    deployment_file_path = contracts_deployed_path(
+        chain_id,
+        contract_manager.contracts_version,
+        services=True,
+    )
+    assert deployment_data is not None
+
+    if verify_service_contracts_deployment_data(
+            web3,
+            contract_manager,
+            token_address,
+            deployment_data):
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
 
 
