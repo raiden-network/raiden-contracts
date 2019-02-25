@@ -51,7 +51,7 @@ class VerifyContracts(Command):
             contracts_source_path,
             Flavor,
         )
-        manager = ContractManager(contracts_source_path())
+        manager = ContractManager(contracts_source_path(Flavor.Limited))
         manager.checksum_contracts()
         manager.verify_precompiled_checksums(contracts_precompiled_path(Flavor.Limited))
 
@@ -74,7 +74,7 @@ class CompileContracts(Command):
             Flavor,
         )
 
-        contract_manager = ContractManager(contracts_source_path())
+        contract_manager = ContractManager(contracts_source_path(Flavor.Limited))
         contract_manager.compile_contracts(
             contracts_precompiled_path(Flavor.Limited),
         )
