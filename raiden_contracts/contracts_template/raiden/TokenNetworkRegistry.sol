@@ -16,19 +16,23 @@ contract TokenNetworkRegistry is Utils {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
+    {{#limited}}
     // Only for the limited Red Eyes release
     address public deprecation_executor;
     bool public token_network_created = false;
+    {{/limited}}
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
 
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
+    {{#limited}}
     modifier canCreateTokenNetwork() {
         require(token_network_created == false);
         _;
     }
+    {{/limited}}
 
     constructor(
         address _secret_registry_address,
@@ -49,7 +53,9 @@ contract TokenNetworkRegistry is Utils {
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
 
+        {{#limited}}
         deprecation_executor = msg.sender;
+        {{/limited}}
     }
 
     /// @notice Deploy a new TokenNetwork contract for the Token deployed at
@@ -57,7 +63,7 @@ contract TokenNetworkRegistry is Utils {
     /// @param _token_address Ethereum address of an already deployed token, to
     /// be used in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
-        canCreateTokenNetwork
+        {{#limited}} canCreateTokenNetwork {{/limited}}
         external
         returns (address token_network_address)
     {
@@ -74,8 +80,8 @@ contract TokenNetworkRegistry is Utils {
             secret_registry_address,
             chain_id,
             settlement_timeout_min,
-            settlement_timeout_max,
-            deprecation_executor
+            settlement_timeout_max{{#limited}},
+            deprecation_executor{{/limited}}
         );
 
         token_network_address = address(token_network);
