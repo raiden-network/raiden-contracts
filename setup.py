@@ -56,15 +56,15 @@ class VerifyContracts(Command):
         manager.verify_precompiled_checksums(contracts_precompiled_path(Flavor.Limited))
 
 
-def render_templates_dir(src, dst):
+def render_templates_dir(mustache_hash, src, dst):
     assert src.exists(), "cannot use a nonexistent source directory"
     assert src.is_dir(), "render_templates_dir called with a non-directory"
     dst.mkdir(parents=True, exist_ok=True)
     for src_item in src.iterdir():
-        render_templates(src_item, dst / src_item.name)
+        render_templates(mustache_hash, src_item, dst / src_item.name)
 
 
-def render_templates_leaf(src, dst):
+def render_templates_leaf(mustache_hash, src, dst):
     assert src.exists(), "cannot use a nonexistent source"
     assert not src.is_dir(), "render_template_leaf called with a directory"
     with src.open(mode='r') as src_file:
@@ -73,12 +73,12 @@ def render_templates_leaf(src, dst):
         dst_file.write(content)
 
 
-def render_templates(src, dst):  # TODO: there has to be a template thing
+def render_templates(mustache_hash, src, dst):  # TODO: there has to be a template thing
     assert src.exists(), "cannot use a nonexistent template"
     if src.is_dir():
-        render_templates_dir(src, dst)
+        render_templates_dir(mustache_hash, src, dst)
     else:
-        render_templates_leaf(src, dst)
+        render_templates_leaf(mustache_hash, src, dst)
 
 
 class RenderTemplates(Command):
@@ -93,11 +93,11 @@ class RenderTemplates(Command):
 
     def run(self):
         from raiden_contracts.contract_manager import (
-            contracts_source_root,
             contracts_template_root,
-            Flavor,
+            contracts_mustache_hashes,
         )
-        render_templates(contracts_template_root(), contracts_source_root(Flavor.Unlimited))
+        for (path, mustache_hash) in contracts_mustache_hashes:
+            render_templates(mustache_hash, contracts_template_root(), path)
 
 
 class CompileContracts(Command):

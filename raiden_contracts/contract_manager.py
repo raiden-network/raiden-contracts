@@ -6,7 +6,7 @@ from json import JSONDecodeError
 from os import chdir
 from pathlib import Path
 from solc import compile_files
-from typing import Dict, Union, Optional
+from typing import Dict, List, Union, Optional, Tuple
 
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
@@ -260,6 +260,16 @@ def contracts_source_root(flavor: Flavor):
 
 def contracts_template_root():
     return _BASE.joinpath('contracts_template')
+
+
+contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
+    (
+        contracts_source_root(Flavor.Unlimited),
+        {
+            # empty till there is anything to configure.
+        },
+    ),
+]
 
 
 def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):
