@@ -27,6 +27,7 @@ var/
 *.egg
 raiden_contracts/deploy/flatten.sol
 raiden_contracts/deploy/joined.sol
+raiden_contracts/contracts-without-limits
 
 # ignore private keys
 *.pem

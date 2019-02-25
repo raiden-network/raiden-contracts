@@ -100,6 +100,13 @@ Development
 If you want to test and further develop outside the officially provided source code, compiled files and deployed addresses, you can do it at your own risk.
 
 
+If you want to produce Solidity sources without deposit limits and deprecation switches::
+
+    make remove_limits
+
+then such souces will appear in ``raiden_contracts/contracts-without-limits``.
+
+
 If you want to install the package from source::
 
     make install
