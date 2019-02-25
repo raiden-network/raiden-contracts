@@ -31,6 +31,9 @@ lower_name_of_flavor = {
 }
 
 
+flavor_of_lower_name = {lower_name_of_flavor[k]: k for k in lower_name_of_flavor.keys()}
+
+
 class ContractManagerCompilationError(RuntimeError):
     pass
 
@@ -220,23 +223,23 @@ class ContractManager:
             )
 
 
-def contracts_source_path():
+def contracts_source_path(flavor: Flavor):
+    upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
     return {
-        'lib': _BASE.joinpath('contracts', 'lib'),
-        'raiden': _BASE.joinpath('contracts', 'raiden'),
-        'test': _BASE.joinpath('contracts', 'test'),
-        'services': _BASE.joinpath('contracts', 'services'),
+        'lib': _BASE.joinpath(upper_dir, 'lib'),
+        'raiden': _BASE.joinpath(upper_dir, 'raiden'),
+        'test': _BASE.joinpath(upper_dir, 'test'),
+        'services': _BASE.joinpath(upper_dir, 'services'),
     }
 
 
 def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
+    flavor_suffix = '_unlimited' if flavor == Flavor.Unlimited else ''
+
     if version is None or version == CONTRACTS_VERSION:
-        ret = _BASE.joinpath('data')
+        return _BASE.joinpath('data' + flavor_suffix)
     else:
-        ret = _BASE.joinpath(f'data_{version}')
-    if flavor == Flavor.Unlimited:
-        ret = ret + '_unlimited'
-    return ret
+        return _BASE.joinpath(f'data_{version}' + flavor_suffix)
 
 
 def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):

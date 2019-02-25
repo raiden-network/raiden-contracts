@@ -34,6 +34,8 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     contracts_source_path,
     contracts_deployed_path,
+    Flavor,
+    flavor_of_lower_name,
     get_contracts_deployed,
 )
 from raiden_contracts.utils.transaction import check_succesful_tx
@@ -74,7 +76,7 @@ class ContractDeployer:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
         self.contracts_version = contracts_version
-        self.precompiled_path = contracts_precompiled_path(self.contracts_version)
+        self.precompiled_path = contracts_precompiled_path(Flavor.Limited, self.contracts_version)
         self.contract_manager = ContractManager(self.precompiled_path)
         self.web3.middleware_stack.add(
             construct_sign_and_send_raw_middleware(private_key),
@@ -83,7 +85,7 @@ class ContractDeployer:
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
         if self.contracts_version in [None, CONTRACTS_VERSION]:
-            contract_manager_source = ContractManager(contracts_source_path())
+            contract_manager_source = ContractManager(contracts_source_path(Flavor.Limited))
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
@@ -243,6 +245,11 @@ def main():
     default=True,
     help='Save deployment info to a file.',
 )
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
+)
 @click.pass_context
 def raiden(
     ctx,
@@ -253,7 +260,9 @@ def raiden(
     gas_limit,
     save_info,
     contracts_version,
+    flavor,
 ):
+    flavor_enum = flavor_of_lower_name[flavor]
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj['deployer']
     deployed_contracts_info = deploy_raiden_contracts(deployer)
@@ -263,8 +272,12 @@ def raiden(
     }
 
     if save_info is True:
-        store_deployment_info(deployed_contracts_info)
-        verify_deployed_contracts_in_filesystem(deployer.web3, deployer.contract_manager)
+        store_deployment_info(deployed_contracts_info, flavor_enum)
+        verify_deployed_contracts_in_filesystem(
+            deployer.web3,
+            deployer.contract_manager,
+            flavor_enum,
+        )
     else:
         verify_deployment_data(
             deployer.web3,
@@ -289,6 +302,11 @@ def raiden(
     default=True,
     help='Save deployment info to a file.',
 )
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
+)
 @click.pass_context
 def services(
     ctx,
@@ -299,6 +317,7 @@ def services(
     gas_limit,
     token_address,
     save_info,
+    flavor,
     contracts_version,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
@@ -311,9 +330,10 @@ def services(
     }
 
     if save_info is True:
-        store_deployment_info(deployed_contracts_info, services=True)
+        store_deployment_info(flavor, deployed_contracts_info, services=True)
         verify_deployed_service_contracts_in_filesystem(
             deployer.web3,
+            flavor,
             deployer.contract_manager,
             token_address,
         )
@@ -350,6 +370,11 @@ def services(
     '--token-symbol',
     default='TKN',
     help='Token contract symbol.',
+)
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
 )
 @click.pass_context
 def token(
@@ -393,6 +418,11 @@ def token(
     default=None,
     callback=validate_address,
     help='Address of token network registry',
+)
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
 )
 @click.pass_context
 def register(
@@ -439,14 +469,20 @@ def register(
     '--contracts-version',
     help='Contracts version to verify. Current version will be used by default.',
 )
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
+)
 @click.pass_context
-def verify(ctx, rpc_provider, contracts_version):
+def verify(ctx, rpc_provider, contracts_version, flavor):
+    flavor_enum = flavor_of_lower_name[flavor]
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
 
     contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
-    verify_deployed_contracts_in_filesystem(web3, contract_manager)
+    verify_deployed_contracts_in_filesystem(web3, contract_manager, flavor_enum)
 
 
 def deployed_data_from_receipt(receipt, constructor_arguments):
@@ -619,9 +655,10 @@ def register_token_network(
     return token_network_address
 
 
-def store_deployment_info(deployment_info: dict, services: bool=False):
+def store_deployment_info(deployment_info: dict, flavor: Flavor, services: bool=False):
     deployment_file_path = contracts_deployed_path(
         deployment_info['chain_id'],
+        flavor,
         deployment_info['contracts_version'],
         services,
     )
@@ -676,12 +713,17 @@ def verify_deployment_data(web3: Web3, contract_manager: ContractManager, deploy
     return True
 
 
-def verify_deployed_contracts_in_filesystem(web3: Web3, contract_manager: ContractManager):
+def verify_deployed_contracts_in_filesystem(
+        web3: Web3,
+        contract_manager: ContractManager,
+        flavor: Flavor,
+):
     chain_id = int(web3.version.network)
 
-    deployment_data = get_contracts_deployed(chain_id, contract_manager.contracts_version)
+    deployment_data = get_contracts_deployed(chain_id, flavor, contract_manager.contracts_version)
     deployment_file_path = contracts_deployed_path(
         chain_id,
+        flavor,
         contract_manager.contracts_version,
     )
     assert deployment_data is not None
@@ -766,6 +808,7 @@ def verify_service_contracts_deployment_data(
 
 def verify_deployed_service_contracts_in_filesystem(
     web3: Web3,
+    flavor: Flavor,
     contract_manager: ContractManager,
     token_address: str,
 ):
@@ -773,11 +816,13 @@ def verify_deployed_service_contracts_in_filesystem(
 
     deployment_data = get_contracts_deployed(
         chain_id,
+        flavor,
         contract_manager.contracts_version,
         services=True,
     )
     deployment_file_path = contracts_deployed_path(
         chain_id,
+        flavor,
         contract_manager.contracts_version,
         services=True,
     )

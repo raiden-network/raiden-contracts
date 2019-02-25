@@ -22,6 +22,8 @@ from raiden_contracts.contract_manager import (
     ContractManager,
     contracts_precompiled_path,
     contracts_source_path,
+    Flavor,
+    flavor_of_lower_name,
     get_contracts_deployed,
 )
 
@@ -31,6 +33,11 @@ from raiden_contracts.contract_manager import (
     '--chain-id',
     default=3,
     help='Chain id. E.g. --chain-id 3',
+)
+@click.option(
+    '--flavor',
+    type=click.Choice(['limited', 'unlimited']),
+    help='Choose a flavor.',
 )
 @click.option(
     '--apikey',
@@ -48,34 +55,48 @@ from raiden_contracts.contract_manager import (
 )
 def etherscan_verify(
         chain_id: int,
+        flavor: str,
         apikey: str,
         guid: Optional[str],
         contract_name: Optional[str],
 ):
+    flavor_enum = flavor_of_lower_name[flavor]
     if guid:
         guid_status(api_of_chain_id[chain_id], guid)
         return
 
     if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
-        etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_ENDPOINT_REGISTRY)
+        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'raiden', CONTRACT_ENDPOINT_REGISTRY)
 
     if contract_name is None or contract_name == CONTRACT_SECRET_REGISTRY:
-        etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_SECRET_REGISTRY)
+        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'raiden', CONTRACT_SECRET_REGISTRY)
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
-        etherscan_verify_contract(chain_id, apikey, 'raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
+        etherscan_verify_contract(
+            chain_id,
+            flavor_enum,
+            apikey,
+            'raiden',
+            CONTRACT_TOKEN_NETWORK_REGISTRY,
+        )
 
     if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_SERVICE_REGISTRY)
+        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'services', CONTRACT_SERVICE_REGISTRY)
 
     if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_MONITORING_SERVICE)
+        etherscan_verify_contract(
+            chain_id,
+            flavor_enum,
+            apikey,
+            'services',
+            CONTRACT_MONITORING_SERVICE,
+        )
 
     if contract_name is None or contract_name == CONTRACT_ONE_TO_N:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_ONE_TO_N)
+        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'services', CONTRACT_ONE_TO_N)
 
     if contract_name is None or contract_name == CONTRACT_USER_DEPOSIT:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_USER_DEPOSIT)
+        etherscan_verify_contract(chain_id, flavor_enum, apikey, 'services', CONTRACT_USER_DEPOSIT)
 
 
 api_of_chain_id = {
@@ -86,7 +107,7 @@ api_of_chain_id = {
 }
 
 
-def join_sources(source_module: str, contract_name: str):
+def join_sources(source_module: str, contract_name: str, flavor: Flavor):
     """ Use join-contracts.py to concatenate all imported Solidity files.
 
     Args:
@@ -94,12 +115,12 @@ def join_sources(source_module: str, contract_name: str):
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     joined_file = Path(__file__).parent.joinpath('joined.sol')
-    remapping = {module: str(path) for module, path in contracts_source_path().items()}
+    remapping = {module: str(path) for module, path in contracts_source_path(flavor).items()}
     command = [
         './utils/join-contracts.py',
         '--import-map',
         json.dumps(remapping),
-        str(contracts_source_path()[source_module].joinpath(contract_name + ".sol")),
+        str(contracts_source_path(flavor)[source_module].joinpath(contract_name + ".sol")),
         str(joined_file),
     ]
     working_dir = Path(__file__).parent.parent
@@ -162,7 +183,13 @@ def post_data_for_etherscan_verification(
     return data
 
 
-def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, contract_name: str):
+def etherscan_verify_contract(
+        chain_id: int,
+        flavor: Flavor,
+        apikey: str,
+        source_module: str,
+        contract_name: str,
+):
     """ Calls Etherscan API for verifying the Solidity source of a contract.
 
     Args:
@@ -174,14 +201,15 @@ def etherscan_verify_contract(chain_id: int, apikey: str, source_module: str, co
     etherscan_api = api_of_chain_id[chain_id]
     deployment_info = get_contracts_deployed(
         chain_id,
+        flavor,
         services=(source_module == 'services'),
     )
-    contract_manager = ContractManager(contracts_precompiled_path())
+    contract_manager = ContractManager(contracts_precompiled_path(flavor))
 
     data = post_data_for_etherscan_verification(
         apikey,
         deployment_info['contracts'][contract_name],
-        join_sources(source_module, contract_name),
+        join_sources(source_module, contract_name, flavor),
         contract_name,
         json.loads(contract_manager.contracts[contract_name]['metadata']),
         get_constructor_args(deployment_info, contract_name, contract_manager),

@@ -75,7 +75,8 @@ class CompileContracts(Command):
         )
 
         contract_manager = ContractManager(contracts_source_path())
-        contract_manager.compile_contracts(contracts_precompiled_path(Flavor.Limited)
+        contract_manager.compile_contracts(
+            contracts_precompiled_path(Flavor.Limited),
         )
 
 
