@@ -23,6 +23,13 @@ def check_precompiled_content(manager, contract_names, fields):
             assert manager.contracts[contract_name][field]
 
 
+def test_nonexistent_precompiled_path():
+    """ An exception occurs when trying to access a field in a non-existent precompiled path """
+    nonexistent_version = '0.6.0'
+    with pytest.raises(FileNotFoundError):
+        ContractManager(contracts_precompiled_path(nonexistent_version))
+
+
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
     manager = ContractManager(contracts_source_path())

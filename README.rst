@@ -53,6 +53,9 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
+    # ``raiden-contracts`` provides only three kinds of ``contracts_version``s.
+    # ``None``, ``'0.4.0'`` and ``'0.3._'``.  They are explained below.
+
     # Uses the newest version. Available on Kovan, Rinkeby and Ropsten.
     # Mainnet deployments should not be accessed with contract_version == None.
     contracts_version = None
@@ -66,6 +69,10 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     # The Solidity source of this version is unknown on Etherscan.
     # See https://github.com/raiden-network/raiden-contracts/issues/543
     contracts_version = '0.3._'
+
+    # Other contract versions like ``'0.6.0'`` do not work. Contract versions
+    # become available when anybody requests, or when there is a mainnet
+    # deployment.
 
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
