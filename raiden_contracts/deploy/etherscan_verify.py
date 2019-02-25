@@ -55,12 +55,16 @@ from raiden_contracts.contract_manager import (
 )
 def etherscan_verify(
         chain_id: int,
-        flavor: str,
+        flavor: Optional[str],
         apikey: str,
         guid: Optional[str],
         contract_name: Optional[str],
 ):
-    flavor_enum = flavor_of_lower_name[flavor]
+    try:
+        flavor_enum = flavor_of_lower_name[flavor]
+    except KeyError:
+        print("specify --flavor unlimited or --flavor limited")
+        exit(1)
     if guid:
         guid_status(api_of_chain_id[chain_id], guid)
         return
