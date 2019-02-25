@@ -27,6 +27,7 @@ credentials/
 /*.egg
 /raiden_contracts/deploy/flatten.sol
 /raiden_contracts/deploy/joined.sol
+/raiden_contracts/contracts
 
 # ignore private keys
 *.pem

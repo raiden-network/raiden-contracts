@@ -1,6 +1,10 @@
 all: verify_contracts install
 
-compile_contracts:
+render_templates:
+	rm -rf raiden_contracts/contracts
+	cp -r raiden_contracts/contracts_template raiden_contracts/contracts
+
+compile_contracts: render_templates
 	python setup.py compile_contracts
 
 verify_contracts:
