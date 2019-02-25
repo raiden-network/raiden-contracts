@@ -1,3 +1,4 @@
+from enum import Enum
 import hashlib
 import json
 import logging
@@ -17,6 +18,20 @@ from raiden_contracts.constants import (
 log = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
+
+
+class Flavor(Enum):
+    Unlimited = 1
+    Limited = 2
+
+
+lower_name_of_flavor = {
+    Flavor.Unlimited: 'unlimited',
+    Flavor.Limited: 'limited',
+}
+
+
+flavor_of_lower_name = {lower_name_of_flavor[k]: k for k in lower_name_of_flavor.keys()}
 
 
 class ContractManagerCompilationError(RuntimeError):
@@ -208,41 +223,54 @@ class ContractManager:
             )
 
 
-def contracts_source_path():
+def contracts_source_path(flavor: Flavor):
+    upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
     return {
-        'lib': _BASE.joinpath('contracts', 'lib'),
-        'raiden': _BASE.joinpath('contracts', 'raiden'),
-        'test': _BASE.joinpath('contracts', 'test'),
-        'services': _BASE.joinpath('contracts', 'services'),
+        'lib': _BASE.joinpath(upper_dir, 'lib'),
+        'raiden': _BASE.joinpath(upper_dir, 'raiden'),
+        'test': _BASE.joinpath(upper_dir, 'test'),
+        'services': _BASE.joinpath(upper_dir, 'services'),
     }
 
 
-def contracts_data_path(version: Optional[str] = None):
+def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
+    flavor_suffix = '_unlimited' if flavor == Flavor.Unlimited else ''
+
     if version is None or version == CONTRACTS_VERSION:
-        return _BASE.joinpath('data')
+        return _BASE.joinpath('data' + flavor_suffix)
     else:
-        return _BASE.joinpath(f'data_{version}')
+        return _BASE.joinpath(f'data_{version}' + flavor_suffix)
 
 
-def contracts_precompiled_path(version: Optional[str] = None):
-    data_path = contracts_data_path(version)
+def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):
+    data_path = contracts_data_path(flavor, version)
     return data_path.joinpath('contracts.json')
 
 
-def contracts_gas_path(version: Optional[str] = None):
-    data_path = contracts_data_path(version)
+def contracts_gas_path(flavor: Flavor, version: Optional[str] = None):
+    data_path = contracts_data_path(flavor, version)
     return data_path.joinpath('gas.json')
 
 
-def contracts_deployed_path(chain_id: int, version: Optional[str] = None, services: bool = False):
-    data_path = contracts_data_path(version)
+def contracts_deployed_path(
+        chain_id: int,
+        flavor: Flavor,
+        version: Optional[str] = None,
+        services: bool = False,
+):
+    data_path = contracts_data_path(flavor, version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
 
-def get_contracts_deployed(chain_id: int, version: Optional[str] = None, services: bool = False):
-    deployment_file_path = contracts_deployed_path(chain_id, version, services)
+def get_contracts_deployed(
+        chain_id: int,
+        flavor: Flavor,
+        version: Optional[str] = None,
+        services: bool = False,
+):
+    deployment_file_path = contracts_deployed_path(chain_id, flavor, version, services)
 
     try:
         with deployment_file_path.open() as deployment_file:
