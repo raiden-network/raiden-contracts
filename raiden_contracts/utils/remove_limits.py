@@ -19,9 +19,8 @@ def work_on_files(src, dst):
     assert src.exists(), 'src has to exist'
     assert not src.is_dir(), 'src must not be a directory'
     original = subprocess.run(['cat', str(src)], stdout=subprocess.PIPE)
-    original = original.stdout
     pattern = r'/\*LIMITED-VERSION-START.*?LIMITED-VERSION-END\*/'
-    replaced = re.sub(pattern, '', original.decode('UTF-8'), flags=re.MULTILINE | re.DOTALL)
+    replaced = re.sub(pattern, '', original.stdout.decode('UTF-8'), flags=re.MULTILINE | re.DOTALL)
     with dst.open(mode='w') as dst_file:
         dst_file.write(replaced)
 

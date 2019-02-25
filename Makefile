@@ -11,7 +11,7 @@ verify_contracts:
 remove_limits:
 	python raiden_contracts/utils/remove_limits.py \
 	raiden_contracts/contracts \
-	raiden_contracts/contracts-without-limits
+	raiden_contracts/contracts_without_limits
 
 install:
 	pip install -r requirements.txt
