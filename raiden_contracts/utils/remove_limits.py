@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import re
 
+from raiden_contracts.constants import CONTRACTS_VERSION, CONTRACTS_VERSION_LIMITED
+
 """
 A utility to copy a directory containing Solidity files and
 remove code between /*LIMITED-VERSION-START*/ and /*LIMITED-VERSION-STOP*/.
@@ -21,6 +23,7 @@ def work_on_files(src, dst):
     original = subprocess.run(['cat', str(src)], stdout=subprocess.PIPE)
     pattern = r'/\*LIMITED-VERSION-START.*?LIMITED-VERSION-END\*/'
     replaced = re.sub(pattern, '', original.stdout.decode('UTF-8'), flags=re.MULTILINE | re.DOTALL)
+    replaced = replaced.replace(CONTRACTS_VERSION, CONTRACTS_VERSION_LIMITED)
     with dst.open(mode='w') as dst_file:
         dst_file.write(replaced)
 

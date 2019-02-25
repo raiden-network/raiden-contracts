@@ -9,7 +9,7 @@ verify_contracts:
 	python setup.py verify_contracts
 
 remove_limits:
-	python raiden_contracts/utils/remove_limits.py \
+	python -m raiden_contracts.utils.remove_limits \
 	raiden_contracts/contracts \
 	raiden_contracts/contracts_without_limits
 
