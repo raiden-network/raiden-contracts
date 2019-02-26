@@ -1,9 +1,12 @@
 all: verify_contracts install
 
-compile_contracts:
+render_templates:
+	python setup.py render_templates
+
+compile_contracts: render_templates
 	python setup.py compile_contracts
 
-verify_contracts:
+verify_contracts: render_templates
 	python setup.py verify_contracts
 
 install:

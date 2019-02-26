@@ -11,7 +11,7 @@ import "raiden/SecretRegistry.sol";
 /// in this TokenNetwork contract.
 contract TokenNetwork is Utils {
 
-    string constant public contract_version = "0.7.0";
+    string constant public contract_version = "0.7.0{{version_suffix}}";
 
     // Instance of the token used by the channels
     Token public token;
@@ -31,6 +31,7 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
+    {{#limited}}
     // Red Eyes release deposit limits
     // The combined deposit of one channel is limited to 0.15 ETH.
     // So 0.075 ETH per participant.
@@ -38,6 +39,7 @@ contract TokenNetwork is Utils {
     // The total combined deposit of all channels across the whole network is
     // limited to 250 ETH.
     uint256 constant public token_network_deposit_limit = 250000000000000000000 wei;
+    {{/limited}}
 
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
@@ -45,9 +47,11 @@ contract TokenNetwork is Utils {
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
 
+    {{#limited}}
     // Only for the limited Red Eyes release
     address public deprecation_executor;
     bool public safety_deprecation_switch = false;
+    {{/limited}}
 
     // channel_identifier => Channel
     // channel identifier is the channel_counter value at the time of opening
@@ -187,15 +191,19 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount
     );
 
+    {{#limited}}
     modifier onlyDeprecationExecutor() {
         require(msg.sender == deprecation_executor);
         _;
     }
+    {{/limited}}
 
+    {{#limited}}
     modifier isSafe() {
         require(safety_deprecation_switch == false);
         _;
     }
+    {{/limited}}
 
     modifier isOpen(uint256 channel_identifier) {
         require(channels[channel_identifier].state == ChannelState.Opened);
@@ -213,14 +221,16 @@ contract TokenNetwork is Utils {
         address _secret_registry,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max,
-        address _deprecation_executor
+        uint256 _settlement_timeout_max{{#limited}},
+        address _deprecation_executor{{/limited}}
     )
         public
     {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
+        {{#limited}}
         require(_deprecation_executor != address(0x0));
+        {{/limited}}
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
@@ -237,12 +247,16 @@ contract TokenNetwork is Utils {
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);
 
+        {{#limited}}
         deprecation_executor = _deprecation_executor;
+        {{/limited}}
     }
 
+    {{#limited}}
     function deprecate() isSafe onlyDeprecationExecutor public {
         safety_deprecation_switch = true;
     }
+    {{/limited}}
 
     /// @notice Opens a new channel between `participant1` and `participant2`.
     /// Can be called by anyone.
@@ -251,7 +265,7 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
-        isSafe
+        {{#limited}} isSafe {{/limited}}
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -259,8 +273,10 @@ contract TokenNetwork is Utils {
         bytes32 pair_hash;
         uint256 channel_identifier;
 
+        {{#limited}}
         // Red Eyes release token network limit
         require(token.balanceOf(address(this)) < token_network_deposit_limit);
+        {{/limited}}
 
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
@@ -310,13 +326,15 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
-        isSafe
+        {{#limited}} isSafe {{/limited}}
         isOpen(channel_identifier)
         public
     {
         require(channel_identifier == getChannelIdentifier(participant, partner));
         require(total_deposit > 0);
+        {{#limited}}
         require(total_deposit <= channel_participant_deposit_limit);
+        {{/limited}}
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -339,8 +357,10 @@ contract TokenNetwork is Utils {
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
 
+        {{#limited}}
         // Red Eyes release token network limit
         require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
+        {{/limited}}
 
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;

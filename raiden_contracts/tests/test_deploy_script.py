@@ -11,6 +11,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
+from raiden_contracts.contract_manager import Flavor
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     deploy_raiden_contracts,
@@ -24,8 +25,10 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import T_Address
 
 
+@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
 def test_deploy_script_raiden(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -38,9 +41,10 @@ def test_deploy_script_raiden(
     verify_deployed_contracts()
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -130,6 +134,7 @@ def test_deploy_script_raiden(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -139,8 +144,10 @@ def test_deploy_script_raiden(
         deploy_raiden_contracts(deployer)
 
 
+@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
 def test_deploy_script_token(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -151,10 +158,11 @@ def test_deploy_script_token(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -176,6 +184,7 @@ def test_deploy_script_token(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -192,8 +201,10 @@ def test_deploy_script_token(
         )
 
 
+@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
 def test_deploy_script_register(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -204,10 +215,11 @@ def test_deploy_script_register(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -241,8 +253,10 @@ def test_deploy_script_register(
     assert isinstance(token_network_address, T_Address)
 
 
+@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
 def test_deploy_script_service(
         web3,
+        flavor,
         faucet_private_key,
         get_random_privkey,
 ):
@@ -250,9 +264,10 @@ def test_deploy_script_service(
 
     This checks if deploy_service_contracts() works correctly in the happy case.
     """
-    gas_limit = 5900000
+    gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,

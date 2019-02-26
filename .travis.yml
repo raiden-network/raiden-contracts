@@ -25,11 +25,12 @@ install:
   - pip install pytest-travis-fold
   - pip install -r requirements-dev.txt
   - pip install pytest-xdist pytest-sugar
-  - python setup.py verify_contracts
+  - make verify_contracts
 
 before_script:
   - flake8 raiden_contracts/
   - make mypy
+  - make render_templates
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
