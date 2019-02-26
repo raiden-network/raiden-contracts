@@ -5,7 +5,7 @@ pragma solidity 0.5.4;
 /// clients.
 contract SecretRegistry {
 
-    string constant public contract_version = "0.7.0{{version_suffix}}";
+    string constant public contract_version = "{{contracts_version}}{{version_suffix}}";
 
     // keccak256(secret) => block number at which the secret was revealed
     mapping(bytes32 => uint256) private secrethash_to_block;

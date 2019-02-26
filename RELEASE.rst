@@ -70,7 +70,7 @@ Bump Smart Contracts Version
 
 * The script changes the version located here:
   * ``CONTRACTS_VERSION`` https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/constants.py#L4
-  * each ``contract_version`` constant from each contract source. E.g. https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/contracts/TokenNetwork.sol#L14
+  * This string will be filled in the contract templates.
 * We are currently at a ``0.*`` version. Our first ``major`` bump will be made when a stable, not-limited version will be released on the main net.
 * ``minor`` bumps (for now) are made for contract ABI changes.
 * ``patch`` bumps are made for any fix that does not touch the ABI.

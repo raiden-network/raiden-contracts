@@ -267,6 +267,7 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
         contracts_source_root(Flavor.Unlimited),
         {
             "limited": False,
+            "contracts_version": CONTRACTS_VERSION,
             "version-suffix": "_unlimited",
         },
     ),
@@ -274,6 +275,7 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
         contracts_source_root(Flavor.Limited),
         {
             "limited": True,
+            "contracts_version": CONTRACTS_VERSION,
             "version_suffix": "",
         },
     ),
