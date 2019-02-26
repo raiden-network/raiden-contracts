@@ -41,7 +41,7 @@ def test_deploy_script_raiden(
     verify_deployed_contracts()
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
         flavor=flavor,
@@ -158,7 +158,7 @@ def test_deploy_script_token(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
@@ -215,7 +215,7 @@ def test_deploy_script_register(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    gas_limit = 5900000
+    gas_limit = 5860000
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
@@ -264,7 +264,7 @@ def test_deploy_script_service(
 
     This checks if deploy_service_contracts() works correctly in the happy case.
     """
-    gas_limit = 5900000
+    gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
         flavor=flavor,
