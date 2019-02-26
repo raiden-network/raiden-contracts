@@ -38,6 +38,7 @@ from raiden_contracts.contract_manager import (
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.option(
     '--apikey',
@@ -55,18 +56,12 @@ from raiden_contracts.contract_manager import (
 )
 def etherscan_verify(
         chain_id: int,
-        flavor: Optional[str],
+        flavor: str,
         apikey: str,
         guid: Optional[str],
         contract_name: Optional[str],
 ):
-    try:
-        if flavor is None:  # To silence mypy
-            raise KeyError
-        flavor_enum = flavor_of_lower_name[flavor]
-    except KeyError:
-        print("specify --flavor unlimited or --flavor limited")
-        exit(1)
+    flavor_enum = flavor_of_lower_name[flavor]
     if guid:
         guid_status(api_of_chain_id[chain_id], guid)
         return

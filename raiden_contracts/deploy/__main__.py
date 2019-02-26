@@ -249,6 +249,7 @@ def main():
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.pass_context
 def raiden(
@@ -260,7 +261,7 @@ def raiden(
     gas_limit,
     save_info,
     contracts_version,
-    flavor,
+    flavor: str,
 ):
     flavor_enum = flavor_of_lower_name[flavor]
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
@@ -306,6 +307,7 @@ def raiden(
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.pass_context
 def services(
@@ -317,9 +319,10 @@ def services(
     gas_limit,
     token_address,
     save_info,
-    flavor,
+    flavor: str,
     contracts_version,
 ):
+    flavor_enum = flavor_of_lower_name[flavor]
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj['deployer']
 
@@ -330,10 +333,10 @@ def services(
     }
 
     if save_info is True:
-        store_deployment_info(flavor, deployed_contracts_info, services=True)
+        store_deployment_info(deployed_contracts_info, flavor_enum, services=True)
         verify_deployed_service_contracts_in_filesystem(
             deployer.web3,
-            flavor,
+            flavor_enum,
             deployer.contract_manager,
             token_address,
         )
@@ -473,6 +476,7 @@ def register(
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.pass_context
 def verify(ctx, rpc_provider, contracts_version, flavor):
