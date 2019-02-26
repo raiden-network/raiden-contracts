@@ -10,4 +10,3 @@ include raiden_contracts/data*/deployment_services_kovan.json
 include raiden_contracts/data*/deployment_services_rinkeby.json
 include raiden_contracts/data*/deployment_services_ropsten.json
 recursive-include raiden_contracts/data*/source *
-recursive-include raiden_contracts/contracts_template/ *
