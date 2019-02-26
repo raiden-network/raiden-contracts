@@ -9,4 +9,7 @@ include raiden_contracts/data*/deployment_mainnet.json
 include raiden_contracts/data*/deployment_services_kovan.json
 include raiden_contracts/data*/deployment_services_rinkeby.json
 include raiden_contracts/data*/deployment_services_ropsten.json
-recursive-include raiden_contracts/data*/source *
+recursive-include raiden_contracts/data*/source
+prune raiden_contracts/contracts
+prune raiden_contracts/contracts_without_limits
+prune raiden_contracts/contracts_template
