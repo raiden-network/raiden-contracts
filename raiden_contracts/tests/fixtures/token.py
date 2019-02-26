@@ -4,38 +4,31 @@ from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
 )
 
-token_args = [
-    (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN'),
-]
+token_args = (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
 
 
-@pytest.fixture(params=token_args)
-def custom_token_params(request):
-    return request.param
-
-
-@pytest.fixture()
-def custom_token_factory(deploy_tester_contract, custom_token_params):
+@pytest.fixture(scope='session')
+def custom_token_factory(deploy_tester_contract):
     """A function that deploys a CustomToken contract"""
     def f():
         return deploy_tester_contract(
             CONTRACT_CUSTOM_TOKEN,
             [],
-            custom_token_params,
+            token_args,
         )
     return f
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def custom_token(custom_token_factory):
     """Deploy CustomToken contract"""
     return custom_token_factory()
 
 
 @pytest.fixture()
-def human_standard_token(deploy_token_contract, custom_token_params):
+def human_standard_token(deploy_token_contract):
     """Deploy HumanStandardToken contract"""
-    return deploy_token_contract(*custom_token_params)
+    return deploy_token_contract(*token_args)
 
 
 @pytest.fixture

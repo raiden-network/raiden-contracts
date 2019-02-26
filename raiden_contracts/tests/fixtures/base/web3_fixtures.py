@@ -57,15 +57,15 @@ def web3(
     yield web3
 
 
-@pytest.fixture
-def revert_chain(web3: Web3):
-    """Reverts chain to its initial state.
-    If this fixture is used, the chain will revert on each test teardown.
+@pytest.fixture(autouse=True)
+def auto_revert_chain(web3: Web3):
+    """Reverts the chain to its before the test run
+
+    This reverts the side effects created during the test run, so that we can
+    reuse the same chain and contract deployments for other tests.
 
     This is useful especially when using ethereum tester - its log filtering
     is very slow once enough events are present on-chain.
-
-    Note that `deploy_contract` fixture uses `revert_chain` by default.
     """
     snapshot_id = web3.testing.snapshot()
     yield

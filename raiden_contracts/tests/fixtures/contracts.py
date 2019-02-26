@@ -6,7 +6,7 @@ from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def deploy_tester_contract(
         web3,
         contracts_manager,
@@ -27,8 +27,8 @@ def deploy_tester_contract(
     return f
 
 
-@pytest.fixture
-def deploy_contract_txhash(revert_chain):
+@pytest.fixture(scope='session')
+def deploy_contract_txhash():
     """Returns a function that deploys a compiled contract, returning a txhash"""
     def fn(
             web3,
@@ -44,8 +44,8 @@ def deploy_contract_txhash(revert_chain):
     return fn
 
 
-@pytest.fixture
-def deploy_contract(revert_chain, deploy_contract_txhash):
+@pytest.fixture(scope='session')
+def deploy_contract(deploy_contract_txhash):
     """Returns a function that deploys a compiled contract"""
     def fn(
             web3,
