@@ -124,6 +124,11 @@ class CompileContracts(Command):
             contracts_precompiled_path(Flavor.Limited),
         )
 
+        contract_manager = ContractManager(contracts_source_path(Flavor.Unlimited))
+        contract_manager.compile_contracts(
+            contracts_precompiled_path(Flavor.Unlimited),
+        )
+
 
 requirements = read_requirements('requirements.txt')
 

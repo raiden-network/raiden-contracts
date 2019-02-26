@@ -69,8 +69,10 @@ contract TokenNetworkRegistry is Utils {
     {
         require(token_to_token_networks[_token_address] == address(0x0));
 
+        {{#limited}}
         // We limit the number of token networks to 1 for the Bug Bounty release
         token_network_created = true;
+        {{/limited}}
 
         TokenNetwork token_network;
 

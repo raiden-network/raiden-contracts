@@ -265,7 +265,7 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
-        isSafe
+        {{#limited}} isSafe {{/limited}}
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
@@ -326,7 +326,7 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
-        isSafe
+        {{#limited}} isSafe {{/limited}}
         isOpen(channel_identifier)
         public
     {
