@@ -1,7 +1,6 @@
 all: verify_contracts install
 
 render_templates:
-	rm -rf raiden_contracts/contracts raiden_contracts/contracts_without_limit
 	python setup.py render_templates
 
 compile_contracts: render_templates
