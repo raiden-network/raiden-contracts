@@ -23,6 +23,7 @@ When we want to release another version of the ``raiden-contracts`` package, we 
    #. `Deploy smart contracts <_deploy-contracts>`_ on all the supported chains and overwrite ``deployment_*,json`` files with the new deployment data.
    #. `Verify the deployed smart contracts on Etherscan <verify-contracts>`_
    #. `Measure Gas Costs <measure-gas>`_
+   #. `Create a new data directory <create-new-dir>`_
 
 #. `Update Changelog <change-changelog>`_
 #. `Bump the package version <bump-package>`_
@@ -119,6 +120,15 @@ Measure Gas Costs
 ::
 
     pytest raiden_contracts/tests/test_print_gas.py
+
+.. _create-new-dir
+
+Create a New Data Directory
+---------------------------
+
+``data`` directory should be renamed into ``data_x.y.z`` where ``x.y.z`` is the contract version.  Also, create a symbolic link that redirects ``data`` to ``data_x.y.z``.
+
+The same has to be done for ``data_unlimited`` and ``data_x.y.z_unlimited``.
 
 .. _bump-package:
 
