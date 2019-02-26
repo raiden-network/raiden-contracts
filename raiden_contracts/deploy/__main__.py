@@ -62,6 +62,7 @@ class ContractDeployer:
     def __init__(
         self,
         web3: Web3,
+        flavor: Flavor,
         private_key: str,
         gas_limit: int,
         gas_price: int=1,
@@ -69,6 +70,7 @@ class ContractDeployer:
         contracts_version: Optional[str]=None,
     ):
         self.web3 = web3
+        self.flavor = flavor
         self.wait = wait
         self.owner = private_key_to_address(private_key)
         self.transaction = {'from': self.owner, 'gas': gas_limit}
@@ -76,7 +78,7 @@ class ContractDeployer:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
         self.contracts_version = contracts_version
-        self.precompiled_path = contracts_precompiled_path(Flavor.Limited, self.contracts_version)
+        self.precompiled_path = contracts_precompiled_path(flavor, self.contracts_version)
         self.contract_manager = ContractManager(self.precompiled_path)
         self.web3.middleware_stack.add(
             construct_sign_and_send_raw_middleware(private_key),
@@ -85,7 +87,7 @@ class ContractDeployer:
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
         if self.contracts_version in [None, CONTRACTS_VERSION]:
-            contract_manager_source = ContractManager(contracts_source_path(Flavor.Limited))
+            contract_manager_source = ContractManager(contracts_source_path(flavor))
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
@@ -194,6 +196,7 @@ def common_options(func):
 
 def setup_ctx(
     ctx: click.Context,
+    flavor: str,
     private_key: str,
     rpc_provider: str,
     wait: int,
@@ -220,6 +223,7 @@ def setup_ctx(
     assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
     deployer = ContractDeployer(
         web3,
+        flavor_of_lower_name[flavor],
         private_key,
         gas_limit,
         gas_price,
@@ -264,7 +268,16 @@ def raiden(
     flavor: str,
 ):
     flavor_enum = flavor_of_lower_name[flavor]
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx,
+        flavor,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+    )
     deployer = ctx.obj['deployer']
     deployed_contracts_info = deploy_raiden_contracts(deployer)
     deployed_contracts = {
@@ -323,7 +336,16 @@ def services(
     contracts_version,
 ):
     flavor_enum = flavor_of_lower_name[flavor]
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx,
+        flavor,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+    )
     deployer = ctx.obj['deployer']
 
     deployed_contracts_info = deploy_service_contracts(deployer, token_address)
@@ -392,8 +414,18 @@ def token(
     token_name,
     token_decimals,
     token_symbol,
+    flavor,
 ):
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx,
+        flavor,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+    )
     deployer = ctx.obj['deployer']
     token_supply *= 10 ** token_decimals
     deployed_token = deploy_token_contract(
@@ -438,8 +470,18 @@ def register(
     contracts_version,
     token_address,
     registry_address,
+    flavor,
 ):
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx,
+        flavor,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+    )
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
 

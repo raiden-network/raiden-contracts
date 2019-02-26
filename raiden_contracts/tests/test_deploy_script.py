@@ -26,6 +26,7 @@ from raiden_contracts.utils.type_aliases import T_Address
 
 def test_deploy_script_raiden(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -41,6 +42,7 @@ def test_deploy_script_raiden(
     gas_limit = 5900000
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -130,6 +132,7 @@ def test_deploy_script_raiden(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -141,6 +144,7 @@ def test_deploy_script_raiden(
 
 def test_deploy_script_token(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -155,6 +159,7 @@ def test_deploy_script_token(
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -176,6 +181,7 @@ def test_deploy_script_token(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -194,6 +200,7 @@ def test_deploy_script_token(
 
 def test_deploy_script_register(
     web3,
+    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -208,6 +215,7 @@ def test_deploy_script_register(
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -243,6 +251,7 @@ def test_deploy_script_register(
 
 def test_deploy_script_service(
         web3,
+        flavor,
         faucet_private_key,
         get_random_privkey,
 ):
@@ -253,6 +262,7 @@ def test_deploy_script_service(
     gas_limit = 5900000
     deployer = ContractDeployer(
         web3=web3,
+        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
