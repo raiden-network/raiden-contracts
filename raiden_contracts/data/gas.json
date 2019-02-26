@@ -1,0 +1,21 @@
+{
+    "EndpointRegistry.registerEndpoint": 48408,
+    "MonitoringService.claimReward": 42647,
+    "MonitoringService.monitor": 203747,
+    "OneToN.claim": 90719,
+    "SecretRegistry.registerSecret": 45757,
+    "TokenNetwork DEPLOYMENT": 3992958,
+    "TokenNetwork.closeChannel": 111236,
+    "TokenNetwork.openChannel": 97555,
+    "TokenNetwork.setTotalDeposit": 44509,
+    "TokenNetwork.settleChannel": 123370,
+    "TokenNetwork.unlock 1 locks": 32192,
+    "TokenNetwork.unlock 6 locks": 66029,
+    "TokenNetwork.updateNonClosingBalanceProof": 93769,
+    "TokenNetworkRegistry DEPLOYMENT": 4708296,
+    "TokenNetworkRegistry createERC20TokenNetwork": 3060600,
+    "UserDeposit.deposit": 101311,
+    "UserDeposit.deposit (increase balance)": 28156,
+    "UserDeposit.planWithdraw": 64021,
+    "UserDeposit.withdraw": 40079
+}

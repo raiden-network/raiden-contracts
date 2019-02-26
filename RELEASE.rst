@@ -126,9 +126,9 @@ Measure Gas Costs
 Create a New Data Directory
 ---------------------------
 
-``data`` directory should be renamed into ``data_x.y.z`` where ``x.y.z`` is the contract version.  Also, create a symbolic link that redirects ``data`` to ``data_x.y.z``.
+Copy ``data`` directory into ``data_x.y.z`` where ``x.y.z`` is the contract version.
 
-The same has to be done for ``data_unlimited`` and ``data_x.y.z_unlimited``.
+Also ``data_unlimited`` has to be copied into ``data_x.y.z_unlimited``.
 
 .. _bump-package:
 
