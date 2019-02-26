@@ -9,6 +9,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
+    CONTRACT_DEPLOYER_ADDRESS,
 )
 from raiden_contracts.utils.events import check_token_network_created
 from web3.exceptions import ValidationError
@@ -209,7 +210,6 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
 
 def test_create_erc20_token_network_call(
         token_network_registry_contract,
-        contract_deployer_address,
         custom_token,
         get_accounts,
         channel_participant_deposit_limit,
@@ -277,7 +277,7 @@ def test_create_erc20_token_network_call(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact({'from': contract_deployer_address})
+    ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
 
 def test_create_erc20_token_network(
@@ -318,7 +318,6 @@ def test_create_erc20_token_network(
 
 
 def test_create_erc20_token_network_twice_fails(
-        contract_deployer_address,
         token_network_registry_contract,
         custom_token,
         channel_participant_deposit_limit,
@@ -327,7 +326,7 @@ def test_create_erc20_token_network_twice_fails(
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
     token_network_registry_contract.transact(
-        {'from': contract_deployer_address},
+        {'from': CONTRACT_DEPLOYER_ADDRESS},
     ).createERC20TokenNetwork(
         custom_token.address,
         channel_participant_deposit_limit,
@@ -336,7 +335,7 @@ def test_create_erc20_token_network_twice_fails(
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.transact(
-            {'from': contract_deployer_address},
+            {'from': CONTRACT_DEPLOYER_ADDRESS},
         ).createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,

@@ -1,6 +1,8 @@
 import pytest
 import logging
 
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+
 log = logging.getLogger(__name__)
 
 
@@ -9,7 +11,6 @@ def deploy_tester_contract(
         web3,
         contracts_manager,
         deploy_contract,
-        contract_deployer_address,
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
@@ -18,7 +19,7 @@ def deploy_tester_contract(
         json_contract = contracts_manager.get_contract(contract_name)
         contract = deploy_contract(
             web3,
-            contract_deployer_address,
+            CONTRACT_DEPLOYER_ADDRESS,
             json_contract['abi'],
             json_contract['bin'],
             args,
@@ -68,7 +69,6 @@ def deploy_tester_contract_txhash(
         web3,
         contracts_manager,
         deploy_contract_txhash,
-        contract_deployer_address,
         get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
@@ -77,7 +77,7 @@ def deploy_tester_contract_txhash(
         json_contract = contracts_manager.get_contract(contract_name)
         txhash = deploy_contract_txhash(
             web3,
-            contract_deployer_address,
+            CONTRACT_DEPLOYER_ADDRESS,
             json_contract['abi'],
             json_contract['bin'],
             args,

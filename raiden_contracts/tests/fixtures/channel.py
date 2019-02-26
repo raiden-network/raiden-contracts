@@ -19,6 +19,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     fake_bytes,
 )
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
 @pytest.fixture()
@@ -46,9 +47,9 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def assign_tokens(contract_deployer_address, token_network, custom_token):
+def assign_tokens(token_network, custom_token):
     def get(participant, deposit):
-        owner = contract_deployer_address
+        owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
         owner_balance = custom_token.functions.balanceOf(owner).call()
         amount = max(deposit - balance, 0)

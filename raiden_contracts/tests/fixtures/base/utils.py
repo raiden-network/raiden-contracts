@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.tests.utils.constants import passphrase
+from raiden_contracts.tests.utils.constants import passphrase, CONTRACT_DEPLOYER_ADDRESS
 from eth_utils import denoms, is_same_address
 
 
@@ -74,12 +74,12 @@ def get_private_key(web3, ethereum_tester):
 
 
 @pytest.fixture
-def create_contract(chain, contract_deployer_address):
+def create_contract(chain):
     def get(contract_type, arguments, transaction=None):
         if not transaction:
             transaction = {}
         if 'from' not in transaction:
-            transaction['from'] = contract_deployer_address
+            transaction['from'] = CONTRACT_DEPLOYER_ADDRESS
 
         deploy_txn_hash = contract_type.deploy(transaction=transaction, args=arguments)
         contract_address = chain.wait.for_contract_address(deploy_txn_hash)

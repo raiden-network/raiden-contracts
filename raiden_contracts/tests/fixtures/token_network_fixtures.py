@@ -1,4 +1,6 @@
 import pytest
+from web3.contract import get_event_data
+
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -9,7 +11,7 @@ from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
 )
-from web3.contract import get_event_data
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
 @pytest.fixture
@@ -26,10 +28,9 @@ def get_token_network(web3, deploy_tester_contract):
 
 @pytest.fixture
 def register_token_network(
-        contract_deployer_address,
-        web3,
-        token_network_registry_contract,
-        contracts_manager,
+    web3,
+    token_network_registry_contract,
+    contracts_manager,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
@@ -42,7 +43,7 @@ def register_token_network(
             token_address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': contract_deployer_address})
+        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -121,7 +122,6 @@ def token_network_contract(
 @pytest.fixture()
 def token_network_external(
         web3,
-        contract_deployer_address,
         get_token_network,
         custom_token,
         secret_registry_contract,
@@ -134,7 +134,7 @@ def token_network_external(
         int(web3.version.network),
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
-        contract_deployer_address,
+        CONTRACT_DEPLOYER_ADDRESS,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
     ])
