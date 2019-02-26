@@ -24,7 +24,7 @@ def get_token_network_registry(deploy_tester_contract):
     return get
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def token_network_registry_contract(deploy_tester_contract, secret_registry_contract, web3):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(

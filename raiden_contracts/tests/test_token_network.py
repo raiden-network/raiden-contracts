@@ -341,6 +341,7 @@ def test_token_network_variables(token_network, token_network_test_utils):
     assert token_network.functions.signature_prefix().call() == '\x19Ethereum Signed Message:\n'
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_constructor_not_registered(
         custom_token,
         secret_registry_contract,

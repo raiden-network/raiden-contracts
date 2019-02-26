@@ -21,6 +21,7 @@ def test_version(token_network_registry_contract):
     assert version == CONTRACTS_VERSION
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_constructor_call(
         web3,
         get_token_network_registry,
@@ -189,6 +190,7 @@ def test_constructor_call(
     ])
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
     """ The constructor should set the parameters into the storage of the contract """
 
@@ -208,6 +210,7 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
     assert 30 == registry.functions.max_token_networks().call()
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network_call(
         token_network_registry_contract,
         custom_token,
@@ -280,6 +283,7 @@ def test_create_erc20_token_network_call(
     ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
@@ -317,6 +321,7 @@ def test_create_erc20_token_network(
     assert token_network.functions.settlement_timeout_max().call() == settle_timeout_max
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network_twice_fails(
         token_network_registry_contract,
         custom_token,
@@ -343,6 +348,7 @@ def test_create_erc20_token_network_twice_fails(
         )
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_events(
         register_token_network,
         token_network_registry_contract,

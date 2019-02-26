@@ -1,3 +1,4 @@
+import pytest
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -66,6 +67,7 @@ def test_token_network_deployment(
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_token_network_create(
         print_gas,
         custom_token,
