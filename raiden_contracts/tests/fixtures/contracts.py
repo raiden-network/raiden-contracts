@@ -11,7 +11,6 @@ def deploy_tester_contract(
         web3,
         contracts_manager,
         deploy_contract,
-        get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
     using conract manager to compile the bytecode and get the ABI"""
@@ -69,7 +68,6 @@ def deploy_tester_contract_txhash(
         web3,
         contracts_manager,
         deploy_contract_txhash,
-        get_random_address,
 ):
     """Returns a function that can be used to deploy a named contract,
     but returning txhash only"""

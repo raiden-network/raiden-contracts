@@ -22,12 +22,12 @@ from raiden_contracts.deploy.__main__ import (
     verify_service_contracts_deployment_data,
 )
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAUCET_PRIVATE_KEY
+from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.utils.type_aliases import T_Address
 
 
 def test_deploy_script_raiden(
         web3,
-        get_random_privkey,
 ):
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
@@ -145,7 +145,6 @@ def test_deploy_script_raiden(
 
 def test_deploy_script_token(
     web3,
-    get_random_privkey,
 ):
     """ Run test token deployment function used in the deployment script
 
@@ -197,7 +196,6 @@ def test_deploy_script_token(
 
 def test_deploy_script_register(
         web3,
-        get_random_privkey,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
 ):
@@ -253,7 +251,6 @@ def test_deploy_script_register(
 
 def test_deploy_script_service(
         web3,
-        get_random_privkey,
 ):
     """ Run deploy_service_contracts() used in the deployment script
 

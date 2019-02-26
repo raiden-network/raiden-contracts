@@ -6,6 +6,7 @@ from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.tests.utils.constants import passphrase, CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils import get_random_privkey
 from eth_utils import denoms, is_same_address
 
 
@@ -28,7 +29,7 @@ def create_accounts(web3):
 
 
 @pytest.fixture
-def create_account(web3, ethereum_tester, get_random_privkey):
+def create_account(web3, ethereum_tester):
     def get():
         privkey = get_random_privkey()
         address = private_key_to_address(privkey)
