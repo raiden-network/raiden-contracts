@@ -1,22 +1,13 @@
 include Changelog.md
 include requirements.txt
 include raiden_contracts/constants.py
-include raiden_contracts/data/contracts.json
-include raiden_contracts/data/deployment_kovan.json
-include raiden_contracts/data/deployment_rinkeby.json
-include raiden_contracts/data/deployment_ropsten.json
-include raiden_contracts/data/deployment_mainnet.json
-include raiden_contracts/data/deployment_services_kovan.json
-include raiden_contracts/data/deployment_services_rinkeby.json
-include raiden_contracts/data/deployment_services_ropsten.json
-include raiden_contracts/data_0.4.0/contracts.json
-include raiden_contracts/data_0.4.0/deployment_kovan.json
-include raiden_contracts/data_0.4.0/deployment_rinkeby.json
-include raiden_contracts/data_0.4.0/deployment_ropsten.json
-include raiden_contracts/data_0.4.0/deployment_mainnet.json
-include raiden_contracts/data_0.3._/contracts.json
-include raiden_contracts/data_0.3._/deployment_kovan.json
-include raiden_contracts/data_0.3._/deployment_rinkeby.json
-include raiden_contracts/data_0.3._/deployment_ropsten.json
-recursive-include raiden_contracts/contracts/ *
-recursive-include raiden_contracts/contracts/test *
+include raiden_contracts/data*/contracts.json
+include raiden_contracts/data*/deployment_kovan.json
+include raiden_contracts/data*/deployment_rinkeby.json
+include raiden_contracts/data*/deployment_ropsten.json
+include raiden_contracts/data*/deployment_mainnet.json
+include raiden_contracts/data*/deployment_services_kovan.json
+include raiden_contracts/data*/deployment_services_rinkeby.json
+include raiden_contracts/data*/deployment_services_ropsten.json
+recursive-include raiden_contracts/data*/source *
+recursive-include raiden_contracts/contracts_template/ *
