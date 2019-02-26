@@ -182,7 +182,7 @@ Deploying the 3rd party service contracts with the ``services`` command::
 
 Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 
-    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT
+    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT --flavor limited
 
 Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command::
 
@@ -206,7 +206,7 @@ Verification with Etherscan
 
 ::
 
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --chain-id 3
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --chain-id 3 --flavor limited
 
 If the command exists with status code 0, Etherscan has verified all contracts against Solidity sources.
 

@@ -400,6 +400,7 @@ def services(
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.pass_context
 def token(
@@ -458,6 +459,7 @@ def token(
     '--flavor',
     type=click.Choice(['limited', 'unlimited']),
     help='Choose a flavor.',
+    required=True,
 )
 @click.pass_context
 def register(
