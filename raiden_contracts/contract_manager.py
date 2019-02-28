@@ -10,7 +10,9 @@ from typing import Dict, List, Union, Optional, Tuple
 
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
+    FlavoredVersion,
     ID_TO_NETWORKNAME,
+    PlainVersion,
     PRECOMPILED_DATA_FIELDS,
 )
 
@@ -47,21 +49,25 @@ class ContractManagerVerificationError(RuntimeError):
 
 
 class ContractManager:
-    def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
+    def __init__(self, flavor: Flavor, path: Union[Path, Dict[str, Path]]) -> None:
         """Params:
             path: either path to a precompiled contract JSON file, or a list of
                 directories which contain solidity files to compile
         """
+        self.flavor = flavor
         self.contracts_source_dirs: Optional[Dict[str, Path]] = None
         self.contracts: Dict[str, Dict] = dict()
         self.overall_checksum = None
         self.contracts_checksums: Optional[Dict[str, str]] = None
         if isinstance(path, dict):
             self.contracts_source_dirs = path
-            self.contracts_version = CONTRACTS_VERSION
+            self.contracts_version: FlavoredVersion = contract_version_string(
+                flavor=flavor,
+                version=CONTRACTS_VERSION,
+            )
         elif isinstance(path, Path):
             if path.is_dir():
-                ContractManager.__init__(self, {'smart_contracts': path})
+                ContractManager.__init__(self, flavor=flavor, path={'smart_contracts': path})
             else:
                 try:
                     with path.open() as precompiled_file:
@@ -195,7 +201,10 @@ class ContractManager:
         """ Compare source code checksums with those from a precompiled file. """
 
         # We get the precompiled file data
-        contracts_precompiled = ContractManager(contracts_precompiled_path)
+        contracts_precompiled = ContractManager(
+            flavor=self.flavor,
+            path=contracts_precompiled_path,
+        )
 
         # Silence mypy
         assert self.contracts_checksums is not None
@@ -222,9 +231,6 @@ class ContractManager:
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
 
-    def version_string(self, flavor: Flavor):
-        return contract_version_string(flavor, self.contracts_version)
-
 
 def contracts_source_path(flavor: Flavor):
     upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
@@ -240,7 +246,10 @@ def flavor_suffix(flavor: Flavor):
         raise ValueError(f'Unknowon Flavor {flavor}')
 
 
-def contract_version_string(flavor: Flavor, version: Optional[str] = None):
+def contract_version_string(
+        flavor: Flavor,
+        version: Optional[PlainVersion] = None,
+) -> FlavoredVersion:
     if version is None:
         version = CONTRACTS_VERSION
     return version + flavor_suffix(flavor)

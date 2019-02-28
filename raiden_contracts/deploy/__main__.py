@@ -80,7 +80,7 @@ class ContractDeployer:
 
         self.contracts_version = contracts_version
         self.precompiled_path = contracts_precompiled_path(flavor, self.contracts_version)
-        self.contract_manager = ContractManager(self.precompiled_path)
+        self.contract_manager = ContractManager(flavor=flavor, path=self.precompiled_path)
         self.web3.middleware_stack.add(
             construct_sign_and_send_raw_middleware(private_key),
         )
@@ -88,7 +88,10 @@ class ContractDeployer:
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
         if self.contracts_version in [None, CONTRACTS_VERSION]:
-            contract_manager_source = ContractManager(contracts_source_path(flavor))
+            contract_manager_source = ContractManager(
+                flavor=flavor,
+                path=contracts_source_path(flavor),
+            )
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
@@ -537,7 +540,10 @@ def verify(ctx, rpc_provider, contracts_version, flavor):
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
 
-    contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
+    contract_manager = ContractManager(
+        flavor=flavor_enum,
+        path=contracts_precompiled_path(contracts_version),
+    )
     verify_deployed_contracts_in_filesystem(web3, contract_manager, flavor_enum)
 
 
@@ -602,7 +608,7 @@ def deploy_raiden_contracts(
 def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
     """Deploy 3rd party service contracts"""
     deployed_contracts: DeployedContracts = {
-        'contracts_version': deployer.contract_manager.version_string(deployer.flavor),
+        'contracts_version': deployer.contract_manager.contracts_version,
         'chain_id': int(deployer.web3.version.network),
         'contracts': {},
     }
@@ -742,7 +748,7 @@ def verify_deployment_data(
     chain_id = int(web3.version.network)
     assert deployment_data is not None
 
-    assert contract_manager.version_string(flavor) == deployment_data['contracts_version']
+    assert contract_manager.contracts_version == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
     endpoint_registry, _ = verify_deployed_contract(
@@ -809,7 +815,7 @@ def verify_service_contracts_deployment_data(
     chain_id = int(web3.version.network)
     assert deployment_data is not None
 
-    assert contract_manager.version_string(flavor) == deployment_data['contracts_version']
+    assert contract_manager.contracts_version == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
     service_bundle, constructor_arguments = verify_deployed_contract(

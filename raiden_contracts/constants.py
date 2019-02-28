@@ -1,7 +1,14 @@
 from enum import Enum, IntEnum
+from typing import NewType
+
+# Something like '0.8.0_unlimited' or '0.8.0' depending on limted/unlimited
+FlavoredVersion = NewType('FlavoredVersion', str)
+
+# Something like '0.8.0' before adding '_unlimited'
+PlainVersion = NewType('PlainVersion', str)
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
-CONTRACTS_VERSION = "0.8.0"
+CONTRACTS_VERSION = PlainVersion("0.8.0")
 
 PRECOMPILED_DATA_FIELDS = ['abi', 'bin', 'bin-runtime', 'metadata']
 

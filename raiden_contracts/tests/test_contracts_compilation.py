@@ -28,7 +28,7 @@ def test_nonexistent_precompiled_path():
     """ An exception occurs when trying to access a field in a non-existent precompiled path """
     nonexistent_version = '0.6.0'
     with pytest.raises(FileNotFoundError):
-        ContractManager(contracts_precompiled_path(
+        ContractManager(flavor=Flavor.Limited, path=contracts_precompiled_path(
             Flavor.Limited,
             nonexistent_version,
         ))
@@ -36,7 +36,7 @@ def test_nonexistent_precompiled_path():
 
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
-    manager = ContractManager(contracts_source_path(Flavor.Limited))
+    manager = ContractManager(flavor=Flavor.Limited, path=contracts_source_path(Flavor.Limited))
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path(Flavor.Limited))
 
@@ -70,7 +70,7 @@ def test_verification_overall_checksum():
 
 def test_verification_contracts_checksums():
     """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
-    manager = ContractManager(contracts_source_path(Flavor.Limited))
+    manager = ContractManager(flavor=Flavor.Limited, path=contracts_source_path(Flavor.Limited))
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path(Flavor.Limited))
 
@@ -101,7 +101,10 @@ def test_verification_contracts_checksums():
 
 def test_contracts_version():
     """ Check the value of contracts_version """
-    manager = ContractManager(contracts_precompiled_path(Flavor.Limited))
+    manager = ContractManager(
+        flavor=Flavor.Limited,
+        path=contracts_precompiled_path(Flavor.Limited),
+    )
     assert manager.contracts_version == CONTRACTS_VERSION
 
 
@@ -118,7 +121,10 @@ def test_current_development_version():
         'ServiceRegistry',
     ]
 
-    manager = ContractManager(contracts_precompiled_path(Flavor.Limited, contracts_version))
+    manager = ContractManager(
+        flavor=Flavor.Limited,
+        path=contracts_precompiled_path(Flavor.Limited, contracts_version),
+    )
     assert manager.contracts_version == contracts_version
     check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
 
@@ -160,7 +166,10 @@ def test_red_eyes_version():
         'TokenNetwork',
     ]
 
-    manager = ContractManager(contracts_precompiled_path(Flavor.Limited, contracts_version))
+    manager = ContractManager(
+        flavor=Flavor.Limited,
+        path=contracts_precompiled_path(Flavor.Limited, contracts_version),
+    )
     assert manager.contracts_version == contracts_version
     check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
 
@@ -198,7 +207,10 @@ def test_pre_limits_version():
         'TokenNetwork',
     ]
 
-    manager = ContractManager(contracts_precompiled_path(Flavor.Limited, contracts_version))
+    manager = ContractManager(
+        flavor=Flavor.Limited,
+        path=contracts_precompiled_path(Flavor.Limited, contracts_version),
+    )
     assert manager.contracts_version == contracts_version
     check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
 
@@ -222,7 +234,7 @@ def test_pre_limits_version():
 
 def contract_manager_meta(contracts_path):
     """ See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED """
-    manager = ContractManager(contracts_path)
+    manager = ContractManager(flavor=Flavor.Limited, path=contracts_path)
 
     abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
     assert isinstance(abi, list)
@@ -243,6 +255,9 @@ def test_contract_manager_compile():
 def test_contract_manager_json(tmpdir):
     """ Check the ABI in contracts.json """
     precompiled_path = Path(str(tmpdir)).joinpath('contracts.json')
-    ContractManager(contracts_source_path(Flavor.Limited)).compile_contracts(precompiled_path)
+    ContractManager(
+        flavor=Flavor.Limited,
+        path=contracts_source_path(Flavor.Limited),
+    ).compile_contracts(precompiled_path)
     # try to load contracts from a precompiled file
     contract_manager_meta(precompiled_path)

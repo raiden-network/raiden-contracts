@@ -223,7 +223,7 @@ def etherscan_verify_contract(
         flavor,
         services=(source_module == 'services'),
     )
-    contract_manager = ContractManager(contracts_precompiled_path(flavor))
+    contract_manager = ContractManager(flavor=flavor, path=contracts_precompiled_path(flavor))
 
     data = post_data_for_etherscan_verification(
         apikey,
