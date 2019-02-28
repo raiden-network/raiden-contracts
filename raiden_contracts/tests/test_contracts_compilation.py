@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     PRECOMPILED_DATA_FIELDS,
     CONTRACT_TOKEN_NETWORK,
     NETWORKNAME_TO_ID,
+    PlainVersion,
     ChannelEvent,
 )
 
@@ -157,7 +158,7 @@ def test_current_development_version():
 
 def test_red_eyes_version():
     """ contracts_source_path('0.4.0') exists and contains the expected files """
-    contracts_version = '0.4.0'
+    contracts_version = PlainVersion('0.4.0')
     contract_names = [
         'Utils',
         'EndpointRegistry',
@@ -198,7 +199,7 @@ def test_red_eyes_version():
 
 def test_pre_limits_version():
     """ contracts_source_path('0.3._') exists and contains the expected files """
-    contracts_version = '0.3._'
+    contracts_version = PlainVersion('0.3._')
     contract_names = [
         'Utils',
         'EndpointRegistry',

@@ -61,9 +61,10 @@ class ContractManager:
         self.contracts_checksums: Optional[Dict[str, str]] = None
         if isinstance(path, dict):
             self.contracts_source_dirs = path
+            self.plain_version: PlainVersion = CONTRACTS_VERSION
             self.contracts_version: FlavoredVersion = contract_version_string(
                 flavor=flavor,
-                version=CONTRACTS_VERSION,
+                version=self.plain_version,
             )
         elif isinstance(path, Path):
             if path.is_dir():
@@ -80,10 +81,16 @@ class ContractManager:
                     self.contracts = precompiled_content['contracts']
                     self.overall_checksum = precompiled_content['overall_checksum']
                     self.contracts_checksums = precompiled_content['contracts_checksums']
-                    self.contracts_version = precompiled_content['contracts_version']
+                    self.plain_version = PlainVersion(
+                        precompiled_content['plain_version'],
+                    )
+                    self.contracts_version = FlavoredVersion(
+                        precompiled_content['contracts_version'],
+                    )
                 except KeyError as ex:
                     raise ContractManagerLoadError(
-                        f'Precompiled contracts json has unexpected format: {ex}',
+                        f'Precompiled contracts json has unexpected format. '
+                        f'It does not contain {ex}. Maybe compile contracts again?',
                     ) from ex
         else:
             raise TypeError('`path` must be either `Path` or `dict`')
@@ -154,6 +161,7 @@ class ContractManager:
                         contracts_checksums=self.contracts_checksums,
                         overall_checksum=self.overall_checksum,
                         contracts_version=self.contracts_version,
+                        plain_version=self.plain_version,
                     ),
                     sort_keys=True,
                     indent=4,
@@ -321,7 +329,7 @@ def contracts_gas_path(flavor: Flavor, version: Optional[str] = None):
 def contracts_deployed_path(
         chain_id: int,
         flavor: Flavor,
-        version: Optional[str] = None,
+        version: Optional[PlainVersion] = None,
         services: bool = False,
 ):
     data_path = contracts_data_path(flavor, version)
@@ -333,7 +341,7 @@ def contracts_deployed_path(
 def get_contracts_deployed(
         chain_id: int,
         flavor: Flavor,
-        version: Optional[str] = None,
+        version: Optional[PlainVersion] = None,
         services: bool = False,
 ):
     deployment_file_path = contracts_deployed_path(chain_id, flavor, version, services)

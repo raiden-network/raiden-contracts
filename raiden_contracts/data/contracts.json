@@ -6379,5 +6379,6 @@
         "Utils.sol": "68ef4cb42233e9ec38d7558112eb554114d4c4d56b78d00071110d14a565d15c"
     },
     "contracts_version": "0.8.0",
-    "overall_checksum": "b444cb63de8963c1ed77e96e86d55061044c95882e0d9459a1579cf5faef3486"
+    "overall_checksum": "b444cb63de8963c1ed77e96e86d55061044c95882e0d9459a1579cf5faef3486",
+    "plain_version": "0.8.0"
 }

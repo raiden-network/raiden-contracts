@@ -28,6 +28,8 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
     CONTRACTS_VERSION,
+    FlavoredVersion,
+    PlainVersion,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
@@ -68,7 +70,7 @@ class ContractDeployer:
         gas_limit: int,
         gas_price: int=1,
         wait: int=10,
-        contracts_version: Optional[str]=None,
+        contracts_version: Optional[PlainVersion]=None,
     ):
         self.web3 = web3
         self.flavor = flavor
@@ -160,7 +162,7 @@ class ContractDeployer:
 
         return txhash
 
-    def contract_version_string(self):
+    def contract_version_string(self) -> FlavoredVersion:
         return contract_version_string(self.flavor, self.contracts_version)
 
 
@@ -295,9 +297,9 @@ def raiden(
     if save_info is True:
         store_deployment_info(deployed_contracts_info, flavor_enum)
         verify_deployed_contracts_in_filesystem(
-            deployer.web3,
-            deployer.contract_manager,
-            flavor_enum,
+            web3=deployer.web3,
+            contract_manager=deployer.contract_manager,
+            flavor=flavor_enum,
         )
     else:
         verify_deployment_data(
@@ -793,11 +795,15 @@ def verify_deployed_contracts_in_filesystem(
 ):
     chain_id = int(web3.version.network)
 
-    deployment_data = get_contracts_deployed(chain_id, flavor, contract_manager.contracts_version)
+    deployment_data = get_contracts_deployed(
+        chain_id=chain_id,
+        flavor=flavor,
+        version=contract_manager.plain_version,
+    )
     deployment_file_path = contracts_deployed_path(
-        chain_id,
-        flavor,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        flavor=flavor,
+        version=contract_manager.plain_version,
     )
     assert deployment_data is not None
 
@@ -889,15 +895,15 @@ def verify_deployed_service_contracts_in_filesystem(
     chain_id = int(web3.version.network)
 
     deployment_data = get_contracts_deployed(
-        chain_id,
-        flavor,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        flavor=flavor,
+        version=contract_manager.plain_version,
         services=True,
     )
     deployment_file_path = contracts_deployed_path(
-        chain_id,
-        flavor,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        flavor=flavor,
+        version=contract_manager.plain_version,
         services=True,
     )
     assert deployment_data is not None
