@@ -10,7 +10,7 @@ import "raiden/TokenNetwork.sol";
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils {
 
-    string constant public contract_version = "0.8.0";
+    string constant public contract_version = "0.8.0_unlimited";
     address public secret_registry_address;
     uint256 public chain_id;
     uint256 public settlement_timeout_min;
