@@ -31,6 +31,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
+    contract_version_string,
     contracts_precompiled_path,
     contracts_source_path,
     contracts_deployed_path,
@@ -155,6 +156,9 @@ class ContractDeployer:
                     raise ex
 
         return txhash
+
+    def contract_version_string():
+        return contract_version_string(flavor, self.contracts_manager.contracts_version)
 
 
 def common_options(func):
@@ -486,6 +490,7 @@ def register(
     )
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
+    expected_version = contract_version_string(flavor, contracts_version)
 
     if token_address:
         ctx.obj['deployed_contracts'][token_type] = token_address
@@ -503,6 +508,7 @@ def register(
         token_address=ctx.obj['deployed_contracts'][token_type],
         wait=ctx.obj['wait'],
         gas_price=gas_price,
+        token_registry_version=expected_version,
     )
 
 
@@ -661,6 +667,7 @@ def register_token_network(
     caller: str,
     token_registry_abi: Dict,
     token_registry_address: str,
+    token_registry_version: str,
     token_address: str,
     wait=10,
     gas_limit=4000000,
@@ -671,6 +678,11 @@ def register_token_network(
         abi=token_registry_abi,
         address=token_registry_address,
     )
+
+    assert token_network_registry.functions.contract_version().call() == token_registry_version, \
+        f"got {token_network_registry.functions.contract_version().call()}," \
+        f"expected {token_registry_version}"
+
     txhash = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
     ).transact(

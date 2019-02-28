@@ -11,7 +11,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import Flavor
+from raiden_contracts.contract_manager import Flavor, contract_version_string
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     deploy_raiden_contracts,
@@ -243,11 +243,12 @@ def test_deploy_script_register(
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address']
     token_network_address = register_token_network(
-        web3,
-        deployer.owner,
-        token_registry_abi,
-        token_registry_address,
-        token_address,
+        web3=web3,
+        caller=deployer.owner,
+        token_registry_abi=token_registry_abi,
+        token_registry_address=token_registry_address,
+        token_registry_version=contract_version_string(flavor=flavor, version=None),
+        token_address=token_address,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
