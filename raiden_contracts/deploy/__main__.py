@@ -949,7 +949,10 @@ def verify_deployed_contract(
 
     # Check the contract version
     version = contract_instance.functions.contract_version().call()
-    assert version == deployment_data['contracts_version']
+    assert version == deployment_data['contracts_version'], \
+        f"got {version} expected {deployment_data['contracts_version']}," \
+        f"contract_manager has source {contract_manager.contracts_source_dirs} and" \
+        f"contract_manager has contracts_version {contract_manager.contracts_version}"
 
     return contract_instance, contracts[contract_name]['constructor_arguments']
 
