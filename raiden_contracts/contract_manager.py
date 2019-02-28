@@ -222,18 +222,35 @@ class ContractManager:
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
 
+    def version_string(self, flavor: Flavor):
+        return contract_version_string(flavor, self.contracts_version)
+
 
 def contracts_source_path(flavor: Flavor):
     upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
     return contracts_source_path_with_stem(upper_dir)
 
 
-def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
-    flavor_suffix = '_unlimited' if flavor == Flavor.Unlimited else ''
-    if version is None or version == CONTRACTS_VERSION:
-        return _BASE.joinpath('data' + flavor_suffix)
+def flavor_suffix(flavor: Flavor):
+    if flavor == Flavor.Unlimited:
+        return '_unlimited'
+    elif flavor == Flavor.Limited:
+        return ''
     else:
-        return _BASE.joinpath(f'data_{version}' + flavor_suffix)
+        raise ValueError(f'Unknowon Flavor {flavor}')
+
+
+def contract_version_string(flavor: Flavor, version: Optional[str] = None):
+    if version is None:
+        version = CONTRACTS_VERSION
+    return version + flavor_suffix(flavor)
+
+
+def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
+    if version is None or version == CONTRACTS_VERSION:
+        return _BASE.joinpath('data' + flavor_suffix(flavor))
+    else:
+        return _BASE.joinpath(f'data_{version}' + flavor_suffix(flavor))
 
 
 def contracts_source_path_with_stem(stem):
@@ -268,7 +285,7 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
         {
             "limited": False,
             "contracts_version": CONTRACTS_VERSION,
-            "version-suffix": "_unlimited",
+            "version_suffix": "_unlimited",
         },
     ),
     (

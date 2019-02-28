@@ -11,7 +11,7 @@ import "raiden/SecretRegistry.sol";
 /// in this TokenNetwork contract.
 contract TokenNetwork is Utils {
 
-    string constant public contract_version = "0.8.0";
+    string constant public contract_version = "0.8.0_unlimited";
 
     // Instance of the token used by the channels
     Token public token;
