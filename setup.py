@@ -67,6 +67,9 @@ def render_templates_dir(mustache_hash, src, dst):
         render_templates(mustache_hash, src_item, dst / src_item.name)
 
 
+renderer = pystache.Renderer(missing_tags=pystache.common.MissingTags.strict)
+
+
 def render_templates_leaf(mustache_hash, src, dst):
     assert src.exists(), "cannot use a nonexistent source"
     assert not src.is_dir(), "render_template_leaf called with a directory"
@@ -77,7 +80,7 @@ def render_templates_leaf(mustache_hash, src, dst):
     with src.open(mode='r') as src_file:
         content = src_file.read()
     with dst.open(mode='w') as dst_file:
-        dst_file.write(pystache.render(content, mustache_hash))
+        dst_file.write(renderer.render(content, mustache_hash))
 
 
 def render_templates(mustache_hash, src, dst):
