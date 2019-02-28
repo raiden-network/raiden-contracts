@@ -22,6 +22,28 @@ function iDoSomething(uint awesome_argument) {
 }
 ```
 
+#### Reentrance Problems
+
+Calls into other contracts might call back into our contract.
+This causes problems when storage accesses and an external call interleave.  For example,
+
+```js
+   check(storage[address])
+   other_contract.method()
+   storage[address] = new_value
+```
+
+possibly has a bug, where an attacker can set up `other_contract.method()` so that it calls back into this piece of code.
+Then, the `check()` still sees an old value.
+
+#### Resources
+
+* [Solidity documentation](https://solidity.readthedocs.io/) usually has an answer somewhere.
+    * Also keep an eye of [upcoming changes](https://github.com/ethereum/solidity/projects).
+* [Remix](http://remix.ethereum.org/) allows step-execute a transaction.
+* [(Not So) Smart Contracts](https://github.com/trailofbits/not-so-smart-contracts) contains examples of common vulnerabilities.
+* [Awesome Ethereum Security](https://github.com/trailofbits/awesome-ethereum-security) contains relevant links.
+
 ### Python
 
 This repository follows the same guidelines as the Raiden Client, regarding the Python code used in tests and scripts: https://github.com/raiden-network/raiden/blob/master/CONTRIBUTING.md#coding-style.
