@@ -81,9 +81,14 @@ class ContractManager:
                     self.contracts = precompiled_content['contracts']
                     self.overall_checksum = precompiled_content['overall_checksum']
                     self.contracts_checksums = precompiled_content['contracts_checksums']
-                    self.plain_version = PlainVersion(
-                        precompiled_content['plain_version'],
-                    )
+                    try:
+                        self.plain_version = PlainVersion(
+                            precompiled_content['plain_version'],
+                        )
+                    except KeyError: # Assuming an older format
+                        self.plain_version = PlainVersion(
+                            precompiled_content['contracts_version'],
+                        )
                     self.contracts_version = FlavoredVersion(
                         precompiled_content['contracts_version'],
                     )
