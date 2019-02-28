@@ -157,8 +157,8 @@ class ContractDeployer:
 
         return txhash
 
-    def contract_version_string():
-        return contract_version_string(flavor, self.contracts_manager.contracts_version)
+    def contract_version_string(self):
+        return contract_version_string(self.flavor, self.contracts_version)
 
 
 def common_options(func):
@@ -298,9 +298,10 @@ def raiden(
         )
     else:
         verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info,
+            web3=deployer.web3,
+            flavor=deployer.flavor,
+            contract_manager=deployer.contract_manager,
+            deployment_data=deployed_contracts_info,
         )
 
     print(json.dumps(deployed_contracts, indent=4))
@@ -369,6 +370,7 @@ def services(
     else:
         verify_service_contracts_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             token_address,
             deployed_contracts_info,
@@ -570,7 +572,7 @@ def deploy_raiden_contracts(
     """Deploy all required raiden contracts and return a dict of contract_name:address"""
 
     deployed_contracts: DeployedContracts = {
-        'contracts_version': deployer.contract_manager.contracts_version,
+        'contracts_version': deployer.contract_version_string(),
         'chain_id': int(deployer.web3.version.network),
         'contracts': {},
     }
@@ -600,7 +602,7 @@ def deploy_raiden_contracts(
 def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
     """Deploy 3rd party service contracts"""
     deployed_contracts: DeployedContracts = {
-        'contracts_version': deployer.contract_manager.contracts_version,
+        'contracts_version': deployer.contract_manager.version_string(deployer.flavor),
         'chain_id': int(deployer.web3.version.network),
         'contracts': {},
     }
@@ -731,11 +733,16 @@ def store_deployment_info(deployment_info: dict, flavor: Flavor, services: bool=
     )
 
 
-def verify_deployment_data(web3: Web3, contract_manager: ContractManager, deployment_data):
+def verify_deployment_data(
+        web3: Web3,
+        flavor: Flavor,
+        contract_manager: ContractManager,
+        deployment_data,
+):
     chain_id = int(web3.version.network)
     assert deployment_data is not None
 
-    assert contract_manager.contracts_version == deployment_data['contracts_version']
+    assert contract_manager.version_string(flavor) == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
     endpoint_registry, _ = verify_deployed_contract(
@@ -788,12 +795,13 @@ def verify_deployed_contracts_in_filesystem(
     )
     assert deployment_data is not None
 
-    if verify_deployment_data(web3, contract_manager, deployment_data):
+    if verify_deployment_data(web3, flavor, contract_manager, deployment_data):
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
 
 
 def verify_service_contracts_deployment_data(
     web3: Web3,
+    flavor: Flavor,
     contract_manager: ContractManager,
     token_address: str,
     deployment_data: dict,
@@ -801,7 +809,7 @@ def verify_service_contracts_deployment_data(
     chain_id = int(web3.version.network)
     assert deployment_data is not None
 
-    assert contract_manager.contracts_version == deployment_data['contracts_version']
+    assert contract_manager.version_string(flavor) == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
     service_bundle, constructor_arguments = verify_deployed_contract(
@@ -890,6 +898,7 @@ def verify_deployed_service_contracts_in_filesystem(
 
     if verify_service_contracts_deployment_data(
             web3,
+            flavor,
             contract_manager,
             token_address,
             deployment_data):

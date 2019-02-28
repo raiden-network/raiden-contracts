@@ -222,6 +222,9 @@ class ContractManager:
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
 
+    def version_string(self, flavor: Flavor):
+        return contract_version_string(flavor, self.contracts_version)
+
 
 def contracts_source_path(flavor: Flavor):
     upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'

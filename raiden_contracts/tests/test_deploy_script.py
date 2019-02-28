@@ -53,24 +53,31 @@ def test_deploy_script_raiden(
 
     deployed_contracts_info = deploy_raiden_contracts(deployer)
 
-    verify_deployment_data(deployer.web3, deployer.contract_manager, deployed_contracts_info)
+    verify_deployment_data(
+        web3=deployer.web3,
+        flavor=deployer.flavor,
+        contract_manager=deployer.contract_manager,
+        deployment_data=deployed_contracts_info,
+    )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
         verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
+            web3=deployer.web3,
+            flavor=deployer.flavor,
+            contract_manager=deployer.contract_manager,
+            deployment_data=deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['chain_id'] = 0
     with pytest.raises(AssertionError):
         verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
+            web3=deployer.web3,
+            flavor=deployer.flavor,
+            contract_manager=deployer.contract_manager,
+            deployment_data=deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
@@ -80,6 +87,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -89,6 +97,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -100,6 +109,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -109,6 +119,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -118,6 +129,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -127,6 +139,7 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -290,6 +303,7 @@ def test_deploy_script_service(
     deployed_service_contracts = deploy_service_contracts(deployer, token_address)
     verify_service_contracts_deployment_data(
         deployer.web3,
+        deployer.flavor,
         deployer.contract_manager,
         token_address,
         deployed_service_contracts,
@@ -300,6 +314,7 @@ def test_deploy_script_service(
     with pytest.raises(AssertionError):
         verify_service_contracts_deployment_data(
             deployer.web3,
+            deployer.flavor,
             deployer.contract_manager,
             token_address=token_address,
             deployment_data=deployed_info_fail,
@@ -313,6 +328,7 @@ def test_deploy_script_service(
         with pytest.raises(AssertionError):
             verify_service_contracts_deployment_data(
                 deployer.web3,
+                deployer.flavor,
                 deployer.contract_manager,
                 token_address=token_address,
                 deployment_data=deployed_info_fail,
