@@ -8,7 +8,7 @@ For solidity we generally follow the style guide as shown in the [solidity
 documentation](http://solidity.readthedocs.io/en/develop/style-guide.html) with
 some exceptions:
 
-**Variable Names**
+#### Variable Names
 
 All variable name should be in snake case, just like in python. Function names
 on the other hand should be mixedCase. MixedCase is essentially like CamelCase
