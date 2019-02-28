@@ -27,7 +27,7 @@ def check_precompiled_content(manager, contract_names, fields):
 
 def test_nonexistent_precompiled_path():
     """ An exception occurs when trying to access a field in a non-existent precompiled path """
-    nonexistent_version = '0.6.0'
+    nonexistent_version = PlainVersion('0.6.0')
     with pytest.raises(FileNotFoundError):
         ContractManager(flavor=Flavor.Limited, path=contracts_precompiled_path(
             Flavor.Limited,

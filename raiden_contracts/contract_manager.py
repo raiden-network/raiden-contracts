@@ -268,7 +268,7 @@ def contract_version_string(
     return version + flavor_suffix(flavor)
 
 
-def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
+def contracts_data_path(flavor: Flavor, version: Optional[PlainVersion] = None):
     if version is None or version == CONTRACTS_VERSION:
         return _BASE.joinpath('data' + flavor_suffix(flavor))
     else:
@@ -321,12 +321,12 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
 ]
 
 
-def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):
+def contracts_precompiled_path(flavor: Flavor, version: Optional[PlainVersion] = None):
     data_path = contracts_data_path(flavor, version)
     return data_path.joinpath('contracts.json')
 
 
-def contracts_gas_path(flavor: Flavor, version: Optional[str] = None):
+def contracts_gas_path(flavor: Flavor, version: Optional[PlainVersion] = None):
     data_path = contracts_data_path(flavor, version)
     return data_path.joinpath('gas.json')
 
