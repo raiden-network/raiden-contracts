@@ -268,7 +268,7 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
         {
             "limited": False,
             "contracts_version": CONTRACTS_VERSION,
-            "version-suffix": "_unlimited",
+            "version_suffix": "_unlimited",
         },
     ),
     (
