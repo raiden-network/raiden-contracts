@@ -23,6 +23,7 @@ When we want to release another version of the ``raiden-contracts`` package, we 
    #. `Deploy smart contracts <_deploy-contracts>`_ on all the supported chains and overwrite ``deployment_*,json`` files with the new deployment data.
    #. `Verify the deployed smart contracts on Etherscan <verify-contracts>`_
    #. `Measure Gas Costs <measure-gas>`_
+   #. `Create a new data directory <create-new-dir>`_
 
 #. `Update Changelog <change-changelog>`_
 #. `Bump the package version <bump-package>`_
@@ -69,7 +70,7 @@ Bump Smart Contracts Version
 
 * The script changes the version located here:
   * ``CONTRACTS_VERSION`` https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/constants.py#L4
-  * each ``contract_version`` constant from each contract source. E.g. https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/contracts/TokenNetwork.sol#L14
+  * This string will be filled in the contract templates.
 * We are currently at a ``0.*`` version. Our first ``major`` bump will be made when a stable, not-limited version will be released on the main net.
 * ``minor`` bumps (for now) are made for contract ABI changes.
 * ``patch`` bumps are made for any fix that does not touch the ABI.
@@ -119,6 +120,15 @@ Measure Gas Costs
 ::
 
     pytest raiden_contracts/tests/test_print_gas.py
+
+.. _create-new-dir
+
+Create a New Data Directory
+---------------------------
+
+Copy ``data`` directory into ``data_x.y.z`` where ``x.y.z`` is the contract version.
+
+Also ``data_unlimited`` has to be copied into ``data_x.y.z_unlimited``.
 
 .. _bump-package:
 

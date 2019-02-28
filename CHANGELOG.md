@@ -7,9 +7,12 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.12.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.12.0) - 2019-02-28
+
 - Add data/gas.json that contains gas measurements on the development version.
 - Move Raiden contracts to "raiden" subdir, so that the imports match the directory layout.
 - `contracts_data_path`, `contracts_precompiled_path` and `contracts_gas_path` require an additional `flavor` argument (either `Flavor.Limited` or `Flavor.Unlimited`).
+- Started providing Solidity sources next to the deployment data in `raiden_contracts/data`
 
 ## [0.11.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.11.0) - 2019-02-14
 

@@ -13,7 +13,7 @@ from setuptools.command.build_py import build_py
 
 
 DESCRIPTION = 'Raiden contracts library and utilities'
-VERSION = '0.11.0'
+VERSION = '0.12.0'
 
 
 def read_requirements(path: str) -> List[str]:
@@ -78,7 +78,7 @@ def render_templates_leaf(mustache_hash, src, dst):
         dst_file.write(pystache.render(content, mustache_hash))
 
 
-def render_templates(mustache_hash, src, dst):  # TODO: there has to be a template thing
+def render_templates(mustache_hash, src, dst):
     assert src.exists(), "cannot use a nonexistent template"
     if src.is_dir():
         render_templates_dir(mustache_hash, src, dst)

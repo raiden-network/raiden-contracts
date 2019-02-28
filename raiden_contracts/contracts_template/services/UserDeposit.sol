@@ -4,7 +4,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    string constant public contract_version = "0.7.0{{version_suffix}}";
+    string constant public contract_version = "{{contracts_version}}{{version_suffix}}";
     uint constant public withdraw_delay = 100;  // time before withdraw is allowed in blocks
 
     // Token to be used for the deposit

@@ -133,6 +133,7 @@ If you want to write tests, check `/raiden_contracts/tests/README.md` first.
 ::
 
     # tests
+    make render_contracts
     pytest
     pytest raiden_contracts/tests/test_token_network.py
 
