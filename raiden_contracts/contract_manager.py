@@ -85,7 +85,7 @@ class ContractManager:
                         self.plain_version = PlainVersion(
                             precompiled_content['plain_version'],
                         )
-                    except KeyError: # Assuming an older format
+                    except KeyError:  # Assuming an older format
                         self.plain_version = PlainVersion(
                             precompiled_content['contracts_version'],
                         )
