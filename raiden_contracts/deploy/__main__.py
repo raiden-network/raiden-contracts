@@ -168,6 +168,13 @@ class ContractDeployer:
     def contract_version_string(self):
         return contract_version_string(self.contracts_version)
 
+    def verify_deployment(self, deployment_data):
+        return verify_deployment_data(
+            web3=self.web3,
+            contract_manager=self.contract_manager,
+            deployment_data=deployment_data,
+        )
+
 
 def common_options(func):
     """A decorator that combines commonly appearing @click.option decorators."""
@@ -275,11 +282,7 @@ def store_and_verify_deployment_info_raiden(
             deployer.contract_manager,
         )
     else:
-        verify_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
-            deployment_data=deployed_contracts_info,
-        )
+        deployer.verify_deployment(deployed_contracts_info)
 
 
 def store_and_verify_deployment_info_services(

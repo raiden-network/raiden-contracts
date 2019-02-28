@@ -27,7 +27,6 @@ from raiden_contracts.deploy.__main__ import (
     store_and_verify_deployment_info_raiden,
     store_and_verify_deployment_info_services,
     validate_address,
-    verify_deployment_data,
     verify_service_contracts_deployment_data,
 )
 from raiden_contracts.tests.utils import get_random_privkey
@@ -79,87 +78,51 @@ def test_deploy_script_raiden(
 
     deployed_contracts_info = deploy_raiden_contracts(deployer, max_num_of_token_networks)
 
-    verify_deployment_data(
-        web3=deployer.web3,
-        contract_manager=deployer.contract_manager,
-        deployment_data=deployed_contracts_info,
-    )
+    deployer.verify_deployment(deployed_contracts_info)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
-            deployment_data=deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['chain_id'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
-            deployment_data=deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][
         CONTRACT_ENDPOINT_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_ENDPOINT_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment(deployed_contracts_info_fail)
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
