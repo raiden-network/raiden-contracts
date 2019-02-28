@@ -5,6 +5,7 @@ except ImportError:
     from distutils.core import setup
 
 import os
+from pathlib import Path
 import pystache
 from typing import List
 
@@ -69,7 +70,8 @@ def render_templates_dir(mustache_hash, src, dst):
 def render_templates_leaf(mustache_hash, src, dst):
     assert src.exists(), "cannot use a nonexistent source"
     assert not src.is_dir(), "render_template_leaf called with a directory"
-    if dst.exists() and dst.stat().st_mtime > src.stat().st_mtime:
+    if dst.exists() and dst.stat().st_mtime > src.stat().st_mtime and \
+       dst.stat().st_mtime > Path(__file__).stat().st_mtime:
         # the destination is newer. No need to do anything.
         return
     with src.open(mode='r') as src_file:
