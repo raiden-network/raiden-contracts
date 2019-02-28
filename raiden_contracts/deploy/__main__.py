@@ -175,6 +175,20 @@ class ContractDeployer:
             deployment_data=deployment_data,
         )
 
+    def verify_service_deployment(
+            self,
+            token_address: str,
+            user_deposit_whole_balance_limit: int,
+            deployment_data: 'DeployedContracts',
+    ):
+        return verify_service_contracts_deployment_data(
+            web3=self.web3,
+            contract_manager=self.contract_manager,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            deployment_data=deployment_data,
+        )
+
 
 def common_options(func):
     """A decorator that combines commonly appearing @click.option decorators."""
@@ -848,7 +862,7 @@ def store_deployment_info(deployment_file_path: Path, deployment_info: 'Deployed
 def verify_deployment_data(
         web3: Web3,
         contract_manager: ContractManager,
-        deployment_data,
+        deployment_data: 'DeployedContracts',
 ):
     chain_id = int(web3.version.network)
     assert deployment_data is not None

@@ -27,7 +27,6 @@ from raiden_contracts.deploy.__main__ import (
     store_and_verify_deployment_info_raiden,
     store_and_verify_deployment_info_services,
     validate_address,
-    verify_service_contracts_deployment_data,
 )
 from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.tests.utils.constants import (
@@ -279,9 +278,7 @@ def test_deploy_script_service(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
     )
-    verify_service_contracts_deployment_data(
-        web3=deployer.web3,
-        contract_manager=deployer.contract_manager,
+    deployer.verify_service_deployment(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
         deployment_data=deployed_service_contracts,
@@ -290,9 +287,7 @@ def test_deploy_script_service(
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
-        verify_service_contracts_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
+        deployer.verify_service_deployment(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployment_data=deployed_info_fail,
@@ -304,9 +299,7 @@ def test_deploy_script_service(
             contract_name
         ]['address'] = EMPTY_ADDRESS
         with pytest.raises(AssertionError):
-            verify_service_contracts_deployment_data(
-                web3=deployer.web3,
-                contract_manager=deployer.contract_manager,
+            deployer.verify_service_deployment(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
                 deployment_data=deployed_info_fail,
