@@ -251,6 +251,7 @@ def main():
     '--max-token-networks',
     required=True,
     help='The maximum number of tokens that can be registered.',
+    type=int,
 )
 @click.pass_context
 def raiden(
