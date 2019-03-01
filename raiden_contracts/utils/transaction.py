@@ -22,7 +22,7 @@ def check_succesful_tx(web3: Web3, txid: str, timeout=180) -> Tuple[dict, dict]:
 def wait_for_transaction_receipt(web3, txid, timeout=180):
     receipt = None
     with Timeout(timeout) as time:
-            while not receipt or not receipt['blockNumber']:
+            while not receipt or not receipt['blockNumber']:  # pylint: disable=E1136
                 try:
                     receipt = web3.eth.getTransactionReceipt(txid)
                 except ValueError as ex:

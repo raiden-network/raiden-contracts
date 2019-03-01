@@ -15,6 +15,7 @@ install:
 
 lint:
 	flake8 raiden_contracts/
+	pylint -E raiden_contracts/
 
 mypy:
 	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts

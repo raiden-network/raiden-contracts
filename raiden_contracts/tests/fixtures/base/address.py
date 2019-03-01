@@ -56,7 +56,7 @@ def send_funds(
             'from': faucet_address,
             'to': target,
             'gas': 21000,
-            'value': 1 * denoms.ether,
+            'value': 1 * denoms.ether,  # pylint: disable=E1101
         })
         custom_token.functions.transfer(
             target,

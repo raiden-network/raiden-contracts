@@ -251,4 +251,5 @@ def open_and_deposit(
 
 
 if __name__ == '__main__':
+    # pylint: disable=E1120
     deprecation_test()

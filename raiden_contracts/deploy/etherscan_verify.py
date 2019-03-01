@@ -265,4 +265,5 @@ def guid_status(etherscan_api: str, guid: str):
 
 
 if __name__ == '__main__':
+    # pylint: disable=E1120
     etherscan_verify()

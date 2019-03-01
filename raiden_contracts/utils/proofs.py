@@ -5,9 +5,10 @@ from raiden_contracts.constants import MessageTypeId
 
 
 def hash_balance_data(transferred_amount, locked_amount, locksroot):
+    # pylint: disable=E1120
     return Web3.soliditySha3(
-        ['uint256', 'uint256', 'bytes32'],
-        [transferred_amount, locked_amount, locksroot],
+        abi_types=['uint256', 'uint256', 'bytes32'],
+        values=[transferred_amount, locked_amount, locksroot],
     )
 
 

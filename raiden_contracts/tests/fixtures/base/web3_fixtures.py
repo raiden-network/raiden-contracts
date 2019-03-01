@@ -10,7 +10,7 @@ from raiden_contracts.utils.type_aliases import Address
 
 DEFAULT_TIMEOUT = 5
 DEFAULT_RETRY_INTERVAL = 3
-FAUCET_ALLOWANCE = 100 * denoms.ether
+FAUCET_ALLOWANCE = 100 * denoms.ether  # pylint: disable=E1101
 INITIAL_TOKEN_SUPPLY = 200000000000
 
 log = logging.getLogger(__name__)

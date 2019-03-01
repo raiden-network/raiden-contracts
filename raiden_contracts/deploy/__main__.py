@@ -67,6 +67,7 @@ class ContractDeployer:
         wait: int=10,
         contracts_version: Optional[str]=None,
     ):
+        # pylint: disable=E1101
         self.web3 = web3
         self.wait = wait
         self.owner = private_key_to_address(private_key)
@@ -146,6 +147,7 @@ class ContractDeployer:
                     self.transaction,
                 )
             except ValueError as ex:
+                # pylint: disable=E1126
                 if ex.args[0]['code'] == -32015:
                     log.info(f'Deployment failed with {ex}. Retrying...')
                 else:
@@ -219,6 +221,7 @@ def setup_ctx(
     private_key = get_private_key(private_key)
     assert private_key is not None
     owner = private_key_to_address(private_key)
+    # pylint: disable=E1101
     assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
     deployer = ContractDeployer(
         web3,
@@ -652,7 +655,7 @@ def register_token_network(
         {
             'from': caller,
             'gas': gas_limit,
-            'gasPrice': gas_price * denoms.gwei,
+            'gasPrice': gas_price * denoms.gwei,  # pylint: disable=E1101
         },
     )
     log.debug(
