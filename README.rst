@@ -46,7 +46,6 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     from raiden_contracts.contract_manager import (
         ContractManager,
         contracts_precompiled_path,
-        Flavor,
     )
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -75,10 +74,10 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     # become available when anybody requests, or when there is a mainnet
     # deployment.
 
-    manager = ContractManager(contracts_precompiled_path(Flavor.Limited, contracts_version))
+    manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
 
-    deployment_data = get_contracts_deployed(int(web3.version.network), Flavor.Limited)
+    deployment_data = get_contracts_deployed(int(web3.version.network))
     TOKEN_NETWORK_REGISTRY_ADDRESS = deployment_data['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY].address
 
     # And then use:
@@ -89,7 +88,7 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
 
     # To use one of the 3rd party services contracts:
     compiled_ms_contract = manager.get_contract(CONTRACT_MONITORING_SERVICE)
-    deployed_services = get_contracts_deployed(int(web3.version.network), Flavor.Limited, services=True)
+    deployed_services = get_contracts_deployed(int(web3.version.network), services=True)
     MONITORING_SERVICE_ADDRESS = deployed_services['contracts'][CONTRACT_MONITORING_SERVICE].address
 
 
@@ -171,23 +170,23 @@ Check deployment options::
 
 Deploying the main Raiden Network contracts with the ``raiden`` command::
 
-    python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --flavor limited
+    python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000
 
 Deploying the mock token contract for paying for the services (not to be done on the mainnet)::
 
-    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 20000000 --token-name ServiceToken --token-decimals 18 --token-symbol SVT --flavor limited
+    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 20000000 --token-name ServiceToken --token-decimals 18 --token-symbol SVT
 
 Deploying the 3rd party service contracts with the ``services`` command::
 
-    python -m raiden_contracts.deploy services --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --token-address TOKEN_USED_TO_PAY_SERVICES --flavor limited
+    python -m raiden_contracts.deploy services --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --token-address TOKEN_USED_TO_PAY_SERVICES
 
 Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 
-    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT --flavor limited
+    python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 10000000 --token-name TestToken --token-decimals 18 --token-symbol TTT
 
 Registering a token with the ``TokenNetworkRegistry`` contract, so it can be used by the Raiden Network, with the ``register`` command::
 
-    python -m raiden_contracts.deploy register --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS --flavor limited
+    python -m raiden_contracts.deploy register --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-address TOKEN_TO_BE_REGISTERED_ADDRESS --registry-address TOKEN_NETWORK_REGISTRY_ADDRESS
 
 .. Note::
     Registering a token only works once. All subsequent transactions will fail.
@@ -196,7 +195,7 @@ Deployment information is stored in a ``deployment_[CHAIN_NAME].json`` file corr
 
 ::
 
-    python -m raiden_contracts.deploy verify --rpc-provider http://127.0.0.1:8545 --flavor limited
+    python -m raiden_contracts.deploy verify --rpc-provider http://127.0.0.1:8545
 
     # Based on the network id, the script verifies the corresponding deployment_[CHAIN_NAME].json file
     # using the chain name-id mapping from constants.py
@@ -207,7 +206,7 @@ Verification with Etherscan
 
 ::
 
-    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --chain-id 3 --flavor limited
+    python -m raiden_contracts.deploy.etherscan_verify --apikey ETHERSCAN_APIKEY --chain-id 3
 
 If the command exists with status code 0, Etherscan has verified all contracts against Solidity sources.
 
