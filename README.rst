@@ -47,6 +47,7 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
         ContractManager,
         contracts_precompiled_path,
         Flavor,
+        PlainVersion,
     )
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -54,22 +55,26 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
-    # ``raiden-contracts`` provides only three kinds of ``contracts_version``s.
-    # ``None``, ``'0.4.0'`` and ``'0.3._'``.  They are explained below.
+    # ``raiden-contracts`` provides some kinds of ``contracts_version``s.
+    # ``None``, ``PlainVersion(0.8.0)``, ``PlainVersion('0.4.0')``
+    # and ``PlainVersion('0.3._')``.  They are explained below.
 
     # Uses the newest version. Available on Kovan, Rinkeby and Ropsten.
     # Mainnet deployments should not be accessed with contract_version == None.
     contracts_version = None
 
+    # Uses 0.8.0 version. Available on Kovan, Rinkeby and Ropsten.
+    contracts_version = PlainVersion('0.8.0')
+
     # Uses Red Eyes, Mainnet enabled version with deposit limits.
     # The version is also available on Kovan, Rinkeby and Ropsten.
-    contracts_version = '0.4.0'
+    contracts_version = PlainVersion('0.4.0')
 
     # Uses the pre-red-eyes development version, probably without
     # deposit limits. Available only on Kovan, Rinkeby and Ropsten.
     # The Solidity source of this version is unknown on Etherscan.
     # See https://github.com/raiden-network/raiden-contracts/issues/543
-    contracts_version = '0.3._'
+    contracts_version = PlainVersion('0.3._')
 
     # Other contract versions like ``'0.6.0'`` do not work. Contract versions
     # become available when anybody requests, or when there is a mainnet
