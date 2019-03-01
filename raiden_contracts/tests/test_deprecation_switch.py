@@ -42,6 +42,7 @@ def test_deprecation_executor(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            1,
         ],
     )
 

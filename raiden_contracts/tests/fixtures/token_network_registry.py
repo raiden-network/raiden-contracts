@@ -24,7 +24,12 @@ def get_token_network_registry(deploy_tester_contract):
 
 
 @pytest.fixture
-def token_network_registry_contract(deploy_tester_contract, secret_registry_contract, web3):
+def token_network_registry_contract(
+        deploy_tester_contract,
+        secret_registry_contract,
+        web3,
+        custom_token,
+):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -34,6 +39,7 @@ def token_network_registry_contract(deploy_tester_contract, secret_registry_cont
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            1,
         ],
     )
 

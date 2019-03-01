@@ -15,7 +15,7 @@ contract TokenNetworkRegistry is Utils {
     uint256 public chain_id;
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
-    uint256 constant public max_token_networks = 1;
+    uint256 public max_token_networks;
 
     // Only for the limited Red Eyes release
     address public deprecation_executor;
@@ -35,7 +35,8 @@ contract TokenNetworkRegistry is Utils {
         address _secret_registry_address,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        uint256 _settlement_timeout_max,
+        uint256 _max_token_networks
     )
         public
     {
@@ -45,10 +46,12 @@ contract TokenNetworkRegistry is Utils {
         require(_settlement_timeout_max > _settlement_timeout_min);
         require(_secret_registry_address != address(0x0));
         require(contractExists(_secret_registry_address));
+        require(_max_token_networks > 0);
         secret_registry_address = _secret_registry_address;
         chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
+        max_token_networks = _max_token_networks;
 
         deprecation_executor = msg.sender;
     }

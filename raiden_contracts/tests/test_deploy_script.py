@@ -48,7 +48,7 @@ def test_deploy_script_raiden(
         wait=10,
     )
 
-    deployed_contracts_info = deploy_raiden_contracts(deployer)
+    deployed_contracts_info = deploy_raiden_contracts(deployer, 1)
 
     verify_deployment_data(
         web3=deployer.web3,
@@ -141,7 +141,7 @@ def test_deploy_script_raiden(
         wait=10,
     )
     with pytest.raises(ValidationError):
-        deploy_raiden_contracts(deployer)
+        deploy_raiden_contracts(deployer, 1)
 
 
 def test_deploy_script_token(
@@ -219,7 +219,10 @@ def test_deploy_script_register(
         wait=10,
     )
 
-    deployed_contracts_raiden = deploy_raiden_contracts(deployer)
+    deployed_contracts_raiden = deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=1,
+    )
     deployed_token = deploy_token_contract(
         deployer,
         token_supply=10000000,

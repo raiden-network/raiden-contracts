@@ -97,7 +97,10 @@ def deprecation_test(
 
 
 def deprecation_test_setup(deployer, token_amount):
-    deployed_contracts = deploy_raiden_contracts(deployer)['contracts']
+    deployed_contracts = deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=1,
+    )['contracts']
 
     token_network_registry_abi = deployer.contract_manager.get_contract_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
