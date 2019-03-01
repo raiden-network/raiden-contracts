@@ -11,7 +11,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import Flavor, contract_version_string
+from raiden_contracts.contract_manager import contract_version_string
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     deploy_raiden_contracts,
@@ -25,10 +25,8 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import T_Address
 
 
-@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_raiden(
     web3,
-    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -44,7 +42,6 @@ def test_deploy_script_raiden(
     gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -55,7 +52,6 @@ def test_deploy_script_raiden(
 
     verify_deployment_data(
         web3=deployer.web3,
-        flavor=deployer.flavor,
         contract_manager=deployer.contract_manager,
         deployment_data=deployed_contracts_info,
     )
@@ -65,7 +61,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             web3=deployer.web3,
-            flavor=deployer.flavor,
             contract_manager=deployer.contract_manager,
             deployment_data=deployed_contracts_info_fail,
         )
@@ -75,7 +70,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             web3=deployer.web3,
-            flavor=deployer.flavor,
             contract_manager=deployer.contract_manager,
             deployment_data=deployed_contracts_info_fail,
         )
@@ -87,7 +81,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -97,7 +90,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -109,7 +101,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -119,7 +110,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -129,7 +119,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -139,7 +128,6 @@ def test_deploy_script_raiden(
     with pytest.raises(AssertionError):
         verify_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             deployed_contracts_info_fail,
         )
@@ -147,7 +135,6 @@ def test_deploy_script_raiden(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -157,10 +144,8 @@ def test_deploy_script_raiden(
         deploy_raiden_contracts(deployer)
 
 
-@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_token(
     web3,
-    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -175,7 +160,6 @@ def test_deploy_script_token(
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -197,7 +181,6 @@ def test_deploy_script_token(
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=get_random_privkey(),
         gas_limit=gas_limit,
         gas_price=1,
@@ -214,10 +197,8 @@ def test_deploy_script_token(
         )
 
 
-@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_register(
     web3,
-    flavor,
     faucet_private_key,
     get_random_privkey,
 ):
@@ -232,7 +213,6 @@ def test_deploy_script_register(
     token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -260,17 +240,15 @@ def test_deploy_script_register(
         caller=deployer.owner,
         token_registry_abi=token_registry_abi,
         token_registry_address=token_registry_address,
-        token_registry_version=contract_version_string(flavor=flavor, version=None),
+        token_registry_version=contract_version_string(version=None),
         token_address=token_address,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
 
 
-@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_service(
         web3,
-        flavor,
         faucet_private_key,
         get_random_privkey,
 ):
@@ -281,7 +259,6 @@ def test_deploy_script_service(
     gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
-        flavor=flavor,
         private_key=faucet_private_key,
         gas_limit=gas_limit,
         gas_price=1,
@@ -303,7 +280,6 @@ def test_deploy_script_service(
     deployed_service_contracts = deploy_service_contracts(deployer, token_address)
     verify_service_contracts_deployment_data(
         deployer.web3,
-        deployer.flavor,
         deployer.contract_manager,
         token_address,
         deployed_service_contracts,
@@ -314,7 +290,6 @@ def test_deploy_script_service(
     with pytest.raises(AssertionError):
         verify_service_contracts_deployment_data(
             deployer.web3,
-            deployer.flavor,
             deployer.contract_manager,
             token_address=token_address,
             deployment_data=deployed_info_fail,
@@ -328,7 +303,6 @@ def test_deploy_script_service(
         with pytest.raises(AssertionError):
             verify_service_contracts_deployment_data(
                 deployer.web3,
-                deployer.flavor,
                 deployer.contract_manager,
                 token_address=token_address,
                 deployment_data=deployed_info_fail,

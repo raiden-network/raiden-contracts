@@ -49,12 +49,10 @@ class VerifyContracts(Command):
             ContractManager,
             contracts_precompiled_path,
             contracts_source_path,
-            Flavor,
         )
-        for flavor in Flavor:
-            manager = ContractManager(contracts_source_path(flavor))
-            manager.checksum_contracts()
-            manager.verify_precompiled_checksums(contracts_precompiled_path(flavor))
+        manager = ContractManager(contracts_source_path())
+        manager.checksum_contracts()
+        manager.verify_precompiled_checksums(contracts_precompiled_path())
 
 
 class CompileContracts(Command):
@@ -72,14 +70,10 @@ class CompileContracts(Command):
             ContractManager,
             contracts_precompiled_path,
             contracts_source_path,
-            Flavor,
         )
 
-        for flavor in Flavor:
-            contract_manager = ContractManager(contracts_source_path(flavor))
-            contract_manager.compile_contracts(
-                contracts_precompiled_path(flavor),
-            )
+        contract_manager = ContractManager(contracts_source_path())
+        contract_manager.compile_contracts(contracts_precompiled_path())
 
 
 requirements = read_requirements('requirements.txt')

@@ -1,4 +1,3 @@
-from enum import Enum
 import hashlib
 import json
 import logging
@@ -18,18 +17,6 @@ from raiden_contracts.constants import (
 log = logging.getLogger(__name__)
 
 _BASE = Path(__file__).parent
-
-
-class Flavor(Enum):
-    Limited = 2
-
-
-lower_name_of_flavor = {
-    Flavor.Limited: 'limited',
-}
-
-
-flavor_of_lower_name = {lower_name_of_flavor[k]: k for k in lower_name_of_flavor.keys()}
 
 
 class ContractManagerCompilationError(RuntimeError):
@@ -220,30 +207,25 @@ class ContractManager:
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
 
-    def version_string(self, flavor: Flavor):
-        return contract_version_string(flavor, self.contracts_version)
+    def version_string(self):
+        return contract_version_string(self.contracts_version)
 
 
-def contracts_source_path(flavor: Flavor):
-    upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
-    return contracts_source_path_with_stem(upper_dir)
+def contracts_source_path():
+    return contracts_source_path_with_stem('contracts')
 
 
-def flavor_suffix(flavor: Flavor):
-    return ''
-
-
-def contract_version_string(flavor: Flavor, version: Optional[str] = None):
+def contract_version_string(version: Optional[str] = None):
     if version is None:
         version = CONTRACTS_VERSION
-    return version + flavor_suffix(flavor)
+    return version
 
 
-def contracts_data_path(flavor: Flavor, version: Optional[str] = None):
+def contracts_data_path(version: Optional[str] = None):
     if version is None or version == CONTRACTS_VERSION:
-        return _BASE.joinpath('data' + flavor_suffix(flavor))
+        return _BASE.joinpath('data')
     else:
-        return _BASE.joinpath(f'data_{version}' + flavor_suffix(flavor))
+        return _BASE.joinpath(f'data_{version}')
 
 
 def contracts_source_path_with_stem(stem):
@@ -259,7 +241,7 @@ def contracts_template_path():
     return contracts_source_path_with_stem('contracts_template')
 
 
-def contracts_source_root(flavor: Flavor):
+def contracts_source_root():
     return _BASE.joinpath('contracts')
 
 
@@ -267,23 +249,22 @@ def contracts_template_root():
     return _BASE.joinpath('contracts_template')
 
 
-def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):
-    data_path = contracts_data_path(flavor, version)
+def contracts_precompiled_path(version: Optional[str] = None):
+    data_path = contracts_data_path(version)
     return data_path.joinpath('contracts.json')
 
 
-def contracts_gas_path(flavor: Flavor, version: Optional[str] = None):
-    data_path = contracts_data_path(flavor, version)
+def contracts_gas_path(version: Optional[str] = None):
+    data_path = contracts_data_path(version)
     return data_path.joinpath('gas.json')
 
 
 def contracts_deployed_path(
         chain_id: int,
-        flavor: Flavor,
         version: Optional[str] = None,
         services: bool = False,
 ):
-    data_path = contracts_data_path(flavor, version)
+    data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
@@ -291,11 +272,10 @@ def contracts_deployed_path(
 
 def get_contracts_deployed(
         chain_id: int,
-        flavor: Flavor,
         version: Optional[str] = None,
         services: bool = False,
 ):
-    deployment_file_path = contracts_deployed_path(chain_id, flavor, version, services)
+    deployment_file_path = contracts_deployed_path(chain_id, version, services)
 
     try:
         with deployment_file_path.open() as deployment_file:
