@@ -53,7 +53,7 @@ class VerifyContracts(Command):
             contracts_source_path,
             Flavor,
         )
-        for flavor in {Flavor.Limited, Flavor.Unlimited}:
+        for flavor in Flavor:
             manager = ContractManager(
                 flavor=flavor,
                 path=contracts_source_path(flavor),
@@ -131,7 +131,7 @@ class CompileContracts(Command):
             Flavor,
         )
 
-        for flavor in {Flavor.Limited, Flavor.Unlimited}:
+        for flavor in Flavor:
             contract_manager = ContractManager(flavor=flavor, path=contracts_source_path(flavor))
             contract_manager.compile_contracts(
                 contracts_precompiled_path(flavor),

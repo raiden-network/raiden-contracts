@@ -68,9 +68,9 @@ class ContractDeployer:
         flavor: Flavor,
         private_key: str,
         gas_limit: int,
-        gas_price: int=1,
-        wait: int=10,
-        contracts_version: Optional[PlainVersion]=None,
+        gas_price: int = 1,
+        wait: int = 10,
+        contracts_version: Optional[PlainVersion] = None,
     ):
         self.web3 = web3
         self.flavor = flavor
