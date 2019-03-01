@@ -6,7 +6,7 @@ from json import JSONDecodeError
 from os import chdir
 from pathlib import Path
 from solc import compile_files
-from typing import Dict, List, Union, Optional, Tuple
+from typing import Dict, Union, Optional
 
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
@@ -21,12 +21,10 @@ _BASE = Path(__file__).parent
 
 
 class Flavor(Enum):
-    Unlimited = 1
     Limited = 2
 
 
 lower_name_of_flavor = {
-    Flavor.Unlimited: 'unlimited',
     Flavor.Limited: 'limited',
 }
 
@@ -232,12 +230,7 @@ def contracts_source_path(flavor: Flavor):
 
 
 def flavor_suffix(flavor: Flavor):
-    if flavor == Flavor.Unlimited:
-        return '_unlimited'
-    elif flavor == Flavor.Limited:
-        return ''
-    else:
-        raise ValueError(f'Unknowon Flavor {flavor}')
+    return ''
 
 
 def contract_version_string(flavor: Flavor, version: Optional[str] = None):
@@ -267,36 +260,11 @@ def contracts_template_path():
 
 
 def contracts_source_root(flavor: Flavor):
-    if flavor == Flavor.Limited:
-        return _BASE.joinpath('contracts')
-    if flavor == Flavor.Unlimited:
-        return _BASE.joinpath('contracts_without_limits')
-    else:
-        raise ValueError(f"unknown flavor {flavor}")
+    return _BASE.joinpath('contracts')
 
 
 def contracts_template_root():
     return _BASE.joinpath('contracts_template')
-
-
-contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
-    (
-        contracts_source_root(Flavor.Unlimited),
-        {
-            "limited": False,
-            "contracts_version": CONTRACTS_VERSION,
-            "version_suffix": "_unlimited",
-        },
-    ),
-    (
-        contracts_source_root(Flavor.Limited),
-        {
-            "limited": True,
-            "contracts_version": CONTRACTS_VERSION,
-            "version_suffix": "",
-        },
-    ),
-]
 
 
 def contracts_precompiled_path(flavor: Flavor, version: Optional[str] = None):

@@ -25,7 +25,7 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import T_Address
 
 
-@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
+@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_raiden(
     web3,
     flavor,
@@ -157,7 +157,7 @@ def test_deploy_script_raiden(
         deploy_raiden_contracts(deployer)
 
 
-@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
+@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_token(
     web3,
     flavor,
@@ -214,7 +214,7 @@ def test_deploy_script_token(
         )
 
 
-@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
+@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_register(
     web3,
     flavor,
@@ -267,7 +267,7 @@ def test_deploy_script_register(
     assert isinstance(token_network_address, T_Address)
 
 
-@pytest.mark.parametrize("flavor", [Flavor.Limited, Flavor.Unlimited])
+@pytest.mark.parametrize("flavor", Flavor)
 def test_deploy_script_service(
         web3,
         flavor,
