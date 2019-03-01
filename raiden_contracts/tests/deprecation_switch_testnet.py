@@ -49,12 +49,12 @@ log = getLogger(__name__)
 )
 @click.pass_context
 def deprecation_test(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
 ):
     """ Turn on the deprecation switch and see channel opening fails """
     setup_ctx(ctx, "limited", private_key, rpc_provider, wait, gas_price, gas_limit)

@@ -26,9 +26,9 @@ from raiden_contracts.utils.type_aliases import T_Address
 
 
 def test_deploy_script_raiden(
-    web3,
-    faucet_private_key,
-    get_random_privkey,
+        web3,
+        faucet_private_key,
+        get_random_privkey,
 ):
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 

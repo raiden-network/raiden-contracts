@@ -44,11 +44,11 @@ def test_deposit(
 
 
 def test_transfer(
-    uninitialized_user_deposit_contract,
-    udc_transfer_contract,
-    get_accounts,
-    event_handler,
-    custom_token,
+        uninitialized_user_deposit_contract,
+        udc_transfer_contract,
+        get_accounts,
+        event_handler,
+        custom_token,
 ):
     user_deposit_contract = uninitialized_user_deposit_contract
     ev_handler = event_handler(user_deposit_contract)

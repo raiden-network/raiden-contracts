@@ -21,6 +21,10 @@ from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.constants import ParticipantInfoIndex
 
 
+# Account names like 'A', 'B', 'C' are intuitive here.
+# pytest: disable=C0103
+
+
 def test_merkle_root_0_items(token_network_test_utils, token_network):
     """ getMerkleRootAndUnlockedAmount() returns a reasonable return value for no items """
     (

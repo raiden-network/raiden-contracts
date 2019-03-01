@@ -44,10 +44,10 @@ from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.type_aliases import Address
 
 
-log = getLogger(__name__)
+LOG = getLogger(__name__)
 
 
-def validate_address(ctx, param, value):
+def validate_address(_, param, value):
     if not value:
         return None
     try:
@@ -59,13 +59,13 @@ def validate_address(ctx, param, value):
 
 class ContractDeployer:
     def __init__(
-        self,
-        web3: Web3,
-        private_key: str,
-        gas_limit: int,
-        gas_price: int=1,
-        wait: int=10,
-        contracts_version: Optional[str]=None,
+            self,
+            web3: Web3,
+            private_key: str,
+            gas_limit: int,
+            gas_price: int=1,
+            wait: int=10,
+            contracts_version: Optional[str]=None,
     ):
         # pylint: disable=E1101
         self.web3 = web3
@@ -89,12 +89,12 @@ class ContractDeployer:
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
-            log.info('Skipped checks against the source code because it is not available.')
+            LOG.info('Skipped checks against the source code because it is not available.')
 
     def deploy(
-        self,
-        contract_name: str,
-        args=None,
+            self,
+            contract_name: str,
+            args=None,
     ):
         if args is None:
             args = list()
@@ -112,7 +112,7 @@ class ContractDeployer:
         txhash = self.send_deployment_transaction(contract, args)
 
         # Get tx receipt to get contract address
-        log.debug(
+        LOG.debug(
             f'Deploying {contract_name} txHash={encode_hex(txhash)}, '
             f'contracts version {self.contract_manager.contracts_version}',
         )
@@ -120,7 +120,7 @@ class ContractDeployer:
         if not receipt['contractAddress']:  # happens with Parity
             receipt = dict(receipt)
             receipt['contractAddress'] = tx['creates']
-        log.info(
+        LOG.info(
             '{0} address: {1}. Gas used: {2}'.format(
                 contract_name,
                 receipt['contractAddress'],
@@ -130,12 +130,12 @@ class ContractDeployer:
         return receipt
 
     def transact(
-        self,
-        contract_method: ContractFunction,
+            self,
+            contract_method: ContractFunction,
     ):
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
-        log.debug(f'Sending txHash={encode_hex(txhash)}')
+        LOG.debug(f'Sending txHash={encode_hex(txhash)}')
         (receipt, _) = check_succesful_tx(self.web3, txhash, self.wait)
         return receipt
 
@@ -149,7 +149,7 @@ class ContractDeployer:
             except ValueError as ex:
                 # pylint: disable=E1126
                 if ex.args[0]['code'] == -32015:
-                    log.info(f'Deployment failed with {ex}. Retrying...')
+                    LOG.info(f'Deployment failed with {ex}. Retrying...')
                 else:
                     raise ex
 
@@ -160,6 +160,7 @@ class ContractDeployer:
 
 
 def common_options(func):
+    """A decorator that combines commonly appearing @click.option decorators."""
     @click.option(
         '--private-key',
         required=True,
@@ -196,14 +197,15 @@ def common_options(func):
     return wrapper
 
 
+# pylint: disable=R0913
 def setup_ctx(
-    ctx: click.Context,
-    private_key: str,
-    rpc_provider: str,
-    wait: int,
-    gas_price: int,
-    gas_limit: int,
-    contracts_version: None = None,
+        ctx: click.Context,
+        private_key: str,
+        rpc_provider: str,
+        wait: int,
+        gas_price: int,
+        gas_limit: int,
+        contracts_version: None = None,
 ):
     """Set up deployment context according to common options (shared among all
     subcommands).
@@ -258,15 +260,15 @@ def main():
 )
 @click.pass_context
 def raiden(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    save_info,
-    contracts_version,
-    max_token_networks: int,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        save_info,
+        contracts_version,
+        max_token_networks: int,
 ):
     setup_ctx(
         ctx,
@@ -319,15 +321,15 @@ def raiden(
 )
 @click.pass_context
 def services(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    token_address,
-    save_info,
-    contracts_version,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        token_address,
+        save_info,
+        contracts_version,
 ):
     setup_ctx(
         ctx,
@@ -389,17 +391,17 @@ def services(
 )
 @click.pass_context
 def token(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    contracts_version,
-    token_supply,
-    token_name,
-    token_decimals,
-    token_symbol,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+        token_supply,
+        token_name,
+        token_decimals,
+        token_symbol,
 ):
     setup_ctx(
         ctx,
@@ -440,15 +442,15 @@ def token(
 )
 @click.pass_context
 def register(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    contracts_version,
-    token_address,
-    registry_address,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
+        contracts_version,
+        token_address,
+        registry_address,
 ):
     setup_ctx(
         ctx,
@@ -599,7 +601,7 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
     )
 
     # Tell the UserDeposit instance about other contracts.
-    log.debug(
+    LOG.debug(
         "Calling UserDeposit.init() with "
         f"msc_address={msc.address} "
         f"one_to_n_address={one_to_n.address}",
@@ -610,12 +612,12 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
 
 
 def deploy_token_contract(
-    deployer: ContractDeployer,
-    token_supply: int,
-    token_decimals: int,
-    token_name: str,
-    token_symbol: str,
-    token_type: str='CustomToken',
+        deployer: ContractDeployer,
+        token_supply: int,
+        token_decimals: int,
+        token_name: str,
+        token_symbol: str,
+        token_type: str = 'CustomToken',
 ):
     """Deploy a token contract."""
     receipt = deployer.deploy(
@@ -629,15 +631,15 @@ def deploy_token_contract(
 
 
 def register_token_network(
-    web3: Web3,
-    caller: str,
-    token_registry_abi: Dict,
-    token_registry_address: str,
-    token_registry_version: str,
-    token_address: str,
-    wait=10,
-    gas_limit=4000000,
-    gas_price=10,
+        web3: Web3,
+        caller: str,
+        token_registry_abi: Dict,
+        token_registry_address: str,
+        token_registry_version: str,
+        token_address: str,
+        wait=10,
+        gas_limit=4000000,
+        gas_price=10,
 ):
     """Register token with a TokenNetworkRegistry contract."""
     token_network_registry = web3.eth.contract(
@@ -658,7 +660,7 @@ def register_token_network(
             'gasPrice': gas_price * denoms.gwei,  # pylint: disable=E1101
         },
     )
-    log.debug(
+    LOG.debug(
         "calling createERC20TokenNetwork(%s) txHash=%s" %
         (
             token_address,
@@ -681,7 +683,7 @@ def register_token_network(
     return token_network_address
 
 
-def store_deployment_info(deployment_info: dict, services: bool=False):
+def store_deployment_info(deployment_info: dict, services: bool = False):
     deployment_file_path = contracts_deployed_path(
         deployment_info['chain_id'],
         deployment_info['contracts_version'],
@@ -760,10 +762,10 @@ def verify_deployed_contracts_in_filesystem(
 
 
 def verify_service_contracts_deployment_data(
-    web3: Web3,
-    contract_manager: ContractManager,
-    token_address: str,
-    deployment_data: dict,
+        web3: Web3,
+        contract_manager: ContractManager,
+        token_address: str,
+        deployment_data: dict,
 ):
     chain_id = int(web3.version.network)
     assert deployment_data is not None
@@ -834,9 +836,9 @@ def verify_service_contracts_deployment_data(
 
 
 def verify_deployed_service_contracts_in_filesystem(
-    web3: Web3,
-    contract_manager: ContractManager,
-    token_address: str,
+        web3: Web3,
+        contract_manager: ContractManager,
+        token_address: str,
 ):
     chain_id = int(web3.version.network)
 
@@ -861,10 +863,10 @@ def verify_deployed_service_contracts_in_filesystem(
 
 
 def verify_deployed_contract(
-    web3: Web3,
-    contract_manager: ContractManager,
-    deployment_data: dict,
-    contract_name: str,
+        web3: Web3,
+        contract_manager: ContractManager,
+        deployment_data: dict,
+        contract_name: str,
 ) -> Contract:
     """ Verify deployment info against the chain
 

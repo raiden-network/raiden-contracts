@@ -24,10 +24,10 @@ def get_token_network(web3, deploy_tester_contract):
 
 @pytest.fixture
 def register_token_network(
-    contract_deployer_address,
-    web3,
-    token_network_registry_contract,
-    contracts_manager,
+        contract_deployer_address,
+        web3,
+        token_network_registry_contract,
+        contracts_manager,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
