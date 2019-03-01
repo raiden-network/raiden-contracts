@@ -5,8 +5,6 @@ except ImportError:
     from distutils.core import setup
 
 import os
-from pathlib import Path
-import pystache
 from typing import List
 
 from setuptools import Command
