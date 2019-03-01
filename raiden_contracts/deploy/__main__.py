@@ -196,7 +196,6 @@ def common_options(func):
 
 def setup_ctx(
     ctx: click.Context,
-    flavor: str,
     private_key: str,
     rpc_provider: str,
     wait: int,
@@ -247,12 +246,6 @@ def main():
     '--save-info',
     default=True,
     help='Save deployment info to a file.',
-)
-@click.option(
-    '--flavor',
-    type=click.Choice(['limited', 'unlimited']),
-    help='Choose a flavor.',
-    required=True,
 )
 @click.pass_context
 def raiden(
@@ -310,12 +303,6 @@ def raiden(
     '--save-info',
     default=True,
     help='Save deployment info to a file.',
-)
-@click.option(
-    '--flavor',
-    type=click.Choice(['limited', 'unlimited']),
-    help='Choose a flavor.',
-    required=True,
 )
 @click.pass_context
 def services(
@@ -387,12 +374,6 @@ def services(
     default='TKN',
     help='Token contract symbol.',
 )
-@click.option(
-    '--flavor',
-    type=click.Choice(['limited', 'unlimited']),
-    help='Choose a flavor.',
-    required=True,
-)
 @click.pass_context
 def token(
     ctx,
@@ -406,11 +387,9 @@ def token(
     token_name,
     token_decimals,
     token_symbol,
-    flavor,
 ):
     setup_ctx(
         ctx,
-        flavor,
         private_key,
         rpc_provider,
         wait,
@@ -446,12 +425,6 @@ def token(
     callback=validate_address,
     help='Address of token network registry',
 )
-@click.option(
-    '--flavor',
-    type=click.Choice(['limited', 'unlimited']),
-    help='Choose a flavor.',
-    required=True,
-)
 @click.pass_context
 def register(
     ctx,
@@ -463,11 +436,9 @@ def register(
     contracts_version,
     token_address,
     registry_address,
-    flavor,
 ):
     setup_ctx(
         ctx,
-        flavor,
         private_key,
         rpc_provider,
         wait,
@@ -509,14 +480,8 @@ def register(
     '--contracts-version',
     help='Contracts version to verify. Current version will be used by default.',
 )
-@click.option(
-    '--flavor',
-    type=click.Choice(['limited', 'unlimited']),
-    help='Choose a flavor.',
-    required=True,
-)
 @click.pass_context
-def verify(ctx, rpc_provider, contracts_version, flavor):
+def verify(ctx, rpc_provider, contracts_version):
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
