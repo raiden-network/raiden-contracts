@@ -15,10 +15,11 @@ contract TokenNetworkRegistry is Utils {
     uint256 public chain_id;
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
+    uint256 constant public max_token_networks = 1;
 
     // Only for the limited Red Eyes release
     address public deprecation_executor;
-    bool public token_network_created = false;
+    uint256 public token_network_created = 0;
 
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
@@ -26,7 +27,7 @@ contract TokenNetworkRegistry is Utils {
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     modifier canCreateTokenNetwork() {
-        require(token_network_created == false);
+        require(token_network_created < max_token_networks);
         _;
     }
 
@@ -57,14 +58,14 @@ contract TokenNetworkRegistry is Utils {
     /// @param _token_address Ethereum address of an already deployed token, to
     /// be used in the new TokenNetwork contract.
     function createERC20TokenNetwork(address _token_address)
-         canCreateTokenNetwork 
+        canCreateTokenNetwork
         external
         returns (address token_network_address)
     {
         require(token_to_token_networks[_token_address] == address(0x0));
 
         // We limit the number of token networks to 1 for the Bug Bounty release
-        token_network_created = true;
+        token_network_created = token_network_created + 1;
 
         TokenNetwork token_network;
 
