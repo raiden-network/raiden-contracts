@@ -30,7 +30,6 @@ install:
 before_script:
   - flake8 raiden_contracts/
   - make mypy
-  - make render_templates
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
