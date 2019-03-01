@@ -38,77 +38,145 @@ def test_constructor_call(
 
     # failure with an int instead of the SecretRegistry's address
     with pytest.raises(TypeError):
-        get_token_network_registry([3, chain_id, settle_min, settle_max])
+        get_token_network_registry([3, chain_id, settle_min, settle_max, 1])
 
     # failure with zero instead of the SecretRegistry's address
     with pytest.raises(TypeError):
-        get_token_network_registry([0, chain_id, settle_min, settle_max])
+        get_token_network_registry([0, chain_id, settle_min, settle_max, 1])
 
     # failure with the empty string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
-        get_token_network_registry(['', chain_id, settle_min, settle_max])
+        get_token_network_registry(['', chain_id, settle_min, settle_max, 1])
 
     # failure with an odd-length hex string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
-        get_token_network_registry([FAKE_ADDRESS, chain_id, settle_min, settle_max])
+        get_token_network_registry([FAKE_ADDRESS, chain_id, settle_min, settle_max, 1])
 
     # failure with the empty string instead of a chain ID
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, '', settle_min, settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            '',
+            settle_min,
+            settle_max,
+            1,
+        ])
 
     # failure with a string instead of a chain ID
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, '1', settle_min, settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            '1',
+            settle_min,
+            settle_max,
+            1,
+        ])
 
     # failure with a negative integer instead of a chain ID
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, -3, settle_min, settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            -3,
+            settle_min,
+            settle_max,
+            1,
+        ])
 
     # failure with chain ID zero
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0, settle_min, settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            0,
+            settle_min,
+            settle_max,
+            1,
+        ])
 
     # failure with strings instead of the minimal challenge period
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, '', settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            '',
+            settle_max,
+            1,
+            1,
+        ])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, '1', settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            '1',
+            settle_max,
+            1,
+            1,
+        ])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, -3, settle_max])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            -3,
+            settle_max,
+            1,
+            1,
+        ])
 
     # failure with strings instead of the max challenge period
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, ''])
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, '', 1])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, 'settle_min, 1'])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            'settle_min, 1',
+            1])
     with pytest.raises(TypeError):
-        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, -3])
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, -3, 1])
 
     # failure with Ethereum accounts that doesn't look like a SecretRegistry
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([EMPTY_ADDRESS, chain_id, settle_min, settle_max])
+        get_token_network_registry([EMPTY_ADDRESS, chain_id, settle_min, settle_max, 1])
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([A, chain_id, settle_min, settle_max])
+        get_token_network_registry([A, chain_id, settle_min, settle_max, 1])
 
     # failures with chain_id zero
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0, 0, settle_max])
+        get_token_network_registry([secret_registry_contract.address, 0, 0, settle_max, 1])
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0, settle_min, 0])
+        get_token_network_registry([secret_registry_contract.address, 0, settle_min, 0, 1])
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, 0, settle_max, settle_min])
+        get_token_network_registry([
+            secret_registry_contract.address,
+            0,
+            settle_max,
+            settle_min,
+            1,
+        ])
 
     # failures with nonsense challenge periods
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, chain_id, 0, settle_max])
+        get_token_network_registry([secret_registry_contract.address, chain_id, 0, settle_max, 1])
     with pytest.raises(TransactionFailed):
-        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, 0])
+        get_token_network_registry([secret_registry_contract.address, chain_id, settle_min, 0, 1])
     with pytest.raises(TransactionFailed):
         get_token_network_registry([
             secret_registry_contract.address,
             chain_id,
             settle_max,
             settle_min,
+            1,
+        ])
+
+    # failures with nonsense token number limits
+    with pytest.raises(TransactionFailed):
+        get_token_network_registry([secret_registry_contract.address, chain_id, 0, settle_max, 0])
+    with pytest.raises(TypeError):
+        get_token_network_registry([
+            secret_registry_contract.address,
+            chain_id,
+            0,
+            settle_max,
+            'limit',
         ])
 
     get_token_network_registry([
@@ -116,6 +184,7 @@ def test_constructor_call(
         chain_id,
         settle_min,
         settle_max,
+        1,
     ])
 
 
@@ -129,11 +198,13 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
         chain_id,
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
+        30,
     ])
     assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
     assert chain_id == registry.functions.chain_id().call()
     assert TEST_SETTLE_TIMEOUT_MIN == registry.functions.settlement_timeout_min().call()
     assert TEST_SETTLE_TIMEOUT_MAX == registry.functions.settlement_timeout_max().call()
+    assert 30 == registry.functions.max_token_networks().call()
 
 
 def test_create_erc20_token_network_call(

@@ -170,7 +170,7 @@ Check deployment options::
 
 Deploying the main Raiden Network contracts with the ``raiden`` command::
 
-    python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000
+    python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --max-token-networks 1
 
 Deploying the mock token contract for paying for the services (not to be done on the mainnet)::
 

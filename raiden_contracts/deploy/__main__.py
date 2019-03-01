@@ -248,7 +248,7 @@ def main():
     help='Save deployment info to a file.',
 )
 @click.option(
-    '--num-token-networks',
+    '--max-token-networks',
     required=True,
     help='The maximum number of tokens that can be registered.',
 )
@@ -262,7 +262,7 @@ def raiden(
     gas_limit,
     save_info,
     contracts_version,
-    max_num_of_token_networks: int,
+    max_token_networks: int,
 ):
     setup_ctx(
         ctx,
@@ -276,7 +276,7 @@ def raiden(
     deployer = ctx.obj['deployer']
     deployed_contracts_info = deploy_raiden_contracts(
         deployer=deployer,
-        max_num_of_token_networks=max_num_of_token_networks,
+        max_num_of_token_networks=max_token_networks,
     )
     deployed_contracts = {
         contract_name: info['address']
