@@ -23,13 +23,13 @@ _BASE = Path(__file__).parent
 
 
 class Flavor(Enum):
-    Unlimited = 1
-    Limited = 2
+    UNLIMITED = 1
+    LIMITED = 2
 
 
 lower_name_of_flavor = {
-    Flavor.Unlimited: 'unlimited',
-    Flavor.Limited: 'limited',
+    Flavor.UNLIMITED: 'unlimited',
+    Flavor.LIMITED: 'limited',
 }
 
 
@@ -246,14 +246,14 @@ class ContractManager:
 
 
 def contracts_source_path(flavor: Flavor):
-    upper_dir = 'contracts' if flavor == Flavor.Limited else 'contracts_without_limits'
+    upper_dir = 'contracts' if flavor == Flavor.LIMITED else 'contracts_without_limits'
     return contracts_source_path_with_stem(upper_dir)
 
 
 def flavor_suffix(flavor: Flavor):
-    if flavor == Flavor.Unlimited:
+    if flavor == Flavor.UNLIMITED:
         return '_unlimited'
-    elif flavor == Flavor.Limited:
+    elif flavor == Flavor.LIMITED:
         return ''
     else:
         raise ValueError(f'Unknowon Flavor {flavor}')
@@ -289,9 +289,9 @@ def contracts_template_path():
 
 
 def contracts_source_root(flavor: Flavor):
-    if flavor == Flavor.Limited:
+    if flavor == Flavor.LIMITED:
         return _BASE.joinpath('contracts')
-    if flavor == Flavor.Unlimited:
+    if flavor == Flavor.UNLIMITED:
         return _BASE.joinpath('contracts_without_limits')
     else:
         raise ValueError(f"unknown flavor {flavor}")
@@ -303,7 +303,7 @@ def contracts_template_root():
 
 contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
     (
-        contracts_source_root(Flavor.Unlimited),
+        contracts_source_root(Flavor.UNLIMITED),
         {
             "limited": False,
             "contracts_version": CONTRACTS_VERSION,
@@ -311,7 +311,7 @@ contracts_mustache_hashes: List[Tuple[Path, Dict]] = [
         },
     ),
     (
-        contracts_source_root(Flavor.Limited),
+        contracts_source_root(Flavor.LIMITED),
         {
             "limited": True,
             "contracts_version": CONTRACTS_VERSION,

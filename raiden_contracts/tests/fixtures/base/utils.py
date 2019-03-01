@@ -134,7 +134,7 @@ def print_gas(web3, txn_gas, gas_measurement_results):
         print('GAS USED ' + message, gas_used + additional_gas)
         print('----------------------------------')
         gas_measurement_results[message] = gas_used + additional_gas
-        with contracts_gas_path(Flavor.Limited).open(mode='w') as target_file:
+        with contracts_gas_path(Flavor.LIMITED).open(mode='w') as target_file:
             target_file.write(json.dumps(
                 gas_measurement_results,
                 sort_keys=True,
