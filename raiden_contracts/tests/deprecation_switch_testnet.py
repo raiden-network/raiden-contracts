@@ -143,7 +143,7 @@ def deprecation_test_setup(deployer, token_amount):
         token_registry_abi=abi,
         token_registry_address=deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'],
         token_address=token_address,
-        token_registry_version=deployer.contract_manager.version_string(deployer.flavor),
+        token_registry_version=deployer.contract_manager.version_string(),
         wait=deployer.wait,
     )
 

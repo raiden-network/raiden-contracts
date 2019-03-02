@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Removed flavors
+
 ## [0.12.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.12.0) - 2019-02-28
 
 - Add data/gas.json that contains gas measurements on the development version.

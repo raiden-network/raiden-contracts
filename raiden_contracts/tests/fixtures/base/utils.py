@@ -2,7 +2,7 @@ import json
 import pytest
 from typing import Dict
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.contract_manager import contracts_gas_path, Flavor
+from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.tests.utils.constants import passphrase
@@ -134,7 +134,7 @@ def print_gas(web3, txn_gas, gas_measurement_results):
         print('GAS USED ' + message, gas_used + additional_gas)
         print('----------------------------------')
         gas_measurement_results[message] = gas_used + additional_gas
-        with contracts_gas_path(Flavor.Limited).open(mode='w') as target_file:
+        with contracts_gas_path().open(mode='w') as target_file:
             target_file.write(json.dumps(
                 gas_measurement_results,
                 sort_keys=True,
