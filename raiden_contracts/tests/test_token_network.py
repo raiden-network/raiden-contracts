@@ -24,6 +24,8 @@ def test_constructor_call(
         custom_token,
         secret_registry_contract,
         get_accounts,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Try to deploy TokenNetwork with various wrong arguments """
 
@@ -45,6 +47,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -54,6 +58,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with non-address strings instead of a Token address
@@ -65,6 +71,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -74,6 +82,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with integers instead of a SecretRegistry address
@@ -85,6 +95,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -94,6 +106,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with non-address strings instead of a SecretRegistry address
@@ -105,6 +119,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -114,6 +130,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with invalid chain_id
@@ -125,6 +143,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -134,6 +154,8 @@ def test_constructor_call(
             settle_min,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with invalid settle_min
@@ -145,6 +167,8 @@ def test_constructor_call(
             '',
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -154,6 +178,8 @@ def test_constructor_call(
             -3,
             settle_max,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with invalid settle_max
@@ -165,6 +191,8 @@ def test_constructor_call(
             settle_min,
             '',
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TypeError):
         get_token_network([
@@ -174,6 +202,8 @@ def test_constructor_call(
             settle_min,
             -3,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with Ethereum addresses that don't contain a Token contract
@@ -185,6 +215,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -194,6 +226,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -203,6 +237,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failures with Ethereum addresses that don't contain the SecretRegistry contract
@@ -214,6 +250,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
     with pytest.raises(TransactionFailed):
         get_token_network([
@@ -223,6 +261,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failure with chain_id zero
@@ -234,6 +274,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failure with a timeout min and max swapped
@@ -245,6 +287,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MAX,
             TEST_SETTLE_TIMEOUT_MIN,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failure with settle_timeout_min being zero
@@ -256,6 +300,8 @@ def test_constructor_call(
             0,
             TEST_SETTLE_TIMEOUT_MIN,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # failure with settle_timeout_max being zero
@@ -267,6 +313,8 @@ def test_constructor_call(
             TEST_SETTLE_TIMEOUT_MIN,
             0,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ])
 
     # see a success to make sure that the above failures are meaningful
@@ -277,6 +325,8 @@ def test_constructor_call(
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
         deprecation_executor,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ])
 
 

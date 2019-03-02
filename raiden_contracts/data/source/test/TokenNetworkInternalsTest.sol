@@ -16,7 +16,9 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
         public
     {
@@ -152,7 +154,9 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
         public
     {
@@ -256,7 +260,9 @@ contract TokenNetworkUtilsTest is TokenNetwork {
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
         public
     {

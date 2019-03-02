@@ -440,6 +440,18 @@ def token(
     callback=validate_address,
     help='Address of token network registry',
 )
+@click.option(
+    '--channel-participant-deposit-limit',
+    required=True,
+    type=int,
+    help='Address of token network registry',
+)
+@click.option(
+    '--token-network-deposit-limit',
+    required=True,
+    type=int,
+    help='Address of token network registry',
+)
 @click.pass_context
 def register(
         ctx,
@@ -451,6 +463,8 @@ def register(
         contracts_version,
         token_address,
         registry_address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     setup_ctx(
         ctx,
@@ -479,6 +493,8 @@ def register(
         token_registry_abi=abi,
         token_registry_address=ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj['deployed_contracts'][token_type],
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
         wait=ctx.obj['wait'],
         gas_price=gas_price,
         token_registry_version=expected_version,
@@ -637,6 +653,8 @@ def register_token_network(
         token_registry_address: str,
         token_registry_version: str,
         token_address: str,
+        channel_participant_deposit_limit: int,
+        token_network_deposit_limit: int,
         wait=10,
         gas_limit=4000000,
         gas_price=10,
@@ -653,6 +671,8 @@ def register_token_network(
 
     txhash = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ).transact(
         {
             'from': caller,

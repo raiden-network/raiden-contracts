@@ -19,6 +19,8 @@ def test_deprecation_executor(
         deploy_contract,
         secret_registry_contract,
         custom_token,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
         get_accounts,
 ):
     """ A creates a TokenNetworkRegistry and B registers a TokenNetwork
@@ -54,6 +56,8 @@ def test_deprecation_executor(
     # It can be deployed by anyone
     tx_hash = token_network_registry.functions.createERC20TokenNetwork(
         custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ).transact(
         {'from': B},
     )
@@ -63,12 +67,16 @@ def test_deprecation_executor(
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).transact(
             {'from': B},
         )
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).transact(
             {'from': deprecation_executor},
         )

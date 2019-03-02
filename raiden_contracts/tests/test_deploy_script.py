@@ -198,9 +198,11 @@ def test_deploy_script_token(
 
 
 def test_deploy_script_register(
-    web3,
-    faucet_private_key,
-    get_random_privkey,
+        web3,
+        faucet_private_key,
+        get_random_privkey,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Run token register function used in the deployment script
 
@@ -245,6 +247,8 @@ def test_deploy_script_register(
         token_registry_address=token_registry_address,
         token_registry_version=contract_version_string(version=None),
         token_address=token_address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)

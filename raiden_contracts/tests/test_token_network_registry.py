@@ -212,6 +212,8 @@ def test_create_erc20_token_network_call(
         contract_deployer_address,
         custom_token,
         get_accounts,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Calling createERC20TokenNetwork() with various wrong arguments """
 
@@ -224,29 +226,57 @@ def test_create_erc20_token_network_call(
 
     # failures with integers instead of a Token contract address
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork(3).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            3,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork(0).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            0,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
 
     # failures with strings that are not addresses
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork('').transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            '',
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork(FAKE_ADDRESS).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            FAKE_ADDRESS,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
 
     # failures with addresses where no Token contract can be found
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.functions.createERC20TokenNetwork(EMPTY_ADDRESS).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            EMPTY_ADDRESS,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
     with pytest.raises(TransactionFailed):
-        token_network_registry_contract.functions.createERC20TokenNetwork(A).transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            A,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).transact()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             fake_token_contract,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).transact()
 
     # see a success to make sure above tests were meaningful
     token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ).transact({'from': contract_deployer_address})
 
 
@@ -254,6 +284,8 @@ def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
         custom_token,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Create a TokenNetwork through a TokenNetworkRegistry """
 
@@ -261,7 +293,11 @@ def test_create_erc20_token_network(
         custom_token.address,
     ).call() == EMPTY_ADDRESS
 
-    token_network = register_token_network(custom_token.address)
+    token_network = register_token_network(
+        token_address=custom_token.address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
+    )
 
     assert token_network.functions.token().call() == custom_token.address
     assert token_network_registry_contract.functions.token_to_token_networks(
@@ -285,7 +321,8 @@ def test_create_erc20_token_network_twice_fails(
         contract_deployer_address,
         token_network_registry_contract,
         custom_token,
-
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
@@ -293,6 +330,8 @@ def test_create_erc20_token_network_twice_fails(
         {'from': contract_deployer_address},
     ).createERC20TokenNetwork(
         custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     )
 
     with pytest.raises(TransactionFailed):
@@ -300,6 +339,8 @@ def test_create_erc20_token_network_twice_fails(
             {'from': contract_deployer_address},
         ).createERC20TokenNetwork(
             custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         )
 
 
@@ -308,12 +349,18 @@ def test_events(
         token_network_registry_contract,
         custom_token,
         event_handler,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ TokenNetwokRegistry should raise an event when deploying a new TokenNetwork """
 
     ev_handler = event_handler(token_network_registry_contract)
 
-    new_token_network = register_token_network(custom_token.address)
+    new_token_network = register_token_network(
+        token_address=custom_token.address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
+    )
 
     ev_handler.add(
         None,
