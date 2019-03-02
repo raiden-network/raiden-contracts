@@ -48,7 +48,7 @@ def get_pending_transfers_tree(
     pending_transfers = unlockable_locks + expired_locks
 
     hashed_pending_transfers = [
-        Web3.soliditySha3(types, transfer_data[:-1])
+        Web3.soliditySha3(types, transfer_data[:-1])  # pylint: disable=E1120
         for transfer_data in pending_transfers
     ]
 
@@ -113,7 +113,7 @@ def get_locked_amount(pending_transfers):
 
 def random_secret():
     secret = urandom(32)
-    return (Web3.soliditySha3(['bytes32'], [secret]), secret)
+    return (Web3.soliditySha3(['bytes32'], [secret]), secret)  # pylint: disable=E1120
 
 
 def get_random_values_for_sum(values_sum):

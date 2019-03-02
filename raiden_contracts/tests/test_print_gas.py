@@ -31,6 +31,7 @@ def test_token_network_registry(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            10,
         ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
@@ -212,17 +213,17 @@ def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_ga
 
 
 def test_monitoring_service_gas(
-    token_network,
-    monitoring_service_external,
-    get_accounts,
-    create_channel,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    create_reward_proof,
-    service_registry,
-    custom_token,
-    deposit_to_udc,
-    print_gas,
+        token_network,
+        monitoring_service_external,
+        get_accounts,
+        create_channel,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+        create_reward_proof,
+        service_registry,
+        custom_token,
+        deposit_to_udc,
+        print_gas,
 ):
     """ Abusing pytest to print gas cost of MonitoringService functions """
     # setup: two parties + MS

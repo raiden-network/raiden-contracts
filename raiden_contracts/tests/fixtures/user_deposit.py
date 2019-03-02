@@ -5,8 +5,8 @@ from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
 
 @pytest.fixture
 def uninitialized_user_deposit_contract(
-    deploy_tester_contract,
-    custom_token,
+        deploy_tester_contract,
+        custom_token,
 ):
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
@@ -17,9 +17,9 @@ def uninitialized_user_deposit_contract(
 
 @pytest.fixture()
 def user_deposit_contract(
-    uninitialized_user_deposit_contract,
-    monitoring_service_external,
-    one_to_n_contract,
+        uninitialized_user_deposit_contract,
+        monitoring_service_external,
+        one_to_n_contract,
 ):
     uninitialized_user_deposit_contract.functions.init(
         monitoring_service_external.address,
@@ -42,12 +42,12 @@ def udc_transfer_contract(
 
 @pytest.fixture
 def deposit_to_udc(
-    user_deposit_contract,
-    custom_token,
-    get_accounts,
-    get_private_key,
-    web3,
-    event_handler,
+        user_deposit_contract,
+        custom_token,
+        get_accounts,
+        get_private_key,
+        web3,
+        event_handler,
 ):
     def deposit(receiver, amount):
         """ Uses UDC's monotonous deposit amount handling

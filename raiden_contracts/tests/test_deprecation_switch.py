@@ -42,12 +42,13 @@ def test_deprecation_executor(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            1,
         ],
     )
 
     # Make sure deployer is deprecation_executor
     assert token_network_registry.functions.deprecation_executor().call() == deprecation_executor
-    assert token_network_registry.functions.token_network_created().call() is False
+    assert token_network_registry.functions.token_network_created().call() == 0
 
     # We can only deploy one TokenNetwork contract
     # It can be deployed by anyone
@@ -56,7 +57,7 @@ def test_deprecation_executor(
     ).transact(
         {'from': B},
     )
-    assert token_network_registry.functions.token_network_created().call() is True
+    assert token_network_registry.functions.token_network_created().call() == 1
 
     # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):

@@ -49,12 +49,12 @@ log = getLogger(__name__)
 )
 @click.pass_context
 def deprecation_test(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
+        ctx,
+        private_key,
+        rpc_provider,
+        wait,
+        gas_price,
+        gas_limit,
 ):
     """ Turn on the deprecation switch and see channel opening fails """
     setup_ctx(ctx, "limited", private_key, rpc_provider, wait, gas_price, gas_limit)
@@ -97,7 +97,10 @@ def deprecation_test(
 
 
 def deprecation_test_setup(deployer, token_amount):
-    deployed_contracts = deploy_raiden_contracts(deployer)['contracts']
+    deployed_contracts = deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=1,
+    )['contracts']
 
     token_network_registry_abi = deployer.contract_manager.get_contract_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -248,4 +251,5 @@ def open_and_deposit(
 
 
 if __name__ == '__main__':
+    # pylint: disable=E1120
     deprecation_test()

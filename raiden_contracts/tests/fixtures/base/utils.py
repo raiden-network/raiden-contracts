@@ -38,7 +38,7 @@ def create_account(web3, ethereum_tester, get_random_privkey):
                 web3.eth.sendTransaction({
                     'from': faucet,
                     'to': address,
-                    'value': 1 * denoms.finney,
+                    'value': 1 * denoms.finney,  # pylint: disable=E1101
                 })
                 break
             except TransactionFailed:

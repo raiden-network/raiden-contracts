@@ -1,6 +1,6 @@
+"""ContractManager knows sources, binaries and ABI of contracts."""
 import hashlib
 import json
-import logging
 from json import JSONDecodeError
 from os import chdir
 from pathlib import Path
@@ -14,24 +14,27 @@ from raiden_contracts.constants import (
 )
 
 
-log = logging.getLogger(__name__)
-
 _BASE = Path(__file__).parent
 
 
 class ContractManagerCompilationError(RuntimeError):
-    pass
+    """Compilation failed for infrastructural reasons (lack of the compiler,
+    failure to take checksums)."""
 
 
 class ContractManagerLoadError(RuntimeError):
-    pass
+    """Failure in loading contracts.json."""
 
 
 class ContractManagerVerificationError(RuntimeError):
-    pass
+    """Failure in comparing contracts.json contents against sources."""
 
 
 class ContractManager:
+    """ContractManager knows how to interact with contracts:
+
+    compiling them, using the ABI, checking the bytecode against the source.
+    """
     def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
         """Params:
             path: either path to a precompiled contract JSON file, or a list of
@@ -44,26 +47,26 @@ class ContractManager:
         if isinstance(path, dict):
             self.contracts_source_dirs = path
             self.contracts_version = CONTRACTS_VERSION
+        elif isinstance(path, Path) and path.is_dir():
+            self.contracts_source_dirs = {'smart_contracts': path}
+            self.contracts_version = CONTRACTS_VERSION
         elif isinstance(path, Path):
-            if path.is_dir():
-                ContractManager.__init__(self, {'smart_contracts': path})
-            else:
-                try:
-                    with path.open() as precompiled_file:
-                        precompiled_content = json.load(precompiled_file)
-                except (JSONDecodeError, UnicodeDecodeError) as ex:
-                    raise ContractManagerLoadError(
-                        f"Can't load precompiled smart contracts: {ex}",
-                    ) from ex
-                try:
-                    self.contracts = precompiled_content['contracts']
-                    self.overall_checksum = precompiled_content['overall_checksum']
-                    self.contracts_checksums = precompiled_content['contracts_checksums']
-                    self.contracts_version = precompiled_content['contracts_version']
-                except KeyError as ex:
-                    raise ContractManagerLoadError(
-                        f'Precompiled contracts json has unexpected format: {ex}',
-                    ) from ex
+            try:
+                with path.open() as precompiled_file:
+                    precompiled_content = json.load(precompiled_file)
+            except (JSONDecodeError, UnicodeDecodeError) as ex:
+                raise ContractManagerLoadError(
+                    f"Can't load precompiled smart contracts: {ex}",
+                ) from ex
+            try:
+                self.contracts = precompiled_content['contracts']
+                self.overall_checksum = precompiled_content['overall_checksum']
+                self.contracts_checksums = precompiled_content['contracts_checksums']
+                self.contracts_version = precompiled_content['contracts_version']
+            except KeyError as ex:
+                raise ContractManagerLoadError(
+                    f'Precompiled contracts json has unexpected format: {ex}',
+                ) from ex
         else:
             raise TypeError('`path` must be either `Path` or `dict`')
 
@@ -162,6 +165,7 @@ class ContractManager:
         return find_matching_event_abi(contract_abi, event_name)
 
     def checksum_contracts(self) -> None:
+        """Remember the checksum of each source, and the overall checksum."""
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't checksum contracts.")
 
@@ -176,11 +180,11 @@ class ContractManager:
         ).hexdigest()
         self.contracts_checksums = checksums
 
-    def verify_precompiled_checksums(self, contracts_precompiled_path: Path) -> None:
+    def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
         """ Compare source code checksums with those from a precompiled file. """
 
         # We get the precompiled file data
-        contracts_precompiled = ContractManager(contracts_precompiled_path)
+        contracts_precompiled = ContractManager(precompiled_path)
 
         # Silence mypy
         assert self.contracts_checksums is not None
@@ -208,6 +212,7 @@ class ContractManager:
             )
 
     def version_string(self):
+        """Return a flavored version string."""
         return contract_version_string(self.contracts_version)
 
 
@@ -216,19 +221,21 @@ def contracts_source_path():
 
 
 def contract_version_string(version: Optional[str] = None):
+    """Apply a flavor on a plain version and produce a flavored version string."""
     if version is None:
         version = CONTRACTS_VERSION
     return version
 
 
 def contracts_data_path(version: Optional[str] = None):
+    """Returns the deployment data directory for a flavor and a plain version."""
     if version is None or version == CONTRACTS_VERSION:
         return _BASE.joinpath('data')
-    else:
-        return _BASE.joinpath(f'data_{version}')
+    return _BASE.joinpath(f'data_{version}')
 
 
 def contracts_source_path_with_stem(stem):
+    """The directory remapping given to the Solidity compiler."""
     return {
         'lib': _BASE.joinpath(stem, 'lib'),
         'raiden': _BASE.joinpath(stem, 'raiden'),
@@ -237,24 +244,19 @@ def contracts_source_path_with_stem(stem):
     }
 
 
-def contracts_template_path():
-    return contracts_source_path_with_stem('contracts_template')
-
-
 def contracts_source_root():
+    """Returns the directory where the sources live."""
     return _BASE.joinpath('contracts')
 
 
-def contracts_template_root():
-    return _BASE.joinpath('contracts_template')
-
-
 def contracts_precompiled_path(version: Optional[str] = None):
+    """Returns the path of JSON file where the bytecode can be found."""
     data_path = contracts_data_path(version)
     return data_path.joinpath('contracts.json')
 
 
 def contracts_gas_path(version: Optional[str] = None):
+    """Returns the path of JSON file where the gas usage information can be found."""
     data_path = contracts_data_path(version)
     return data_path.joinpath('gas.json')
 
@@ -264,6 +266,7 @@ def contracts_deployed_path(
         version: Optional[str] = None,
         services: bool = False,
 ):
+    """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
@@ -275,6 +278,7 @@ def get_contracts_deployed(
         version: Optional[str] = None,
         services: bool = False,
 ):
+    """Reads the deployment data."""
     deployment_file_path = contracts_deployed_path(chain_id, version, services)
 
     try:

@@ -71,14 +71,14 @@ class ChannelEvent(str, Enum):
     UNLOCKED = 'ChannelUnlocked'
 
 
-# Index for return information from TokenNetwork.getChannelInfo
 class ChannelInfoIndex(IntEnum):
+    """Index for accessing fields in return information from TokenNetwork.getChannelInfo."""
     SETTLE_BLOCK = 0
     STATE = 1
 
 
-# Index for return information from TokenNetwork.getChannelParticipantInfo
 class ParticipantInfoIndex(IntEnum):
+    """Index for accessing fields in return value of TokenNetwork.getChannelParticipantInfo."""
     DEPOSIT = 0
     WITHDRAWN = 1
     IS_CLOSER = 2
@@ -88,8 +88,8 @@ class ParticipantInfoIndex(IntEnum):
     LOCKED_AMOUNT = 6
 
 
-# Meaning of values returned by TokenNetwork.getChannelInfo[ChannelInfoIndex.STATE]
 class ChannelState(IntEnum):
+    """Meaning of values returned by TokenNetwork.getChannelInfo[ChannelInfoIndex.STATE]"""
     NONEXISTENT = 0
     OPENED = 1
     CLOSED = 2
@@ -97,28 +97,28 @@ class ChannelState(IntEnum):
     REMOVED = 4
 
 
-# Message types, as used by the TokenNetwork contract
 class MessageTypeId(IntEnum):
+    """Message types, as used by the TokenNetwork contract"""
     BALANCE_PROOF = 1
     BALANCE_PROOF_UPDATE = 2
     WITHDRAW = 3
     COOPERATIVE_SETTLE = 4
 
 
-# Message types used by MonitoringService contract
 class MonitoringServiceEvent(str, Enum):
+    """Message types used by MonitoringService contract"""
     NEW_BALANCE_PROOF_RECEIVED = 'NewBalanceProofReceived'
     REWARD_CLAIMED = 'RewardClaimed'
 
 
-# Message types used by UserDeposit contract
 class UserDepositEvent(str, Enum):
+    """Message types used by UserDeposit contract"""
     BALANCE_REDUCED = 'BalanceReduced'
     WITHDRAW_PLANNED = 'WithdrawPlanned'
 
 
-# Message types used by OneToN contract
 class OneToNEvent(str, Enum):
+    """Message types used by OneToN contract"""
     CLAIMED = 'Claimed'
 
 

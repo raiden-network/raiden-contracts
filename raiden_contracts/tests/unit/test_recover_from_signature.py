@@ -6,6 +6,9 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.signature import sign
 
 
+# pylint: disable=E1120
+
+
 @pytest.fixture
 def signature_test_contract(deploy_tester_contract):
     return deploy_tester_contract(

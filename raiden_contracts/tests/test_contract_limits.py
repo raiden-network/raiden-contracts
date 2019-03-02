@@ -4,7 +4,35 @@ from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
     ParticipantInfoIndex,
+    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT_MAX,
 )
+
+
+def test_register_three_but_not_four(
+        web3,
+        get_token_network_registry,
+        secret_registry_contract,
+        custom_token_factory,
+):
+    """ Check that TokenNetworkRegistry observes the max number of tokens """
+    token_network_registry = get_token_network_registry([
+        secret_registry_contract.address,
+        int(web3.version.network),
+        TEST_SETTLE_TIMEOUT_MIN,
+        TEST_SETTLE_TIMEOUT_MAX,
+        3,
+    ])
+    assert token_network_registry.functions.max_token_networks().call() == 3
+    token0 = custom_token_factory()
+    token1 = custom_token_factory()
+    token2 = custom_token_factory()
+    token3 = custom_token_factory()
+    token_network_registry.functions.createERC20TokenNetwork(token0.address).transact()
+    token_network_registry.functions.createERC20TokenNetwork(token1.address).transact()
+    token_network_registry.functions.createERC20TokenNetwork(token2.address).transact()
+    with pytest.raises(TransactionFailed):
+        token_network_registry.functions.createERC20TokenNetwork(token3.address).transact()
 
 
 def test_channel_participant_deposit_limit_value(token_network):

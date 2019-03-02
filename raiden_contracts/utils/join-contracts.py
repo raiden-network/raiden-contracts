@@ -74,4 +74,4 @@ def main(contract, output, import_map):
 
 
 if __name__ == '__main__':
-    main()
+    main()  # pylint: disable=E1120

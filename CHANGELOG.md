@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- TokenNetworkRegistry's constructor takes an additional argument `max_number_of_token_networks`
 - Removed flavors
 
 ## [0.12.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.12.0) - 2019-02-28

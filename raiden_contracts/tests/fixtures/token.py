@@ -15,13 +15,21 @@ def custom_token_params(request):
 
 
 @pytest.fixture()
-def custom_token(deploy_tester_contract, custom_token_params):
+def custom_token_factory(deploy_tester_contract, custom_token_params):
+    """A function that deploys a CustomToken contract"""
+    def f():
+        return deploy_tester_contract(
+            CONTRACT_CUSTOM_TOKEN,
+            [],
+            custom_token_params,
+        )
+    return f
+
+
+@pytest.fixture()
+def custom_token(custom_token_factory):
     """Deploy CustomToken contract"""
-    return deploy_tester_contract(
-        CONTRACT_CUSTOM_TOKEN,
-        [],
-        custom_token_params,
-    )
+    return custom_token_factory()
 
 
 @pytest.fixture()

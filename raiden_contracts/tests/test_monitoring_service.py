@@ -12,9 +12,9 @@ REWARD_AMOUNT = 10
 
 @pytest.fixture
 def ms_address(
-    get_accounts,
-    custom_token,
-    service_registry,
+        get_accounts,
+        custom_token,
+        service_registry,
 ):
     (ms, ) = get_accounts(1)
 
@@ -77,12 +77,12 @@ def monitor_data(
 
 
 def test_claimReward(
-    token_network,
-    monitoring_service_external,
-    user_deposit_contract,
-    event_handler,
-    monitor_data,
-    ms_address,
+        token_network,
+        monitoring_service_external,
+        user_deposit_contract,
+        event_handler,
+        monitor_data,
+        ms_address,
 ):
     A, B = monitor_data['participants']
     channel_identifier = monitor_data['channel_identifier']
