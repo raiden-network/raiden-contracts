@@ -6,6 +6,8 @@ from raiden_contracts.constants import (
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    MAX_ETH_CHANNEL_PARTICIPANT,
+    MAX_ETH_TOKEN_NETWORK,
 )
 from web3.contract import get_event_data
 
@@ -31,9 +33,15 @@ def register_token_network(
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
-    def get(token_address):
+    def get(
+            token_address,
+            channel_participant_deposit_limit: int,
+            token_network_deposit_limit: int,
+    ):
         tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).transact({'from': contract_deployer_address})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
@@ -51,12 +59,28 @@ def register_token_network(
 
 
 @pytest.fixture
+def channel_participant_deposit_limit():
+    return MAX_ETH_CHANNEL_PARTICIPANT
+
+
+@pytest.fixture
+def token_network_deposit_limit():
+    return MAX_ETH_TOKEN_NETWORK
+
+
+@pytest.fixture
 def token_network(
-    register_token_network,
-    custom_token,
+        register_token_network,
+        custom_token,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """Register a new token network for a custom token"""
-    return register_token_network(custom_token.address)
+    return register_token_network(
+        custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
+    )
 
 
 @pytest.fixture
@@ -101,6 +125,8 @@ def token_network_external(
         get_token_network,
         custom_token,
         secret_registry_contract,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     return get_token_network([
         custom_token.address,
@@ -109,4 +135,6 @@ def token_network_external(
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
         contract_deployer_address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ])

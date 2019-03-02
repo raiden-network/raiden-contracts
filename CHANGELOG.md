@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Deployment script's `register` command takes two additional options --channel-participant-deposit-limit and --token-network-deposit-limit
+- TokenNetwork's constructor takes two additional arguments `_channel_participant_deposit_limit` and `_token_network_deposit_limit`
 - TokenNetworkRegistry's constructor takes an additional argument `max_number_of_token_networks`
 - Removed flavors
 

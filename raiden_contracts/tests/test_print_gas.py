@@ -44,6 +44,8 @@ def test_token_network_deployment(
         custom_token,
         secret_registry_contract,
         deploy_tester_contract_txhash,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Abusing pytest to print the deployment gas cost of TokenNetwork """
     deprecation_executor = get_accounts(1)[0]
@@ -57,6 +59,8 @@ def test_token_network_deployment(
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ],
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
@@ -68,10 +72,14 @@ def test_token_network_create(
         secret_registry_contract,
         token_network_registry_contract,
         contract_deployer_address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     ).transact({'from': contract_deployer_address})
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')

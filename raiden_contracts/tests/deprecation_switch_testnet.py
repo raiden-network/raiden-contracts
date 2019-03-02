@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     MAX_ETH_CHANNEL_PARTICIPANT,
+    MAX_ETH_TOKEN_NETWORK,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
 
@@ -62,11 +63,18 @@ def deprecation_test(
 
     # We deploy the Raiden Network contracts and register a token network
     token_amount = MAX_ETH_CHANNEL_PARTICIPANT * 6
+    channel_participant_deposit_limit = MAX_ETH_CHANNEL_PARTICIPANT
+    token_network_deposit_limit = MAX_ETH_TOKEN_NETWORK
     (
         token_network_registry,
         token_network,
         token_contract,
-    ) = deprecation_test_setup(deployer, token_amount)
+    ) = deprecation_test_setup(
+        deployer,
+        token_amount,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
+    )
 
     log.info('Checking that channels can be opened and deposits can be made.')
 
@@ -96,7 +104,12 @@ def deprecation_test(
     log.info('Deprecation switch test OK.')
 
 
-def deprecation_test_setup(deployer, token_amount):
+def deprecation_test_setup(
+        deployer,
+        token_amount,
+        channel_participant_deposit_limit: int,
+        token_network_deposit_limit: int,
+):
     deployed_contracts = deploy_raiden_contracts(
         deployer=deployer,
         max_num_of_token_networks=1,
@@ -146,6 +159,8 @@ def deprecation_test_setup(deployer, token_amount):
         token_registry_abi=abi,
         token_registry_address=deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'],
         token_address=token_address,
+        channel_participant_deposit_limit=channel_participant_deposit_limit,
+        token_network_deposit_limit=token_network_deposit_limit,
         token_registry_version=deployer.contract_manager.version_string(),
         wait=deployer.wait,
     )

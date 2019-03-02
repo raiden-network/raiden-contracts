@@ -60,7 +60,11 @@ contract TokenNetworkRegistry is Utils {
     /// `_token_address`.
     /// @param _token_address Ethereum address of an already deployed token, to
     /// be used in the new TokenNetwork contract.
-    function createERC20TokenNetwork(address _token_address)
+    function createERC20TokenNetwork(
+        address _token_address,
+        uint256 _channel_participant_deposit_limit,
+        uint256 _token_network_deposit_limit
+    )
         canCreateTokenNetwork
         external
         returns (address token_network_address)
@@ -79,7 +83,9 @@ contract TokenNetworkRegistry is Utils {
             chain_id,
             settlement_timeout_min,
             settlement_timeout_max,
-            deprecation_executor
+            deprecation_executor,
+            _channel_participant_deposit_limit,
+            _token_network_deposit_limit
         );
 
         token_network_address = address(token_network);

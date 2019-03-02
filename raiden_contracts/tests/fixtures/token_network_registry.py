@@ -57,12 +57,16 @@ def add_and_register_token(
         deploy_token_contract,
         contract_deployer_address,
         contracts_manager,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
 ):
     """Deploy a token and register it in TokenNetworkRegistry"""
     def f(initial_amount: int, decimals: int, token_name: str, token_symbol: str):
         token_contract = deploy_token_contract(initial_amount, decimals, token_name, token_symbol)
         txid = token_network_registry_contract.functions.createERC20TokenNetwork(
             token_contract.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).transact({'from': contract_deployer_address})
         (tx_receipt, _) = check_succesful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1

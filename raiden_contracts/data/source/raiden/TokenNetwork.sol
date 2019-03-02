@@ -31,13 +31,10 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    // Red Eyes release deposit limits
-    // The combined deposit of one channel is limited to 0.15 ETH.
-    // So 0.075 ETH per participant.
-    uint256 constant public channel_participant_deposit_limit = 75000000000000000 wei;
-    // The total combined deposit of all channels across the whole network is
-    // limited to 250 ETH.
-    uint256 constant public token_network_deposit_limit = 250000000000000000000 wei;
+    // The deposit limit per channel per participant.
+    uint256 public channel_participant_deposit_limit;
+    // The total combined deposit of all channels across the whole network
+    uint256 public token_network_deposit_limit;
 
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
@@ -214,7 +211,9 @@ contract TokenNetwork is Utils {
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
-        address _deprecation_executor
+        address _deprecation_executor,
+        uint256 _channel_participant_deposit_limit,
+        uint256 _token_network_deposit_limit
     )
         public
     {
@@ -226,6 +225,9 @@ contract TokenNetwork is Utils {
         require(_settlement_timeout_max > _settlement_timeout_min);
         require(contractExists(_token_address));
         require(contractExists(_secret_registry));
+        require(_channel_participant_deposit_limit > 0);
+        require(_token_network_deposit_limit > 0);
+        require(_token_network_deposit_limit >= _channel_participant_deposit_limit);
 
         token = Token(_token_address);
 
@@ -238,6 +240,8 @@ contract TokenNetwork is Utils {
         require(token.totalSupply() > 0);
 
         deprecation_executor = _deprecation_executor;
+        channel_participant_deposit_limit = _channel_participant_deposit_limit;
+        token_network_deposit_limit = _token_network_deposit_limit;
     }
 
     function deprecate() isSafe onlyDeprecationExecutor public {
