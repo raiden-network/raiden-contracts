@@ -259,6 +259,7 @@ def test_settlement_outcome(
     return f
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
 @pytest.mark.parametrize('tested_range', ('one_old', 'both_old_1', 'both_old_2'))
 # This test is split in three so it does not time out on travis
@@ -371,6 +372,7 @@ def test_channel_settle_old_balance_proof_values(
                         )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize('channel_test_values', channel_settle_invalid_test_values)
 def test_channel_settle_invalid_balance_proof_values(
         web3,

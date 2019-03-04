@@ -26,6 +26,7 @@ from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.utils.type_aliases import T_Address
 
 
+@pytest.mark.slow
 def test_deploy_script_raiden(
         web3,
 ):
@@ -194,6 +195,7 @@ def test_deploy_script_token(
         )
 
 
+@pytest.mark.slow
 def test_deploy_script_register(
         web3,
         channel_participant_deposit_limit,
@@ -249,6 +251,7 @@ def test_deploy_script_register(
     assert isinstance(token_network_address, T_Address)
 
 
+@pytest.mark.slow
 def test_deploy_script_service(
         web3,
 ):
