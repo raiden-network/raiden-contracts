@@ -125,15 +125,15 @@ def sign_balance_proof(
         v=27,
 ):
     message_hash = hash_balance_proof(
-        token_network_address,
-        chain_identifier,
-        channel_identifier,
-        balance_hash,
-        nonce,
-        additional_hash,
+        token_network_address=token_network_address,
+        chain_identifier=chain_identifier,
+        channel_identifier=channel_identifier,
+        balance_hash=balance_hash,
+        nonce=nonce,
+        additional_hash=additional_hash,
     )
 
-    return sign(privatekey, message_hash, v)
+    return sign(privkey=privatekey, msg=message_hash, v=v)
 
 
 def sign_balance_proof_update_message(
@@ -148,16 +148,16 @@ def sign_balance_proof_update_message(
         v=27,
 ):
     message_hash = hash_balance_proof_update_message(
-        token_network_address,
-        chain_identifier,
-        channel_identifier,
-        balance_hash,
-        nonce,
-        additional_hash,
-        closing_signature,
+        token_network_address=token_network_address,
+        chain_identifier=chain_identifier,
+        channel_identifier=channel_identifier,
+        balance_hash=balance_hash,
+        nonce=nonce,
+        additional_hash=additional_hash,
+        closing_signature=closing_signature,
     )
 
-    return sign(privatekey, message_hash, v)
+    return sign(privkey=privatekey, msg=message_hash, v=v)
 
 
 def sign_cooperative_settle_message(
@@ -172,16 +172,16 @@ def sign_cooperative_settle_message(
         v=27,
 ):
     message_hash = hash_cooperative_settle_message(
-        token_network_address,
-        chain_identifier,
-        channel_identifier,
-        participant1_address,
-        participant1_balance,
-        participant2_address,
-        participant2_balance,
+        token_network_address=token_network_address,
+        chain_identifier=chain_identifier,
+        channel_identifier=channel_identifier,
+        participant1_address=participant1_address,
+        participant1_balance=participant1_balance,
+        participant2_address=participant2_address,
+        participant2_balance=participant2_balance,
     )
 
-    return sign(privatekey, message_hash, v)
+    return sign(privkey=privatekey, msg=message_hash, v=v)
 
 
 def sign_withdraw_message(
@@ -194,14 +194,14 @@ def sign_withdraw_message(
         v=27,
 ):
     message_hash = hash_withdraw_message(
-        token_network_address,
-        chain_identifier,
-        channel_identifier,
-        participant,
-        amount_to_withdraw,
+        token_network_address=token_network_address,
+        chain_identifier=chain_identifier,
+        channel_identifier=channel_identifier,
+        participant=participant,
+        amount_to_withdraw=amount_to_withdraw,
     )
 
-    return sign(privatekey, message_hash, v)
+    return sign(privkey=privatekey, msg=message_hash, v=v)
 
 
 def sign_reward_proof(
@@ -213,14 +213,14 @@ def sign_reward_proof(
         nonce,
         v=27):
     message_hash = hash_reward_proof(
-        channel_identifier,
-        reward_amount,
-        token_network_address,
-        chain_id,
-        nonce,
+        channel_identifier=channel_identifier,
+        reward_amount=reward_amount,
+        token_network_address=token_network_address,
+        chain_id=chain_id,
+        nonce=nonce,
     )
 
-    return sign(privatekey, message_hash, v)
+    return sign(privkey=privatekey, msg=message_hash, v=v)
 
 
 def sign_one_to_n_iou(
@@ -237,4 +237,4 @@ def sign_one_to_n_iou(
         encode_single('uint256', amount) +
         encode_single('uint256', expiration),
     )
-    return sign(privatekey, iou_hash, v)
+    return sign(privkey=privatekey, msg=iou_hash, v=v)

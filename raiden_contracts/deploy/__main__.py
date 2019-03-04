@@ -47,7 +47,7 @@ from raiden_contracts.utils.type_aliases import Address
 LOG = getLogger(__name__)
 
 
-def validate_address(_, param, value):
+def validate_address(_, _param, value):
     if not value:
         return None
     try:
@@ -109,14 +109,21 @@ class ContractDeployer:
         )
 
         # Get transaction hash from deployed contract
-        txhash = self.send_deployment_transaction(contract, args)
+        txhash = self.send_deployment_transaction(
+            contract=contract,
+            args=args,
+        )
 
         # Get tx receipt to get contract address
         LOG.debug(
             f'Deploying {contract_name} txHash={encode_hex(txhash)}, '
             f'contracts version {self.contract_manager.contracts_version}',
         )
-        (receipt, tx) = check_succesful_tx(self.web3, txhash, self.wait)
+        (receipt, tx) = check_succesful_tx(
+            web3=self.web3,
+            txid=txhash,
+            timeout=self.wait,
+        )
         if not receipt['contractAddress']:  # happens with Parity
             receipt = dict(receipt)
             receipt['contractAddress'] = tx['creates']
@@ -136,7 +143,11 @@ class ContractDeployer:
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
         LOG.debug(f'Sending txHash={encode_hex(txhash)}')
-        (receipt, _) = check_succesful_tx(self.web3, txhash, self.wait)
+        (receipt, _) = check_succesful_tx(
+            web3=self.web3,
+            txid=txhash,
+            timeout=self.wait,
+        )
         return receipt
 
     def send_deployment_transaction(self, contract, args):
@@ -226,12 +237,12 @@ def setup_ctx(
     # pylint: disable=E1101
     assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
     deployer = ContractDeployer(
-        web3,
-        private_key,
-        gas_limit,
-        gas_price,
-        wait,
-        contracts_version,
+        web3=web3,
+        private_key=private_key,
+        gas_limit=gas_limit,
+        gas_price=gas_price,
+        wait=wait,
+        contracts_version=contracts_version,
     )
     ctx.obj = {}
     ctx.obj['deployer'] = deployer
@@ -531,7 +542,10 @@ def verify(ctx, rpc_provider, contracts_version):
     print('Web3 provider is', web3.providers[0])
 
     contract_manager = ContractManager(contracts_precompiled_path(contracts_version))
-    verify_deployed_contracts_in_filesystem(web3, contract_manager)
+    verify_deployed_contracts_in_filesystem(
+        web3=web3,
+        contract_manager=contract_manager,
+    )
 
 
 def deployed_data_from_receipt(receipt, constructor_arguments):
@@ -552,7 +566,10 @@ def deploy_and_remember(
 ) -> Contract:
     """ Deployes contract_name with arguments and store the result in deployed_contracts. """
     receipt = deployer.deploy(contract_name, arguments)
-    deployed_contracts['contracts'][contract_name] = deployed_data_from_receipt(receipt, arguments)
+    deployed_contracts['contracts'][contract_name] = deployed_data_from_receipt(
+        receipt=receipt,
+        constructor_arguments=arguments,
+    )
     return deployer.web3.eth.contract(
         abi=deployer.contract_manager.get_contract_abi(contract_name),
         address=deployed_contracts['contracts'][contract_name]['address'],
@@ -573,22 +590,22 @@ def deploy_raiden_contracts(
 
     deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployer, deployed_contracts)
     secret_registry = deploy_and_remember(
-        CONTRACT_SECRET_REGISTRY,
-        [],
-        deployer,
-        deployed_contracts,
+        contract_name=CONTRACT_SECRET_REGISTRY,
+        arguments=[],
+        deployer=deployer,
+        deployed_contracts=deployed_contracts,
     )
     deploy_and_remember(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [
+        contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
+        arguments=[
             secret_registry.address,
             deployed_contracts['chain_id'],
             DEPLOY_SETTLE_TIMEOUT_MIN,
             DEPLOY_SETTLE_TIMEOUT_MAX,
             max_num_of_token_networks,
         ],
-        deployer,
-        deployed_contracts,
+        deployer=deployer,
+        deployed_contracts=deployed_contracts,
     )
 
     return deployed_contracts
@@ -608,10 +625,10 @@ def deploy_service_contracts(
 
     deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployer, deployed_contracts)
     user_deposit = deploy_and_remember(
-        CONTRACT_USER_DEPOSIT,
-        [token_address, user_deposit_whole_balance_limit],
-        deployer,
-        deployed_contracts,
+        contract_name=CONTRACT_USER_DEPOSIT,
+        arguments=[token_address, user_deposit_whole_balance_limit],
+        deployer=deployer,
+        deployed_contracts=deployed_contracts,
     )
 
     monitoring_service_constructor_args = [
@@ -620,17 +637,17 @@ def deploy_service_contracts(
         deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
     ]
     msc = deploy_and_remember(
-        CONTRACT_MONITORING_SERVICE,
-        monitoring_service_constructor_args,
-        deployer,
-        deployed_contracts,
+        contract_name=CONTRACT_MONITORING_SERVICE,
+        arguments=monitoring_service_constructor_args,
+        deployer=deployer,
+        deployed_contracts=deployed_contracts,
     )
 
     one_to_n = deploy_and_remember(
-        CONTRACT_ONE_TO_N,
-        [user_deposit.address],
-        deployer,
-        deployed_contracts,
+        contract_name=CONTRACT_ONE_TO_N,
+        arguments=[user_deposit.address],
+        deployer=deployer,
+        deployed_contracts=deployed_contracts,
     )
 
     # Tell the UserDeposit instance about other contracts.
@@ -654,8 +671,8 @@ def deploy_token_contract(
 ):
     """Deploy a token contract."""
     receipt = deployer.deploy(
-        token_type,
-        [token_supply, token_decimals, token_name, token_symbol],
+        contract_name=token_type,
+        args=[token_supply, token_decimals, token_name, token_symbol],
     )
     token_address = receipt['contractAddress']
     assert token_address and is_address(token_address)
@@ -704,7 +721,7 @@ def register_token_network(
             encode_hex(txhash),
         ),
     )
-    (receipt, _) = check_succesful_tx(web3, txhash, wait)
+    (receipt, _) = check_succesful_tx(web3=web3, txid=txhash, timeout=wait)
 
     token_network_address = token_network_registry.functions.token_to_token_networks(
         token_address,
@@ -747,24 +764,24 @@ def verify_deployment_data(
     assert chain_id == deployment_data['chain_id']
 
     endpoint_registry, _ = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_ENDPOINT_REGISTRY,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_ENDPOINT_REGISTRY,
     )
 
     secret_registry, _ = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_SECRET_REGISTRY,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_SECRET_REGISTRY,
     )
 
     token_network_registry, constructor_arguments = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
     )
 
     # We need to also check the constructor parameters against the chain
@@ -787,10 +804,13 @@ def verify_deployed_contracts_in_filesystem(
 ):
     chain_id = int(web3.version.network)
 
-    deployment_data = get_contracts_deployed(chain_id, contract_manager.contracts_version)
+    deployment_data = get_contracts_deployed(
+        chain_id=chain_id,
+        version=contract_manager.contracts_version,
+    )
     deployment_file_path = contracts_deployed_path(
-        chain_id,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        version=contract_manager.contracts_version,
     )
     assert deployment_data is not None
 
@@ -812,19 +832,19 @@ def verify_service_contracts_deployment_data(
     assert chain_id == deployment_data['chain_id']
 
     service_bundle, constructor_arguments = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_SERVICE_REGISTRY,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_SERVICE_REGISTRY,
     )
     assert to_checksum_address(service_bundle.functions.token().call()) == token_address
     assert token_address == constructor_arguments[0]
 
     user_deposit, constructor_arguments = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_USER_DEPOSIT,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_USER_DEPOSIT,
     )
     assert len(constructor_arguments) == 2
     assert to_checksum_address(user_deposit.functions.token().call()) == token_address
@@ -853,10 +873,10 @@ def verify_service_contracts_deployment_data(
     assert user_deposit.address == constructor_arguments[2]
 
     one_to_n, constructor_arguments = verify_deployed_contract(
-        web3,
-        contract_manager,
-        deployment_data,
-        CONTRACT_ONE_TO_N,
+        web3=web3,
+        contract_manager=contract_manager,
+        deployment_data=deployment_data,
+        contract_name=CONTRACT_ONE_TO_N,
     )
     assert to_checksum_address(
         one_to_n.functions.deposit_contract().call(),
@@ -884,13 +904,13 @@ def verify_deployed_service_contracts_in_filesystem(
     chain_id = int(web3.version.network)
 
     deployment_data = get_contracts_deployed(
-        chain_id,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        version=contract_manager.contracts_version,
         services=True,
     )
     deployment_file_path = contracts_deployed_path(
-        chain_id,
-        contract_manager.contracts_version,
+        chain_id=chain_id,
+        version=contract_manager.contracts_version,
         services=True,
     )
     assert deployment_data is not None
@@ -931,7 +951,10 @@ def verify_deployed_contract(
 
     # Check that the deployed bytecode matches the precompiled data
     blockchain_bytecode = web3.eth.getCode(contract_address).hex()
-    compiled_bytecode = runtime_hexcode(contract_manager, contract_name)
+    compiled_bytecode = runtime_hexcode(
+        contracts_manager=contract_manager,
+        name=contract_name,
+    )
     assert blockchain_bytecode == compiled_bytecode
 
     print(

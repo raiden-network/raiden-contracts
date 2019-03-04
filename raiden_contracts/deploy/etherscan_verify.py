@@ -53,54 +53,64 @@ def etherscan_verify(
         contract_name: Optional[str],
 ):
     if guid:
-        guid_status(api_of_chain_id[chain_id], guid)
+        guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid)
         return
 
     if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
         etherscan_verify_contract(
-            chain_id,
-            apikey,
-            'raiden',
-            CONTRACT_ENDPOINT_REGISTRY,
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='raiden',
+            contract_name=CONTRACT_ENDPOINT_REGISTRY,
         )
 
     if contract_name is None or contract_name == CONTRACT_SECRET_REGISTRY:
         etherscan_verify_contract(
-            chain_id,
-            apikey,
-            'raiden',
-            CONTRACT_SECRET_REGISTRY,
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='raiden',
+            contract_name=CONTRACT_SECRET_REGISTRY,
         )
 
     if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
         etherscan_verify_contract(
-            chain_id,
-            apikey,
-            'raiden',
-            CONTRACT_TOKEN_NETWORK_REGISTRY,
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='raiden',
+            contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
         )
 
     if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
         etherscan_verify_contract(
-            chain_id,
-            apikey,
-            'services',
-            CONTRACT_SERVICE_REGISTRY,
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='services',
+            contract_name=CONTRACT_SERVICE_REGISTRY,
         )
 
     if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
         etherscan_verify_contract(
-            chain_id,
-            apikey,
-            'services',
-            CONTRACT_MONITORING_SERVICE,
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='services',
+            contract_name=CONTRACT_MONITORING_SERVICE,
         )
 
     if contract_name is None or contract_name == CONTRACT_ONE_TO_N:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_ONE_TO_N)
+        etherscan_verify_contract(
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='services',
+            contract_name=CONTRACT_ONE_TO_N,
+        )
 
     if contract_name is None or contract_name == CONTRACT_USER_DEPOSIT:
-        etherscan_verify_contract(chain_id, apikey, 'services', CONTRACT_USER_DEPOSIT)
+        etherscan_verify_contract(
+            chain_id=chain_id,
+            apikey=apikey,
+            source_module='services',
+            contract_name=CONTRACT_USER_DEPOSIT,
+        )
 
 
 api_of_chain_id = {
@@ -150,7 +160,7 @@ def get_constructor_args(
                 filter(lambda x: x['type'] == 'constructor', abi),
             )[0]['inputs']
         ]
-        constructor_args = encode_abi(constructor_types, constructor_arguments).hex()
+        constructor_args = encode_abi(types=constructor_types, args=constructor_arguments).hex()
     else:
         constructor_types = []
         constructor_args = ''
@@ -203,18 +213,18 @@ def etherscan_verify_contract(
     """
     etherscan_api = api_of_chain_id[chain_id]
     deployment_info = get_contracts_deployed(
-        chain_id,
+        chain_id=chain_id,
         services=(source_module == 'services'),
     )
     contract_manager = ContractManager(contracts_precompiled_path())
 
     data = post_data_for_etherscan_verification(
-        apikey,
-        deployment_info['contracts'][contract_name],
-        join_sources(source_module, contract_name),
-        contract_name,
-        json.loads(contract_manager.contracts[contract_name]['metadata']),
-        get_constructor_args(deployment_info, contract_name, contract_manager),
+        apikey=apikey,
+        deployment_info=deployment_info['contracts'][contract_name],
+        source=join_sources(source_module, contract_name),
+        contract_name=contract_name,
+        metadata=json.loads(contract_manager.contracts[contract_name]['metadata']),
+        constructor_args=get_constructor_args(deployment_info, contract_name, contract_manager),
     )
     response = requests.post(etherscan_api, data=data)
     content = json.loads(response.content.decode())
@@ -233,7 +243,7 @@ def etherscan_verify_contract(
         retries = 10
         while status == '0' and retries > 0:
             retries -= 1
-            r = guid_status(etherscan_api, guid)
+            r = guid_status(etherscan_api=etherscan_api, guid=guid)
             status = r['status']
             if r['result'] == 'Fail - Unable to verify':
                 raise ValueError(manual_submission_guide)

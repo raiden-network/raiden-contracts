@@ -39,89 +39,89 @@ def test_withdraw_call(
     # Failure with zero (integer) instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            0x0,
-            withdraw_A,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=0x0,
+            total_withdraw=withdraw_A,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with the empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            '',
-            withdraw_A,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant='',
+            total_withdraw=withdraw_A,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with a negative number as the total withdrawn amount
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            -1,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=-1,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with an overflown number as the total withdrawn amount
     with pytest.raises(ValidationError):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            MAX_UINT256 + 1,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=MAX_UINT256 + 1,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with the zero address insted of a participant's address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            EMPTY_ADDRESS,
-            withdraw_A,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=EMPTY_ADDRESS,
+            total_withdraw=withdraw_A,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with zero as the total withdrawn amount
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            0,
-            signature_A_for_A,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=0,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with the empty signature instead of A's
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            EMPTY_SIGNATURE,
-            signature_B_for_A,
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=withdraw_A,
+            participant_signature=EMPTY_SIGNATURE,
+            partner_signature=signature_B_for_A,
         ).transact({'from': A})
 
     # Failure with the empty signature instead of B's
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            signature_A_for_A,
-            EMPTY_SIGNATURE,
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=withdraw_A,
+            participant_signature=signature_A_for_A,
+            partner_signature=EMPTY_SIGNATURE,
         ).transact({'from': A})
 
     token_network.functions.setTotalWithdraw(
-        channel_identifier,
-        A,
-        withdraw_A,
-        signature_A_for_A,
-        signature_B_for_A,
+        channel_identifier=channel_identifier,
+        participant=A,
+        total_withdraw=withdraw_A,
+        participant_signature=signature_A_for_A,
+        partner_signature=signature_B_for_A,
     ).transact({'from': A})
 
 
