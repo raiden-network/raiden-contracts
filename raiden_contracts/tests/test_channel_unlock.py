@@ -701,6 +701,7 @@ def test_channel_unlock(
     assert balance_contract == pre_balance_contract - values_B.locked
 
 
+@pytest.mark.slow
 def test_channel_settle_and_unlock(
         web3,
         token_network,
