@@ -275,6 +275,30 @@ def test_create_erc20_token_network_call(
             token_network_deposit_limit,
         ).transact()
 
+    # failures with invalid deposit limits
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            0,
+            token_network_deposit_limit,
+        ).transact({'from': contract_deployer_address})
+
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            channel_participant_deposit_limit,
+            0,
+        ).transact({'from': contract_deployer_address})
+
+    with pytest.raises(TransactionFailed):
+        # fails because token_network_deposit_limit is smaller than
+        # channel_participant_deposit_limit.
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            token_network_deposit_limit,
+            channel_participant_deposit_limit,
+        ).transact({'from': contract_deployer_address})
+
     # see a success to make sure above tests were meaningful
     token_network_registry_contract.functions.createERC20TokenNetwork(
         custom_token.address,
