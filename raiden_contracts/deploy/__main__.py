@@ -760,7 +760,7 @@ def verify_deployment_data(
     assert contract_manager.version_string() == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
-    endpoint_registry, _ = verify_deployed_contract(
+    verify_deployed_contract(
         web3=web3,
         contract_manager=contract_manager,
         deployment_data=deployment_data,

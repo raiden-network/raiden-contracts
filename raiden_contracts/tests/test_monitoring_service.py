@@ -27,14 +27,14 @@ def ms_address(
 
 @pytest.fixture
 def monitor_data(
-    get_accounts,
-    deposit_to_udc,
-    create_channel,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    create_reward_proof,
-    token_network,
-    ms_address,
+        get_accounts,
+        deposit_to_udc,
+        create_channel,
+        create_balance_proof,
+        create_balance_proof_update_signature,
+        create_reward_proof,
+        token_network,
+        ms_address,
 ):
     # Create two parties and a channel between them
     (A, B) = get_accounts(2)
@@ -147,11 +147,11 @@ def test_claimReward(
 
 
 def test_monitor(
-    token_network,
-    monitoring_service_external,
-    monitor_data,
-    ms_address,
-    event_handler,
+        token_network,
+        monitoring_service_external,
+        monitor_data,
+        ms_address,
+        event_handler,
 ):
     A, B = monitor_data['participants']
 
@@ -207,11 +207,11 @@ def test_monitor(
 
 
 def test_updateReward(
-    monitoring_service_internals,
-    ms_address,
-    token_network,
-    create_reward_proof,
-    monitor_data,
+        monitoring_service_internals,
+        ms_address,
+        token_network,
+        create_reward_proof,
+        monitor_data,
 ):
     A, B = monitor_data['participants']
     reward_identifier = Web3.sha3(

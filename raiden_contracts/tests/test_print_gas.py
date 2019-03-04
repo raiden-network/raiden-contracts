@@ -149,7 +149,7 @@ def print_gas_channel_cycle(
     (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
 
-    (channel_identifier2, txn_hash) = create_channel(C, D, settle_timeout)
+    (_, txn_hash) = create_channel(C, D, settle_timeout)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.openChannel')
 
     txn_hash = channel_deposit(channel_identifier, A, 20, B)
@@ -252,7 +252,7 @@ def print_gas_channel_cycle(
 @pytest.fixture
 def print_gas_endpointregistry(endpoint_registry_contract, get_accounts, print_gas):
     """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     ENDPOINT = '127.0.0.1:38647'
     txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({
         'from': A,
@@ -350,12 +350,12 @@ def print_gas_monitoring_service(
 
 @pytest.fixture
 def print_gas_one_to_n(
-    one_to_n_contract,
-    deposit_to_udc,
-    get_accounts,
-    get_private_key,
-    web3,
-    print_gas,
+        one_to_n_contract,
+        deposit_to_udc,
+        get_accounts,
+        get_private_key,
+        web3,
+        print_gas,
 ):
     """ Abusing pytest to print gas cost of OneToN functions """
     (A, B) = get_accounts(2)
@@ -379,11 +379,11 @@ def print_gas_one_to_n(
 
 @pytest.fixture
 def print_gas_user_deposit(
-    user_deposit_contract,
-    custom_token,
-    get_accounts,
-    web3,
-    print_gas,
+        user_deposit_contract,
+        custom_token,
+        get_accounts,
+        web3,
+        print_gas,
 ):
     """ Abusing pytest to print gas cost of UserDeposit functions
 

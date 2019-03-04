@@ -6,8 +6,8 @@ from raiden_contracts.tests.utils.constants import FAUCET_ADDRESS
 
 @pytest.fixture
 def send_funds(
-    ethereum_tester,
-    custom_token,
+        ethereum_tester,
+        custom_token,
 ):
     """Send some tokens and eth to specified address."""
     def f(target: str):

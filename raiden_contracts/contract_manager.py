@@ -293,10 +293,10 @@ def get_contracts_deployed(
     return deployment_data
 
 
-def _fix_contract_key_names(input: Dict) -> Dict:
+def _fix_contract_key_names(d: Dict) -> Dict:
     result = {}
 
-    for k, v in input.items():
+    for k, v in d.items():
         name = k.split(':')[1]
         result[name] = v
 

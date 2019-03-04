@@ -49,7 +49,7 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts):
 
 def test_register_secret(secret_registry_contract, get_accounts, get_block):
     """ Register a secret and see it's registered """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     secret = b'secretsecretsecretsecretsecretse'
     secret2 = b'secretsecretsecretsecretsecretss'
     secrethash = Web3.sha3(secret)
@@ -72,16 +72,16 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
     secrets = [fake_bytes(32, fill) for fill in ('02', '03', '04', '05')]
     secret_hashes = [Web3.sha3(secret) for secret in secrets]
 
-    for hash in secret_hashes:
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(hash).call() == 0
+    for h in secret_hashes:
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == 0
 
     txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).transact({
         'from': A,
     })
     block = get_block(txn_hash)
 
-    for hash in secret_hashes:
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(hash).call() == block
+    for h in secret_hashes:
+        assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == block
 
 
 def test_register_secret_batch_return_value(secret_registry_contract, get_accounts, get_block):

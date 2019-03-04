@@ -208,7 +208,7 @@ def test_cooperative_settle_channel_0(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
+    (signature_A, signature_B, _) = create_cooperative_settle_signatures(
         [A, B, C],
         channel_identifier,
         A,
@@ -260,7 +260,7 @@ def test_cooperative_settle_channel_00(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
+    (signature_A, signature_B, _) = create_cooperative_settle_signatures(
         [A, B, C],
         channel_identifier,
         A,

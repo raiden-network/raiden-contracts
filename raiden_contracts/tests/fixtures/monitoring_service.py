@@ -6,10 +6,10 @@ from raiden_contracts.utils.proofs import sign_reward_proof
 
 @pytest.fixture(scope='session')
 def monitoring_service_external(
-    deploy_tester_contract,
-    custom_token,
-    service_registry,
-    uninitialized_user_deposit_contract,
+        deploy_tester_contract,
+        custom_token,
+        service_registry,
+        uninitialized_user_deposit_contract,
 ):
     return deploy_tester_contract(
         CONTRACT_MONITORING_SERVICE,
@@ -24,10 +24,10 @@ def monitoring_service_external(
 
 @pytest.fixture()
 def monitoring_service_internals(
-    custom_token,
-    service_registry,
-    uninitialized_user_deposit_contract,
-    deploy_tester_contract,
+        custom_token,
+        service_registry,
+        uninitialized_user_deposit_contract,
+        deploy_tester_contract,
 ):
     return deploy_tester_contract(
         'MonitoringServiceInternalsTest',

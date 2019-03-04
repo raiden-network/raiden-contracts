@@ -66,9 +66,9 @@ def deprecation_test(
     channel_participant_deposit_limit = MAX_ETH_CHANNEL_PARTICIPANT
     token_network_deposit_limit = MAX_ETH_TOKEN_NETWORK
     (
-        token_network_registry,
+        _,
         token_network,
-        token_contract,
+        _,
     ) = deprecation_test_setup(
         deployer,
         token_amount,

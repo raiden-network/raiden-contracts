@@ -207,9 +207,9 @@ def failsafe_add(a, b):
     """
     a = a % (MAX_UINT256 + 1)
     b = b % (MAX_UINT256 + 1)
-    sum = (a + b) % (MAX_UINT256 + 1)
-    if sum >= a:
-        return sum
+    ret = (a + b) % (MAX_UINT256 + 1)
+    if ret >= a:
+        return ret
     else:
         return MAX_UINT256
 

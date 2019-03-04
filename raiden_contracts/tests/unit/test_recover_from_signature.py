@@ -62,7 +62,7 @@ def test_verify_fail(signature_test_contract, get_accounts, get_private_key):
     the signature test contract returns the correct address on a correct
     message hash, returns a different address on a wrong message hash, and
     fails on a too long signature """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     message_hash = Web3.soliditySha3(['string', 'uint256'], ['hello', 5])
     signature = sign(get_private_key(A), message_hash, v=27)
 

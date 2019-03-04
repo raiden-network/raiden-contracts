@@ -5,9 +5,9 @@ from raiden_contracts.constants import CONTRACTS_VERSION, UserDepositEvent
 
 
 def test_deposit(
-    user_deposit_contract,
-    custom_token,
-    get_accounts,
+        user_deposit_contract,
+        custom_token,
+        get_accounts,
 ):
     (A, B) = get_accounts(2)
     custom_token.functions.mint(100).transact({'from': A})
@@ -88,10 +88,10 @@ def test_transfer(
 
 
 def test_deposit_after_transfer(
-    uninitialized_user_deposit_contract,
-    udc_transfer_contract,
-    custom_token,
-    get_accounts,
+        uninitialized_user_deposit_contract,
+        udc_transfer_contract,
+        custom_token,
+        get_accounts,
 ):
     """ Make sure that `total_deposit` and `balance` are not mixed up.
 
@@ -124,11 +124,11 @@ def test_deposit_after_transfer(
 
 
 def test_withdraw(
-    user_deposit_contract,
-    deposit_to_udc,
-    get_accounts,
-    web3,
-    event_handler,
+        user_deposit_contract,
+        deposit_to_udc,
+        get_accounts,
+        web3,
+        event_handler,
 ):
     """ Test the interaction between planWithdraw, widthdraw and effectiveBalance
     """
