@@ -7,10 +7,13 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Deployment script's `register` command takes two additional options --channel-participant-deposit-limit and --token-network-deposit-limit
-- TokenNetwork's constructor takes two additional arguments `_channel_participant_deposit_limit` and `_token_network_deposit_limit`
-- TokenNetworkRegistry's constructor takes an additional argument `max_number_of_token_networks`
-- Removed flavors
+## [0.13.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.13.0) - 2019-03-04
+
+- [#655](https://github.com/raiden-network/raiden-contracts/pull/655) Deployment script's `register` command takes two additional options --channel-participant-deposit-limit and --token-network-deposit-limit
+- [#655](https://github.com/raiden-network/raiden-contracts/pull/655) TokenNetworkRegistry's createERC20TokenNetwork() function takes two additional arguments `_channel_participant_deposit_limit` and `_token_network_deposit_limit`.
+- [#655](https://github.com/raiden-network/raiden-contracts/pull/655) TokenNetwork's constructor takes two additional arguments `_channel_participant_deposit_limit` and `_token_network_deposit_limit`
+- [#652](https://github.com/raiden-network/raiden-contracts/pull/652) TokenNetworkRegistry's constructor takes an additional argument `max_number_of_token_networks`
+- [#651](https://github.com/raiden-network/raiden-contracts/pull/651) Removed flavors
 
 ## [0.12.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.12.0) - 2019-02-28
 
