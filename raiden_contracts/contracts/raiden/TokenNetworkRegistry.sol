@@ -31,6 +31,15 @@ contract TokenNetworkRegistry is Utils {
         _;
     }
 
+    /// @param _secret_registry_address The address of SecretRegistry that's used by all
+    /// TokenNetworks created by this contract.
+    /// @param _chain_id EIP-155 Chain-ID of the chain where this contract is deployed.
+    /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening.
+    /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening.
+    /// @param _max_token_networks the number of tokens that can be registered.
+    /// MAX_UINT256 means no limits.
     constructor(
         address _secret_registry_address,
         uint256 _chain_id,
