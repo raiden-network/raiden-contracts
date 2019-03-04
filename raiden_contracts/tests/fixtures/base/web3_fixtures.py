@@ -6,7 +6,7 @@ from eth_tester import EthereumTester, PyEVMBackend
 from web3 import Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
-from raiden_contracts.utils.type_aliases import Address
+from raiden_contracts.tests.utils.constants import FAUCET_PRIVATE_KEY, FAUCET_ADDRESS
 
 DEFAULT_TIMEOUT = 5
 DEFAULT_RETRY_INTERVAL = 3
@@ -37,8 +37,6 @@ def patch_genesis_gas_limit():
 @pytest.fixture(scope='session')
 def web3(
         patch_genesis_gas_limit,
-        faucet_private_key: str,
-        faucet_address: Address,
         ethereum_tester,
 ):
     """Returns an initialized Web3 instance"""
@@ -46,12 +44,12 @@ def web3(
     web3 = Web3(provider)
 
     # add faucet account to tester
-    ethereum_tester.add_account(faucet_private_key)
+    ethereum_tester.add_account(FAUCET_PRIVATE_KEY)
 
     # make faucet rich
     ethereum_tester.send_transaction({
         'from': ethereum_tester.get_accounts()[0],
-        'to': faucet_address,
+        'to': FAUCET_ADDRESS,
         'gas': 21000,
         'value': FAUCET_ALLOWANCE,
     })
@@ -59,15 +57,15 @@ def web3(
     yield web3
 
 
-@pytest.fixture
-def revert_chain(web3: Web3):
-    """Reverts chain to its initial state.
-    If this fixture is used, the chain will revert on each test teardown.
+@pytest.fixture(autouse=True)
+def auto_revert_chain(web3: Web3):
+    """Reverts the chain to its before the test run
+
+    This reverts the side effects created during the test run, so that we can
+    reuse the same chain and contract deployments for other tests.
 
     This is useful especially when using ethereum tester - its log filtering
     is very slow once enough events are present on-chain.
-
-    Note that `deploy_contract` fixture uses `revert_chain` by default.
     """
     snapshot_id = web3.testing.snapshot()
     yield

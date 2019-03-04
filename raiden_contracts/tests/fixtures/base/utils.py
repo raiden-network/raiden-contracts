@@ -6,6 +6,7 @@ from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.tests.utils.constants import passphrase
+from raiden_contracts.tests.utils import get_random_privkey
 from eth_utils import denoms, is_same_address
 
 
@@ -27,8 +28,8 @@ def create_accounts(web3):
     return get
 
 
-@pytest.fixture
-def create_account(web3, ethereum_tester, get_random_privkey):
+@pytest.fixture(scope="session")
+def create_account(web3, ethereum_tester):
     def get():
         privkey = get_random_privkey()
         address = private_key_to_address(privkey)
@@ -47,7 +48,7 @@ def create_account(web3, ethereum_tester, get_random_privkey):
     return get
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def get_accounts(create_account):
     def get(number):
         return [
@@ -58,7 +59,7 @@ def get_accounts(create_account):
     return get
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def get_private_key(web3, ethereum_tester):
     def get(account_address):
         keys = [
@@ -73,22 +74,7 @@ def get_private_key(web3, ethereum_tester):
     return get
 
 
-@pytest.fixture
-def create_contract(chain, contract_deployer_address):
-    def get(contract_type, arguments, transaction=None):
-        if not transaction:
-            transaction = {}
-        if 'from' not in transaction:
-            transaction['from'] = contract_deployer_address
-
-        deploy_txn_hash = contract_type.deploy(transaction=transaction, args=arguments)
-        contract_address = chain.wait.for_contract_address(deploy_txn_hash)
-        contract = contract_type(address=contract_address)
-        return contract
-    return get
-
-
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def event_handler(contracts_manager, web3):
     def get(contract=None, address=None, abi=None):
         if contract:

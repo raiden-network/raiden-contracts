@@ -1,4 +1,6 @@
 import pytest
+from web3.contract import get_event_data
+
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -9,7 +11,9 @@ from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
 )
-from web3.contract import get_event_data
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+
+snapshot_before_token_network = None
 
 
 @pytest.fixture
@@ -24,12 +28,11 @@ def get_token_network(web3, deploy_tester_contract):
     return get
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def register_token_network(
-        contract_deployer_address,
-        web3,
-        token_network_registry_contract,
-        contracts_manager,
+    web3,
+    token_network_registry_contract,
+    contracts_manager,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
@@ -42,7 +45,7 @@ def register_token_network(
             token_address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': contract_deployer_address})
+        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -58,24 +61,38 @@ def register_token_network(
     return get
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def channel_participant_deposit_limit():
     return MAX_ETH_CHANNEL_PARTICIPANT
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def token_network_deposit_limit():
     return MAX_ETH_TOKEN_NETWORK
 
 
 @pytest.fixture
+def no_token_network(token_network, web3):
+    """ Some tests must be executed before a token network gets created
+
+    These tests should use this fixture. Otherwise a session level token
+    network might already be registered.
+    """
+    if snapshot_before_token_network is not None:
+        web3.testing.revert(snapshot_before_token_network)
+
+
+@pytest.fixture(scope='session')
 def token_network(
         register_token_network,
         custom_token,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
+        web3,
 ):
     """Register a new token network for a custom token"""
+    global snapshot_before_token_network
+    snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
         custom_token.address,
         channel_participant_deposit_limit,
@@ -121,7 +138,6 @@ def token_network_contract(
 @pytest.fixture()
 def token_network_external(
         web3,
-        contract_deployer_address,
         get_token_network,
         custom_token,
         secret_registry_contract,
@@ -134,7 +150,7 @@ def token_network_external(
         int(web3.version.network),
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
-        contract_deployer_address,
+        CONTRACT_DEPLOYER_ADDRESS,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
     ])

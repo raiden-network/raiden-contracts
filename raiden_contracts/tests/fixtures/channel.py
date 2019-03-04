@@ -19,9 +19,10 @@ from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     fake_bytes,
 )
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_channel(token_network):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
@@ -46,9 +47,9 @@ def create_channel(token_network):
 
 
 @pytest.fixture()
-def assign_tokens(contract_deployer_address, token_network, custom_token):
+def assign_tokens(token_network, custom_token):
     def get(participant, deposit):
-        owner = contract_deployer_address
+        owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
         owner_balance = custom_token.functions.balanceOf(owner).call()
         amount = max(deposit - balance, 0)
@@ -594,7 +595,7 @@ def withdraw_state_tests(custom_token, token_network):
     return get
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_balance_proof(token_network, get_private_key):
     def get(
             channel_identifier,
@@ -634,7 +635,7 @@ def create_balance_proof(token_network, get_private_key):
     return get
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_balance_proof_update_signature(token_network, get_private_key):
     def get(
             participant,

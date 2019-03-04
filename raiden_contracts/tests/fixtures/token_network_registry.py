@@ -10,6 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
 @pytest.fixture()
@@ -23,7 +24,7 @@ def get_token_network_registry(deploy_tester_contract):
     return get
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def token_network_registry_contract(deploy_tester_contract, secret_registry_contract, web3):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
@@ -50,7 +51,6 @@ def add_and_register_token(
         web3,
         token_network_registry_contract,
         deploy_token_contract,
-        contract_deployer_address,
         contracts_manager,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
@@ -62,7 +62,7 @@ def add_and_register_token(
             token_contract.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': contract_deployer_address})
+        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         (tx_receipt, _) = check_succesful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(

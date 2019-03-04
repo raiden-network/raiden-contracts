@@ -3,7 +3,7 @@ import pytest
 from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def uninitialized_user_deposit_contract(
         deploy_tester_contract,
         custom_token,
@@ -15,7 +15,7 @@ def uninitialized_user_deposit_contract(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def user_deposit_contract(
         uninitialized_user_deposit_contract,
         monitoring_service_external,

@@ -1,3 +1,4 @@
+import pytest
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -9,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
 )
-from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
+from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT, CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree, get_locked_amount
 from raiden_contracts.utils.merkle import get_merkle_root
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
@@ -66,12 +67,12 @@ def test_token_network_deployment(
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_token_network_create(
         print_gas,
         custom_token,
         secret_registry_contract,
         token_network_registry_contract,
-        contract_deployer_address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
 ):
@@ -80,7 +81,7 @@ def test_token_network_create(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact({'from': contract_deployer_address})
+    ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 

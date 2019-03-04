@@ -9,6 +9,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
+    CONTRACT_DEPLOYER_ADDRESS,
 )
 from raiden_contracts.utils.events import check_token_network_created
 from web3.exceptions import ValidationError
@@ -20,6 +21,7 @@ def test_version(token_network_registry_contract):
     assert version == CONTRACTS_VERSION
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_constructor_call(
         web3,
         get_token_network_registry,
@@ -188,6 +190,7 @@ def test_constructor_call(
     ])
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
     """ The constructor should set the parameters into the storage of the contract """
 
@@ -207,9 +210,9 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
     assert 30 == registry.functions.max_token_networks().call()
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network_call(
         token_network_registry_contract,
-        contract_deployer_address,
         custom_token,
         get_accounts,
         channel_participant_deposit_limit,
@@ -277,9 +280,10 @@ def test_create_erc20_token_network_call(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact({'from': contract_deployer_address})
+    ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network(
         register_token_network,
         token_network_registry_contract,
@@ -317,8 +321,8 @@ def test_create_erc20_token_network(
     assert token_network.functions.settlement_timeout_max().call() == settle_timeout_max
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_create_erc20_token_network_twice_fails(
-        contract_deployer_address,
         token_network_registry_contract,
         custom_token,
         channel_participant_deposit_limit,
@@ -327,7 +331,7 @@ def test_create_erc20_token_network_twice_fails(
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
     token_network_registry_contract.transact(
-        {'from': contract_deployer_address},
+        {'from': CONTRACT_DEPLOYER_ADDRESS},
     ).createERC20TokenNetwork(
         custom_token.address,
         channel_participant_deposit_limit,
@@ -336,7 +340,7 @@ def test_create_erc20_token_network_twice_fails(
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.transact(
-            {'from': contract_deployer_address},
+            {'from': CONTRACT_DEPLOYER_ADDRESS},
         ).createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
@@ -344,6 +348,7 @@ def test_create_erc20_token_network_twice_fails(
         )
 
 
+@pytest.mark.usefixtures('no_token_network')
 def test_events(
         register_token_network,
         token_network_registry_contract,
