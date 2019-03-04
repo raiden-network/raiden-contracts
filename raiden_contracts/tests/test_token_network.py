@@ -317,6 +317,46 @@ def test_constructor_call(
             token_network_deposit_limit,
         ])
 
+    # failure with channel_participant_deposit_limit being zero
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
+            0,
+            token_network_deposit_limit,
+        ])
+
+    # failure with both limits being zero
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
+            0,
+            0,
+        ])
+
+    # failure with channel_participant_deposit_limit being bigger than
+    # token_network_deposit_limit.
+    with pytest.raises(TransactionFailed):
+        get_token_network([
+            custom_token.address,
+            secret_registry_contract.address,
+            chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
+            deprecation_executor,
+            token_network_deposit_limit,
+            channel_participant_deposit_limit,
+        ])
+
     # see a success to make sure that the above failures are meaningful
     get_token_network([
         custom_token.address,
