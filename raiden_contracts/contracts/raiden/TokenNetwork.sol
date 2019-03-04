@@ -205,6 +205,18 @@ contract TokenNetwork is Utils {
         _;
     }
 
+    /// @param _token_address The address of the ERC20 token contract.
+    /// @param _secret_registry The address of SecretRegistry contract that witnesses the onchain secret reveals.
+    /// @param _chain_id EIP-155 Chain ID of the blockchain where this instance is being deployed.
+    /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening.
+    /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening.
+    /// @param _deprecation_executor The Ethereum address that can disable new deposits and channel creation.
+    /// @param _channel_participant_deposit_limit The maximum amount of tokens that can be deposited by each
+    /// participant of each channel. MAX_SAFE_UINT256 means no limits.
+    /// @param _token_network_deposit_limit The maximum amount of tokens that this contract can hold.
+    /// MAX_SAFE_UINT256 means no limits.
     constructor(
         address _token_address,
         address _secret_registry,
@@ -255,7 +267,7 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
-         isSafe 
+        isSafe
         settleTimeoutValid(settle_timeout)
         public
         returns (uint256)
