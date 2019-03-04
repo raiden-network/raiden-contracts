@@ -22,7 +22,7 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_channel(token_network):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
@@ -595,7 +595,7 @@ def withdraw_state_tests(custom_token, token_network):
     return get
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_balance_proof(token_network, get_private_key):
     def get(
             channel_identifier,
@@ -635,7 +635,7 @@ def create_balance_proof(token_network, get_private_key):
     return get
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def create_balance_proof_update_signature(token_network, get_private_key):
     def get(
             participant,
