@@ -14,6 +14,13 @@ from raiden_contracts.contract_manager import (
 def test_deploy_data_dir_exists(version: Optional[str]):
     """ Make sure directories exist for deployment data """
     assert contracts_data_path(version).exists(), "deployment data do not exist"
+    assert contracts_data_path(version).is_dir()
+
+
+@pytest.mark.parametrize('version', [None, CONTRACTS_VERSION])
+def test_deploy_data_dir_is_not_nested(version: Optional[str]):
+    """ Make sure 'data' directories do not contain 'data*' recursively """
+    assert list(contracts_data_path(version).glob('./data*')) == []
 
 
 @pytest.mark.parametrize("version", {None, CONTRACTS_VERSION})
