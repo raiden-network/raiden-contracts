@@ -117,12 +117,12 @@ class ContractManager:
     def compile_contracts(self, target_path: Path) -> None:
         """ Store compiled contracts JSON at `target_path`. """
         if self.contracts_source_dirs is None:
-            raise TypeError("Already using stored contracts.")
+            raise TypeError('Already using stored contracts.')
 
         self.checksum_contracts()
 
         if self.overall_checksum is None:
-            raise ContractManagerCompilationError("Checksumming failed.")
+            raise ContractManagerCompilationError('Checksumming failed.')
 
         if not self.contracts:
             self._compile_all_contracts()

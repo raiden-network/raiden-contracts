@@ -134,14 +134,14 @@ def join_sources(source_module: str, contract_name: str):
         './utils/join-contracts.py',
         '--import-map',
         json.dumps(remapping),
-        str(contracts_source_path()[source_module].joinpath(contract_name + ".sol")),
+        str(contracts_source_path()[source_module].joinpath(contract_name + '.sol')),
         str(joined_file),
     ]
     working_dir = Path(__file__).parent.parent
     try:
         subprocess.check_call(command, cwd=working_dir)
     except subprocess.CalledProcessError as ex:
-        print(f"cd {str(working_dir)}; {subprocess.list2cmdline(command)} failed.")
+        print(f'cd {str(working_dir)}; {subprocess.list2cmdline(command)} failed.')
         raise ex
 
     return joined_file.read_text()
@@ -237,8 +237,8 @@ def etherscan_verify_contract(
     Visit {etherscan_url}
     Use raiden_contracts/deploy/joined.sol."""
 
-    if content["status"] == "1":  # submission succeeded, obtained GUID
-        guid = content["result"]
+    if content['status'] == '1':  # submission succeeded, obtained GUID
+        guid = content['result']
         status = '0'
         retries = 10
         while status == '0' and retries > 0:
@@ -253,7 +253,7 @@ def etherscan_verify_contract(
             sleep(5)
         raise TimeoutError(manual_submission_guide)
     else:
-        if content["result"] == "Contract source code already verified":
+        if content['result'] == 'Contract source code already verified':
             return
         else:
             raise ValueError(
@@ -265,8 +265,8 @@ def etherscan_verify_contract(
 def guid_status(etherscan_api: str, guid: str):
     data = {
         'guid': guid,
-        'module': "contract",
-        'action': "checkverifystatus",
+        'module': 'contract',
+        'action': 'checkverifystatus',
     }
     r = requests.get(etherscan_api, data)
     status_content = json.loads(r.content.decode())

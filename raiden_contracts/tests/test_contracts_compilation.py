@@ -59,7 +59,7 @@ def test_verification_overall_checksum():
     checksum_fail = list(original_checksum)
     # Replace the first char with a different one
     checksum_fail[0] = list(filter(lambda x: x != checksum_fail[0], ['2', 'a']))[0]
-    manager.overall_checksum = "".join(checksum_fail)
+    manager.overall_checksum = ''.join(checksum_fail)
     with pytest.raises(ContractManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -90,7 +90,7 @@ def test_verification_contracts_checksums():
         checksum_fail = list(checksum)
         # Replace the first char with a different one
         checksum_fail[0] = list(filter(lambda x: x != checksum_fail[0], ['2', 'a']))[0]
-        manager.contracts_checksums[contract] = "".join(checksum_fail)
+        manager.contracts_checksums[contract] = ''.join(checksum_fail)
         with pytest.raises(ContractManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 

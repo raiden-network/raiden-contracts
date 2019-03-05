@@ -11,5 +11,6 @@ hypothesis==3.44.14
 requests
 mypy==0.670
 pylint
+pylint-quotes
 requests_mock
 isort

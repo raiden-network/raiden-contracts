@@ -20,7 +20,7 @@ class LogHandler:
 
     def add(self, txn_hash, event_name, callback=None, count=1):
         caller = getframeinfo(stack()[1][0])
-        message = "%s:%d" % (caller.filename, caller.lineno)
+        message = '%s:%d' % (caller.filename, caller.lineno)
 
         if event_name not in self.event_waiting:
             self.event_waiting[event_name] = {}
@@ -95,7 +95,7 @@ class LogHandler:
         For use in tests only.
         """
         def assert_args(event):
-            assert event['args'] == args, f"{event['args']} == {args}"
+            assert event['args'] == args, f'{event["args"]} == {args}'
         self.add(txn_hash, event_name, assert_args)
         self.check(timeout=timeout)
 
