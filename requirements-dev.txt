@@ -1,6 +1,7 @@
 -r requirements.txt
 eth-tester[py-evm]==0.1.0-beta.32,<1.0
 pytest
+pytest-cov
 flake8==3.5.0
 flake8-commas>=2.0.0
 flake8-tuple>=0.2.13

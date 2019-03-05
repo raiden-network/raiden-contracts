@@ -9,6 +9,7 @@ env:
     - TEST_TYPE=raiden_contracts
     - SOLC_VERSION='v0.5.4'
     - SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
+    - CODECOV_TOKEN="52f50270-3657-4f84-9e36-e6c01b2be6da"
 
 cache:
   pip: true
@@ -24,7 +25,7 @@ install:
   - pip install -U pip wheel coveralls "coverage<4.4"
   - pip install pytest-travis-fold
   - pip install -r requirements-dev.txt
-  - pip install pytest-xdist pytest-sugar
+  - pip install pytest-xdist pytest-sugar codecov
   - make verify_contracts
 
 before_script:
@@ -33,6 +34,7 @@ before_script:
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
+  - codecov
 
 deploy:
   provider: pypi
