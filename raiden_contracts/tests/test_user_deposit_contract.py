@@ -42,6 +42,14 @@ def test_deposit(
     with pytest.raises(TransactionFailed):
         user_deposit_contract.functions.deposit(A, 21).transact({'from': A})
 
+    # Can't deposit more than the whole_balance_limit
+    limit = user_deposit_contract.functions.whole_balance_limit().call()
+    assert limit > 0
+    custom_token.functions.mint(limit + 1).transact({'from': A})
+    custom_token.functions.approve(user_deposit_contract.address, limit + 1).transact({'from': A})
+    with pytest.raises(TransactionFailed):
+        user_deposit_contract.functions.deposit(A, limit + 1).transact({'from': A})
+
 
 def test_transfer(
         uninitialized_user_deposit_contract,

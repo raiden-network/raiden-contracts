@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Add a deployment-time configurable limit on the whole balance of UserDeposit
+
 ## [0.13.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.13.0) - 2019-03-04
 
 - [#655](https://github.com/raiden-network/raiden-contracts/pull/655) Deployment script's `register` command takes two additional options --channel-participant-deposit-limit and --token-network-deposit-limit
