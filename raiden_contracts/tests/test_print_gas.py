@@ -16,7 +16,8 @@ from raiden_contracts.utils.merkle import get_merkle_root
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
-def test_token_network_registry(
+@pytest.fixture
+def print_gas_token_network_registry(
         web3,
         deploy_tester_contract_txhash,
         secret_registry_contract,
@@ -38,7 +39,8 @@ def test_token_network_registry(
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' DEPLOYMENT')
 
 
-def test_token_network_deployment(
+@pytest.fixture
+def print_gas_token_network_deployment(
         web3,
         get_accounts,
         print_gas,
@@ -67,17 +69,19 @@ def test_token_network_deployment(
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + ' DEPLOYMENT')
 
 
-@pytest.mark.usefixtures('no_token_network')
-def test_token_network_create(
+@pytest.fixture
+def print_gas_token_network_create(
         print_gas,
         custom_token,
         secret_registry_contract,
-        token_network_registry_contract,
+        get_token_network_registry,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
+        token_network_registry_constructor_args,
 ):
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
-    txn_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
+    registry = get_token_network_registry(token_network_registry_constructor_args)
+    txn_hash = registry.functions.createERC20TokenNetwork(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
@@ -86,14 +90,16 @@ def test_token_network_create(
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
-def test_secret_registry(secret_registry_contract, print_gas):
+@pytest.fixture
+def print_gas_secret_registry(secret_registry_contract, print_gas):
     """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b'secretsecretsecretsecretsecretse'
     txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
 
-def test_channel_cycle(
+@pytest.fixture
+def print_gas_channel_cycle(
         web3,
         token_network,
         create_channel,
@@ -211,7 +217,8 @@ def test_channel_cycle(
     ))
 
 
-def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_gas):
+@pytest.fixture
+def print_gas_endpointregistry(endpoint_registry_contract, get_accounts, print_gas):
     """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
     (A, B) = get_accounts(2)
     ENDPOINT = '127.0.0.1:38647'
@@ -221,7 +228,8 @@ def test_endpointregistry_gas(endpoint_registry_contract, get_accounts, print_ga
     print_gas(txn_hash, CONTRACT_ENDPOINT_REGISTRY + '.registerEndpoint')
 
 
-def test_monitoring_service_gas(
+@pytest.fixture
+def print_gas_monitoring_service(
         token_network,
         monitoring_service_external,
         get_accounts,
@@ -308,7 +316,8 @@ def test_monitoring_service_gas(
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.claimReward')
 
 
-def test_one_to_n_gas(
+@pytest.fixture
+def print_gas_one_to_n(
     one_to_n_contract,
     deposit_to_udc,
     get_accounts,
@@ -336,7 +345,8 @@ def test_one_to_n_gas(
     print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')
 
 
-def test_user_deposit_gas(
+@pytest.fixture
+def print_gas_user_deposit(
     user_deposit_contract,
     custom_token,
     get_accounts,
@@ -367,3 +377,20 @@ def test_user_deposit_gas(
     web3.testing.mine(withdraw_delay - 1)
     txn_hash = user_deposit_contract.functions.withdraw(10).transact({'from': A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.withdraw')
+
+
+# All gas printing is done in a single test. Otherwise, after a parallel
+# execution of multiple gas printing tests, you see a corrupted gas.json.
+@pytest.mark.slow
+def test_print_gas(
+        print_gas_token_network_registry,
+        print_gas_token_network_deployment,
+        print_gas_token_network_create,
+        print_gas_secret_registry,
+        print_gas_channel_cycle,
+        print_gas_endpointregistry,
+        print_gas_monitoring_service,
+        print_gas_one_to_n,
+        print_gas_user_deposit,
+):
+    pass
