@@ -5,14 +5,12 @@ from raiden_contracts.constants import (
 )
 
 
-@pytest.fixture(scope='session')
-def custom_token_total_supply():
-    return 10 ** 26
+CUSTOM_TOKEN_TOTAL_SUPPLY = 10 ** 26
 
 
 @pytest.fixture(scope='session')
-def token_args(custom_token_total_supply):
-    return (custom_token_total_supply, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
+def token_args():
+    return (CUSTOM_TOKEN_TOTAL_SUPPLY, 18, CONTRACT_CUSTOM_TOKEN, 'TKN')
 
 
 @pytest.fixture(scope='session')

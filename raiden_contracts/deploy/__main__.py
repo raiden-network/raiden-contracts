@@ -315,6 +315,12 @@ def raiden(
     help='Address of token used to pay for the services (MS, PFS).',
 )
 @click.option(
+    '--user-deposit-whole-limit',
+    required=True,
+    type=int,
+    help='Maximum amount of tokens deposited in UserDeposit',
+)
+@click.option(
     '--save-info',
     default=True,
     help='Save deployment info to a file.',
@@ -330,6 +336,7 @@ def services(
         token_address,
         save_info,
         contracts_version,
+        user_deposit_whole_limit: int,
 ):
     setup_ctx(
         ctx,
@@ -342,7 +349,11 @@ def services(
     )
     deployer = ctx.obj['deployer']
 
-    deployed_contracts_info = deploy_service_contracts(deployer, token_address)
+    deployed_contracts_info = deploy_service_contracts(
+        deployer=deployer,
+        token_address=token_address,
+        user_deposit_whole_balance_limit=user_deposit_whole_limit,
+    )
     deployed_contracts = {
         contract_name: info['address']
         for contract_name, info in deployed_contracts_info['contracts'].items()
@@ -351,16 +362,18 @@ def services(
     if save_info is True:
         store_deployment_info(deployed_contracts_info, services=True)
         verify_deployed_service_contracts_in_filesystem(
-            deployer.web3,
-            deployer.contract_manager,
-            token_address,
+            web3=deployer.web3,
+            contract_manager=deployer.contract_manager,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_limit,
         )
     else:
         verify_service_contracts_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
-            token_address,
-            deployed_contracts_info,
+            web3=deployer.web3,
+            contract_manager=deployer.contract_manager,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            deployment_data=deployed_contracts_info,
         )
 
     print(json.dumps(deployed_contracts, indent=4))
@@ -581,7 +594,11 @@ def deploy_raiden_contracts(
     return deployed_contracts
 
 
-def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
+def deploy_service_contracts(
+        deployer: ContractDeployer,
+        token_address: str,
+        user_deposit_whole_balance_limit: int,
+):
     """Deploy 3rd party service contracts"""
     deployed_contracts: DeployedContracts = {
         'contracts_version': deployer.contract_manager.version_string(),
@@ -592,7 +609,7 @@ def deploy_service_contracts(deployer: ContractDeployer, token_address: str):
     deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployer, deployed_contracts)
     user_deposit = deploy_and_remember(
         CONTRACT_USER_DEPOSIT,
-        [token_address],
+        [token_address, user_deposit_whole_balance_limit],
         deployer,
         deployed_contracts,
     )
@@ -785,6 +802,7 @@ def verify_service_contracts_deployment_data(
         web3: Web3,
         contract_manager: ContractManager,
         token_address: str,
+        user_deposit_whole_balance_limit: int,
         deployment_data: dict,
 ):
     chain_id = int(web3.version.network)
@@ -808,9 +826,11 @@ def verify_service_contracts_deployment_data(
         deployment_data,
         CONTRACT_USER_DEPOSIT,
     )
-    assert len(constructor_arguments) == 1
+    assert len(constructor_arguments) == 2
     assert to_checksum_address(user_deposit.functions.token().call()) == token_address
     assert token_address == constructor_arguments[0]
+    assert user_deposit.functions.whole_balance_limit().call() == user_deposit_whole_balance_limit
+    assert user_deposit_whole_balance_limit == constructor_arguments[1]
 
     monitoring_service, constructor_arguments = verify_deployed_contract(
         web3,
@@ -859,6 +879,7 @@ def verify_deployed_service_contracts_in_filesystem(
         web3: Web3,
         contract_manager: ContractManager,
         token_address: str,
+        user_deposit_whole_balance_limit: int,
 ):
     chain_id = int(web3.version.network)
 
@@ -875,10 +896,12 @@ def verify_deployed_service_contracts_in_filesystem(
     assert deployment_data is not None
 
     if verify_service_contracts_deployment_data(
-            web3,
-            contract_manager,
-            token_address,
-            deployment_data):
+            web3=web3,
+            contract_manager=contract_manager,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            deployment_data=deployment_data,
+    ):
         print(f'Deployment info from {deployment_file_path} has been verified and it is CORRECT.')
 
 

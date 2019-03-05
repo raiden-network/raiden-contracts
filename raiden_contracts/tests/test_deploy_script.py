@@ -269,9 +269,10 @@ def test_deploy_script_service(
     )
 
     token_type = 'CustomToken'
+    token_supply = 10000000
     deployed_token = deploy_token_contract(
         deployer,
-        token_supply=10000000,
+        token_supply=token_supply,
         token_decimals=18,
         token_name='TestToken',
         token_symbol='TTT',
@@ -279,22 +280,29 @@ def test_deploy_script_service(
     )
     token_address = deployed_token[token_type]
     assert isinstance(token_address, T_Address)
+    deposit_limit = token_supply // 2
 
-    deployed_service_contracts = deploy_service_contracts(deployer, token_address)
+    deployed_service_contracts = deploy_service_contracts(
+        deployer=deployer,
+        token_address=token_address,
+        user_deposit_whole_balance_limit=deposit_limit,
+    )
     verify_service_contracts_deployment_data(
-        deployer.web3,
-        deployer.contract_manager,
-        token_address,
-        deployed_service_contracts,
+        web3=deployer.web3,
+        contract_manager=deployer.contract_manager,
+        token_address=token_address,
+        user_deposit_whole_balance_limit=deposit_limit,
+        deployment_data=deployed_service_contracts,
     )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
         verify_service_contracts_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+            web3=deployer.web3,
+            contract_manager=deployer.contract_manager,
             token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
             deployment_data=deployed_info_fail,
         )
 
@@ -305,9 +313,10 @@ def test_deploy_script_service(
         ]['address'] = EMPTY_ADDRESS
         with pytest.raises(AssertionError):
             verify_service_contracts_deployment_data(
-                deployer.web3,
-                deployer.contract_manager,
+                web3=deployer.web3,
+                contract_manager=deployer.contract_manager,
                 token_address=token_address,
+                user_deposit_whole_balance_limit=deposit_limit,
                 deployment_data=deployed_info_fail,
             )
 
