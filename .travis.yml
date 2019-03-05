@@ -34,6 +34,7 @@ before_script:
 
 script:
   - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
+  - codecov
 
 deploy:
   provider: pypi
