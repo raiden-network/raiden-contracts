@@ -8,7 +8,7 @@ For solidity we generally follow the style guide as shown in the [solidity
 documentation](http://solidity.readthedocs.io/en/develop/style-guide.html) with
 some exceptions:
 
-**Variable Names**
+#### Variable Names
 
 All variable name should be in snake case, just like in python. Function names
 on the other hand should be mixedCase. MixedCase is essentially like CamelCase
@@ -21,6 +21,28 @@ function iDoSomething(uint awesome_argument) {
     doSomethingElse();
 }
 ```
+
+#### Reentrance Problems
+
+Calls into other contracts might call back into our contract.
+This causes problems when storage accesses and an external call interleave.  For example,
+
+```js
+   check(storage[address])
+   other_contract.method()
+   storage[address] = new_value
+```
+
+possibly has a bug, where an attacker can set up `other_contract.method()` so that it calls back into this piece of code.
+Then, the `check()` still sees an old value.
+
+#### Resources
+
+* [Solidity documentation](https://solidity.readthedocs.io/) usually has an answer somewhere.
+    * Also keep an eye of [upcoming changes](https://github.com/ethereum/solidity/projects).
+* [Remix](http://remix.ethereum.org/) allows step-execute a transaction.
+* [(Not So) Smart Contracts](https://github.com/trailofbits/not-so-smart-contracts) contains examples of common vulnerabilities.
+* [Awesome Ethereum Security](https://github.com/trailofbits/awesome-ethereum-security) contains relevant links.
 
 ### Python
 
