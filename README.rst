@@ -178,7 +178,7 @@ Deploying the mock token contract for paying for the services (not to be done on
 
 Deploying the 3rd party service contracts with the ``services`` command::
 
-    python -m raiden_contracts.deploy services --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --token-address TOKEN_USED_TO_PAY_SERVICES
+    python -m raiden_contracts.deploy services --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --token-address TOKEN_USED_TO_PAY_SERVICES --user-deposit-whole-limit MAX_TOTAL_AMOUNT_OF_TOKENS_DEPOSITED_IN_USER_DEPOSIT
 
 Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 

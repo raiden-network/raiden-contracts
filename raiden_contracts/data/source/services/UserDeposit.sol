@@ -21,6 +21,11 @@ contract UserDeposit is Utils {
     mapping(address => uint256) public balances;
     mapping(address => WithdrawPlan) public withdraw_plans;
 
+    // The sum of all balances
+    uint256 public whole_balance = 0;
+    // Deposit limit for this whole contract
+    uint256 public whole_balance_limit;
+
     /*
      *  Structs
      */
@@ -51,7 +56,7 @@ contract UserDeposit is Utils {
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    constructor(address _token_address)
+    constructor(address _token_address, uint256 _whole_balance_limit)
         public
     {
         // check token contract
@@ -59,6 +64,9 @@ contract UserDeposit is Utils {
         require(contractExists(_token_address));
         token = Token(_token_address);
         require(token.totalSupply() > 0); // Check if the contract is indeed a token contract
+        // check and set the whole balance limit
+        require(_whole_balance_limit > 0);
+        whole_balance_limit = _whole_balance_limit;
     }
 
     /// @notice Specify trusted contracts. This has to be done outside of the
@@ -100,6 +108,13 @@ contract UserDeposit is Utils {
         balances[beneficiary] += added_deposit;
         total_deposit[beneficiary] += added_deposit;
         require(token.transferFrom(msg.sender, address(this), added_deposit));
+
+        // Update whole_balance, but take care against overflows.
+        require(whole_balance + added_deposit >= whole_balance);
+        whole_balance += added_deposit;
+
+        // Decline deposit if the whole balance is bigger than the limit.
+        require(whole_balance <= whole_balance_limit);
     }
 
     /// @notice Internally transfer deposits between two addresses.
@@ -160,6 +175,10 @@ contract UserDeposit is Utils {
         uint256 withdrawable = min(amount, balances[msg.sender]);
         balances[msg.sender] -= withdrawable;
         require(token.transfer(msg.sender, withdrawable));
+
+        // Update whole_balance, but take care against underflows.
+        require(whole_balance - withdrawable <= whole_balance);
+        whole_balance -= withdrawable;
 
         emit BalanceReduced(msg.sender, balances[msg.sender]);
         delete withdraw_plans[msg.sender];

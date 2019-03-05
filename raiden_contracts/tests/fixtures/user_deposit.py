@@ -1,17 +1,24 @@
 import pytest
 
 from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
+from raiden_contracts.tests.fixtures.token import CUSTOM_TOKEN_TOTAL_SUPPLY
+
+
+@pytest.fixture(scope='session')
+def user_deposit_whole_balance_limit():
+    return CUSTOM_TOKEN_TOTAL_SUPPLY // 100
 
 
 @pytest.fixture(scope='session')
 def uninitialized_user_deposit_contract(
         deploy_tester_contract,
         custom_token,
+        user_deposit_whole_balance_limit,
 ):
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
         {},
-        [custom_token.address],
+        [custom_token.address, user_deposit_whole_balance_limit],
     )
 
 

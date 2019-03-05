@@ -33,7 +33,7 @@ before_script:
   - make mypy
 
 script:
-  - coverage run --source raiden_contracts/ -m py.test -Wd --travis-fold=always -n 2 -v $TEST_TYPE
+  - pytest --cov=./ raiden_contracts/tests/ -n 2
   - codecov
 
 deploy:
