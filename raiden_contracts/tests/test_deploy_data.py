@@ -23,8 +23,8 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]):
     assert list(contracts_data_path(version).glob('./data*')) == []
 
 
-@pytest.mark.parametrize("version", {None, CONTRACTS_VERSION})
-@pytest.mark.parametrize("chain_id", {3, 4, 42})
+@pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
+@pytest.mark.parametrize("chain_id", [3, 4, 42])
 @pytest.mark.parametrize("services", [False, True])
 def test_deploy_data_file_exists(
         version: Optional[str],
@@ -48,8 +48,8 @@ def reasonable_deployment_of_a_contract(deployed):
     assert isinstance(deployed["constructor_arguments"], list)
 
 
-@pytest.mark.parametrize("version", {None, CONTRACTS_VERSION})
-@pytest.mark.parametrize("chain_id", {3, 4, 42})
+@pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
+@pytest.mark.parametrize("chain_id", [3, 4, 42])
 def test_deploy_data_has_fields_raiden(
         version: Optional[str],
         chain_id: int,
@@ -63,8 +63,8 @@ def test_deploy_data_has_fields_raiden(
         reasonable_deployment_of_a_contract(deployed)
 
 
-@pytest.mark.parametrize("version", {None, CONTRACTS_VERSION})
-@pytest.mark.parametrize("chain_id", {3, 4, 42})
+@pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
+@pytest.mark.parametrize("chain_id", [3, 4, 42])
 def test_deploy_data_has_fields_services(
         version: Optional[str],
         chain_id: int,
