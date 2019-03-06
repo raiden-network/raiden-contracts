@@ -1,11 +1,12 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
-    ParticipantInfoIndex,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
+    ParticipantInfoIndex,
 )
 
 

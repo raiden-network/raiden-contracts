@@ -1,4 +1,5 @@
 from enum import IntEnum
+
 from raiden_contracts.utils.signature import private_key_to_address
 
 MAX_UINT256 = 2 ** 256 - 1

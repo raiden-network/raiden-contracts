@@ -1,25 +1,24 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.channel_test_values import (
-    channel_settle_test_values,
     channel_settle_invalid_test_values,
-)
-from raiden_contracts.utils import (
-    get_pending_transfers_tree,
+    channel_settle_test_values,
 )
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
-    get_settlement_amounts,
-    get_onchain_settlement_amounts,
-    get_expected_after_settlement_unlock_amounts,
     are_balance_proofs_valid,
-    were_balance_proofs_valid,
-    is_balance_proof_old,
-    get_unlocked_amount,
+    get_expected_after_settlement_unlock_amounts,
+    get_onchain_settlement_amounts,
+    get_settlement_amounts,
     get_total_available_deposit,
+    get_unlocked_amount,
+    is_balance_proof_old,
+    were_balance_proofs_valid,
 )
+from raiden_contracts.utils import get_pending_transfers_tree
 
 
 @pytest.fixture()

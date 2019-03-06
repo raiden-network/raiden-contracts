@@ -13,9 +13,15 @@ install:
 	pip install -r requirements.txt
 	pip install -e .
 
+ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contracts/
+
 lint:
 	flake8 raiden_contracts/
 	pylint -E raiden_contracts/
+	isort $(ISORT_PARAMS) --check-only
+
+isort:
+	isort $(ISORT_PARAMS)
 
 mypy:
 	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts

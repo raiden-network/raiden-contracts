@@ -4,15 +4,15 @@ import json
 from json import JSONDecodeError
 from os import chdir
 from pathlib import Path
+from typing import Dict, Optional, Union
+
 from solc import compile_files
-from typing import Dict, Union, Optional
 
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
     ID_TO_NETWORKNAME,
     PRECOMPILED_DATA_FIELDS,
 )
-
 
 _BASE = Path(__file__).parent
 

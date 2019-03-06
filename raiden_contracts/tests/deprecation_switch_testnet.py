@@ -1,23 +1,23 @@
-import click
 from logging import getLogger
+
+import click
 from eth_utils import encode_hex
 
-from raiden_contracts.utils.transaction import check_succesful_tx
+from raiden_contracts.constants import (
+    CONTRACT_CUSTOM_TOKEN,
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
+    MAX_ETH_CHANNEL_PARTICIPANT,
+    MAX_ETH_TOKEN_NETWORK,
+)
 from raiden_contracts.deploy.__main__ import (
-    setup_ctx,
     deploy_raiden_contracts,
     deploy_token_contract,
     register_token_network,
+    setup_ctx,
 )
-from raiden_contracts.constants import (
-    CONTRACT_CUSTOM_TOKEN,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_TOKEN_NETWORK,
-    MAX_ETH_CHANNEL_PARTICIPANT,
-    MAX_ETH_TOKEN_NETWORK,
-    DEPLOY_SETTLE_TIMEOUT_MIN,
-)
-
+from raiden_contracts.utils.transaction import check_succesful_tx
 
 log = getLogger(__name__)
 

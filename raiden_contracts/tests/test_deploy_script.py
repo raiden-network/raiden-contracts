@@ -1,6 +1,7 @@
+from copy import deepcopy
+
 import pytest
 from eth_utils import ValidationError
-from copy import deepcopy
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -21,8 +22,8 @@ from raiden_contracts.deploy.__main__ import (
     verify_deployment_data,
     verify_service_contracts_deployment_data,
 )
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAUCET_PRIVATE_KEY
 from raiden_contracts.tests.utils import get_random_privkey
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAUCET_PRIVATE_KEY
 from raiden_contracts.utils.type_aliases import T_Address
 
 

@@ -1,9 +1,10 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.utils.events import check_channel_settled
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
-from raiden_contracts.constants import ChannelEvent
 from web3.exceptions import ValidationError
+
+from raiden_contracts.constants import ChannelEvent
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
+from raiden_contracts.utils.events import check_channel_settled
 
 
 @pytest.mark.skip(reason='Delayed until another milestone')

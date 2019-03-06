@@ -1,11 +1,12 @@
 from collections import namedtuple
+
 from eth_utils import keccak, to_canonical_address
+
 from raiden_contracts.tests.utils.constants import (
-    EMPTY_LOCKSROOT,
     EMPTY_ADDITIONAL_HASH,
+    EMPTY_LOCKSROOT,
     MAX_UINT256,
 )
-
 
 SettlementValues = namedtuple('SettlementValues', [
     'participant1_balance',

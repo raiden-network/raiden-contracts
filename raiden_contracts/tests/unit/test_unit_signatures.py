@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.tests.utils import fake_bytes
 
 

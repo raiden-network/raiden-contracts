@@ -1,6 +1,5 @@
 from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues
 
-
 # We must cover the edge cases documented in
 # https://github.com/raiden-network/raiden-contracts/issues/188
 # The scope is to make sure that if someone uses an old balance proof, this cannot be used as

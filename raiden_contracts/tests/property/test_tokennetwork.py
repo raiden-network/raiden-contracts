@@ -2,25 +2,15 @@
 import contextlib
 
 import eth_tester.backends.pyevm.main as pyevm_main
-
 from coincurve import PrivateKey
-from eth_utils import (
-    encode_hex,
-    to_canonical_address,
-    to_checksum_address,
-)
 from eth_tester.exceptions import TransactionFailed
+from eth_utils import encode_hex, to_canonical_address, to_checksum_address
 from hypothesis import assume
 from hypothesis.stateful import GenericStateMachine
-from hypothesis.strategies import (
-    integers,
-    just,
-    one_of,
-    sampled_from,
-    tuples,
-)
-from raiden_contracts.tests.fixtures.base.web3_fixtures import ethereum_tester
-from raiden_contracts.utils.signature import private_key_to_address
+from hypothesis.strategies import integers, just, one_of, sampled_from, tuples
+from web3 import Web3
+from web3.exceptions import ValidationError
+
 from raiden_contracts.constants import (
     CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -29,17 +19,17 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
+from raiden_contracts.tests.fixtures.base.web3_fixtures import ethereum_tester
+from raiden_contracts.tests.property.strategies import direct_transfer
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     deploy_contract,
     deploy_custom_token,
-    get_web3,
     get_token_network,
+    get_web3,
     make_address,
 )
-from raiden_contracts.tests.property.strategies import direct_transfer
-from web3 import Web3
-from web3.exceptions import ValidationError
+from raiden_contracts.utils.signature import private_key_to_address
 
 DEPOSIT = 'deposit'
 CLOSE = 'close'

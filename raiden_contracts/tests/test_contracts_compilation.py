@@ -1,19 +1,20 @@
-import pytest
 from pathlib import Path
 
+import pytest
+
+from raiden_contracts.constants import (
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACTS_VERSION,
+    NETWORKNAME_TO_ID,
+    PRECOMPILED_DATA_FIELDS,
+    ChannelEvent,
+)
 from raiden_contracts.contract_manager import (
     ContractManager,
-    contracts_source_path,
-    contracts_precompiled_path,
-    contracts_deployed_path,
     ContractManagerVerificationError,
-)
-from raiden_contracts.constants import (
-    CONTRACTS_VERSION,
-    PRECOMPILED_DATA_FIELDS,
-    CONTRACT_TOKEN_NETWORK,
-    NETWORKNAME_TO_ID,
-    ChannelEvent,
+    contracts_deployed_path,
+    contracts_precompiled_path,
+    contracts_source_path,
 )
 
 

@@ -1,18 +1,19 @@
 import pytest
+
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_TOKEN_NETWORK,
-    CONTRACT_SECRET_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
+    CONTRACT_SECRET_REGISTRY,
+    CONTRACT_TOKEN_NETWORK,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT, CONTRACT_DEPLOYER_ADDRESS
-from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree, get_locked_amount
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, EMPTY_LOCKSROOT
 from raiden_contracts.utils.merkle import get_merkle_root
+from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 

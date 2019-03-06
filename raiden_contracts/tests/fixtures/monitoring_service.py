@@ -1,4 +1,5 @@
 import pytest
+
 from raiden_contracts.constants import CONTRACT_MONITORING_SERVICE
 from raiden_contracts.utils.proofs import sign_reward_proof
 

@@ -1,7 +1,9 @@
-from web3 import Web3
 from eth_abi import encode_single
-from .signature import sign
+from web3 import Web3
+
 from raiden_contracts.constants import MessageTypeId
+
+from .signature import sign
 
 
 def hash_balance_data(transferred_amount, locked_amount, locksroot):

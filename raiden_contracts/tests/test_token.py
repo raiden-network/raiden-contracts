@@ -1,9 +1,7 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.constants import (
-    CONTRACT_HUMAN_STANDARD_TOKEN,
-    CONTRACT_CUSTOM_TOKEN,
-)
+
+from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_HUMAN_STANDARD_TOKEN
 from raiden_contracts.utils.bytecode import runtime_hexcode
 
 

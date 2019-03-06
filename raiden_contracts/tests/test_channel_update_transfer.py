@@ -3,21 +3,17 @@ from collections import namedtuple
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.constants import (
-    ChannelEvent,
-    ChannelState,
-    TEST_SETTLE_TIMEOUT_MIN,
-)
-from raiden_contracts.utils.events import check_transfer_updated
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
 from raiden_contracts.tests.utils import (
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
-    EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
-    EMPTY_ADDRESS,
-    fake_bytes,
     ChannelValues,
+    fake_bytes,
 )
+from raiden_contracts.utils.events import check_transfer_updated
 
 
 def test_update_call(

@@ -1,7 +1,7 @@
 from itertools import chain, product
 
 import pytest
-from eth_tester.constants import UINT256_MIN, UINT256_MAX
+from eth_tester.constants import UINT256_MAX, UINT256_MIN
 from web3.exceptions import ValidationError
 
 
