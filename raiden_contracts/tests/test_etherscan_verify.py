@@ -1,3 +1,5 @@
+from click.testing import CliRunner
+import requests_mock
 from typing import Dict, List
 
 from raiden_contracts.constants import (
@@ -11,7 +13,10 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import ContractManager, contracts_source_path
 from raiden_contracts.deploy.etherscan_verify import (
+    api_of_chain_id,
+    etherscan_verify,
     get_constructor_args,
+    guid_status,
     join_sources,
     post_data_for_etherscan_verification,
 )
@@ -115,3 +120,26 @@ def test_run_join_contracts():
     join_sources('services', CONTRACT_SERVICE_REGISTRY)
     join_sources('services', CONTRACT_ONE_TO_N)
     join_sources('services', CONTRACT_USER_DEPOSIT)
+
+
+def test_guid_status():
+    with requests_mock.Mocker() as m:
+        etherscan_api = api_of_chain_id[3]
+        m.get(etherscan_api, text='{ "content": 1 }')
+        assert guid_status(etherscan_api, 'something') == { 'content': 1 }
+
+def test_etherscan_verify_with_guid():
+    with requests_mock.Mocker() as m:
+        chain_id = 3
+        etherscan_api = api_of_chain_id[chain_id]
+        m.get(etherscan_api, text='{ "content": 1 }')
+        runner=CliRunner()
+        runner.invoke(etherscan_verify,
+                      [
+                          '--chain-id',
+                          chain_id,
+                          '--apikey',
+                          'API',
+                          '--guild',
+                          'something',
+                      ])
