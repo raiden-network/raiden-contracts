@@ -38,7 +38,7 @@ from raiden_contracts.contract_manager import (
 from raiden_contracts.utils.bytecode import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.type_aliases import Address
 
 LOG = getLogger(__name__)
@@ -116,7 +116,7 @@ class ContractDeployer:
             f'Deploying {contract_name} txHash={encode_hex(txhash)}, '
             f'contracts version {self.contract_manager.contracts_version}',
         )
-        (receipt, tx) = check_succesful_tx(
+        (receipt, tx) = check_successful_tx(
             web3=self.web3,
             txid=txhash,
             timeout=self.wait,
@@ -140,7 +140,7 @@ class ContractDeployer:
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
         LOG.debug(f'Sending txHash={encode_hex(txhash)}')
-        (receipt, _) = check_succesful_tx(
+        (receipt, _) = check_successful_tx(
             web3=self.web3,
             txid=txhash,
             timeout=self.wait,
@@ -718,7 +718,7 @@ def register_token_network(
             encode_hex(txhash),
         ),
     )
-    (receipt, _) = check_succesful_tx(web3=web3, txid=txhash, timeout=wait)
+    (receipt, _) = check_successful_tx(web3=web3, txid=txhash, timeout=wait)
 
     token_network_address = token_network_registry.functions.token_to_token_networks(
         token_address,

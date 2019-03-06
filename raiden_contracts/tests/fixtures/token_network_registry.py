@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
-from raiden_contracts.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.transaction import check_successful_tx
 
 
 @pytest.fixture()
@@ -73,7 +73,7 @@ def add_and_register_token(
             channel_participant_deposit_limit,
             token_network_deposit_limit,
         ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
-        (tx_receipt, _) = check_succesful_tx(web3, txid)
+        (tx_receipt, _) = check_successful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
