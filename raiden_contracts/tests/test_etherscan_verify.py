@@ -126,7 +126,8 @@ def test_guid_status():
     with requests_mock.Mocker() as m:
         etherscan_api = api_of_chain_id[3]
         m.get(etherscan_api, text='{ "content": 1 }')
-        assert guid_status(etherscan_api, 'something') == { 'content': 1 }
+        assert guid_status(etherscan_api, 'something') == {'content': 1}
+
 
 def test_etherscan_verify_with_guid():
     with requests_mock.Mocker() as m:
@@ -138,7 +139,7 @@ def test_etherscan_verify_with_guid():
             etherscan_verify,
             [
                 '--chain-id',
-                chain_id,
+                str(chain_id),
                 '--apikey',
                 'API',
                 '--guid',
@@ -147,17 +148,23 @@ def test_etherscan_verify_with_guid():
         )
         assert result.exit_code == 0
 
+
 def test_etherscan_verify_already_verified():
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
-        m.post(etherscan_api, text='{ "status": "0", "result" : "Contract source code already verified", "message" : "" }')
+        m.post(
+            etherscan_api,
+            text='{ "status": "0",'
+            '"result" : "Contract source code already verified",'
+            '"message" : "" }',
+        )
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
             [
                 '--chain-id',
-                chain_id,
+                str(chain_id),
                 '--apikey',
                 'API',
                 '--contract-name',
@@ -171,13 +178,18 @@ def test_etherscan_verify_unknown_error():
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
-        m.post(etherscan_api, text='{ "status": "0", "result" : "Unknown message", "message" : "" }')
+        m.post(
+            etherscan_api,
+            text='{ "status": "0",'
+            '"result" : "Unknown message", '
+            '"message" : "" }',
+        )
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
             [
                 '--chain-id',
-                chain_id,
+                str(chain_id),
                 '--apikey',
                 'API',
                 '--contract-name',
@@ -192,13 +204,18 @@ def test_etherscan_verify_success():
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
         m.post(etherscan_api, text='{ "status": "1", "result" : "guid", "message" : "" }')
-        m.get(etherscan_api, text='{ "status": "1", "result" : "Pass - Verified", "message" : "" }')
+        m.get(
+            etherscan_api,
+            text='{ "status": "1",'
+            '"result" : "Pass - Verified",'
+            ' "message" : "" }',
+        )
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
             [
                 '--chain-id',
-                chain_id,
+                str(chain_id),
                 '--apikey',
                 'API',
                 '--contract-name',
