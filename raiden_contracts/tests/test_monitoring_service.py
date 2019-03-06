@@ -1,11 +1,10 @@
 import pytest
 from eth_abi import encode_single
-from web3 import Web3
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
 
 from raiden_contracts.constants import MonitoringServiceEvent
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
-
 
 REWARD_AMOUNT = 10
 

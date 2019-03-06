@@ -1,9 +1,9 @@
-from coincurve import PrivateKey, PublicKey
-from eth_utils import remove_0x_prefix, to_checksum_address, to_bytes, keccak
 from typing import Union
 
-from .type_aliases import Address
+from coincurve import PrivateKey, PublicKey
+from eth_utils import keccak, remove_0x_prefix, to_bytes, to_checksum_address
 
+from .type_aliases import Address
 
 sha3 = keccak
 

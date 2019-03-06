@@ -1,4 +1,5 @@
 import pytest
+
 from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY
 
 

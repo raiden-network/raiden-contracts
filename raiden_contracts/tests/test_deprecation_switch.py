@@ -1,16 +1,17 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import get_event_data
+
 from raiden_contracts.constants import (
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree
-from raiden_contracts.tests.utils import ChannelValues
 from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree
 
 
 def test_deprecation_executor(

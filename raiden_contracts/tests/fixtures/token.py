@@ -1,9 +1,6 @@
 import pytest
-from raiden_contracts.constants import (
-    CONTRACT_HUMAN_STANDARD_TOKEN,
-    CONTRACT_CUSTOM_TOKEN,
-)
 
+from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_HUMAN_STANDARD_TOKEN
 
 CUSTOM_TOKEN_TOTAL_SUPPLY = 10 ** 26
 

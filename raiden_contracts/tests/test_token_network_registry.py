@@ -1,18 +1,19 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.exceptions import ValidationError
+
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils.constants import (
+    CONTRACT_DEPLOYER_ADDRESS,
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
-    CONTRACT_DEPLOYER_ADDRESS,
 )
 from raiden_contracts.utils.events import check_token_network_created
-from web3.exceptions import ValidationError
 
 
 def test_version(token_network_registry_contract):

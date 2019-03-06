@@ -2,14 +2,14 @@ import pytest
 from web3.contract import get_event_data
 
 from raiden_contracts.constants import (
+    CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_SECRET_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT_MIN,
-    TEST_SETTLE_TIMEOUT_MAX,
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 

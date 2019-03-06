@@ -1,14 +1,13 @@
-from random import randint
 from collections import namedtuple
 from functools import reduce
 from os import urandom
+from random import randint
 
-from web3 import Web3
 from eth_abi import encode_abi
+from web3 import Web3
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
-
 
 PendingTransfersTree = namedtuple('PendingTransfersTree', [
     'transfers',

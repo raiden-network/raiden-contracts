@@ -1,6 +1,7 @@
-from click.testing import CliRunner
-import requests_mock
 from typing import Dict, List
+
+import requests_mock
+from click.testing import CliRunner
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -20,7 +21,6 @@ from raiden_contracts.deploy.etherscan_verify import (
     join_sources,
     post_data_for_etherscan_verification,
 )
-
 
 contract_name = 'DummyContract'
 

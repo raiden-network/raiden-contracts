@@ -1,25 +1,28 @@
-import pytest
 from itertools import permutations
+
+import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.exceptions import ValidationError
+
 from raiden_contracts.constants import (
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
     ChannelEvent,
-    ChannelState,
     ChannelInfoIndex,
+    ChannelState,
     ParticipantInfoIndex,
 )
-from raiden_contracts.utils.events import check_channel_opened
-from web3.exceptions import ValidationError
-from .utils import get_participants_hash
 from raiden_contracts.tests.utils import (
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
-    EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
-    EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
+from raiden_contracts.utils.events import check_channel_opened
+
+from .utils import get_participants_hash
 
 
 def test_open_channel_call(token_network, get_accounts):

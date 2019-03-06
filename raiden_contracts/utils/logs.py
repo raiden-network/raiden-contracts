@@ -1,13 +1,11 @@
-from typing import Dict, List
 import functools
 from collections import defaultdict
+from inspect import getframeinfo, stack
+from typing import Dict, List
 
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
-from inspect import getframeinfo, stack
-from web3.utils.threads import (
-    Timeout,
-)
+from web3.utils.threads import Timeout
 
 
 class LogHandler:

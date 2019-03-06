@@ -1,20 +1,16 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.constants import (
-    TEST_SETTLE_TIMEOUT_MIN,
-    ChannelEvent,
-    ChannelState,
-)
-from raiden_contracts.utils.events import check_channel_closed
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
 from raiden_contracts.tests.utils import (
+    EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
-    EMPTY_ADDITIONAL_HASH,
     EMPTY_SIGNATURE,
-    fake_bytes,
     ChannelValues,
+    fake_bytes,
 )
+from raiden_contracts.utils.events import check_channel_closed
 
 
 def test_close_nonexistent_channel(

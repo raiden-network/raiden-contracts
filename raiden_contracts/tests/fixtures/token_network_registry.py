@@ -1,16 +1,16 @@
 import pytest
-from web3.contract import get_event_data
 from eth_utils import is_address
+from web3.contract import get_event_data
 
-from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.utils.transaction import check_succesful_tx
 
 
 @pytest.fixture()

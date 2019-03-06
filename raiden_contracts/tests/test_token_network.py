@@ -1,16 +1,12 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
 
-from raiden_contracts.tests.utils.constants import (
-    EMPTY_ADDRESS,
-    FAKE_ADDRESS,
-    MAX_UINT256,
-)
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
-    TEST_SETTLE_TIMEOUT_MIN,
     TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAKE_ADDRESS, MAX_UINT256
 
 
 def test_version(token_network):

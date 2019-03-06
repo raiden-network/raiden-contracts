@@ -1,7 +1,7 @@
 # flake8: noqa
 
-from .constants import *
-from .mock import *
-from .contracts import *
-from .channel import *
 from .address import *
+from .channel import *
+from .constants import *
+from .contracts import *
+from .mock import *

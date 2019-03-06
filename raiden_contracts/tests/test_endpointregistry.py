@@ -1,5 +1,5 @@
+from raiden_contracts.constants import CONTRACTS_VERSION, EVENT_ADDRESS_REGISTERED
 from raiden_contracts.utils.events import check_address_registered
-from raiden_contracts.constants import EVENT_ADDRESS_REGISTERED, CONTRACTS_VERSION
 
 
 def test_version(endpoint_registry_contract):

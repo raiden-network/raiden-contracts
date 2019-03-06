@@ -1,12 +1,11 @@
 import getpass
 import json
 import logging
-
 import os
 import stat
 
-from eth_utils import is_hex, decode_hex, encode_hex
 from eth_keyfile import decode_keyfile_json
+from eth_utils import decode_hex, encode_hex, is_hex
 
 log = logging.getLogger(__name__)
 

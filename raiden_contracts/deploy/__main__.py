@@ -4,45 +4,42 @@ A simple Python script to deploy compiled contracts.
 import functools
 import json
 import logging
-import click
-
 from logging import getLogger
-from mypy_extensions import TypedDict
 from typing import Any, Dict, List, Optional
 
+import click
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
+from mypy_extensions import TypedDict
 from web3 import HTTPProvider, Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 
-
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_ENDPOINT_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    CONTRACT_SERVICE_REGISTRY,
-    CONTRACT_MONITORING_SERVICE,
+    CONTRACTS_VERSION,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
-    CONTRACTS_VERSION,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
     contract_version_string,
+    contracts_deployed_path,
     contracts_precompiled_path,
     contracts_source_path,
-    contracts_deployed_path,
     get_contracts_deployed,
 )
-from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.utils.bytecode import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.transaction import check_succesful_tx
 from raiden_contracts.utils.type_aliases import Address
-
 
 LOG = getLogger(__name__)
 

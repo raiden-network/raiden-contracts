@@ -1,5 +1,6 @@
-import pytest
 import logging
+
+import pytest
 
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 

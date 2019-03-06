@@ -1,10 +1,5 @@
 from eth_utils import keccak
-from hypothesis.strategies import (
-    binary,
-    composite,
-    integers,
-)
-
+from hypothesis.strategies import binary, composite, integers
 
 UINT64_MAX = 2 ** 64 - 1
 UINT256_MAX = 2 ** 256 - 1

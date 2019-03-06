@@ -1,13 +1,15 @@
 import json
-import pytest
 from typing import Dict
+
+import pytest
 from eth_tester.exceptions import TransactionFailed
+from eth_utils import denoms, is_same_address
+
 from raiden_contracts.contract_manager import contracts_gas_path
+from raiden_contracts.tests.utils import get_random_privkey
+from raiden_contracts.tests.utils.constants import passphrase
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.tests.utils.constants import passphrase
-from raiden_contracts.tests.utils import get_random_privkey
-from eth_utils import denoms, is_same_address
 
 
 @pytest.fixture()

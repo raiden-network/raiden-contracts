@@ -1,25 +1,23 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.constants import ChannelEvent
-from raiden_contracts.utils.events import check_channel_unlocked
-from raiden_contracts.utils.merkle import get_merkle_root
-from raiden_contracts.utils import (
-    get_pending_transfers_tree,
-    get_packed_transfers,
-    get_locked_amount,
-    random_secret,
-)
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
+
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ParticipantInfoIndex
+from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
-    fake_bytes,
-    TestLockIndex,
     ChannelValues,
+    TestLockIndex,
+    fake_bytes,
     get_unlocked_amount,
 )
-from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.constants import ParticipantInfoIndex
-
+from raiden_contracts.utils import (
+    get_locked_amount,
+    get_packed_transfers,
+    get_pending_transfers_tree,
+    random_secret,
+)
+from raiden_contracts.utils.events import check_channel_unlocked
+from raiden_contracts.utils.merkle import get_merkle_root
 
 # Account names like 'A', 'B', 'C' are intuitive here.
 # pytest: disable=C0103

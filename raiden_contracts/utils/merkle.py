@@ -1,8 +1,8 @@
 from collections import namedtuple
-from typing import Iterable
 from itertools import zip_longest
-from eth_utils import keccak
+from typing import Iterable
 
+from eth_utils import keccak
 
 EMPTY_MERKLE_ROOT = b'\x00' * 32
 

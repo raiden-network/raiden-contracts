@@ -1,25 +1,23 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from raiden_contracts.constants import (
-    TEST_SETTLE_TIMEOUT_MIN,
-    ChannelState,
+
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
+from raiden_contracts.tests.utils import (
+    EMPTY_LOCKSROOT,
+    ChannelValues,
+    fake_bytes,
+    get_onchain_settlement_amounts,
+    get_participants_hash,
+    get_settlement_amounts,
 )
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.proofs import (
-    sign_balance_proof,
     hash_balance_data,
+    sign_balance_proof,
     sign_balance_proof_update_message,
     sign_cooperative_settle_message,
     sign_withdraw_message,
 )
-from raiden_contracts.tests.utils import (
-    get_settlement_amounts,
-    get_onchain_settlement_amounts,
-    ChannelValues,
-    get_participants_hash,
-    EMPTY_LOCKSROOT,
-    fake_bytes,
-)
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
 @pytest.fixture(scope='session')

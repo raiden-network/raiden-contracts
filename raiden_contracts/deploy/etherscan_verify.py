@@ -1,21 +1,21 @@
 import json
-import click
 import pprint
-import requests
 import subprocess
+from pathlib import Path
 from time import sleep
 from typing import Dict, Optional
-from pathlib import Path
 
+import click
+import requests
 from eth_abi import encode_abi
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
-    CONTRACT_SECRET_REGISTRY,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_SERVICE_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
+    CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
 from raiden_contracts.contract_manager import (

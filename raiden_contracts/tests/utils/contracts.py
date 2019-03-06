@@ -1,13 +1,9 @@
 from web3 import Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
-from raiden_contracts.utils.signature import private_key_to_address
-
+from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK
 from raiden_contracts.tests.fixtures.base.web3_fixtures import FAUCET_ALLOWANCE
-from raiden_contracts.constants import (
-    CONTRACT_CUSTOM_TOKEN,
-    CONTRACT_TOKEN_NETWORK,
-)
+from raiden_contracts.utils.signature import private_key_to_address
 
 
 def get_web3(eth_tester, deployer_key):
