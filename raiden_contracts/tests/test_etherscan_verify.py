@@ -1,8 +1,18 @@
 from typing import Dict, List
 
+from raiden_contracts.constants import (
+    CONTRACT_ENDPOINT_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
+    CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_USER_DEPOSIT,
+)
 from raiden_contracts.contract_manager import ContractManager, contracts_source_path
 from raiden_contracts.deploy.etherscan_verify import (
     get_constructor_args,
+    join_sources,
     post_data_for_etherscan_verification,
 )
 
@@ -11,6 +21,7 @@ contract_name = 'DummyContract'
 
 
 def test_get_constructor_args_no_args():
+    """ Test get_constructor_args() on no arguments """
     contract_manager = ContractManager(contracts_source_path())
     deploy_info: Dict = {
         'contracts': {
@@ -30,6 +41,7 @@ def abi_with_constructor_input_types(types: List[str]):
 
 
 def test_get_constructor_args_one_arg():
+    """ Test get_constructor_args() on one argument """
     contract_manager = ContractManager(contracts_source_path())
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256']),
@@ -46,6 +58,7 @@ def test_get_constructor_args_one_arg():
 
 
 def test_get_constructor_args_two_args():
+    """ Test get_constructor_args() on two arguments """
     contract_manager = ContractManager(contracts_source_path())
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256', 'bool']),
@@ -91,3 +104,14 @@ def test_post_data_for_etherscan_verification():
         'runs': 'runs',
         'constructorArguements': 'constructor_arguments',
     }
+
+
+def test_run_join_contracts():
+    """ Just running join_sources() """
+    join_sources('raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
+    join_sources('raiden', CONTRACT_SECRET_REGISTRY)
+    join_sources('raiden', CONTRACT_ENDPOINT_REGISTRY)
+    join_sources('services', CONTRACT_MONITORING_SERVICE)
+    join_sources('services', CONTRACT_SERVICE_REGISTRY)
+    join_sources('services', CONTRACT_ONE_TO_N)
+    join_sources('services', CONTRACT_USER_DEPOSIT)
