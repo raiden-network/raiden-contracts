@@ -26,21 +26,21 @@ def test_close_nonexistent_channel(
     non_existent_channel_identifier = 1
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
-        non_existent_channel_identifier,
-        A,
-        B,
+        channel_identifier=non_existent_channel_identifier,
+        participant1=A,
+        participant2=B,
     ).call()
     assert state == ChannelState.NONEXISTENT
     assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            non_existent_channel_identifier,
-            B,
-            EMPTY_BALANCE_HASH,
-            0,
-            EMPTY_ADDITIONAL_HASH,
-            EMPTY_SIGNATURE,
+            channel_identifier=non_existent_channel_identifier,
+            partner=B,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            signature=EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -60,24 +60,24 @@ def test_close_settled_channel_fail(
     assert state == ChannelState.OPENED
 
     token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
+        channel_identifier=channel_identifier,
+        partner=B,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        signature=EMPTY_SIGNATURE,
     ).transact({'from': A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-        B,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
+        channel_identifier=channel_identifier,
+        participant1=A,
+        participant1_transferred_amount=0,
+        participant1_locked_amount=0,
+        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant2=B,
+        participant2_transferred_amount=0,
+        participant2_locked_amount=0,
+        participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     (
@@ -89,12 +89,12 @@ def test_close_settled_channel_fail(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier,
-            B,
-            EMPTY_BALANCE_HASH,
-            0,
-            EMPTY_ADDITIONAL_HASH,
-            EMPTY_SIGNATURE,
+            channel_identifier=channel_identifier,
+            partner=B,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            signature=EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -145,22 +145,22 @@ def test_close_call_twice_fail(
     channel_deposit(channel_identifier, A, 5, B)
 
     token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
+        channel_identifier=channel_identifier,
+        partner=B,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        signature=EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier,
-            B,
-            EMPTY_BALANCE_HASH,
-            0,
-            EMPTY_ADDITIONAL_HASH,
-            EMPTY_SIGNATURE,
+            channel_identifier=channel_identifier,
+            partner=B,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            signature=EMPTY_SIGNATURE,
         ).transact({'from': A})
 
 
@@ -177,12 +177,12 @@ def test_close_wrong_sender(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier,
-            B,
-            EMPTY_BALANCE_HASH,
-            0,
-            EMPTY_ADDITIONAL_HASH,
-            EMPTY_SIGNATURE,
+            channel_identifier=channel_identifier,
+            partner=B,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            signature=EMPTY_SIGNATURE,
         ).transact({'from': C})
 
 
@@ -300,12 +300,12 @@ def test_close_first_participant_can_close(
     channel_identifier = create_channel(A, B)[0]
 
     close_tx = token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
+        channel_identifier=channel_identifier,
+        partner=B,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        signature=EMPTY_SIGNATURE,
     ).transact({'from': A})
 
     (
@@ -350,12 +350,12 @@ def test_close_second_participant_can_close(
     channel_identifier = create_channel(A, B)[0]
 
     token_network.functions.closeChannel(
-        channel_identifier,
-        A,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
+        channel_identifier=channel_identifier,
+        partner=A,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        signature=EMPTY_SIGNATURE,
     ).transact({'from': B})
 
 
@@ -554,15 +554,15 @@ def test_close_replay_reopened_channel(
     ).transact({'from': A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     token_network.functions.settleChannel(
-        channel_identifier1,
-        A,
-        values_A.transferred,
-        values_A.locked,
-        values_A.locksroot,
-        B,
-        values_B.transferred,
-        values_B.locked,
-        values_B.locksroot,
+        channel_identifier=channel_identifier1,
+        participant1=A,
+        participant1_transferred_amount=values_A.transferred,
+        participant1_locked_amount=values_A.locked,
+        participant1_locksroot=values_A.locksroot,
+        participant2=B,
+        participant2_transferred_amount=values_B.transferred,
+        participant2_locked_amount=values_B.locked,
+        participant2_locksroot=values_B.locksroot,
     ).transact({'from': A})
 
     # Reopen the channel and make sure we cannot use the old balance proof

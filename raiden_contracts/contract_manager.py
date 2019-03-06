@@ -279,7 +279,11 @@ def get_contracts_deployed(
         services: bool = False,
 ):
     """Reads the deployment data."""
-    deployment_file_path = contracts_deployed_path(chain_id, version, services)
+    deployment_file_path = contracts_deployed_path(
+        chain_id=chain_id,
+        version=version,
+        services=services,
+    )
 
     try:
         with deployment_file_path.open() as deployment_file:

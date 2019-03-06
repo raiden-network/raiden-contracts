@@ -52,15 +52,15 @@ def test_settle_no_bp_success(
 
     # Settling the channel should work with no balance proofs
     token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-        B,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
+        channel_identifier=channel_identifier,
+        participant1=A,
+        participant1_transferred_amount=0,
+        participant1_locked_amount=0,
+        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant2=B,
+        participant2_transferred_amount=0,
+        participant2_locked_amount=0,
+        participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
 
@@ -196,15 +196,15 @@ def test_settle_single_direct_transfer_for_closing_party(
 
     web3.testing.mine(settle_timeout)
     token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-        B,
-        vals_B.transferred,
-        0,
-        EMPTY_LOCKSROOT,
+        channel_identifier=channel_identifier,
+        participant1=A,
+        participant1_transferred_amount=0,
+        participant1_locked_amount=0,
+        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant2=B,
+        participant2_transferred_amount=vals_B.transferred,
+        participant2_locked_amount=0,
+        participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     # Calculate how much A and B should receive
@@ -281,15 +281,15 @@ def test_settle_single_direct_transfer_for_counterparty(
 
     web3.testing.mine(settle_timeout)
     token_network.functions.settleChannel(
-        channel_identifier,
-        B,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-        A,
-        vals_A.transferred,
-        0,
-        EMPTY_LOCKSROOT,
+        channel_identifier=channel_identifier,
+        participant1=B,
+        participant1_transferred_amount=0,
+        participant1_locked_amount=0,
+        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant2=A,
+        participant2_transferred_amount=vals_A.transferred,
+        participant2_locked_amount=0,
+        participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': B})
 
     # Calculate how much A and B should receive
@@ -626,15 +626,15 @@ def test_settle_channel_event(
 
     web3.testing.mine(settle_timeout)
     txn_hash = token_network.functions.settleChannel(
-        channel_identifier,
-        B,
-        5,
-        0,
-        EMPTY_LOCKSROOT,
-        A,
-        10,
-        0,
-        EMPTY_LOCKSROOT,
+        channel_identifier=channel_identifier,
+        participant1=B,
+        participant1_transferred_amount=5,
+        participant1_locked_amount=0,
+        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant2=A,
+        participant2_transferred_amount=10,
+        participant2_locked_amount=0,
+        participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(
