@@ -326,7 +326,7 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
-         isSafe 
+        isSafe
         isOpen(channel_identifier)
         public
     {
