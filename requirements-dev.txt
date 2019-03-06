@@ -11,3 +11,4 @@ hypothesis==3.44.14
 requests
 mypy==0.670
 pylint
+requests_mock
