@@ -133,13 +133,35 @@ def test_etherscan_verify_with_guid():
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
         m.get(etherscan_api, text='{ "content": 1 }')
-        runner=CliRunner()
-        runner.invoke(etherscan_verify,
-                      [
-                          '--chain-id',
-                          chain_id,
-                          '--apikey',
-                          'API',
-                          '--guild',
-                          'something',
-                      ])
+        runner = CliRunner()
+        result = runner.invoke(
+            etherscan_verify,
+            [
+                '--chain-id',
+                chain_id,
+                '--apikey',
+                'API',
+                '--guid',
+                'something',
+            ],
+        )
+        assert result.exit_code == 0
+
+def test_etherscan_verify_already_verified():
+    with requests_mock.Mocker() as m:
+        chain_id = 3
+        etherscan_api = api_of_chain_id[chain_id]
+        m.post(etherscan_api, text='{ "status": "0", "result" : "Contract source code already verified", "message" : "" }')
+        runner = CliRunner()
+        result = runner.invoke(
+            etherscan_verify,
+            [
+                '--chain-id',
+                chain_id,
+                '--apikey',
+                'API',
+                '--contract-name',
+                'EndpointRegistry',
+            ],
+        )
+        assert result.exit_code == 0
