@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from raiden_contracts.contract_manager import ContractManager, contracts_source_path
 from raiden_contracts.deploy.etherscan_verify import (
@@ -22,15 +22,17 @@ def test_get_constructor_args_no_args():
     assert get_constructor_args(deploy_info, contract_name, contract_manager) == ''
 
 
+def abi_with_constructor_input_types(types: List[str]):
+    return [{
+        'type': 'constructor',
+        'inputs': [{'type': ty} for ty in types],
+    }]
+
+
 def test_get_constructor_args_one_arg():
     contract_manager = ContractManager(contracts_source_path())
     contract_manager.contracts[contract_name] = {
-        'abi': [
-            {
-                'type': 'constructor',
-                'inputs': [{'type': 'uint256'}],
-            },
-        ],
+        'abi': abi_with_constructor_input_types(['uint256']),
     }
     deploy_info = {
         'contracts': {
@@ -46,12 +48,7 @@ def test_get_constructor_args_one_arg():
 def test_get_constructor_args_two_args():
     contract_manager = ContractManager(contracts_source_path())
     contract_manager.contracts[contract_name] = {
-        'abi': [
-            {
-                'type': 'constructor',
-                'inputs': [{'type': 'uint256'}, {'type': 'bool'}],
-            },
-        ],
+        'abi': abi_with_constructor_input_types(['uint256', 'bool']),
     }
     deploy_info = {
         'contracts': {
