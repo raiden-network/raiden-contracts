@@ -1,4 +1,4 @@
-include Changelog.md
+include CHANGELOG.md
 include requirements.txt
 include raiden_contracts/constants.py
 include raiden_contracts/data*/contracts.json
