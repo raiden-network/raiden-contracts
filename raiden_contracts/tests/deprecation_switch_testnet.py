@@ -17,7 +17,7 @@ from raiden_contracts.deploy.__main__ import (
     register_token_network,
     setup_ctx,
 )
-from raiden_contracts.utils.transaction import check_succesful_tx
+from raiden_contracts.utils.transaction import check_successful_tx
 
 log = getLogger(__name__)
 
@@ -91,7 +91,7 @@ def deprecation_test(
         deployer.transaction,
     )
     log.debug(f'Deprecation txHash={encode_hex(txhash)}')
-    check_succesful_tx(deployer.web3, txhash, deployer.wait)
+    check_successful_tx(deployer.web3, txhash, deployer.wait)
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     log.info('Checking that channels cannot be opened anymore and no more deposits are allowed.')
@@ -149,7 +149,7 @@ def deprecation_test_setup(
     )
 
     log.debug(f'Minting tokens txHash={encode_hex(txhash)}')
-    check_succesful_tx(deployer.web3, txhash, deployer.wait)
+    check_successful_tx(deployer.web3, txhash, deployer.wait)
     assert token_contract.functions.balanceOf(deployer.owner).call() >= token_amount
 
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
@@ -178,7 +178,7 @@ def deprecation_test_setup(
         deployer.transaction,
     )
     log.debug(f'Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}')
-    check_succesful_tx(deployer.web3, txhash, deployer.wait)
+    check_successful_tx(deployer.web3, txhash, deployer.wait)
 
     assert token_contract.functions.allowance(
         deployer.owner,
@@ -205,7 +205,7 @@ def open_and_deposit(
             deployer.transaction,
         )
         log.debug(f'Opening a channel between {A} and {B} txHash={encode_hex(txhash)}')
-        check_succesful_tx(deployer.web3, txhash, deployer.wait)
+        check_successful_tx(deployer.web3, txhash, deployer.wait)
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -231,7 +231,7 @@ def open_and_deposit(
             f'Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {A} in a channel with '
             f'identifier={channel_identifier} and partner= {B} txHash={encode_hex(txhash)}',
         )
-        check_succesful_tx(deployer.web3, txhash, deployer.wait)
+        check_successful_tx(deployer.web3, txhash, deployer.wait)
         success_status = True
     except ValueError as ex:
         success_status = False
@@ -253,7 +253,7 @@ def open_and_deposit(
             f'Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {B} in a channel with '
             f'identifier={channel_identifier} and partner= {A} txHash={encode_hex(txhash)}',
         )
-        check_succesful_tx(deployer.web3, txhash, deployer.wait)
+        check_successful_tx(deployer.web3, txhash, deployer.wait)
         success_status = True
     except ValueError as ex:
         success_status = False
