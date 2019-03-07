@@ -212,7 +212,7 @@ class ContractManager:
             )
 
     def version_string(self):
-        """Return a flavored version string."""
+        """ The version string that should be found in the Solidity source """
         return contract_version_string(self.contracts_version)
 
 
@@ -221,14 +221,14 @@ def contracts_source_path():
 
 
 def contract_version_string(version: Optional[str] = None):
-    """Apply a flavor on a plain version and produce a flavored version string."""
+    """ The version string that should be found in the Solidity source """
     if version is None:
         version = CONTRACTS_VERSION
     return version
 
 
 def contracts_data_path(version: Optional[str] = None):
-    """Returns the deployment data directory for a flavor and a plain version."""
+    """Returns the deployment data directory for a version."""
     if version is None:
         return _BASE.joinpath('data')
     return _BASE.joinpath(f'data_{version}')
