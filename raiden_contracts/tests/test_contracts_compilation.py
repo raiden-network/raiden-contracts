@@ -234,7 +234,7 @@ def test_contract_manager_constructor_does_not_invent_version():
     assert manager.contracts_version is None
 
 
-@pytest.mark.parametrize('version', [CONTRACTS_VERSION, '0.3._', '0.4.0'])
+@pytest.mark.parametrize('version', [CONTRACTS_VERSION, '0.9.0', '0.3._', '0.4.0'])
 def test_contract_manager_constructor_keeps_existing_versions(version):
     """ ContractManager should keep an existing version string """
     manager = ContractManager(contracts_precompiled_path(version=version))
