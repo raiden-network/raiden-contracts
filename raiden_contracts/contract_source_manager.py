@@ -3,7 +3,7 @@ import hashlib
 import json
 from os import chdir
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict
 
 from solc import compile_files
 
@@ -25,14 +25,11 @@ class ContractSourceManagerVerificationError(RuntimeError):
 class ContractSourceManager():
     """ ContractSourceManager knows how to compile contracts """
 
-    def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
+    def __init__(self, path: Dict[str, Path]) -> None:
         """ Parmas: a dictionary of directories which contain solidity files to compile """
-        if isinstance(path, dict):
-            self.contracts_source_dirs = path
-        elif isinstance(path, Path) and path.is_dir():
-            self.contracts_source_dirs = {'smart_contracts': path}
-        else:
+        if not isinstance(path, dict):
             raise TypeError('Wrong type of argument given for ContractSourceManager()')
+        self.contracts_source_dirs = path
 
     def _compile_all_contracts(self) -> Dict:
         """
@@ -40,9 +37,6 @@ class ContractSourceManager():
         and also the :ref:`ethereum.tools` python library.  The return value is a dict that
         should be written into contracts.json.
         """
-        if self.contracts_source_dirs is None:
-            raise TypeError("Missing contracts source path, can't compile contracts.")
-
         ret = {}
         old_working_dir = Path.cwd()
         chdir(_BASE)
@@ -83,9 +77,6 @@ class ContractSourceManager():
 
     def compile_contracts(self, target_path: Path) -> ContractManager:
         """ Store compiled contracts JSON at `target_path`. """
-        if self.contracts_source_dirs is None:
-            raise TypeError('Already using stored contracts.')
-
         self.checksum_contracts()
 
         if self.overall_checksum is None:
@@ -143,9 +134,6 @@ class ContractSourceManager():
 
     def checksum_contracts(self) -> None:
         """Remember the checksum of each source, and the overall checksum."""
-        if self.contracts_source_dirs is None:
-            raise TypeError("Missing contracts source path, can't checksum contracts.")
-
         checksums: Dict[str, str] = {}
         for contracts_dir in self.contracts_source_dirs.values():
             file: Path
