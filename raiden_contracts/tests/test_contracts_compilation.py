@@ -13,10 +13,12 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     ContractManagerLoadError,
-    ContractSourceManager,
-    ContractSourceManagerVerificationError,
     contracts_deployed_path,
     contracts_precompiled_path,
+)
+from raiden_contracts.contract_source_manager import (
+    ContractSourceManager,
+    ContractSourceManagerVerificationError,
     contracts_source_path,
 )
 

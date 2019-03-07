@@ -1,33 +1,16 @@
-"""ContractManager knows sources, binaries and ABI of contracts."""
-import hashlib
+"""ContractManager knows binaries and ABI of contracts."""
 import json
 from json import JSONDecodeError
-from os import chdir
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
-from solc import compile_files
-
-from raiden_contracts.constants import (
-    CONTRACTS_VERSION,
-    ID_TO_NETWORKNAME,
-    PRECOMPILED_DATA_FIELDS,
-)
+from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
 
 _BASE = Path(__file__).parent
 
 
-class ContractSourceManagerCompilationError(RuntimeError):
-    """Compilation failed for infrastructural reasons (lack of the compiler,
-    failure to take checksums)."""
-
-
 class ContractManagerLoadError(RuntimeError):
     """Failure in loading contracts.json."""
-
-
-class ContractSourceManagerVerificationError(RuntimeError):
-    """Failure in comparing contracts.json contents against sources."""
 
 
 class ContractManager:
@@ -83,146 +66,6 @@ class ContractManager:
         return contract_version_string(self.contracts_version)
 
 
-class ContractSourceManager():
-    """ ContractSourceManager knows how to compile contracts """
-
-    def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
-        """ Parmas: a dictionary of directories which contain solidity files to compile """
-        if isinstance(path, dict):
-            self.contracts_source_dirs = path
-        elif isinstance(path, Path) and path.is_dir():
-            self.contracts_source_dirs = {'smart_contracts': path}
-        else:
-            raise TypeError('Wrong type of argument given for ContractSourceManager()')
-
-    def _compile_all_contracts(self) -> Dict:
-        """
-        Compile solidity contracts into ABI and BIN. This requires solc somewhere in the $PATH
-        and also the :ref:`ethereum.tools` python library.  The return value is a dict that
-        should be written into contracts.json.
-        """
-        if self.contracts_source_dirs is None:
-            raise TypeError("Missing contracts source path, can't compile contracts.")
-
-        ret = {}
-        old_working_dir = Path.cwd()
-        chdir(_BASE)
-
-        def relativise(path):
-            return path.relative_to(_BASE)
-        import_dir_map = [
-            '%s=%s' % (k, relativise(v))
-            for k, v in self.contracts_source_dirs.items()
-        ]
-        import_dir_map.insert(0, '.=.')  # allow solc to compile contracts in all subdirs
-        try:
-            for contracts_dir in self.contracts_source_dirs.values():
-                res = compile_files(
-                    [str(relativise(file)) for file in contracts_dir.glob('*.sol')],
-                    output_values=PRECOMPILED_DATA_FIELDS + ['ast'],
-                    import_remappings=import_dir_map,
-                    optimize=False,
-                )
-
-                # Strip `ast` part from result
-                # TODO: Remove after https://github.com/ethereum/py-solc/issues/56 is fixed
-                res = {
-                    contract_name: {
-                        content_key: content_value
-                        for content_key, content_value in contract_content.items()
-                        if content_key != 'ast'
-                    } for contract_name, contract_content in res.items()
-                }
-                ret.update(_fix_contract_key_names(res))
-        except FileNotFoundError as ex:
-            raise ContractSourceManagerCompilationError(
-                'Could not compile the contract. Check that solc is available.',
-            ) from ex
-        finally:
-            chdir(old_working_dir)
-        return ret
-
-    def compile_contracts(self, target_path: Path) -> ContractManager:
-        """ Store compiled contracts JSON at `target_path`. """
-        if self.contracts_source_dirs is None:
-            raise TypeError('Already using stored contracts.')
-
-        self.checksum_contracts()
-
-        if self.overall_checksum is None:
-            raise ContractSourceManagerCompilationError('Checksumming failed.')
-
-        contracts_compiled = self._compile_all_contracts()
-
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        with target_path.open(mode='w') as target_file:
-            target_file.write(
-                json.dumps(
-                    dict(
-                        contracts=contracts_compiled,
-                        contracts_checksums=self.contracts_checksums,
-                        overall_checksum=self.overall_checksum,
-                        contracts_version=None,
-                    ),
-                    sort_keys=True,
-                    indent=4,
-                ),
-            )
-
-        return ContractManager(target_path)
-
-    def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
-        """ Compare source code checksums with those from a precompiled file. """
-
-        # We get the precompiled file data
-        contracts_precompiled = ContractManager(precompiled_path)
-
-        # Silence mypy
-        assert self.contracts_checksums is not None
-
-        # Compare each contract source code checksum with the one from the precompiled file
-        for contract, checksum in self.contracts_checksums.items():
-            try:
-                # Silence mypy
-                assert contracts_precompiled.contracts_checksums is not None
-                precompiled_checksum = contracts_precompiled.contracts_checksums[contract]
-            except KeyError:
-                raise ContractSourceManagerVerificationError(
-                    f'No checksum for {contract}',
-                )
-            if precompiled_checksum != checksum:
-                raise ContractSourceManagerVerificationError(
-                    f'checksum of {contract} does not match {precompiled_checksum} != {checksum}',
-                )
-
-        # Compare the overall source code checksum with the one from the precompiled file
-        if self.overall_checksum != contracts_precompiled.overall_checksum:
-            raise ContractSourceManagerVerificationError(
-                f'overall checksum does not match '
-                f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
-            )
-
-    def checksum_contracts(self) -> None:
-        """Remember the checksum of each source, and the overall checksum."""
-        if self.contracts_source_dirs is None:
-            raise TypeError("Missing contracts source path, can't checksum contracts.")
-
-        checksums: Dict[str, str] = {}
-        for contracts_dir in self.contracts_source_dirs.values():
-            file: Path
-            for file in contracts_dir.glob('*.sol'):
-                checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
-
-        self.overall_checksum = hashlib.sha256(
-            ':'.join(checksums[key] for key in sorted(checksums)).encode(),
-        ).hexdigest()
-        self.contracts_checksums = checksums
-
-
-def contracts_source_path():
-    return contracts_source_path_with_stem('contracts')
-
-
 def contract_version_string(version: Optional[str] = None):
     """ The version string that should be found in the Solidity source """
     if version is None:
@@ -235,21 +78,6 @@ def contracts_data_path(version: Optional[str] = None):
     if version is None:
         return _BASE.joinpath('data')
     return _BASE.joinpath(f'data_{version}')
-
-
-def contracts_source_path_with_stem(stem):
-    """The directory remapping given to the Solidity compiler."""
-    return {
-        'lib': _BASE.joinpath(stem, 'lib'),
-        'raiden': _BASE.joinpath(stem, 'raiden'),
-        'test': _BASE.joinpath(stem, 'test'),
-        'services': _BASE.joinpath(stem, 'services'),
-    }
-
-
-def contracts_source_root():
-    """Returns the directory where the sources live."""
-    return _BASE.joinpath('contracts')
 
 
 def contracts_precompiled_path(version: Optional[str] = None):
@@ -294,13 +122,3 @@ def get_contracts_deployed(
     except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
         raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
-
-
-def _fix_contract_key_names(d: Dict) -> Dict:
-    result = {}
-
-    for k, v in d.items():
-        name = k.split(':')[1]
-        result[name] = v
-
-    return result
