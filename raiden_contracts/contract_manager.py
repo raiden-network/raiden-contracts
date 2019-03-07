@@ -17,7 +17,7 @@ from raiden_contracts.constants import (
 _BASE = Path(__file__).parent
 
 
-class ContractManagerCompilationError(RuntimeError):
+class ContractSourceManagerCompilationError(RuntimeError):
     """Compilation failed for infrastructural reasons (lack of the compiler,
     failure to take checksums)."""
 
@@ -26,7 +26,7 @@ class ContractManagerLoadError(RuntimeError):
     """Failure in loading contracts.json."""
 
 
-class ContractManagerVerificationError(RuntimeError):
+class ContractSourceManagerVerificationError(RuntimeError):
     """Failure in comparing contracts.json contents against sources."""
 
 
@@ -135,7 +135,7 @@ class ContractSourceManager():
                 }
                 ret.update(_fix_contract_key_names(res))
         except FileNotFoundError as ex:
-            raise ContractManagerCompilationError(
+            raise ContractSourceManagerCompilationError(
                 'Could not compile the contract. Check that solc is available.',
             ) from ex
         finally:
@@ -150,7 +150,7 @@ class ContractSourceManager():
         self.checksum_contracts()
 
         if self.overall_checksum is None:
-            raise ContractManagerCompilationError('Checksumming failed.')
+            raise ContractSourceManagerCompilationError('Checksumming failed.')
 
         contracts_compiled = self._compile_all_contracts()
 
@@ -187,17 +187,17 @@ class ContractSourceManager():
                 assert contracts_precompiled.contracts_checksums is not None
                 precompiled_checksum = contracts_precompiled.contracts_checksums[contract]
             except KeyError:
-                raise ContractManagerVerificationError(
+                raise ContractSourceManagerVerificationError(
                     f'No checksum for {contract}',
                 )
             if precompiled_checksum != checksum:
-                raise ContractManagerVerificationError(
+                raise ContractSourceManagerVerificationError(
                     f'checksum of {contract} does not match {precompiled_checksum} != {checksum}',
                 )
 
         # Compare the overall source code checksum with the one from the precompiled file
         if self.overall_checksum != contracts_precompiled.overall_checksum:
-            raise ContractManagerVerificationError(
+            raise ContractSourceManagerVerificationError(
                 f'overall checksum does not match '
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )

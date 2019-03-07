@@ -13,8 +13,8 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     ContractManagerLoadError,
-    ContractManagerVerificationError,
     ContractSourceManager,
+    ContractSourceManagerVerificationError,
     contracts_deployed_path,
     contracts_precompiled_path,
     contracts_source_path,
@@ -46,22 +46,22 @@ def test_verification_overall_checksum():
     # We change the source code overall checksum
     manager.overall_checksum += '2'
     # Now the verification should fail
-    with pytest.raises(ContractManagerVerificationError):
+    with pytest.raises(ContractSourceManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     manager.overall_checksum = None  # type: ignore
-    with pytest.raises(ContractManagerVerificationError):
+    with pytest.raises(ContractSourceManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     manager.overall_checksum = ''
-    with pytest.raises(ContractManagerVerificationError):
+    with pytest.raises(ContractSourceManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     checksum_fail = list(original_checksum)
     # Replace the first char with a different one
     checksum_fail[0] = 'a' if checksum_fail[0] == '2' else '2'
     manager.overall_checksum = ''.join(checksum_fail)
-    with pytest.raises(ContractManagerVerificationError):
+    with pytest.raises(ContractSourceManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     manager.overall_checksum = original_checksum
@@ -77,22 +77,22 @@ def test_verification_contracts_checksums():
     assert manager.contracts_checksums
     for contract, checksum in manager.contracts_checksums.items():
         manager.contracts_checksums[contract] += '2'
-        with pytest.raises(ContractManagerVerificationError):
+        with pytest.raises(ContractSourceManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
         manager.contracts_checksums[contract] = None  # type: ignore
-        with pytest.raises(ContractManagerVerificationError):
+        with pytest.raises(ContractSourceManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
         manager.contracts_checksums[contract] = ''
-        with pytest.raises(ContractManagerVerificationError):
+        with pytest.raises(ContractSourceManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
         checksum_fail = list(checksum)
         # Replace the first char with a different one
         checksum_fail[0] = 'a' if checksum_fail[0] == '2' else '2'
         manager.contracts_checksums[contract] = ''.join(checksum_fail)
-        with pytest.raises(ContractManagerVerificationError):
+        with pytest.raises(ContractSourceManagerVerificationError):
             manager.verify_precompiled_checksums(contracts_precompiled_path())
 
         manager.contracts_checksums[contract] = checksum
