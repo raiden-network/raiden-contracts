@@ -1,10 +1,7 @@
 import pytest
 
-from raiden_contracts.contract_manager import (
-    ContractSourceManager,
-    contracts_precompiled_path,
-    contracts_source_path,
-)
+from raiden_contracts.contract_manager import contracts_precompiled_path
+from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 
 
 @pytest.fixture(scope='session')

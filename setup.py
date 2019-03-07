@@ -46,8 +46,10 @@ class VerifyContracts(Command):
 
     def run(self):
         from raiden_contracts.contract_manager import (
-            ContractSourceManager,
             contracts_precompiled_path,
+        )
+        from raiden_contracts.contract_source_manager import (
+            ContractSourceManager,
             contracts_source_path,
         )
         manager = ContractSourceManager(contracts_source_path())
@@ -66,9 +68,9 @@ class CompileContracts(Command):
         pass
 
     def run(self):
-        from raiden_contracts.contract_manager import (
+        from raiden_contracts.contract_manager import contracts_precompiled_path
+        from raiden_contracts.contract_source_manager import (
             ContractSourceManager,
-            contracts_precompiled_path,
             contracts_source_path,
         )
 

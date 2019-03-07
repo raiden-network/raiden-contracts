@@ -21,9 +21,9 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     contracts_precompiled_path,
-    contracts_source_path,
     get_contracts_deployed,
 )
+from raiden_contracts.contract_source_manager import contracts_source_path
 
 
 @click.command()

@@ -29,13 +29,12 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
-    ContractSourceManager,
     contract_version_string,
     contracts_deployed_path,
     contracts_precompiled_path,
-    contracts_source_path,
     get_contracts_deployed,
 )
+from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.utils.bytecode import runtime_hexcode
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
