@@ -9,7 +9,7 @@ from raiden_contracts.utils.private_key import check_permission_safety, get_priv
 
 def test_permission_safety_different_uid():
     """ check_permission_safety() should fail on a file with a different uid """
-    assert not check_permission_safety("/")
+    assert not check_permission_safety('/')
 
 
 def test_permission_safety_group_writable():

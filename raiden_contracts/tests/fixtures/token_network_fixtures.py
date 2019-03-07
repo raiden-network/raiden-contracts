@@ -30,9 +30,9 @@ def get_token_network(web3, deploy_tester_contract):
 
 @pytest.fixture(scope='session')
 def register_token_network(
-    web3,
-    token_network_registry_contract,
-    contracts_manager,
+        web3,
+        token_network_registry_contract,
+        contracts_manager,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
@@ -102,8 +102,8 @@ def token_network(
 
 @pytest.fixture
 def token_network_7_decimals(
-    register_token_network,
-    custom_token_7_decimals,
+        register_token_network,
+        custom_token_7_decimals,
 ):
     """Register a new token network for a custom token"""
     return register_token_network(custom_token_7_decimals.address)
@@ -111,8 +111,8 @@ def token_network_7_decimals(
 
 @pytest.fixture
 def token_network_no_decimals(
-    register_token_network,
-    custom_token_no_decimals,
+        register_token_network,
+        custom_token_no_decimals,
 ):
     """Register a new token network for a custom token"""
     return register_token_network(custom_token_no_decimals.address)

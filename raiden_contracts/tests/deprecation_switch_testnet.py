@@ -58,7 +58,7 @@ def deprecation_test(
         gas_limit,
 ):
     """ Turn on the deprecation switch and see channel opening fails """
-    setup_ctx(ctx, "limited", private_key, rpc_provider, wait, gas_price, gas_limit)
+    setup_ctx(ctx, 'limited', private_key, rpc_provider, wait, gas_price, gas_limit)
     deployer = ctx.obj['deployer']
 
     # We deploy the Raiden Network contracts and register a token network
@@ -66,9 +66,9 @@ def deprecation_test(
     channel_participant_deposit_limit = MAX_ETH_CHANNEL_PARTICIPANT
     token_network_deposit_limit = MAX_ETH_TOKEN_NETWORK
     (
-        token_network_registry,
+        _,
         token_network,
-        token_contract,
+        _,
     ) = deprecation_test_setup(
         deployer,
         token_amount,

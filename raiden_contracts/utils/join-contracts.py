@@ -70,7 +70,7 @@ class ContractJoiner:
 @click.argument('output', type=File('w'))
 def main(contract, output, import_map):
     import_map = json.loads(import_map)
-    output.write("\n".join(ContractJoiner(import_map).join(contract)))
+    output.write('\n'.join(ContractJoiner(import_map).join(contract)))
 
 
 if __name__ == '__main__':

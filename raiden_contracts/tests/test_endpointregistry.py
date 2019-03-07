@@ -10,7 +10,7 @@ def test_version(endpoint_registry_contract):
 
 def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
     """ Overwrite an endpoint registration """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     ENDPOINT = '127.0.0.1:38647'
     endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({'from': A})
     NEW_ENDPOINT = '192.168.0.1:4002'
@@ -22,7 +22,7 @@ def test_endpointregistry_calls(endpoint_registry_contract, get_accounts):
 
 def test_events(endpoint_registry_contract, get_accounts, event_handler):
     """ An endpoint registration causes an EVENT_ADDRESS_REGISTERED event """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     ev_handler = event_handler(endpoint_registry_contract)
 
     ENDPOINT = '127.0.0.1:38647'

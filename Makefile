@@ -17,7 +17,7 @@ ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contrac
 
 lint:
 	flake8 raiden_contracts/
-	pylint -E raiden_contracts/
+	pylint --rcfile .pylint.rc --load-plugins pylint_quotes raiden_contracts/
 	isort $(ISORT_PARAMS) --check-only
 
 isort:

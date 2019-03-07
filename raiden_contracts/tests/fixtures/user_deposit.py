@@ -37,8 +37,8 @@ def user_deposit_contract(
 
 @pytest.fixture
 def udc_transfer_contract(
-    deploy_tester_contract,
-    uninitialized_user_deposit_contract,
+        deploy_tester_contract,
+        uninitialized_user_deposit_contract,
 ):
     return deploy_tester_contract(
         'UDCTransfer',

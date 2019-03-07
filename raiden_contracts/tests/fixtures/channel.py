@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.exceptions import MismatchedABI
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
@@ -121,15 +122,16 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant,
             withdraw_amount,
         )
-        # TODO uncomment this after setTotalWithdraw is uncommented in the TokenNetwork contract
         txn_hash = b''
-        # txn_hash = token_network.functions.setTotalWithdraw(
-        #     channel_identifier,
-        #     participant,
-        #     withdraw_amount,
-        #     signature_participant,
-        #     signature_partner
-        # ).transact({'from': delegate})
+        # Remove the next line when setTotalWithdraw is implemented.
+        with pytest.raises(MismatchedABI):
+            txn_hash = token_network.functions.setTotalWithdraw(
+                channel_identifier,
+                participant,
+                withdraw_amount,
+                signature_participant,
+                signature_partner,
+            ).transact({'from': delegate})
         return txn_hash
     return get
 

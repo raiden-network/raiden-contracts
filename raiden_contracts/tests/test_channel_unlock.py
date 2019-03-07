@@ -105,7 +105,7 @@ def test_merkle_root_odd_even_components(
         reveal_secrets,
 ):
     """ Test getMerkleRootAndUnlockedAmount() on an odd/even number of locks """
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
 
     # Even number of merkle tree components
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
@@ -251,7 +251,7 @@ def test_lock_data_from_merkle_tree(
 ):
     """ Test getLockDataFromMerkleTreePublic() on various offsets """
     network_utils = token_network_test_utils
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
 
     unlockable_amounts = [3, 5]
     expired_amounts = [2, 8, 7]

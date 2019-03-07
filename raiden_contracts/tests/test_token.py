@@ -52,7 +52,7 @@ def test_approve_transfer(web3, custom_token, get_accounts):
 def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
     """ transferFunds() should fail when the ETH balance of the contract is zero """
 
-    (A, B) = get_accounts(2)
+    A = get_accounts(1)[0]
     token = custom_token
     multiplier = custom_token.functions.multiplier().call()
     assert multiplier > 0

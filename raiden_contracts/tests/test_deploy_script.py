@@ -152,7 +152,7 @@ def test_deploy_script_raiden(
 
 
 def test_deploy_script_token(
-    web3,
+        web3,
 ):
     """ Run test token deployment function used in the deployment script
 

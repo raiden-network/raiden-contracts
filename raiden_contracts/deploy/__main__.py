@@ -559,7 +559,7 @@ def deploy_and_remember(
         contract_name: str,
         arguments: List,
         deployer: ContractDeployer,
-        deployed_contracts: "DeployedContracts",
+        deployed_contracts: 'DeployedContracts',
 ) -> Contract:
     """ Deployes contract_name with arguments and store the result in deployed_contracts. """
     receipt = deployer.deploy(contract_name, arguments)
@@ -649,9 +649,9 @@ def deploy_service_contracts(
 
     # Tell the UserDeposit instance about other contracts.
     LOG.debug(
-        "Calling UserDeposit.init() with "
-        f"msc_address={msc.address} "
-        f"one_to_n_address={one_to_n.address}",
+        'Calling UserDeposit.init() with '
+        f'msc_address={msc.address} '
+        f'one_to_n_address={one_to_n.address}',
     )
     deployer.transact(user_deposit.functions.init(msc.address, one_to_n.address))
 
@@ -697,8 +697,8 @@ def register_token_network(
     )
 
     assert token_network_registry.functions.contract_version().call() == token_registry_version, \
-        f"got {token_network_registry.functions.contract_version().call()}," \
-        f"expected {token_registry_version}"
+        f'got {token_network_registry.functions.contract_version().call()},' \
+        f'expected {token_registry_version}'
 
     txhash = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
@@ -712,7 +712,7 @@ def register_token_network(
         },
     )
     LOG.debug(
-        "calling createERC20TokenNetwork(%s) txHash=%s" %
+        'calling createERC20TokenNetwork(%s) txHash=%s' %
         (
             token_address,
             encode_hex(txhash),
@@ -760,7 +760,7 @@ def verify_deployment_data(
     assert contract_manager.version_string() == deployment_data['contracts_version']
     assert chain_id == deployment_data['chain_id']
 
-    endpoint_registry, _ = verify_deployed_contract(
+    verify_deployed_contract(
         web3=web3,
         contract_manager=contract_manager,
         deployment_data=deployment_data,
@@ -884,7 +884,7 @@ def verify_service_contracts_deployment_data(
     # Check that UserDeposit.init() had the right effect
     onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
     assert onchain_msc_address == monitoring_service.address, \
-        f"MSC address found onchain: {onchain_msc_address}, expected: {monitoring_service.address}"
+        f'MSC address found onchain: {onchain_msc_address}, expected: {monitoring_service.address}'
     assert to_checksum_address(
         user_deposit.functions.one_to_n_address().call(),
     ) == one_to_n.address
@@ -964,24 +964,24 @@ def verify_deployed_contract(
         contracts[contract_name]['transaction_hash'],
     )
     assert receipt['blockNumber'] == contracts[contract_name]['block_number'], (
-        f"We have block_number {contracts[contract_name]['block_number']} "
-        f"instead of {receipt['blockNumber']}"
+        f'We have block_number {contracts[contract_name]["block_number"]} '
+        f'instead of {receipt["blockNumber"]}'
     )
     assert receipt['gasUsed'] == contracts[contract_name]['gas_cost'], (
-        f"We have gasUsed {contracts[contract_name]['gas_cost']} "
-        f"instead of {receipt['gasUsed']}"
+        f'We have gasUsed {contracts[contract_name]["gas_cost"]} '
+        f'instead of {receipt["gasUsed"]}'
     )
     assert receipt['contractAddress'] == contracts[contract_name]['address'], (
-        f"We have contractAddress {contracts[contract_name]['address']} "
-        f"instead of {receipt['contractAddress']}"
+        f'We have contractAddress {contracts[contract_name]["address"]} '
+        f'instead of {receipt["contractAddress"]}'
     )
 
     # Check the contract version
     version = contract_instance.functions.contract_version().call()
     assert version == deployment_data['contracts_version'], \
-        f"got {version} expected {deployment_data['contracts_version']}," \
-        f"contract_manager has source {contract_manager.contracts_source_dirs} and" \
-        f"contract_manager has contracts_version {contract_manager.contracts_version}"
+        f'got {version} expected {deployment_data["contracts_version"]},' \
+        f'contract_manager has source {contract_manager.contracts_source_dirs} and' \
+        f'contract_manager has contracts_version {contract_manager.contracts_version}'
 
     return contract_instance, contracts[contract_name]['constructor_arguments']
 

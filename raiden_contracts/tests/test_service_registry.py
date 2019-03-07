@@ -5,9 +5,9 @@ from raiden_contracts.constants import CONTRACTS_VERSION
 
 
 def test_deposit(
-    service_registry,
-    custom_token,
-    get_accounts,
+        service_registry,
+        custom_token,
+        get_accounts,
 ):
     (A, ) = get_accounts(1)
     custom_token.functions.mint(10).transact({'from': A})
@@ -24,8 +24,8 @@ def test_deposit(
 
 
 def test_setURL(
-    service_registry,
-    get_accounts,
+        service_registry,
+        get_accounts,
 ):
     (A, ) = get_accounts(1)
     url1 = 'http://example.com'

@@ -31,7 +31,7 @@ def test_settle_timeout_inrange(
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (
         settle_block_number,
-        state,
+        _,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
@@ -60,7 +60,7 @@ def test_settle_timeout_inrange(
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (
         settle_block_number,
-        state,
+        _,
     ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MAX
