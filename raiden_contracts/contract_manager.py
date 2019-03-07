@@ -46,10 +46,10 @@ class ContractManager:
         self.contracts_checksums: Optional[Dict[str, str]] = None
         if isinstance(path, dict):
             self.contracts_source_dirs = path
-            self.contracts_version = CONTRACTS_VERSION
+            self.contracts_version = None
         elif isinstance(path, Path) and path.is_dir():
             self.contracts_source_dirs = {'smart_contracts': path}
-            self.contracts_version = CONTRACTS_VERSION
+            self.contracts_version = None
         elif isinstance(path, Path):
             try:
                 with path.open() as precompiled_file:
@@ -229,7 +229,7 @@ def contract_version_string(version: Optional[str] = None):
 
 def contracts_data_path(version: Optional[str] = None):
     """Returns the deployment data directory for a flavor and a plain version."""
-    if version is None or version == CONTRACTS_VERSION:
+    if version is None:
         return _BASE.joinpath('data')
     return _BASE.joinpath(f'data_{version}')
 
