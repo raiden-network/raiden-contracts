@@ -22,6 +22,7 @@ from raiden_contracts.utils.events import check_channel_settled
 
 def test_settle_no_bp_success(
         web3,
+        custom_token,
         token_network,
         create_channel_and_deposit,
         get_accounts,
@@ -60,6 +61,9 @@ def test_settle_no_bp_success(
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
     ).transact({'from': A})
+
+    assert custom_token.functions.balanceOf(A).call() == deposit_A
+    assert custom_token.functions.balanceOf(B).call() == deposit_B
 
 
 def test_settle_channel_state(
