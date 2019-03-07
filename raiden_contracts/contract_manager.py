@@ -31,9 +31,9 @@ class ContractManagerVerificationError(RuntimeError):
 
 
 class ContractManager:
-    """ContractManager knows how to interact with already compiled contracts:
+    """ ContractManager holds compiled contracts of the same version
 
-    using the ABI and checking the bytecode against the source.
+    Provides access to the ABI and the bytecode.
     """
     def __init__(self, path: Path) -> None:
         """Params:
@@ -84,7 +84,7 @@ class ContractManager:
 
 
 class ContractSourceManager():
-    """ ContractSourceManager knows how to compile contracts. """
+    """ ContractSourceManager knows how to compile contracts """
 
     def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
         """ Parmas: a dictionary of directories which contain solidity files to compile """
