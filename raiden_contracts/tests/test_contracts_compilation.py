@@ -96,12 +96,6 @@ def test_verification_contracts_checksums():
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
 
-def test_contracts_version():
-    """ Check the value of contracts_version """
-    manager = ContractManager(contracts_precompiled_path())
-    assert manager.contracts_version == CONTRACTS_VERSION
-
-
 def test_current_development_version():
     """ contracts_source_path() exists and contains the expected files """
     contracts_version = CONTRACTS_VERSION
@@ -232,3 +226,16 @@ def test_contract_manager_json(tmpdir):
     ContractManager(contracts_source_path()).compile_contracts(precompiled_path)
     # try to load contracts from a precompiled file
     contract_manager_meta(precompiled_path)
+
+
+def test_contract_manager_constructor_does_not_invent_version():
+    """ ContractManager should not invent a version string """
+    manager = ContractManager(contracts_precompiled_path(version=None))
+    assert manager.contracts_version is None
+
+
+@pytest.mark.parametrize('version', [CONTRACTS_VERSION, '0.3._', '0.4.0'])
+def test_contract_manager_constructor_keeps_existing_versions(version):
+    """ ContractManager should keep an existing version string """
+    manager = ContractManager(contracts_precompiled_path(version=version))
+    assert manager.contracts_version == version

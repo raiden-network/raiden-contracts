@@ -126,9 +126,7 @@ Measure Gas Costs
 Create a New Data Directory
 ---------------------------
 
-Copy ``data`` directory into ``data_x.y.z`` where ``x.y.z`` is the contract version.
-
-Also ``data_unlimited`` has to be copied into ``data_x.y.z_unlimited``.
+Copy ``data`` directory into ``data_x.y.z`` where ``x.y.z`` is the contract version.  Also, edit ``data_x.y.z/contracts.json`` to change ``contracts_version`` from ``null`` to ``x.y.z``.
 
 .. _bump-package:
 

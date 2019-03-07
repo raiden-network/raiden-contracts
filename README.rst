@@ -33,13 +33,13 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
 You can find other useful constants that you can import in ``raiden_contracts/constants.py``.
 
 .. Note::
-    There are currently three versions supported in this package:
+    This package supports many contract versions, including:
 
     * Development ``0.3._`` contracts version (from ``0.3.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.3.0). No limits on the number of tokens registered; has a limit of 100 tokens per channel). Source code: https://github.com/raiden-network/raiden-contracts/tree/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts
     * Red Eyes Mainnet ``0.4.0`` contracts version (from ``0.7.0`` package release: https://github.com/raiden-network/raiden-contracts/releases/tag/v0.7.0). Source code: https://github.com/raiden-network/raiden-contracts/tree/fac73623d5b92b7c070fdde2b446648ec9117474/raiden_contracts/contracts
     * current !development version corresponding with the ``master`` branch (might not be stable).
 
-    These are temporary and will be removed in favor of only one contracts version in the Ithaca Milestone.
+    The current policy is to add all new deployment data together with the sources.
 
 If you are using the ``raiden-contracts`` package in your project, you can use::
 
@@ -50,15 +50,15 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         CONTRACT_MONITORING_SERVICE,
+        CONTRACTS_VERSION,
         EVENT_TOKEN_NETWORK_CREATED,
     )
 
-    # ``raiden-contracts`` provides only three kinds of ``contracts_version``s.
-    # ``None``, ``'0.4.0'`` and ``'0.3._'``.  They are explained below.
+    # ``raiden-contracts`` provides ``contracts_version``s like
+    # ``0.9.0``, ``'0.4.0'`` and ``'0.3._'``.  They are explained below.
 
-    # Uses the newest version. Available on Kovan, Rinkeby and Ropsten.
-    # Mainnet deployments should not be accessed with contract_version == None.
-    contracts_version = None
+    # Uses the newest test net release available on Kovan, Rinkeby and Ropsten.
+    contracts_version = CONTRACTS_VERSION
 
     # Uses Red Eyes, Mainnet enabled version with deposit limits.
     # The version is also available on Kovan, Rinkeby and Ropsten.
@@ -69,10 +69,6 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     # The Solidity source of this version is unknown on Etherscan.
     # See https://github.com/raiden-network/raiden-contracts/issues/543
     contracts_version = '0.3._'
-
-    # Other contract versions like ``'0.6.0'`` do not work. Contract versions
-    # become available when anybody requests, or when there is a mainnet
-    # deployment.
 
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
