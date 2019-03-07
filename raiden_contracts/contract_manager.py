@@ -31,53 +31,80 @@ class ContractManagerVerificationError(RuntimeError):
 
 
 class ContractManager:
-    """ContractManager knows how to interact with contracts:
+    """ContractManager knows how to interact with already compiled contracts:
 
-    compiling them, using the ABI, checking the bytecode against the source.
+    using the ABI and checking the bytecode against the source.
     """
-    def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
+    def __init__(self, path: Path) -> None:
         """Params:
-            path: either path to a precompiled contract JSON file, or a list of
-                directories which contain solidity files to compile
+            path: path to a precompiled contract JSON file,
         """
-        self.contracts_source_dirs: Optional[Dict[str, Path]] = None
-        self.contracts: Dict[str, Dict] = dict()
         self.overall_checksum = None
         self.contracts_checksums: Optional[Dict[str, str]] = None
+        assert isinstance(path, Path), 'wrong type of argument given for ContractManager()'
+        try:
+            with path.open() as precompiled_file:
+                precompiled_content = json.load(precompiled_file)
+        except (JSONDecodeError, UnicodeDecodeError) as ex:
+            raise ContractManagerLoadError(
+                f"Can't load precompiled smart contracts: {ex}",
+            ) from ex
+        try:
+            self.contracts = precompiled_content['contracts']
+            self.overall_checksum = precompiled_content['overall_checksum']
+            self.contracts_checksums = precompiled_content['contracts_checksums']
+            self.contracts_version = precompiled_content['contracts_version']
+        except KeyError as ex:
+            raise ContractManagerLoadError(
+                f'Precompiled contracts json has unexpected format: {ex}',
+            ) from ex
+
+    def get_contract(self, contract_name: str) -> Dict:
+        """ Return ABI, BIN of the given contract. """
+        assert self.contracts, 'ContractManager should have contracts compiled'
+        return self.contracts[contract_name]
+
+    def get_contract_abi(self, contract_name: str) -> Dict:
+        """ Returns the ABI for a given contract. """
+        assert self.contracts, 'ContractManager should have contracts compiled'
+        return self.contracts[contract_name]['abi']
+
+    def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
+        """ Returns the ABI for a given event. """
+        # Import locally to avoid web3 dependency during installation via `compile_contracts`
+        from web3.utils.contracts import find_matching_event_abi
+
+        assert self.contracts, 'ContractManager should have contracts compiled'
+        contract_abi = self.get_contract_abi(contract_name)
+        return find_matching_event_abi(contract_abi, event_name)
+
+    def version_string(self):
+        """Return a flavored version string."""
+        return contract_version_string(self.contracts_version)
+
+
+class ContractSourceManager():
+    """ ContractSourceManager knows how to compile contracts. """
+
+    def __init__(self, path: Union[Path, Dict[str, Path]]) -> None:
+        """ Parmas: a dictionary of directories which contain solidity files to compile """
         if isinstance(path, dict):
             self.contracts_source_dirs = path
-            self.contracts_version = None
         elif isinstance(path, Path) and path.is_dir():
             self.contracts_source_dirs = {'smart_contracts': path}
-            self.contracts_version = None
-        elif isinstance(path, Path):
-            try:
-                with path.open() as precompiled_file:
-                    precompiled_content = json.load(precompiled_file)
-            except (JSONDecodeError, UnicodeDecodeError) as ex:
-                raise ContractManagerLoadError(
-                    f"Can't load precompiled smart contracts: {ex}",
-                ) from ex
-            try:
-                self.contracts = precompiled_content['contracts']
-                self.overall_checksum = precompiled_content['overall_checksum']
-                self.contracts_checksums = precompiled_content['contracts_checksums']
-                self.contracts_version = precompiled_content['contracts_version']
-            except KeyError as ex:
-                raise ContractManagerLoadError(
-                    f'Precompiled contracts json has unexpected format: {ex}',
-                ) from ex
         else:
-            raise TypeError('`path` must be either `Path` or `dict`')
+            raise TypeError('Wrong type of argument given for ContractSourceManager()')
 
-    def _compile_all_contracts(self) -> None:
+    def _compile_all_contracts(self) -> Dict:
         """
         Compile solidity contracts into ABI and BIN. This requires solc somewhere in the $PATH
-        and also the :ref:`ethereum.tools` python library.
+        and also the :ref:`ethereum.tools` python library.  The return value is a dict that
+        should be written into contracts.json.
         """
         if self.contracts_source_dirs is None:
             raise TypeError("Missing contracts source path, can't compile contracts.")
 
+        ret = {}
         old_working_dir = Path.cwd()
         chdir(_BASE)
 
@@ -106,15 +133,16 @@ class ContractManager:
                         if content_key != 'ast'
                     } for contract_name, contract_content in res.items()
                 }
-                self.contracts.update(_fix_contract_key_names(res))
+                ret.update(_fix_contract_key_names(res))
         except FileNotFoundError as ex:
             raise ContractManagerCompilationError(
                 'Could not compile the contract. Check that solc is available.',
             ) from ex
         finally:
             chdir(old_working_dir)
+        return ret
 
-    def compile_contracts(self, target_path: Path) -> None:
+    def compile_contracts(self, target_path: Path) -> ContractManager:
         """ Store compiled contracts JSON at `target_path`. """
         if self.contracts_source_dirs is None:
             raise TypeError('Already using stored contracts.')
@@ -124,61 +152,24 @@ class ContractManager:
         if self.overall_checksum is None:
             raise ContractManagerCompilationError('Checksumming failed.')
 
-        if not self.contracts:
-            self._compile_all_contracts()
+        contracts_compiled = self._compile_all_contracts()
 
         target_path.parent.mkdir(parents=True, exist_ok=True)
         with target_path.open(mode='w') as target_file:
             target_file.write(
                 json.dumps(
                     dict(
-                        contracts=self.contracts,
+                        contracts=contracts_compiled,
                         contracts_checksums=self.contracts_checksums,
                         overall_checksum=self.overall_checksum,
-                        contracts_version=self.contracts_version,
+                        contracts_version=None,
                     ),
                     sort_keys=True,
                     indent=4,
                 ),
             )
 
-    def get_contract(self, contract_name: str) -> Dict:
-        """ Return ABI, BIN of the given contract. """
-        if not self.contracts:
-            self._compile_all_contracts()
-        return self.contracts[contract_name]
-
-    def get_contract_abi(self, contract_name: str) -> Dict:
-        """ Returns the ABI for a given contract. """
-        if not self.contracts:
-            self._compile_all_contracts()
-        return self.contracts[contract_name]['abi']
-
-    def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
-        """ Returns the ABI for a given event. """
-        # Import locally to avoid web3 dependency during installation via `compile_contracts`
-        from web3.utils.contracts import find_matching_event_abi
-
-        if not self.contracts:
-            self._compile_all_contracts()
-        contract_abi = self.get_contract_abi(contract_name)
-        return find_matching_event_abi(contract_abi, event_name)
-
-    def checksum_contracts(self) -> None:
-        """Remember the checksum of each source, and the overall checksum."""
-        if self.contracts_source_dirs is None:
-            raise TypeError("Missing contracts source path, can't checksum contracts.")
-
-        checksums: Dict[str, str] = {}
-        for contracts_dir in self.contracts_source_dirs.values():
-            file: Path
-            for file in contracts_dir.glob('*.sol'):
-                checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
-
-        self.overall_checksum = hashlib.sha256(
-            ':'.join(checksums[key] for key in sorted(checksums)).encode(),
-        ).hexdigest()
-        self.contracts_checksums = checksums
+        return ContractManager(target_path)
 
     def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
         """ Compare source code checksums with those from a precompiled file. """
@@ -211,9 +202,21 @@ class ContractManager:
                 f'{self.overall_checksum} != {contracts_precompiled.overall_checksum}',
             )
 
-    def version_string(self):
-        """ The version string that should be found in the Solidity source """
-        return contract_version_string(self.contracts_version)
+    def checksum_contracts(self) -> None:
+        """Remember the checksum of each source, and the overall checksum."""
+        if self.contracts_source_dirs is None:
+            raise TypeError("Missing contracts source path, can't checksum contracts.")
+
+        checksums: Dict[str, str] = {}
+        for contracts_dir in self.contracts_source_dirs.values():
+            file: Path
+            for file in contracts_dir.glob('*.sol'):
+                checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
+
+        self.overall_checksum = hashlib.sha256(
+            ':'.join(checksums[key] for key in sorted(checksums)).encode(),
+        ).hexdigest()
+        self.contracts_checksums = checksums
 
 
 def contracts_source_path():

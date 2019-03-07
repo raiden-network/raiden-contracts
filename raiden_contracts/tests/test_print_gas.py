@@ -1,4 +1,5 @@
 import json
+
 import pytest
 
 from raiden_contracts.constants import (

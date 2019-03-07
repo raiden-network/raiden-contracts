@@ -29,6 +29,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
+    ContractSourceManager,
     contract_version_string,
     contracts_deployed_path,
     contracts_precompiled_path,
@@ -82,7 +83,7 @@ class ContractDeployer:
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
         if self.contracts_version in [None, CONTRACTS_VERSION]:
-            contract_manager_source = ContractManager(contracts_source_path())
+            contract_manager_source = ContractSourceManager(contracts_source_path())
             contract_manager_source.checksum_contracts()
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
@@ -979,8 +980,7 @@ def verify_deployed_contract(
     # Check the contract version
     version = contract_instance.functions.contract_version().call()
     assert version == deployment_data['contracts_version'], \
-        f'got {version} expected {deployment_data["contracts_version"]},' \
-        f'contract_manager has source {contract_manager.contracts_source_dirs} and' \
+        f'got {version} expected {deployment_data["contracts_version"]}.' \
         f'contract_manager has contracts_version {contract_manager.contracts_version}'
 
     return contract_instance, contracts[contract_name]['constructor_arguments']

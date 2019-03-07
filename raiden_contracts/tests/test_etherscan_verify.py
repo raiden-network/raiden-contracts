@@ -12,7 +12,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import ContractManager, contracts_source_path
+from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
 from raiden_contracts.deploy.etherscan_verify import (
     api_of_chain_id,
     etherscan_verify,
@@ -27,7 +27,7 @@ contract_name = 'DummyContract'
 
 def test_get_constructor_args_no_args():
     """ Test get_constructor_args() on no arguments """
-    contract_manager = ContractManager(contracts_source_path())
+    contract_manager = ContractManager(contracts_precompiled_path())
     deploy_info: Dict = {
         'contracts': {
             contract_name: {
@@ -47,7 +47,7 @@ def abi_with_constructor_input_types(types: List[str]):
 
 def test_get_constructor_args_one_arg():
     """ Test get_constructor_args() on one argument """
-    contract_manager = ContractManager(contracts_source_path())
+    contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256']),
     }
@@ -64,7 +64,7 @@ def test_get_constructor_args_one_arg():
 
 def test_get_constructor_args_two_args():
     """ Test get_constructor_args() on two arguments """
-    contract_manager = ContractManager(contracts_source_path())
+    contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256', 'bool']),
     }
