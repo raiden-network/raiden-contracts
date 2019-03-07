@@ -1,7 +1,8 @@
 from copy import deepcopy
 
 import pytest
-from eth_utils import ValidationError
+from click import BadParameter
+from eth_utils import ValidationError, to_checksum_address
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -19,11 +20,16 @@ from raiden_contracts.deploy.__main__ import (
     deploy_service_contracts,
     deploy_token_contract,
     register_token_network,
+    validate_address,
     verify_deployment_data,
     verify_service_contracts_deployment_data,
 )
 from raiden_contracts.tests.utils import get_random_privkey
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAUCET_PRIVATE_KEY
+from raiden_contracts.tests.utils.constants import (
+    CONTRACT_DEPLOYER_ADDRESS,
+    EMPTY_ADDRESS,
+    FAUCET_PRIVATE_KEY,
+)
 from raiden_contracts.utils.type_aliases import T_Address
 
 
@@ -328,3 +334,25 @@ def test_deploy_script_service(
             CONTRACT_USER_DEPOSIT,
     ]:
         test_missing_deployment(contract_name)
+
+
+def test_validate_address_on_none():
+    """ validate_address(x, y, None) should return None """
+    assert validate_address(None, None, None) is None
+
+
+def test_validate_address_empty_string():
+    """ validate_address(x, y, '') should return None """
+    assert validate_address(None, None, '') is None
+
+
+def test_validate_address_not_an_address():
+    """ validate_address(x, y, 'not an address') should raise click.BadParameter """
+    with pytest.raises(BadParameter):
+        validate_address(None, None, 'not an address')
+
+
+def test_validate_address_happy_path():
+    """ validate_address(x, y, address) should return the same address checksumed """
+    address = CONTRACT_DEPLOYER_ADDRESS
+    assert validate_address(None, None, address) == to_checksum_address(address)
