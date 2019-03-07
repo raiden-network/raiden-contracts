@@ -256,3 +256,9 @@ def test_contract_manager_precompiled_load_error():
     with NamedTemporaryFile() as empty_file:
         with pytest.raises(ContractManagerLoadError):
             ContractManager(Path(empty_file.name))
+
+
+def test_contract_source_manager_constructor_with_wrong_type():
+    """ ConstructSourceManager's constructor raises TypeError on a wrong kind of argument """
+    with pytest.raises(TypeError):
+        ContractSourceManager(None)  # type: ignore
