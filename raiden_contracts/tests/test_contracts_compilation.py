@@ -248,32 +248,9 @@ def test_contract_manager_constructor_keeps_existing_versions(version):
     assert manager.contracts_version == version
 
 
-def test_contract_manager_missing_source_path():
-    """ ContractManager._compile_all_contracts() raises TypeError when source_dirs is not set """
-    manager = ContractSourceManager(contracts_precompiled_path())
-    with pytest.raises(TypeError):
-        manager._compile_all_contracts()
-
-
 def test_contract_manager_precompiled_load_error():
     """ ContractManager's constructor raises ContractManagerLoadError when precompiled
     contracts cannot be loaded """
     with NamedTemporaryFile() as empty_file:
         with pytest.raises(ContractManagerLoadError):
             ContractManager(Path(empty_file.name))
-
-
-def test_contract_manager_already_using_stored():
-    """ ContractManager.compile_contracts() should raise TypeError when source directories
-    are not set """
-    manager = ContractSourceManager(contracts_precompiled_path())
-    with pytest.raises(TypeError):
-        manager.compile_contracts(Path('/'))
-
-
-def test_contract_manager_checksum_on_no_source():
-    """ ContractManager.checksum_contracts() should raise TypeError when source directories
-    are not set """
-    manager = ContractSourceManager(contracts_precompiled_path())
-    with pytest.raises(TypeError):
-        manager.checksum_contracts()
