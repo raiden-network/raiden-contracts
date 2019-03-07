@@ -48,7 +48,7 @@ def reasonable_deployment_of_a_contract(deployed):
     assert isinstance(deployed["constructor_arguments"], list)
 
 
-@pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
+@pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 42])
 def test_deploy_data_has_fields_raiden(
         version: Optional[str],
@@ -63,7 +63,7 @@ def test_deploy_data_has_fields_raiden(
         reasonable_deployment_of_a_contract(deployed)
 
 
-@pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
+@pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 42])
 def test_deploy_data_has_fields_services(
         version: Optional[str],
