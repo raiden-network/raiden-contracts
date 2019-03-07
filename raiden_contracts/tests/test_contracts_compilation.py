@@ -14,6 +14,7 @@ from raiden_contracts.contract_manager import (
     ContractManager,
     ContractManagerLoadError,
     ContractManagerVerificationError,
+    ContractSourceManager,
     contracts_deployed_path,
     contracts_precompiled_path,
     contracts_source_path,
@@ -35,7 +36,7 @@ def test_nonexistent_precompiled_path():
 
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
-    manager = ContractManager(contracts_source_path())
+    manager = ContractSourceManager(contracts_source_path())
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -48,7 +49,7 @@ def test_verification_overall_checksum():
     with pytest.raises(ContractManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
-    manager.overall_checksum = None
+    manager.overall_checksum = None  # type: ignore
     with pytest.raises(ContractManagerVerificationError):
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -69,7 +70,7 @@ def test_verification_overall_checksum():
 
 def test_verification_contracts_checksums():
     """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
-    manager = ContractManager(contracts_source_path())
+    manager = ContractSourceManager(contracts_source_path())
     manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -202,32 +203,36 @@ def test_pre_limits_version():
     ).exists()
 
 
-def contract_manager_meta(contracts_path):
+def contract_manager_meta(contracts_path, source: bool):
     """ See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED """
-    manager = ContractManager(contracts_path)
+    with NamedTemporaryFile() as tmpfile:
+        if source:
+            manager = ContractSourceManager(contracts_path).compile_contracts(Path(tmpfile.name))
+        else:
+            manager = ContractManager(contracts_path)
 
-    abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
-    assert isinstance(abi, list)
-    with pytest.raises(KeyError):
-        manager.get_contract_abi('SomeName')
+        abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
+        assert isinstance(abi, list)
+        with pytest.raises(KeyError):
+            manager.get_contract_abi('SomeName')
 
-    abi = manager.get_event_abi(CONTRACT_TOKEN_NETWORK, ChannelEvent.CLOSED)
-    assert isinstance(abi, dict)
-    with pytest.raises(ValueError):
-        manager.get_event_abi(CONTRACT_TOKEN_NETWORK, 'NonExistant')
+        abi = manager.get_event_abi(CONTRACT_TOKEN_NETWORK, ChannelEvent.CLOSED)
+        assert isinstance(abi, dict)
+        with pytest.raises(ValueError):
+            manager.get_event_abi(CONTRACT_TOKEN_NETWORK, 'NonExistant')
 
 
 def test_contract_manager_compile():
     """ Check the ABI in the sources """
-    contract_manager_meta(contracts_source_path())
+    contract_manager_meta(contracts_source_path(), source=True)
 
 
 def test_contract_manager_json(tmpdir):
     """ Check the ABI in contracts.json """
     precompiled_path = Path(str(tmpdir)).joinpath('contracts.json')
-    ContractManager(contracts_source_path()).compile_contracts(precompiled_path)
+    ContractSourceManager(contracts_source_path()).compile_contracts(precompiled_path)
     # try to load contracts from a precompiled file
-    contract_manager_meta(precompiled_path)
+    contract_manager_meta(precompiled_path, source=False)
 
 
 def test_contract_manager_constructor_does_not_invent_version():
@@ -245,7 +250,7 @@ def test_contract_manager_constructor_keeps_existing_versions(version):
 
 def test_contract_manager_missing_source_path():
     """ ContractManager._compile_all_contracts() raises TypeError when source_dirs is not set """
-    manager = ContractManager(contracts_precompiled_path())
+    manager = ContractSourceManager(contracts_precompiled_path())
     with pytest.raises(TypeError):
         manager._compile_all_contracts()
 
@@ -261,7 +266,7 @@ def test_contract_manager_precompiled_load_error():
 def test_contract_manager_already_using_stored():
     """ ContractManager.compile_contracts() should raise TypeError when source directories
     are not set """
-    manager = ContractManager(contracts_precompiled_path())
+    manager = ContractSourceManager(contracts_precompiled_path())
     with pytest.raises(TypeError):
         manager.compile_contracts(Path('/'))
 
@@ -269,6 +274,6 @@ def test_contract_manager_already_using_stored():
 def test_contract_manager_checksum_on_no_source():
     """ ContractManager.checksum_contracts() should raise TypeError when source directories
     are not set """
-    manager = ContractManager(contracts_precompiled_path())
+    manager = ContractSourceManager(contracts_precompiled_path())
     with pytest.raises(TypeError):
         manager.checksum_contracts()
