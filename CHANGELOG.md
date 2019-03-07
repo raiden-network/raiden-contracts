@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- ContractManager created with version=None has contracts_version == None
 - Add a deployment-time configurable limit on the whole balance of UserDeposit
 - Deployment script's `service` command takes an additional option `--user-deposit-whole-limit`
 
