@@ -58,7 +58,7 @@ contract MonitoringService is Utils {
      */
 
     modifier canMonitor(address _ms_address) {
-        require(service_registry.deposits(_ms_address) > 0);
+        /* TODO add a reasonable check on the _ms_address */
         _;
     }
 
