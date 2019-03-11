@@ -1,5 +1,5 @@
 import functools
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
 from typing import Dict, List
 
@@ -13,8 +13,8 @@ class LogHandler:
         self.web3 = web3
         self.address = address
         self.abi = abi
-        self.event_waiting: Dict[str, dict] = {}
-        self.event_filters: Dict[str, 'LogFilter'] = {}
+        self.event_waiting: Dict[str, Dict[str, LogRecorded]] = {}
+        self.event_filters: Dict[str, LogFilter] = {}
         self.event_count: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(lambda: 0))
         self.event_unknown: List[dict] = []
 
@@ -32,7 +32,11 @@ class LogHandler:
                 callback=self.handle_log,
             )
 
-        self.event_waiting[event_name][txn_hash] = [message, callback, count]
+        self.event_waiting[event_name][txn_hash] = LogRecorded(
+            message=message,
+            callback=callback,
+            count=count,
+        )
 
     def check(self, timeout=5):
         for event in list(self.event_filters.keys()):
@@ -49,12 +53,12 @@ class LogHandler:
                 self.event_count[event_name][txn_hash] += 1
                 event_entry = self.event_waiting[event_name][txn_hash]
 
-                if event_entry[2] == self.event_count[event_name][txn_hash]:
+                if event_entry.count == self.event_count[event_name][txn_hash]:
                     self.event_waiting[event_name].pop(txn_hash)
 
                 # Call callback function with event
-                if event_entry[1]:
-                    event_entry[1](event)
+                if event_entry.callback:
+                    event_entry.callback(event)
 
             else:
                 self.event_unknown.append(event)
@@ -169,3 +173,7 @@ class LogFilter:
         assert self.filter is not None
         self.web3.eth.uninstallFilter(self.filter.filter_id)
         self.filter = None
+
+
+# A concrete event added in a transaction.
+LogRecorded = namedtuple('LogRecorded', 'message callback count')
