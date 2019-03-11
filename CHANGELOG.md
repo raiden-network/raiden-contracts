@@ -7,10 +7,12 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Removed checks in MonitoringService.canMonitor() until the design is determined.
-- ContractManager created with version=None has contracts_version == None
-- Add a deployment-time configurable limit on the whole balance of UserDeposit
-- Deployment script's `service` command takes an additional option `--user-deposit-whole-limit`
+## [0.14.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.14.0) - 2019-03-11
+
+- [#720](https://github.com/raiden-network/raiden-contracts/pull/720) Removed checks in MonitoringService.canMonitor() until the design is determined.
+- [#696](https://github.com/raiden-network/raiden-contracts/pull/696) ContractManager created with version=None has contracts_version == None
+- [#678](https://github.com/raiden-network/raiden-contracts/pull/678) Add a deployment-time configurable limit on the whole balance of UserDeposit
+- [#678](https://github.com/raiden-network/raiden-contracts/pull/678) Deployment script's `service` command takes an additional option `--user-deposit-whole-limit`
 
 ## [0.13.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.13.0) - 2019-03-04
 
