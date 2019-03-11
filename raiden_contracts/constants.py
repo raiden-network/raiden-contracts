@@ -1,7 +1,7 @@
 from enum import Enum, IntEnum
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
-CONTRACTS_VERSION = '0.9.0'
+CONTRACTS_VERSION = '0.10.0'
 
 PRECOMPILED_DATA_FIELDS = ['abi', 'bin', 'bin-runtime', 'metadata']
 
