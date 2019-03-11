@@ -122,16 +122,13 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant,
             withdraw_amount,
         )
-        txn_hash = b''
-        # Remove the next line when setTotalWithdraw is implemented.
-        with pytest.raises(MismatchedABI):
-            txn_hash = token_network.functions.setTotalWithdraw(
-                channel_identifier,
-                participant,
-                withdraw_amount,
-                signature_participant,
-                signature_partner,
-            ).transact({'from': delegate})
+        txn_hash = token_network.functions.setTotalWithdraw(
+            channel_identifier,
+            participant,
+            withdraw_amount,
+            signature_participant,
+            signature_partner,
+        ).transact({'from': delegate})
         return txn_hash
     return get
 

@@ -151,11 +151,11 @@ contract TokenNetwork is Utils {
     // total_withdraw is how much the participant has withdrawn during the
     // lifetime of the channel. The actual amount which the participant withdrew
     // is `total_withdraw - total_withdraw_from_previous_event_or_zero`
-    /* event ChannelWithdraw(
+    event ChannelWithdraw(
         uint256 indexed channel_identifier,
         address indexed participant,
         uint256 total_withdraw
-    ); */
+    );
 
     event ChannelClosed(
         uint256 indexed channel_identifier,
@@ -376,7 +376,7 @@ contract TokenNetwork is Utils {
         require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
-    /* /// @notice Allows `participant` to withdraw tokens from the channel that he
+    /// @notice Allows `participant` to withdraw tokens from the channel that he
     /// has with `partner`, without closing it. Can be called by anyone. Can
     /// only be called once per each signed withdraw message.
     /// @param channel_identifier Identifier for the channel on which this
@@ -392,8 +392,8 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        bytes participant_signature,
-        bytes partner_signature
+        bytes calldata participant_signature,
+        bytes calldata partner_signature
     )
         isOpen(channel_identifier)
         external
@@ -468,7 +468,7 @@ contract TokenNetwork is Utils {
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
 
-    } */
+    }
 
     /// @notice Close the channel defined by the two participant addresses. Only
     /// a participant may close the channel, providing a balance proof signed by
@@ -1547,11 +1547,11 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, signature);
     } */
 
-    /* function recoverAddressFromWithdrawMessage(
+    function recoverAddressFromWithdrawMessage(
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        bytes signature
+        bytes memory signature
     )
         view
         internal
@@ -1572,7 +1572,7 @@ contract TokenNetwork is Utils {
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
-    } */
+    }
 
     /// @dev Calculates the merkle root for the pending transfers data and
     /// calculates the amount of tokens that can be unlocked because the secret
