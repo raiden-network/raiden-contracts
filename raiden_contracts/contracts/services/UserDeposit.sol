@@ -107,7 +107,6 @@ contract UserDeposit is Utils {
 
         balances[beneficiary] += added_deposit;
         total_deposit[beneficiary] += added_deposit;
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
 
         // Update whole_balance, but take care against overflows.
         require(whole_balance + added_deposit >= whole_balance);
@@ -115,6 +114,9 @@ contract UserDeposit is Utils {
 
         // Decline deposit if the whole balance is bigger than the limit.
         require(whole_balance <= whole_balance_limit);
+
+        // Actual transfer.
+        require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
     /// @notice Internally transfer deposits between two addresses.
@@ -174,7 +176,6 @@ contract UserDeposit is Utils {
         require(withdraw_plan.withdraw_block <= block.number);
         uint256 withdrawable = min(amount, balances[msg.sender]);
         balances[msg.sender] -= withdrawable;
-        require(token.transfer(msg.sender, withdrawable));
 
         // Update whole_balance, but take care against underflows.
         require(whole_balance - withdrawable <= whole_balance);
@@ -182,6 +183,8 @@ contract UserDeposit is Utils {
 
         emit BalanceReduced(msg.sender, balances[msg.sender]);
         delete withdraw_plans[msg.sender];
+
+        require(token.transfer(msg.sender, withdrawable));
     }
 
     /// @notice The owner's balance with planned withdrawals deducted
