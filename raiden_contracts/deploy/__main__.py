@@ -5,6 +5,7 @@ import functools
 import json
 import logging
 from logging import getLogger
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import click
@@ -298,7 +299,14 @@ def raiden(
     }
 
     if save_info is True:
-        store_deployment_info(deployed_contracts_info)
+        store_deployment_info(
+            deployment_file_path=contracts_deployed_path(
+                chain_id=int(deployer.web3.version.network),
+                version=contracts_version,
+                services=False,
+            ),
+            deployment_info=deployed_contracts_info,
+        )
         verify_deployed_contracts_in_filesystem(
             deployer.web3,
             deployer.contract_manager,
@@ -368,7 +376,14 @@ def services(
     }
 
     if save_info is True:
-        store_deployment_info(deployed_contracts_info, services=True)
+        store_deployment_info(
+            deployment_file_path=contracts_deployed_path(
+                chain_id=int(deployer.web3.version.network),
+                version=contracts_version,
+                services=True,
+            ),
+            deployment_info=deployed_contracts_info,
+        )
         verify_deployed_service_contracts_in_filesystem(
             web3=deployer.web3,
             contract_manager=deployer.contract_manager,
@@ -615,7 +630,7 @@ def deploy_service_contracts(
 ):
     """Deploy 3rd party service contracts"""
     deployed_contracts: DeployedContracts = {
-        'contracts_version': deployer.contract_manager.version_string(),
+        'contracts_version': deployer.contract_version_string(),
         'chain_id': int(deployer.web3.version.network),
         'contracts': {},
     }
@@ -734,12 +749,7 @@ def register_token_network(
     return token_network_address
 
 
-def store_deployment_info(deployment_info: dict, services: bool = False):
-    deployment_file_path = contracts_deployed_path(
-        deployment_info['chain_id'],
-        deployment_info['contracts_version'],
-        services,
-    )
+def store_deployment_info(deployment_file_path: Path, deployment_info: dict):
     with deployment_file_path.open(mode='w') as target_file:
         target_file.write(json.dumps(deployment_info))
 
