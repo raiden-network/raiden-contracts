@@ -1,6 +1,5 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3.exceptions import MismatchedABI
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
