@@ -23,12 +23,10 @@ Recommended::
     pip install raiden-contracts
 
 
-Usage
------
+Finding Deployed Contract Instances
+-----------------------------------
 
 We do not recommend the smart contracts to be used in production as of this moment. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
-
-If you want to use the officially deployed contracts, please use the ``raiden_contracts/data_<CONTRACTS_VERSION>`` files to get the precompiled data (ABI, bytecode etc.) and addresses for initializing the contract instances.
 
 You can find other useful constants that you can import in ``raiden_contracts/constants.py``.
 
@@ -41,7 +39,7 @@ You can find other useful constants that you can import in ``raiden_contracts/co
 
     The current policy is to add all new deployment data together with the sources.
 
-If you are using the ``raiden-contracts`` package in your project, you can use::
+If you want to use the officially deployed contracts, please use the ``raiden_contracts/data_<CONTRACTS_VERSION>`` files to get the precompiled data (ABI, bytecode etc.) and addresses for initializing the contract instances. Alternatively, in Python scripts, with ``raiden-contracts`` package, you can find the already deployed contract instances like::
 
     from raiden_contracts.contract_manager import (
         ContractManager,
@@ -87,6 +85,8 @@ If you are using the ``raiden-contracts`` package in your project, you can use::
     deployed_services = get_contracts_deployed(int(web3.version.network), services=True)
     MONITORING_SERVICE_ADDRESS = deployed_services['contracts'][CONTRACT_MONITORING_SERVICE].address
 
+Test-only Contracts
+-------------------
 
 All contracts under ``raiden_contracts/contracts/test/`` are only for testing purposes and they should not be used in production.
 
@@ -228,3 +228,6 @@ Are the package version and the smart contract versions related?
 
 Why isn't the newest contract version synced with the package version?
   Just by the historical inertia. We have been using the ``bumpversion`` command in certain ways so that the contract version and the package version go further apart.  There is a `proposal <https://github.com/raiden-network/raiden-contracts/issues/584>`__ to sync smart contract versions to the package version sometimes.
+
+How to find the addresses of deployed contracts?
+  Search above for ``get_contracts_deployed`` and see the usage.
