@@ -147,7 +147,7 @@ class ContractSourceManager():
 
 
 def contracts_source_path():
-    return contracts_source_path_with_stem('contracts')
+    return contracts_source_path_with_stem('data/source')
 
 
 def contracts_source_path_with_stem(stem):
