@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from pyfakefs.fake_filesystem_unittest import Patcher
 import pytest
 from click import BadParameter
 from eth_utils import ValidationError, to_checksum_address
@@ -13,13 +14,16 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import contract_version_string
+import raiden_contracts
+from raiden_contracts.contract_manager import contracts_precompiled_path, contract_version_string
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     deploy_raiden_contracts,
     deploy_service_contracts,
     deploy_token_contract,
     register_token_network,
+    store_and_verify_deployment_info_raiden,
+    store_and_verify_deployment_info_services,
     validate_address,
     verify_deployment_data,
     verify_service_contracts_deployment_data,
@@ -356,3 +360,85 @@ def test_validate_address_happy_path():
     """ validate_address(x, y, address) should return the same address checksumed """
     address = CONTRACT_DEPLOYER_ADDRESS
     assert validate_address(None, None, address) == to_checksum_address(address)
+
+
+@pytest.fixture
+def fs_reload_deployer():
+    patcher = Patcher(modules_to_reload=[
+        raiden_contracts.contract_manager,
+        raiden_contracts.deploy.__main__,
+    ])
+    patcher.setUp()
+    yield patcher.fs
+    patcher.tearDown()
+
+
+def test_store_and_verify_raiden(fs_reload_deployer, web3):
+    """ Store some raiden contract deployment information and verify them """
+    fs_reload_deployer.add_real_directory(contracts_precompiled_path(
+        version=None,
+    ).parent)
+    gas_limit = 5860000
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
+        contracts_version=None,
+    )
+    deployed_contracts_info = deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=30,
+    )
+    store_and_verify_deployment_info_raiden(
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
+        save_info=False,
+    )
+    store_and_verify_deployment_info_raiden(
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
+        save_info=True,
+    )
+
+
+def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factory):
+    """ Store some service contract deployment information and verify them """
+    fs_reload_deployer.add_real_directory(contracts_precompiled_path(
+        version=None,
+    ).parent)
+    gas_limit = 5860000
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
+        contracts_version=None,
+    )
+    token_address = custom_token_factory().address
+    whole_limit = 3000
+    deployed_contracts_info = deploy_service_contracts(
+        deployer=deployer,
+        token_address=token_address,
+        user_deposit_whole_balance_limit=whole_limit,
+    )
+    store_and_verify_deployment_info_services(
+        token_address=token_address,
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
+        save_info=False,
+        user_deposit_whole_limit=whole_limit,
+    )
+    store_and_verify_deployment_info_services(
+        token_address=token_address,
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
+        save_info=True,
+        user_deposit_whole_limit=whole_limit,
+    )
