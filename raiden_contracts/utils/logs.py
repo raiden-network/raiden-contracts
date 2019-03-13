@@ -77,14 +77,10 @@ class LogHandler:
             # don't have the transactionHash we are looking for here
             # so we just check if the number of unknown events we find
             # is the same as the found events
-            waiting_events = 0
-            for ev in list(self.event_waiting.keys()):
-                waiting_events += len(list(self.event_waiting[ev].keys()))
+            waiting_events = sum([len(lst) for lst in self.event_waiting.values()])
 
             if waiting_events == len(self.event_unknown):
-                print('----------------------------------')
-                print(message)
-                print('----------------------------------')
+                sandwitch_print(message)
             else:
                 raise Exception(message + ' waiting_events ' + str(waiting_events),
                                 ' len(self.event_unknown) ' + str(len(self.event_unknown)))
@@ -98,6 +94,12 @@ class LogHandler:
             assert event['args'] == args, f'{event["args"]} == {args}'
         self.add(txn_hash, event_name, assert_args)
         self.check(timeout=timeout)
+
+
+def sandwitch_print(msg):
+    print('----------------------------------')
+    print(msg)
+    print('----------------------------------')
 
 
 class LogFilter:
