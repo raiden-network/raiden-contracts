@@ -11,11 +11,12 @@ contract ServiceRegistry is Utils {
     mapping(address => string) public urls;  // URLs of services for HTTP access
     address[] public service_addresses;  // list of available services (ethereum addresses)
 
-    constructor(address _token_address) public {
-        require(_token_address != address(0x0));
-        require(contractExists(_token_address));
+    // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
+    constructor(address _token_for_registration) public {
+        require(_token_for_registration != address(0x0));
+        require(contractExists(_token_for_registration));
 
-        token = Token(_token_address);
+        token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
     }
