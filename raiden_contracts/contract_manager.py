@@ -24,7 +24,6 @@ class ContractManager:
         """
         self.overall_checksum = None
         self.contracts_checksums: Optional[Dict[str, str]] = None
-        assert isinstance(path, Path), 'wrong type of argument given for ContractManager()'
         try:
             with path.open() as precompiled_file:
                 precompiled_content = json.load(precompiled_file)
@@ -80,7 +79,7 @@ def contracts_data_path(version: Optional[str] = None):
     return _BASE.joinpath(f'data_{version}')
 
 
-def contracts_precompiled_path(version: Optional[str] = None):
+def contracts_precompiled_path(version: Optional[str] = None) -> Path:
     """Returns the path of JSON file where the bytecode can be found."""
     data_path = contracts_data_path(version)
     return data_path.joinpath('contracts.json')
