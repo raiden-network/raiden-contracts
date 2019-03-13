@@ -1,6 +1,7 @@
 import json
 import pprint
 import subprocess
+from collections import namedtuple
 from pathlib import Path
 from time import sleep
 from typing import Dict, Optional
@@ -24,6 +25,18 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployed,
 )
 from raiden_contracts.contract_source_manager import contracts_source_path
+
+ContractListEntry = namedtuple('ContractListEntry', 'module name')
+
+CONTRACT_LIST = [
+    ContractListEntry(module='raiden', name=CONTRACT_ENDPOINT_REGISTRY),
+    ContractListEntry(module='raiden', name=CONTRACT_SECRET_REGISTRY),
+    ContractListEntry(module='raiden', name=CONTRACT_TOKEN_NETWORK_REGISTRY),
+    ContractListEntry(module='services', name=CONTRACT_SERVICE_REGISTRY),
+    ContractListEntry(module='services', name=CONTRACT_MONITORING_SERVICE),
+    ContractListEntry(module='services', name=CONTRACT_ONE_TO_N),
+    ContractListEntry(module='services', name=CONTRACT_USER_DEPOSIT),
+]
 
 
 @click.command()
@@ -56,61 +69,14 @@ def etherscan_verify(
         guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid)
         return
 
-    if contract_name is None or contract_name == CONTRACT_ENDPOINT_REGISTRY:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='raiden',
-            contract_name=CONTRACT_ENDPOINT_REGISTRY,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_SECRET_REGISTRY:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='raiden',
-            contract_name=CONTRACT_SECRET_REGISTRY,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='raiden',
-            contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_SERVICE_REGISTRY:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='services',
-            contract_name=CONTRACT_SERVICE_REGISTRY,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_MONITORING_SERVICE:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='services',
-            contract_name=CONTRACT_MONITORING_SERVICE,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_ONE_TO_N:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='services',
-            contract_name=CONTRACT_ONE_TO_N,
-        )
-
-    if contract_name is None or contract_name == CONTRACT_USER_DEPOSIT:
-        etherscan_verify_contract(
-            chain_id=chain_id,
-            apikey=apikey,
-            source_module='services',
-            contract_name=CONTRACT_USER_DEPOSIT,
-        )
+    for list_entry in CONTRACT_LIST:
+        if contract_name is None or contract_name == list_entry.name:
+            etherscan_verify_contract(
+                chain_id=chain_id,
+                apikey=apikey,
+                source_module=list_entry.module,
+                contract_name=list_entry.name,
+            )
 
 
 api_of_chain_id = {
