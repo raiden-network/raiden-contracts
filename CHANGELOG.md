@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Removed raiden_contracts/contracts. Instead, please edit raiden_contracts/data/source directly.
+
 ## [0.14.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.14.0) - 2019-03-11
 
 - [#720](https://github.com/raiden-network/raiden-contracts/pull/720) Removed checks in MonitoringService.canMonitor() until the design is determined.
