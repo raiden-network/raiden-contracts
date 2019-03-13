@@ -77,7 +77,7 @@ class LogHandler:
             # don't have the transactionHash we are looking for here
             # so we just check if the number of unknown events we find
             # is the same as the found events
-            waiting_events = sum([len(lst) for (_, lst) in self.event_waiting.items()])
+            waiting_events = sum([len(lst) for lst in self.event_waiting.values()])
 
             if waiting_events == len(self.event_unknown):
                 sandwitch_print(message)
