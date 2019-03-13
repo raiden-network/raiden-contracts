@@ -373,6 +373,7 @@ def fs_reload_deployer():
     patcher.tearDown()
 
 
+@pytest.mark.slow
 def test_store_and_verify_raiden(fs_reload_deployer, web3):
     """ Store some raiden contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
@@ -405,6 +406,7 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3):
     )
 
 
+@pytest.mark.slow
 def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factory):
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
