@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import click
+from click import BadParameter
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from mypy_extensions import TypedDict
 from web3 import HTTPProvider, Web3
@@ -314,6 +315,47 @@ def store_and_verify_deployment_info_services(
         )
 
 
+def contract_version_with_max_token_networks(version: Optional[str]) -> bool:
+    manager = ContractManager(contracts_precompiled_path(version))
+    abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
+    constructors = list(filter(lambda x: x['type'] == 'constructor', abi))
+    assert len(constructors) == 1
+    inputs = constructors[0]['inputs']
+    max_token_networks_args = list(filter(lambda x: x['name'] == '_max_token_networks', inputs))
+    found_args = len(max_token_networks_args)
+    if found_args == 0:
+        return False
+    elif found_args == 1:
+        return True
+    else:
+        raise ValueError(
+            "TokenNetworkRegistry's constructor has more than one arguments that are "
+            'called "_max_token_networks".',
+        )
+
+
+def check_version_dependent_parameters(
+        contracts_version: Optional[str],
+        max_token_networks: Optional[int],
+) -> None:
+    required = contract_version_with_max_token_networks(contracts_version)
+    got = max_token_networks is not None
+
+    # For newer conracts --max-token-networks is necessary.
+    if required and not got:
+        raise BadParameter(
+            f'For contract_version {contracts_version},'
+            ' --max-token-networks option is necessary.  See --help.',
+        )
+    # For older contracts --max_token_networks is forbidden.
+    if not required and got:
+        raise BadParameter(
+            f'For contract_version {contracts_version},'
+            ' --max-token-networks option is forbidden'
+            ' because TokenNetworkRegistry this version is not configurable this way.',
+        )
+
+
 @main.command()
 @common_options
 @click.option(
@@ -323,7 +365,6 @@ def store_and_verify_deployment_info_services(
 )
 @click.option(
     '--max-token-networks',
-    required=True,
     help='The maximum number of tokens that can be registered.',
     type=int,
 )
@@ -337,8 +378,10 @@ def raiden(
         gas_limit,
         save_info,
         contracts_version,
-        max_token_networks: int,
+        max_token_networks: Optional[int],
 ):
+    check_version_dependent_parameters(contracts_version, max_token_networks)
+
     setup_ctx(
         ctx,
         private_key,
@@ -622,9 +665,15 @@ def deploy_and_remember(
 
 def deploy_raiden_contracts(
         deployer: ContractDeployer,
-        max_num_of_token_networks: int,
+        max_num_of_token_networks: Optional[int],
 ):
-    """Deploy all required raiden contracts and return a dict of contract_name:address"""
+    """ Deploy all required raiden contracts and return a dict of contract_name:address
+
+    Args:
+        max_num_of_token_networks (Optional[int]): The max number of tokens that can be registered
+        to the TokenNetworkRegistry. If None, the argument is omitted from the call to the
+        constructor of TokenNetworkRegistry.
+    """
 
     deployed_contracts: DeployedContracts = {
         'contracts_version': deployer.contract_version_string(),
@@ -639,15 +688,17 @@ def deploy_raiden_contracts(
         deployer=deployer,
         deployed_contracts=deployed_contracts,
     )
+    token_network_registry_args = [
+        secret_registry.address,
+        deployed_contracts['chain_id'],
+        DEPLOY_SETTLE_TIMEOUT_MIN,
+        DEPLOY_SETTLE_TIMEOUT_MAX,
+    ]
+    if max_num_of_token_networks:
+        token_network_registry_args.append(max_num_of_token_networks)
     deploy_and_remember(
         contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
-        arguments=[
-            secret_registry.address,
-            deployed_contracts['chain_id'],
-            DEPLOY_SETTLE_TIMEOUT_MIN,
-            DEPLOY_SETTLE_TIMEOUT_MAX,
-            max_num_of_token_networks,
-        ],
+        arguments=token_network_registry_args,
         deployer=deployer,
         deployed_contracts=deployed_contracts,
     )

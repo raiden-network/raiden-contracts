@@ -1,10 +1,12 @@
 from copy import deepcopy
+from typing import Optional
 
-from pyfakefs.fake_filesystem_unittest import Patcher
 import pytest
 from click import BadParameter
 from eth_utils import ValidationError, to_checksum_address
+from pyfakefs.fake_filesystem_unittest import Patcher
 
+import raiden_contracts
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
@@ -14,10 +16,10 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-import raiden_contracts
-from raiden_contracts.contract_manager import contracts_precompiled_path, contract_version_string
+from raiden_contracts.contract_manager import contract_version_string, contracts_precompiled_path
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
+    contract_version_with_max_token_networks,
     deploy_raiden_contracts,
     deploy_service_contracts,
     deploy_token_contract,
@@ -37,9 +39,24 @@ from raiden_contracts.tests.utils.constants import (
 from raiden_contracts.utils.type_aliases import T_Address
 
 
+@pytest.mark.parametrize('version,expectation', [
+    ('0.3._', False),
+    ('0.4.0', False),
+    ('0.8.0', False),
+    ('0.9.0', True),
+    ('0.10.0', True),
+    (None, True),
+])
+def test_contract_version_with_max_token_networks(version: Optional[str], expectation: bool):
+    assert contract_version_with_max_token_networks(version) == expectation
+
+
 @pytest.mark.slow
+@pytest.mark.parametrize('version, max_num_of_token_networks', [(None, 1), ('0.3._', None)])
 def test_deploy_script_raiden(
         web3,
+        version: Optional[str],
+        max_num_of_token_networks: Optional[int],
 ):
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
@@ -57,9 +74,10 @@ def test_deploy_script_raiden(
         gas_limit=gas_limit,
         gas_price=1,
         wait=10,
+        contracts_version=version,
     )
 
-    deployed_contracts_info = deploy_raiden_contracts(deployer, 1)
+    deployed_contracts_info = deploy_raiden_contracts(deployer, max_num_of_token_networks)
 
     verify_deployment_data(
         web3=deployer.web3,
@@ -373,6 +391,7 @@ def fs_reload_deployer():
     patcher.tearDown()
 
 
+@pytest.mark.slow
 def test_store_and_verify_raiden(fs_reload_deployer, web3):
     """ Store some raiden contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
@@ -405,6 +424,7 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3):
     )
 
 
+@pytest.mark.slow
 def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factory):
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
