@@ -20,6 +20,7 @@ from raiden_contracts.deploy.__main__ import (
     deploy_service_contracts,
     deploy_token_contract,
     register_token_network,
+    store_and_verify_deployment_info,
     validate_address,
     verify_deployment_data,
     verify_service_contracts_deployment_data,
@@ -356,3 +357,22 @@ def test_validate_address_happy_path():
     """ validate_address(x, y, address) should return the same address checksumed """
     address = CONTRACT_DEPLOYER_ADDRESS
     assert validate_address(None, None, address) == to_checksum_address(address)
+
+
+@pytest.mark.usefixtures('fs')
+def test_store_and_verify(web3):
+    """ Store some deployment information and verify them """
+    gas_limit = 5860000
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
+    )
+    store_and_verify_deployment_info(
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info={},
+        save_info=True,
+    )
