@@ -395,6 +395,12 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3):
         contracts_version=None,
         deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
+        save_info=False,
+    )
+    store_and_verify_deployment_info_raiden(
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
         save_info=True,
     )
 
@@ -419,6 +425,14 @@ def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factor
         deployer=deployer,
         token_address=token_address,
         user_deposit_whole_balance_limit=whole_limit,
+    )
+    store_and_verify_deployment_info_services(
+        token_address=token_address,
+        contracts_version=None,
+        deployer=deployer,
+        deployed_contracts_info=deployed_contracts_info,
+        save_info=False,
+        user_deposit_whole_limit=whole_limit,
     )
     store_and_verify_deployment_info_services(
         token_address=token_address,
