@@ -53,6 +53,7 @@ def deployer(web3):
         contracts_version=None,
     )
 
+
 @pytest.mark.slow
 @pytest.fixture(scope='session')
 def deployed_raiden_info(deployer):
@@ -61,7 +62,9 @@ def deployed_raiden_info(deployer):
         max_num_of_token_networks=1,
     )
 
+
 TOKEN_SUPPLY = 10000000
+
 
 @pytest.fixture(scope='session')
 def token_address(deployer):
@@ -88,6 +91,7 @@ def deployed_service_info(deployer, token_address):
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
     )
+
 
 @pytest.mark.parametrize('version,expectation', [
     ('0.3._', False),
@@ -281,7 +285,6 @@ def test_deploy_script_register(
     """
     # normal deployment
     gas_limit = 5860000
-    token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -432,7 +435,13 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3, deployed_raiden_info,
 
 
 @pytest.mark.slow
-def test_store_and_verify_services(fs_reload_deployer, web3, deployer, deployed_service_info, token_address):
+def test_store_and_verify_services(
+        fs_reload_deployer,
+        web3,
+        deployer,
+        deployed_service_info,
+        token_address,
+):
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
         version=None,
