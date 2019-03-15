@@ -2,16 +2,14 @@ import logging
 
 import pytest
 from eth_tester import EthereumTester, PyEVMBackend
-from eth_utils import denoms
 from web3 import Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
-from raiden_contracts.tests.utils.constants import FAUCET_ADDRESS, FAUCET_PRIVATE_KEY
-
-DEFAULT_TIMEOUT = 5
-DEFAULT_RETRY_INTERVAL = 3
-FAUCET_ALLOWANCE = 100 * denoms.ether  # pylint: disable=E1101
-INITIAL_TOKEN_SUPPLY = 200000000000
+from raiden_contracts.tests.utils.constants import (
+    FAUCET_ADDRESS,
+    FAUCET_ALLOWANCE,
+    FAUCET_PRIVATE_KEY,
+)
 
 log = logging.getLogger(__name__)
 

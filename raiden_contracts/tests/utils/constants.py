@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+from eth_utils import denoms
+
 from raiden_contracts.utils.signature import private_key_to_address
 
 MAX_UINT256 = 2 ** 256 - 1
@@ -14,6 +16,7 @@ EMPTY_SIGNATURE = b'\x00' * 65
 passphrase = '0'
 FAUCET_PRIVATE_KEY = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 FAUCET_ADDRESS = private_key_to_address(FAUCET_PRIVATE_KEY)
+FAUCET_ALLOWANCE = 100 * denoms.ether  # pylint: disable=E1101
 CONTRACT_DEPLOYER_ADDRESS = FAUCET_ADDRESS
 
 
