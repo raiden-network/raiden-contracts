@@ -231,15 +231,14 @@ contract MonitoringService is Utils {
             token_network_address
         ));
 
-        // Only allowed to claim, if channel is settled
-        // Channel is settled if it's data has been deleted
+        // Only allowed to claim, if channel is out of the settlement period
         TokenNetwork.ChannelState channel_state;
-        (, channel_state) = token_network.getChannelInfo(
+        (settle_block_number,) = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
             non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Removed);
+        require(settle_block_number < block.number);
 
         Reward storage reward = rewards[reward_identifier];
 
