@@ -232,7 +232,7 @@ contract MonitoringService is Utils {
         ));
 
         // Only allowed to claim, if channel is out of the settlement period
-        TokenNetwork.ChannelState channel_state;
+        uint256 settle_block_number;
         (settle_block_number,) = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
