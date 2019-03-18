@@ -55,6 +55,7 @@ class ContractSourceManager():
                     output_values=PRECOMPILED_DATA_FIELDS + ['ast'],
                     import_remappings=import_dir_map,
                     optimize=False,
+                    evm_version='byzantium',
                 )
 
                 # Strip `ast` part from result
