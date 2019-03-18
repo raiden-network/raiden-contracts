@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.5.6;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.

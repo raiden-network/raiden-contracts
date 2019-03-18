@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.5.6;
 
 /// @title Endpoint Registry
 /// @notice This contract is a registry which maps an Ethereum address to its

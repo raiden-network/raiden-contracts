@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.5.6;
 
 /*
  * This is a contract used for testing the ECVerify library and ecrecover behaviour.
