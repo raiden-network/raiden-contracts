@@ -7,7 +7,7 @@ python:
 env:
   global:
     - TEST_TYPE=raiden_contracts
-    - SOLC_VERSION='v0.5.4'
+    - SOLC_VERSION='v0.5.6'
     - SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
     - CODECOV_TOKEN="52f50270-3657-4f84-9e36-e6c01b2be6da"
 
