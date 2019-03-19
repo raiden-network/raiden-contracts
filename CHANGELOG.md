@@ -7,7 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Removed raiden_contracts/contracts. Instead, please edit raiden_contracts/data/source directly.
+## [0.15.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.15.0) - 2019-03-19
+
+- [#749](https://github.com/raiden-network/raiden-contracts/pull/749) Fixed the problem where Monitoring Services were rewarded too late
+- [#741](https://github.com/raiden-network/raiden-contracts/pull/741) Removed raiden_contracts/contracts. Instead, please edit raiden_contracts/data/source directly.
 
 ## [0.14.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.14.0) - 2019-03-11
 
