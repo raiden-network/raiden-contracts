@@ -234,12 +234,16 @@ contract MonitoringService is Utils {
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
         TokenNetwork.ChannelState channel_state;
-        (, channel_state) = token_network.getChannelInfo(
+        uint256 settle_block_number;
+        (settle_block_number, channel_state) = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
             non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Removed);
+        require(channel_state == TokenNetwork.ChannelState.Closed ||
+            channel_state == TokenNetwork.ChannelState.Settled ||
+            channel_state == TokenNetwork.ChannelState.Removed);
+        require(settle_block_number < block.number);
 
         Reward storage reward = rewards[reward_identifier];
 

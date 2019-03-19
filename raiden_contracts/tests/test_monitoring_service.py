@@ -75,7 +75,7 @@ def monitor_data(
     }
 
 
-def test_claimReward(
+def test_claimReward_with_settle_call(
         token_network,
         monitoring_service_external,
         user_deposit_contract,
@@ -96,7 +96,7 @@ def test_claimReward(
         monitor_data['reward_proof_signature'],
     ).transact({'from': ms_address})
 
-    # claiming before settlement must fail
+    # claiming before settlement timeout must fail
     with pytest.raises(TransactionFailed):
         monitoring_service_external.functions.claimReward(
             channel_identifier,
@@ -117,6 +117,66 @@ def test_claimReward(
         0,                   # participant_A_locked_amount
         EMPTY_LOCKSROOT,     # participant_A_locksroot
     ).transact()
+
+    # Claim reward for MS
+    monitoring_service_external.functions.claimReward(
+        channel_identifier,
+        token_network.address,
+        A, B,
+    ).transact({'from': ms_address})
+
+    # Check REWARD_CLAIMED event
+    reward_identifier = Web3.sha3(
+        encode_single('uint256', channel_identifier) +
+        Web3.toBytes(hexstr=token_network.address),
+    )
+    ms_ev_handler = event_handler(monitoring_service_external)
+    ms_ev_handler.assert_event(
+        txn_hash,
+        MonitoringServiceEvent.REWARD_CLAIMED,
+        dict(
+            ms_address=ms_address,
+            amount=REWARD_AMOUNT,
+            reward_identifier=reward_identifier,
+        ),
+    )
+
+    # Check that MS balance has increased by claiming the reward
+    ms_balance_after_reward = user_deposit_contract.functions.balances(ms_address).call()
+    assert ms_balance_after_reward == REWARD_AMOUNT
+
+
+def test_claimReward_without_settle_call(
+        token_network,
+        monitoring_service_external,
+        user_deposit_contract,
+        event_handler,
+        monitor_data,
+        ms_address,
+):
+    A, B = monitor_data['participants']
+    channel_identifier = monitor_data['channel_identifier']
+
+    # MS updates closed channel on behalf of B
+    txn_hash = monitoring_service_external.functions.monitor(
+        A, B,
+        *monitor_data['balance_proof_B'],
+        monitor_data['non_closing_signature'],
+        REWARD_AMOUNT,
+        token_network.address,
+        monitor_data['reward_proof_signature'],
+    ).transact({'from': ms_address})
+
+    # claiming before settlement timeout must fail
+    with pytest.raises(TransactionFailed):
+        monitoring_service_external.functions.claimReward(
+            channel_identifier,
+            token_network.address,
+            A, B,
+        ).transact({'from': ms_address})
+
+    # Wait for settle_timeout to elapse
+    token_network.web3.testing.mine(8)
 
     # Claim reward for MS
     monitoring_service_external.functions.claimReward(
