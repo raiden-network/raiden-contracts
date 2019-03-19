@@ -39,6 +39,60 @@ from raiden_contracts.tests.utils.constants import (
 from raiden_contracts.utils.type_aliases import T_Address
 
 
+GAS_LIMIT = 5860000
+
+
+@pytest.fixture(scope='session')
+def deployer(web3):
+    return ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version=None,
+    )
+
+
+@pytest.mark.slow
+@pytest.fixture(scope='session')
+def deployed_raiden_info(deployer):
+    return deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=1,
+    )
+
+
+TOKEN_SUPPLY = 10000000
+
+
+@pytest.fixture(scope='session')
+def token_address(deployer):
+    token_type = 'CustomToken'
+    deployed_token = deploy_token_contract(
+        deployer,
+        token_supply=TOKEN_SUPPLY,
+        token_decimals=18,
+        token_name='TestToken',
+        token_symbol='TTT',
+        token_type=token_type,
+    )
+    return deployed_token[token_type]
+
+
+DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
+
+
+@pytest.mark.slow
+@pytest.fixture(scope='session')
+def deployed_service_info(deployer, token_address):
+    return deploy_service_contracts(
+        deployer=deployer,
+        token_address=token_address,
+        user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+    )
+
+
 @pytest.mark.parametrize('version,expectation', [
     ('0.3._', False),
     ('0.4.0', False),
@@ -57,6 +111,8 @@ def test_deploy_script_raiden(
         web3,
         version: Optional[str],
         max_num_of_token_networks: Optional[int],
+        deployer,
+        deployed_raiden_info,
 ):
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
@@ -66,18 +122,7 @@ def test_deploy_script_raiden(
     This also tampers with deployed_contracts_info to make sure an error is raised in
     verify_deployed_contracts()
     """
-    # normal deployment
-    gas_limit = 5860000
-    deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
-        contracts_version=version,
-    )
-
-    deployed_contracts_info = deploy_raiden_contracts(deployer, max_num_of_token_networks)
+    deployed_contracts_info = deployed_raiden_info
 
     verify_deployment_data(
         web3=deployer.web3,
@@ -165,7 +210,7 @@ def test_deploy_script_raiden(
     deployer = ContractDeployer(
         web3=web3,
         private_key=get_random_privkey(),
-        gas_limit=gas_limit,
+        gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
     )
@@ -183,8 +228,8 @@ def test_deploy_script_token(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    gas_limit = 5860000
     token_type = 'CustomToken'
+    gas_limit = 5860000
     deployer = ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -229,6 +274,8 @@ def test_deploy_script_register(
         web3,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
+        deployed_raiden_info,
+        token_address,
 ):
     """ Run token register function used in the deployment script
 
@@ -238,7 +285,6 @@ def test_deploy_script_register(
     """
     # normal deployment
     gas_limit = 5860000
-    token_type = 'CustomToken'
     deployer = ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -247,19 +293,7 @@ def test_deploy_script_register(
         wait=10,
     )
 
-    deployed_contracts_raiden = deploy_raiden_contracts(
-        deployer=deployer,
-        max_num_of_token_networks=1,
-    )
-    deployed_token = deploy_token_contract(
-        deployer,
-        token_supply=10000000,
-        token_decimals=18,
-        token_name='TestToken',
-        token_symbol='TTT',
-        token_type=token_type,
-    )
-    token_address = deployed_token[token_type]
+    deployed_contracts_raiden = deployed_raiden_info
     token_registry_abi = deployer.contract_manager.get_contract_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
     )
@@ -283,6 +317,8 @@ def test_deploy_script_register(
 @pytest.mark.slow
 def test_deploy_script_service(
         web3,
+        deployed_service_info,
+        token_address,
 ):
     """ Run deploy_service_contracts() used in the deployment script
 
@@ -297,25 +333,11 @@ def test_deploy_script_service(
         wait=10,
     )
 
-    token_type = 'CustomToken'
     token_supply = 10000000
-    deployed_token = deploy_token_contract(
-        deployer,
-        token_supply=token_supply,
-        token_decimals=18,
-        token_name='TestToken',
-        token_symbol='TTT',
-        token_type=token_type,
-    )
-    token_address = deployed_token[token_type]
     assert isinstance(token_address, T_Address)
     deposit_limit = token_supply // 2
 
-    deployed_service_contracts = deploy_service_contracts(
-        deployer=deployer,
-        token_address=token_address,
-        user_deposit_whole_balance_limit=deposit_limit,
-    )
+    deployed_service_contracts = deployed_service_info
     verify_service_contracts_deployment_data(
         web3=deployer.web3,
         contract_manager=deployer.contract_manager,
@@ -392,24 +414,12 @@ def fs_reload_deployer():
 
 
 @pytest.mark.slow
-def test_store_and_verify_raiden(fs_reload_deployer, web3):
+def test_store_and_verify_raiden(fs_reload_deployer, web3, deployed_raiden_info, deployer):
     """ Store some raiden contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
         version=None,
     ).parent)
-    gas_limit = 5860000
-    deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
-        contracts_version=None,
-    )
-    deployed_contracts_info = deploy_raiden_contracts(
-        deployer=deployer,
-        max_num_of_token_networks=30,
-    )
+    deployed_contracts_info = deployed_raiden_info
     store_and_verify_deployment_info_raiden(
         contracts_version=None,
         deployer=deployer,
@@ -425,34 +435,25 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3):
 
 
 @pytest.mark.slow
-def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factory):
+def test_store_and_verify_services(
+        fs_reload_deployer,
+        web3,
+        deployer,
+        deployed_service_info,
+        token_address,
+):
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
         version=None,
     ).parent)
-    gas_limit = 5860000
-    deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
-        contracts_version=None,
-    )
-    token_address = custom_token_factory().address
-    whole_limit = 3000
-    deployed_contracts_info = deploy_service_contracts(
-        deployer=deployer,
-        token_address=token_address,
-        user_deposit_whole_balance_limit=whole_limit,
-    )
+    deployed_contracts_info = deployed_service_info
     store_and_verify_deployment_info_services(
         token_address=token_address,
         contracts_version=None,
         deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
         save_info=False,
-        user_deposit_whole_limit=whole_limit,
+        user_deposit_whole_limit=DEPOSIT_LIMIT,
     )
     store_and_verify_deployment_info_services(
         token_address=token_address,
@@ -460,5 +461,22 @@ def test_store_and_verify_services(fs_reload_deployer, web3, custom_token_factor
         deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
         save_info=True,
-        user_deposit_whole_limit=whole_limit,
+        user_deposit_whole_limit=DEPOSIT_LIMIT,
+    )
+
+
+@pytest.mark.slow
+def test_red_eyes_deployer(web3):
+    """ A smoke test for deploying RedEyes version contracts """
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version='0.4.0',
+    )
+    deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=None,
     )
