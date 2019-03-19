@@ -4,10 +4,14 @@ Release Process Document
 Package Deliverables
 ^^^^^^^^^^^^^^^^^^^^
 
-- smart contracts source code from ``raiden_contracts/contracts``
-- compiled contracts data from ``raiden_contracts/data/contracts.json``
-- deployment information from ``raiden_contracts/data/deployment_*.json``, with Ethereum addresses, transaction data (transaction hash, block number, constructor arguments, gas cost)
-- gas costs information from ``raiden_contracts/constants.py``
+For each contract version ``x.y.z``, deliverables are located in ``raiden_contracts/data_x.y.z``.  For the version currently under development, deliverables are located in ``raiden_contracts/data``
+
+Deliverables:
+
+- smart contracts source code from ``raiden_contracts/data*/source``
+- compiled contracts data from ``raiden_contracts/data*/contracts.json``
+- deployment information from ``raiden_contracts/data*/deployment_*.json``, with Ethereum addresses, transaction data (transaction hash, block number, constructor arguments, gas cost)
+- gas costs information from ``raiden_contracts/data*/gas.json``
 - scripts for deployment & contract verification on Etherscan from ``raiden_contracts/deploy``
 - source code tests from ``raiden_contracts/tests``
 
