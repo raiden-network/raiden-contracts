@@ -463,3 +463,20 @@ def test_store_and_verify_services(
         save_info=True,
         user_deposit_whole_limit=DEPOSIT_LIMIT,
     )
+
+
+@pytest.mark.slow
+def test_red_eyes_deployer(web3):
+    """ A smoke test for deploying RedEyes version contracts """
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version='0.4.0',
+    )
+    deploy_raiden_contracts(
+        deployer=deployer,
+        max_num_of_token_networks=None,
+    )
