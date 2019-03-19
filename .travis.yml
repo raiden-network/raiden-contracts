@@ -33,7 +33,7 @@ before_script:
   - make mypy
 
 script:
-  - pytest --cov=./ raiden_contracts/tests/ -n 2 --cov-config setup.cfg
+  - travis_wait 40 pytest --cov=./ raiden_contracts/tests/ -n 2 --cov-config setup.cfg
   - codecov
 
 deploy:
