@@ -8,6 +8,10 @@ from web3.utils.filters import construct_event_filter_params
 from web3.utils.threads import Timeout
 
 
+# A concrete event added in a transaction.
+LogRecorded = namedtuple('LogRecorded', 'message callback count')
+
+
 class LogHandler:
     def __init__(self, web3, address, abi):
         self.web3 = web3
@@ -173,7 +177,3 @@ class LogFilter:
         assert self.filter is not None
         self.web3.eth.uninstallFilter(self.filter.filter_id)
         self.filter = None
-
-
-# A concrete event added in a transaction.
-LogRecorded = namedtuple('LogRecorded', 'message callback count')
