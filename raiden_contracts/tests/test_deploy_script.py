@@ -1,8 +1,9 @@
 from copy import deepcopy
 from typing import Optional
+from unittest.mock import MagicMock
 
 import pytest
-from click import BadParameter
+from click import BadParameter, NoSuchOption
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem_unittest import Patcher
 
@@ -23,6 +24,7 @@ from raiden_contracts.deploy.__main__ import (
     deploy_raiden_contracts,
     deploy_service_contracts,
     deploy_token_contract,
+    error_removed_option,
     register_token_network,
     store_and_verify_deployment_info_raiden,
     store_and_verify_deployment_info_services,
@@ -479,3 +481,9 @@ def test_red_eyes_deployer(web3):
         deployer=deployer,
         max_num_of_token_networks=None,
     )
+
+
+def test_error_removed_option_raises():
+    with pytest.raises(NoSuchOption):
+        mock = MagicMock()
+        error_removed_option(None, mock, None)
