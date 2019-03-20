@@ -56,6 +56,10 @@ def validate_address(_, _param, value):
         raise click.BadParameter('must be a valid ethereum address')
 
 
+def error_removed_option(_, param, value):
+    raise click.NoSuchOption(f'--{param.name.replace("_", "-")} is no longer a valid option')
+
+
 class ContractDeployer:
     def __init__(
             self,
@@ -548,6 +552,12 @@ def token(
 @click.option(
     '--registry-address',
     default=None,
+    callback=error_removed_option,
+    help='removed',
+)
+@click.option(
+    '--token-network-registry-address',
+    default=None,
     callback=validate_address,
     help='Address of token network registry',
 )
@@ -573,7 +583,7 @@ def register(
         gas_limit,
         contracts_version,
         token_address,
-        registry_address,
+        token_network_registry_address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
 ):
@@ -592,8 +602,9 @@ def register(
 
     if token_address:
         ctx.obj['deployed_contracts'][token_type] = token_address
-    if registry_address:
-        ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = registry_address
+    if token_network_registry_address:
+        ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY] = \
+            token_network_registry_address
 
     assert CONTRACT_TOKEN_NETWORK_REGISTRY in ctx.obj['deployed_contracts']
     assert token_type in ctx.obj['deployed_contracts']

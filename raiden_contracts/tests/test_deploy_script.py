@@ -38,7 +38,6 @@ from raiden_contracts.tests.utils.constants import (
 )
 from raiden_contracts.utils.type_aliases import T_Address
 
-
 GAS_LIMIT = 5860000
 
 

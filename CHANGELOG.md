@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- deploy script does not take --registry option anymore.  Use --token-network-registry instead.
+
 ## [0.15.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.15.0) - 2019-03-19
 
 - [#749](https://github.com/raiden-network/raiden-contracts/pull/749) Fixed the problem where Monitoring Services were rewarded too late
