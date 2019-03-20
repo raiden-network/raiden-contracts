@@ -51,7 +51,7 @@ This repository follows the same guidelines as the Raiden Client, regarding the 
 ## Making a Pull-Request
 
 * If you're fixing a bug or adding a feature, add an entry to CHANGELOG.md.
-* If you've changed a Solidity source, run `make compile_contracts` and add the resulting `raiden_contracts/data/contracts.json` and `raiden_contracts/data/source` in the PR.
+* If you've changed a Solidity source, run `make compile_contracts` and add the resulting `raiden_contracts/data/contracts.json` in the PR.
 * If you're changing documentation only, add `[skip ci]` in the commit message so Travis does not waste time.
     * But, if you've changed comments in a Solidity source, do not add `[skip ci]` and let Travis check the hash of the source.
 * Add type annotations (especially on function arguments).
@@ -65,10 +65,10 @@ Read our [Test Guide](./raiden_contracts/tests/README.md)
 ### Location
 
 Currently, our setup is:
-- for core contracts: `./raiden_contracts/contracts`
-- for 3rd party services: `./raiden_contracts/contracts/services`
-- libraries: `./raiden_contracts/contracts/lib`
-- non-production test contracts: `./raiden_contracts/contracts/test`
+- for core contracts: `./raiden_contracts/data/source/raiden`
+- for 3rd party services: `./raiden_contracts/data/source/services`
+- libraries: `./raiden_contracts/data/source/lib`
+- non-production test contracts: `./raiden_contracts/data/source/test`
 
 ### Constants
 
