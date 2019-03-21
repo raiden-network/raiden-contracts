@@ -553,7 +553,8 @@ def token(
     '--registry-address',
     default=None,
     callback=error_removed_option,
-    help='removed',
+    hidden=True,
+    help='Renamed into --token-network-registry-address',
 )
 @click.option(
     '--token-network-registry-address',
