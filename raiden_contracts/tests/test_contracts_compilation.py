@@ -13,9 +13,9 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     ContractManagerLoadError,
+    contract_version_string,
     contracts_deployed_path,
     contracts_precompiled_path,
-    contract_version_string,
 )
 from raiden_contracts.contract_source_manager import (
     ContractSourceManager,
