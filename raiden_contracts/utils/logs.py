@@ -7,7 +7,6 @@ from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.threads import Timeout
 
-
 # A concrete event added in a transaction.
 LogRecorded = namedtuple('LogRecorded', 'message callback count')
 
