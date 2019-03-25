@@ -51,9 +51,17 @@ def validate_address(_, _param, value):
         raise click.BadParameter('must be a valid ethereum address')
 
 
-def error_removed_option(_, param, value):
-    if value is not None:
-        raise click.NoSuchOption(f'--{param.name.replace("_", "-")} is no longer a valid option')
+def error_removed_option(message: str):
+    """ Takes a message and returns a callback that raises NoSuchOption
+
+    if the value is not None. The message is used as an argument to NoSuchOption. """
+    def f(_, param, value):
+        if value is not None:
+            raise click.NoSuchOption(
+                f'--{param.name.replace("_", "-")} is no longer a valid option. ' +
+                message,
+            )
+    return f
 
 
 def common_options(func):
@@ -373,7 +381,7 @@ def token(
 @click.option(
     '--registry-address',
     default=None,
-    callback=error_removed_option,
+    callback=error_removed_option('Use --token-network-registry-address'),
     hidden=True,
     help='Renamed into --token-network-registry-address',
 )

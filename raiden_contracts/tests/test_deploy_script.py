@@ -451,4 +451,4 @@ def test_red_eyes_deployer(web3):
 def test_error_removed_option_raises():
     with pytest.raises(NoSuchOption):
         mock = MagicMock()
-        error_removed_option(None, mock, '0xaabbcc')
+        error_removed_option('msg')(None, mock, '0xaabbcc')
