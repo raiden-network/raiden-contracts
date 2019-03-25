@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 import click
 from click import BadParameter
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
+from semver import compare
 from web3 import HTTPProvider, Web3
 from web3.contract import Contract
 from web3.middleware import geth_poa_middleware
@@ -229,7 +230,6 @@ def raiden(
 
     deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info,
-        contracts_version=contracts_version,
         save_info=save_info,
     )
 
@@ -385,13 +385,13 @@ def token(
 )
 @click.option(
     '--channel-participant-deposit-limit',
-    required=True,
+    default=None,
     type=int,
     help='Address of token network registry',
 )
 @click.option(
     '--token-network-deposit-limit',
-    required=True,
+    default=None,
     type=int,
     help='Address of token network registry',
 )
@@ -444,6 +444,7 @@ def register(
         wait=ctx.obj['wait'],
         gas_price=gas_price,
         token_registry_version=expected_version,
+        contracts_version=contracts_version,
     )
 
 
@@ -614,13 +615,26 @@ def register_token_network(
         token_registry_address: str,
         token_registry_version: str,
         token_address: str,
-        channel_participant_deposit_limit: int,
-        token_network_deposit_limit: int,
+        channel_participant_deposit_limit: Optional[int],
+        token_network_deposit_limit: Optional[int],
+        contracts_version: Optional[str],
         wait=10,
         gas_limit=4000000,
         gas_price=10,
 ):
     """Register token with a TokenNetworkRegistry contract."""
+    print(contracts_version)
+    with_limits = contracts_version is None or compare(contracts_version, '0.9.0') > -1
+    if with_limits:
+        assert channel_participant_deposit_limit is not None, \
+            'contracts_version 0.9.0 and afterwards expect channel_participant_deposit_limit'
+        assert token_network_deposit_limit is not None, \
+            'contracts_version 0.9.0 and afterwards expect token_network_deposit_limit'
+    else:
+        assert channel_participant_deposit_limit is None, \
+            'contracts_version below 0.9.0 does not expect channel_participant_deposit_limit'
+        assert token_network_deposit_limit is None, \
+            'contracts_version below 0.9.0 does not expect token_network_deposit_limit'
     token_network_registry = web3.eth.contract(
         abi=token_registry_abi,
         address=token_registry_address,
@@ -630,11 +644,15 @@ def register_token_network(
         f'got {token_network_registry.functions.contract_version().call()},' \
         f'expected {token_registry_version}'
 
-    txhash = token_network_registry.functions.createERC20TokenNetwork(
+    command = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact(
+    ) if with_limits else token_network_registry.functions.createERC20TokenNetwork(
+        token_address,
+    )
+
+    txhash = command.transact(
         {
             'from': caller,
             'gas': gas_limit,

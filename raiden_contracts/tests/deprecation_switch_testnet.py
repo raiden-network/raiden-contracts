@@ -163,6 +163,7 @@ def deprecation_test_setup(
         token_network_deposit_limit=token_network_deposit_limit,
         token_registry_version=deployer.contract_manager.version_string(),
         wait=deployer.wait,
+        contracts_version=deployer.contracts_version,
     )
 
     token_network_abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)

@@ -288,6 +288,7 @@ def test_deploy_script_register(
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
+        contracts_version=deployer.contracts_version,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
