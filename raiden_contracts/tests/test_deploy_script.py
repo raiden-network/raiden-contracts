@@ -26,11 +26,7 @@ from raiden_contracts.deploy.__main__ import (
     deploy_token_contract,
     error_removed_option,
     register_token_network,
-    store_and_verify_deployment_info_raiden,
-    store_and_verify_deployment_info_services,
     validate_address,
-    verify_deployment_data,
-    verify_service_contracts_deployment_data,
 )
 from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.tests.utils.constants import (
@@ -125,27 +121,21 @@ def test_deploy_script_raiden(
     """
     deployed_contracts_info = deployed_raiden_info
 
-    verify_deployment_data(
-        web3=deployer.web3,
-        contract_manager=deployer.contract_manager,
+    deployer._verify_deployment_data(
         deployment_data=deployed_contracts_info,
     )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['chain_id'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
 
@@ -154,18 +144,14 @@ def test_deploy_script_raiden(
         CONTRACT_ENDPOINT_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
@@ -174,36 +160,28 @@ def test_deploy_script_raiden(
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_ENDPOINT_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        verify_deployment_data(
-            deployer.web3,
-            deployer.contract_manager,
+        deployer._verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
@@ -339,9 +317,7 @@ def test_deploy_script_service(
     deposit_limit = token_supply // 2
 
     deployed_service_contracts = deployed_service_info
-    verify_service_contracts_deployment_data(
-        web3=deployer.web3,
-        contract_manager=deployer.contract_manager,
+    deployer._verify_service_contracts_deployment_data(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
         deployment_data=deployed_service_contracts,
@@ -350,9 +326,7 @@ def test_deploy_script_service(
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(AssertionError):
-        verify_service_contracts_deployment_data(
-            web3=deployer.web3,
-            contract_manager=deployer.contract_manager,
+        deployer._verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployment_data=deployed_info_fail,
@@ -364,9 +338,7 @@ def test_deploy_script_service(
             contract_name
         ]['address'] = EMPTY_ADDRESS
         with pytest.raises(AssertionError):
-            verify_service_contracts_deployment_data(
-                web3=deployer.web3,
-                contract_manager=deployer.contract_manager,
+            deployer._verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
                 deployment_data=deployed_info_fail,
@@ -421,15 +393,11 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3, deployed_raiden_info,
         version=None,
     ).parent)
     deployed_contracts_info = deployed_raiden_info
-    store_and_verify_deployment_info_raiden(
-        contracts_version=None,
-        deployer=deployer,
+    deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info,
         save_info=False,
     )
-    store_and_verify_deployment_info_raiden(
-        contracts_version=None,
-        deployer=deployer,
+    deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info,
         save_info=True,
     )
@@ -448,18 +416,14 @@ def test_store_and_verify_services(
         version=None,
     ).parent)
     deployed_contracts_info = deployed_service_info
-    store_and_verify_deployment_info_services(
+    deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
-        contracts_version=None,
-        deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
         save_info=False,
         user_deposit_whole_limit=DEPOSIT_LIMIT,
     )
-    store_and_verify_deployment_info_services(
+    deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
-        contracts_version=None,
-        deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
         save_info=True,
         user_deposit_whole_limit=DEPOSIT_LIMIT,

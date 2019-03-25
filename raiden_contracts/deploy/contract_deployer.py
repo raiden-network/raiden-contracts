@@ -7,19 +7,16 @@ from web3.contract import ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
 
 from raiden_contracts.constants import CONTRACTS_VERSION
-from raiden_contracts.contract_manager import (
-    ContractManager,
-    contract_version_string,
-    contracts_precompiled_path,
-)
+from raiden_contracts.contract_manager import contract_version_string
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
+from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 
 LOG = getLogger(__name__)
 
 
-class ContractDeployer:
+class ContractDeployer(ContractVerifyer):
     def __init__(
             self,
             web3: Web3,
@@ -30,16 +27,13 @@ class ContractDeployer:
             contracts_version: Optional[str]=None,
     ):
         # pylint: disable=E1101
-        self.web3 = web3
+        super(ContractDeployer, self).__init__(web3=web3, contracts_version=contracts_version)
         self.wait = wait
         self.owner = private_key_to_address(private_key)
         self.transaction = {'from': self.owner, 'gas': gas_limit}
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * denoms.gwei
 
-        self.contracts_version = contracts_version
-        self.precompiled_path = contracts_precompiled_path(self.contracts_version)
-        self.contract_manager = ContractManager(self.precompiled_path)
         self.web3.middleware_stack.add(
             construct_sign_and_send_raw_middleware(private_key),
         )
