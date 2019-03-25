@@ -56,7 +56,8 @@ def validate_address(_, _param, value):
 
 
 def error_removed_option(_, param, value):
-    raise click.NoSuchOption(f'--{param.name.replace("_", "-")} is no longer a valid option')
+    if value is not None:
+        raise click.NoSuchOption(f'--{param.name.replace("_", "-")} is no longer a valid option')
 
 
 def common_options(func):
@@ -473,7 +474,9 @@ def register(
         token_network_registry_address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
+        registry_address,
 ):
+    assert registry_address is None  # No longer used option
     setup_ctx(
         ctx,
         private_key,
