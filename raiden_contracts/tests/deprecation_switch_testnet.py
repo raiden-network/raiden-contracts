@@ -13,7 +13,6 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.deploy.__main__ import (
     deploy_raiden_contracts,
-    deploy_token_contract,
     register_token_network,
     setup_ctx,
 )
@@ -128,8 +127,7 @@ def deprecation_test_setup(
     token_supply = 10 ** 6 * multiplier
     token_amount = int(token_amount * multiplier)
 
-    deployed_token = deploy_token_contract(
-        deployer,
+    deployed_token = deployer.deploy_token_contract(
         token_supply,
         token_decimals,
         'TestToken',
