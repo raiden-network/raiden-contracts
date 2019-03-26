@@ -1,6 +1,6 @@
 """ContractManager knows binaries and ABI of contracts."""
-from copy import deepcopy
 import json
+from copy import deepcopy
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -171,7 +171,10 @@ def get_contracts_deployment_info(
     for f in files:
         try:
             with f.open() as deployment_file:
-                deployment_data = merge_deployment_data(deployment_data, json.load(deployment_file))
+                deployment_data = merge_deployment_data(
+                    deployment_data,
+                    json.load(deployment_file),
+                )
         except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
             raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
