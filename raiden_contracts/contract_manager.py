@@ -1,4 +1,5 @@
 """ContractManager knows binaries and ABI of contracts."""
+from copy import deepcopy
 import json
 from json import JSONDecodeError
 from pathlib import Path
@@ -119,6 +120,23 @@ def get_contracts_deployed(
     )
 
 
+def merge_deployment_data(dict1, dict2):
+    if not dict1:
+        return dict2
+    if not dict2:
+        return dict1
+    result = {}
+    for k1, v1 in dict1.items():
+        if k1 == 'contracts':
+            v = deepcopy(v1)
+            v.update(dict2['contracts'])
+            result['contracts'] = v
+        else:
+            assert dict2[k1] == v1
+            result[k1] = v1
+    return result
+
+
 def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
@@ -153,7 +171,7 @@ def get_contracts_deployment_info(
     for f in files:
         try:
             with f.open() as deployment_file:
-                deployment_data.update(json.load(deployment_file))
+                deployment_data = merge_deployment_data(deployment_data, json.load(deployment_file))
         except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
             raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
