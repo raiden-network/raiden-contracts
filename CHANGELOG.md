@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Deprecated get_contracts_deployed() whose name sounded wrong and that had to be called twice.
 - deploy script does not take --registry option anymore.  Use --token-network-registry instead.
 
 ## [0.15.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.15.0) - 2019-03-19

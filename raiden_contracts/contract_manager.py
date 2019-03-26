@@ -4,6 +4,8 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, Optional
 
+from deprecated import deprecated
+
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
 
 _BASE = Path(__file__).parent
@@ -103,6 +105,7 @@ def contracts_deployed_path(
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
 
+@deprecated(reason='Use get_contract_deployment_info()')
 def get_contracts_deployed(
         chain_id: int,
         version: Optional[str] = None,
