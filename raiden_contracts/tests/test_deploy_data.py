@@ -50,7 +50,7 @@ def reasonable_deployment_of_a_contract(deployed):
     assert isinstance(deployed['constructor_arguments'], list)
 
 
-RAIDEN_CONTRACT_NAMES = {'EndpointRegistry', 'TokenNetworkRegistry', 'SecretRegistry'}
+RAIDEN_CONTRACT_NAMES = ('EndpointRegistry', 'TokenNetworkRegistry', 'SecretRegistry')
 
 
 @pytest.mark.parametrize('version', [None])
@@ -70,7 +70,7 @@ def test_deploy_data_has_fields_raiden(
         reasonable_deployment_of_a_contract(deployed)
 
 
-SERVICE_CONTRACT_NAMES = {'ServiceRegistry', 'MonitoringService', 'OneToN', 'UserDeposit'}
+SERVICE_CONTRACT_NAMES = ('ServiceRegistry', 'MonitoringService', 'OneToN', 'UserDeposit')
 
 
 @pytest.mark.parametrize('version', [None])
@@ -104,7 +104,7 @@ def test_deploy_data_all(
     assert data_all == data_all_computed
     assert data_all == data_default
 
-    for name in RAIDEN_CONTRACT_NAMES.union(SERVICE_CONTRACT_NAMES):
+    for name in RAIDEN_CONTRACT_NAMES + SERVICE_CONTRACT_NAMES:
         deployed = data_all['contracts'][name]
         reasonable_deployment_of_a_contract(deployed)
 

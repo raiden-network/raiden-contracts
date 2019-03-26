@@ -3,13 +3,32 @@ import json
 from copy import deepcopy
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from deprecated import deprecated
+from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
+from raiden_contracts.utils.type_aliases import Address
 
 _BASE = Path(__file__).parent
+
+
+# Classes for static type checking of deployed_contracts dictionary.
+
+
+class DeployedContract(TypedDict):
+    address: Address
+    transaction_hash: str
+    block_number: int
+    gas_cost: int
+    constructor_arguments: Any
+
+
+class DeployedContracts(TypedDict):
+    chain_id: int
+    contracts: Dict[str, DeployedContract]
+    contracts_version: str
 
 
 class ContractManagerLoadError(RuntimeError):
@@ -111,7 +130,7 @@ def get_contracts_deployed(
         chain_id: int,
         version: Optional[str] = None,
         services: bool = False,
-):
+) -> Dict:
     """Reads the deployment data."""
     return get_contracts_deployment_info(
         chain_id=chain_id,
@@ -120,7 +139,13 @@ def get_contracts_deployed(
     )
 
 
-def merge_deployment_data(dict1, dict2):
+def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
+    """ Take contents of two deployment JSON files and merge them
+
+    The dictionary under 'contracts' key will be merged. The 'contracts'
+    contents from different JSON files must not overlap. The contents
+    under other keys must be identical.
+    """
     if not dict1:
         return dict2
     if not dict2:
@@ -128,7 +153,9 @@ def merge_deployment_data(dict1, dict2):
     result = {}
     for k1, v1 in dict1.items():
         if k1 == 'contracts':
-            v = deepcopy(v1)
+            v: DeployedContracts = deepcopy(v1)
+            # If keys overlap, we would be overwriing some contents away.
+            assert not v.keys() & dict2['contracts'].keys()
             v.update(dict2['contracts'])
             result['contracts'] = v
         else:
@@ -141,7 +168,7 @@ def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
         module: str = 'all',
-):
+) -> Dict:
     """Reads the deployment data.
 
     Parameter:

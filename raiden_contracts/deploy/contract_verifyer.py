@@ -1,8 +1,7 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from eth_utils import to_checksum_address
-from mypy_extensions import TypedDict
 from web3 import Web3
 from web3.contract import Contract
 
@@ -17,28 +16,12 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
+    DeployedContracts,
     contracts_deployed_path,
     contracts_precompiled_path,
     get_contracts_deployed,
 )
 from raiden_contracts.utils.bytecode import runtime_hexcode
-from raiden_contracts.utils.type_aliases import Address
-
-# Classes for static type checking of deployed_contracts dictionary.
-
-
-class DeployedContract(TypedDict):
-    address: Address
-    transaction_hash: str
-    block_number: int
-    gas_cost: int
-    constructor_arguments: Any
-
-
-class DeployedContracts(TypedDict):
-    chain_id: int
-    contracts: Dict[str, DeployedContract]
-    contracts_version: str
 
 
 class ContractVerifyer:
