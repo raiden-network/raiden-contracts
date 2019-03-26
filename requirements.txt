@@ -4,3 +4,4 @@ coincurve>=8.0.0
 web3>=4.4.1
 py-solc>=3.0.0
 semver
+Deprecated

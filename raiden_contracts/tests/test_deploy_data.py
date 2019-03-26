@@ -4,9 +4,12 @@ import pytest
 
 from raiden_contracts.constants import CONTRACTS_VERSION
 from raiden_contracts.contract_manager import (
+    DeploymentModule,
     contracts_data_path,
     contracts_deployed_path,
     get_contracts_deployed,
+    get_contracts_deployment_info,
+    merge_deployment_data,
 )
 
 
@@ -48,6 +51,9 @@ def reasonable_deployment_of_a_contract(deployed):
     assert isinstance(deployed['constructor_arguments'], list)
 
 
+RAIDEN_CONTRACT_NAMES = ('EndpointRegistry', 'TokenNetworkRegistry', 'SecretRegistry')
+
+
 @pytest.mark.parametrize('version', [None])
 @pytest.mark.parametrize('chain_id', [3, 4, 42])
 def test_deploy_data_has_fields_raiden(
@@ -55,12 +61,17 @@ def test_deploy_data_has_fields_raiden(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=False)
+    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
+    assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
-    for name in {'EndpointRegistry', 'TokenNetworkRegistry', 'SecretRegistry'}:
+    for name in RAIDEN_CONTRACT_NAMES:
         deployed = contracts[name]
         reasonable_deployment_of_a_contract(deployed)
+
+
+SERVICE_CONTRACT_NAMES = ('ServiceRegistry', 'MonitoringService', 'OneToN', 'UserDeposit')
 
 
 @pytest.mark.parametrize('version', [None])
@@ -70,9 +81,35 @@ def test_deploy_data_has_fields_services(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=True)
+    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
+    assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
-    for name in {'ServiceRegistry', 'MonitoringService', 'OneToN', 'UserDeposit'}:
+    for name in SERVICE_CONTRACT_NAMES:
         deployed = contracts[name]
         reasonable_deployment_of_a_contract(deployed)
+
+
+@pytest.mark.parametrize('version', [None])
+@pytest.mark.parametrize('chain_id', [3, 4, 42])
+def test_deploy_data_all(
+        version: Optional[str],
+        chain_id: int,
+):
+    data_services = get_contracts_deployed(chain_id, version, services=True)
+    data_raiden = get_contracts_deployed(chain_id, version, services=False)
+    data_all_computed = merge_deployment_data(data_services, data_raiden)
+    data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
+    data_default = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
+    assert data_all == data_all_computed
+    assert data_all == data_default
+
+    for name in RAIDEN_CONTRACT_NAMES + SERVICE_CONTRACT_NAMES:
+        deployed = data_all['contracts'][name]
+        reasonable_deployment_of_a_contract(deployed)
+
+
+def test_deploy_data_unknown_module():
+    with pytest.raises(ValueError):
+        get_contracts_deployment_info(3, None, module=None)  # type: ignore

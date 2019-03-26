@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Added contract_manager.get_contracts_deployed_info() that takes a module (`SERVICES`, `RAIDEN` or `ALL`) instead of `services:bool`
+- Deprecated get_contracts_deployed() whose name sounded wrong and that had to be called twice.
 - deploy script does not take --registry option anymore.  Use --token-network-registry instead.
 
 ## [0.15.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.15.0) - 2019-03-19

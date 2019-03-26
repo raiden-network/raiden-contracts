@@ -1,12 +1,35 @@
 """ContractManager knows binaries and ABI of contracts."""
 import json
+from copy import deepcopy
+from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
+
+from deprecated import deprecated
+from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
+from raiden_contracts.utils.type_aliases import Address
 
 _BASE = Path(__file__).parent
+
+
+# Classes for static type checking of deployed_contracts dictionary.
+
+
+class DeployedContract(TypedDict):
+    address: Address
+    transaction_hash: str
+    block_number: int
+    gas_cost: int
+    constructor_arguments: Any
+
+
+class DeployedContracts(TypedDict):
+    chain_id: int
+    contracts: Dict[str, DeployedContract]
+    contracts_version: str
 
 
 class ContractManagerLoadError(RuntimeError):
@@ -103,21 +126,89 @@ def contracts_deployed_path(
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
 
+class DeploymentModule(Enum):
+    RAIDEN = 'raiden'
+    SERVICES = 'services'
+    ALL = 'all'
+
+
+@deprecated(reason='Use get_contract_deployment_info()')
 def get_contracts_deployed(
         chain_id: int,
         version: Optional[str] = None,
         services: bool = False,
-):
+) -> Dict:
     """Reads the deployment data."""
-    deployment_file_path = contracts_deployed_path(
+    return get_contracts_deployment_info(
         chain_id=chain_id,
         version=version,
-        services=services,
+        module=DeploymentModule.SERVICES if services else DeploymentModule.RAIDEN,
     )
 
-    try:
-        with deployment_file_path.open() as deployment_file:
-            deployment_data = json.load(deployment_file)
-    except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
-        raise ValueError(f'Cannot load deployment data file: {ex}') from ex
+
+def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
+    """ Take contents of two deployment JSON files and merge them
+
+    The dictionary under 'contracts' key will be merged. The 'contracts'
+    contents from different JSON files must not overlap. The contents
+    under other keys must be identical.
+    """
+    if not dict1:
+        return dict2
+    if not dict2:
+        return dict1
+    result = {}
+    for k1, v1 in dict1.items():
+        if k1 == 'contracts':
+            v: DeployedContracts = deepcopy(v1)
+            # If keys overlap, we would be overwriing some contents away.
+            assert not v.keys() & dict2['contracts'].keys()
+            v.update(dict2['contracts'])
+            result['contracts'] = v
+        else:
+            assert dict2[k1] == v1
+            result[k1] = v1
+    return result
+
+
+def get_contracts_deployment_info(
+        chain_id: int,
+        version: Optional[str] = None,
+        module: DeploymentModule = DeploymentModule.ALL,
+) -> Dict:
+    """Reads the deployment data.
+
+    Parameter:
+        module The name of the module. ALL means deployed contracts from all modules.
+    """
+    if module not in DeploymentModule:
+        raise ValueError(f'Unknown module {module} given to get_contracts_deployment_info()')
+
+    files: List[Path] = []
+
+    if module == DeploymentModule.RAIDEN or module == DeploymentModule.ALL:
+        files.append(contracts_deployed_path(
+            chain_id=chain_id,
+            version=version,
+            services=False,
+        ))
+
+    if module == DeploymentModule.SERVICES or module == DeploymentModule.ALL:
+        files.append(contracts_deployed_path(
+            chain_id=chain_id,
+            version=version,
+            services=True,
+        ))
+
+    deployment_data: Dict = {}
+
+    for f in files:
+        try:
+            with f.open() as deployment_file:
+                deployment_data = merge_deployment_data(
+                    deployment_data,
+                    json.load(deployment_file),
+                )
+        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
+            raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
