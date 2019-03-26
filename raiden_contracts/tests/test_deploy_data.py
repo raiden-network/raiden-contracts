@@ -7,6 +7,7 @@ from raiden_contracts.contract_manager import (
     contracts_data_path,
     contracts_deployed_path,
     get_contracts_deployed,
+    get_contracts_deployment_info,
 )
 
 
@@ -55,6 +56,8 @@ def test_deploy_data_has_fields_raiden(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=False)
+    data2 = get_contracts_deployment_info(chain_id, version, module='raiden')
+    assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
@@ -70,9 +73,31 @@ def test_deploy_data_has_fields_services(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=True)
+    data2 = get_contracts_deployment_info(chain_id, version, module='services')
+    assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
     for name in {'ServiceRegistry', 'MonitoringService', 'OneToN', 'UserDeposit'}:
         deployed = contracts[name]
         reasonable_deployment_of_a_contract(deployed)
+
+
+@pytest.mark.parametrize('version', [None])
+@pytest.mark.parametrize('chain_id', [3, 4, 42])
+def test_deploy_data_all(
+        version: Optional[str],
+        chain_id: int,
+):
+    data_services = get_contracts_deployed(chain_id, version, services=True)
+    data_raiden = get_contracts_deployed(chain_id, version, services=False)
+    data_raiden.update(data_services)
+    data_all = get_contracts_deployment_info(chain_id, version, module='all')
+    data_default = get_contracts_deployment_info(chain_id, version, module='all')
+    assert data_all == data_raiden
+    assert data_all == data_default
+
+
+def test_deploy_data_unknown_module():
+    with pytest.raises(ValueError):
+        get_contracts_deployment_info(3, None, module='unknown')

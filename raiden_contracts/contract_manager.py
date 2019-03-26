@@ -2,7 +2,7 @@
 import json
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from deprecated import deprecated
 
@@ -112,15 +112,48 @@ def get_contracts_deployed(
         services: bool = False,
 ):
     """Reads the deployment data."""
-    deployment_file_path = contracts_deployed_path(
+    return get_contracts_deployment_info(
         chain_id=chain_id,
         version=version,
-        services=services,
+        module='services' if services else 'raiden',
     )
 
-    try:
-        with deployment_file_path.open() as deployment_file:
-            deployment_data = json.load(deployment_file)
-    except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
-        raise ValueError(f'Cannot load deployment data file: {ex}') from ex
+
+def get_contracts_deployment_info(
+        chain_id: int,
+        version: Optional[str] = None,
+        module: str = 'all',
+):
+    """Reads the deployment data.
+
+    Parameter:
+        module The name of the module: currently, 'raiden' 'services' or 'all'.
+    """
+    if module not in {'all', 'services', 'raiden'}:
+        raise ValueError(f'Unknown module {module} given to get_contracts_deployment_info()')
+
+    files: List[Path] = []
+
+    if module == 'raiden' or module == 'all':
+        files.append(contracts_deployed_path(
+            chain_id=chain_id,
+            version=version,
+            services=False,
+        ))
+
+    if module == 'services' or module == 'all':
+        files.append(contracts_deployed_path(
+            chain_id=chain_id,
+            version=version,
+            services=True,
+        ))
+
+    deployment_data: Dict = {}
+
+    for f in files:
+        try:
+            with f.open() as deployment_file:
+                deployment_data.update(json.load(deployment_file))
+        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
+            raise ValueError(f'Cannot load deployment data file: {ex}') from ex
     return deployment_data
