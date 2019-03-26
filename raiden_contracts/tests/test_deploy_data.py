@@ -4,6 +4,7 @@ import pytest
 
 from raiden_contracts.constants import CONTRACTS_VERSION
 from raiden_contracts.contract_manager import (
+    DeploymentModule,
     contracts_data_path,
     contracts_deployed_path,
     get_contracts_deployed,
@@ -60,7 +61,7 @@ def test_deploy_data_has_fields_raiden(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=False)
-    data2 = get_contracts_deployment_info(chain_id, version, module='raiden')
+    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
@@ -80,7 +81,7 @@ def test_deploy_data_has_fields_services(
         chain_id: int,
 ):
     data = get_contracts_deployed(chain_id, version, services=True)
-    data2 = get_contracts_deployment_info(chain_id, version, module='services')
+    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data2 == data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
@@ -99,8 +100,8 @@ def test_deploy_data_all(
     data_services = get_contracts_deployed(chain_id, version, services=True)
     data_raiden = get_contracts_deployed(chain_id, version, services=False)
     data_all_computed = merge_deployment_data(data_services, data_raiden)
-    data_all = get_contracts_deployment_info(chain_id, version, module='all')
-    data_default = get_contracts_deployment_info(chain_id, version, module='all')
+    data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
+    data_default = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     assert data_all == data_all_computed
     assert data_all == data_default
 
@@ -111,4 +112,4 @@ def test_deploy_data_all(
 
 def test_deploy_data_unknown_module():
     with pytest.raises(ValueError):
-        get_contracts_deployment_info(3, None, module='unknown')
+        get_contracts_deployment_info(3, None, module=None)  # type: ignore

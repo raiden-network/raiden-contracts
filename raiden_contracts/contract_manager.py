@@ -1,6 +1,7 @@
 """ContractManager knows binaries and ABI of contracts."""
 import json
 from copy import deepcopy
+from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -125,6 +126,12 @@ def contracts_deployed_path(
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
 
+class DeploymentModule(Enum):
+    RAIDEN = 'raiden'
+    SERVICES = 'services'
+    ALL = 'all'
+
+
 @deprecated(reason='Use get_contract_deployment_info()')
 def get_contracts_deployed(
         chain_id: int,
@@ -135,7 +142,7 @@ def get_contracts_deployed(
     return get_contracts_deployment_info(
         chain_id=chain_id,
         version=version,
-        module='services' if services else 'raiden',
+        module=DeploymentModule.SERVICES if services else DeploymentModule.RAIDEN,
     )
 
 
@@ -167,26 +174,26 @@ def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
 def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
-        module: str = 'all',
+        module: DeploymentModule = DeploymentModule.ALL,
 ) -> Dict:
     """Reads the deployment data.
 
     Parameter:
-        module The name of the module: currently, 'raiden' 'services' or 'all'.
+        module The name of the module. ALL means deployed contracts from all modules.
     """
-    if module not in {'all', 'services', 'raiden'}:
+    if module not in DeploymentModule:
         raise ValueError(f'Unknown module {module} given to get_contracts_deployment_info()')
 
     files: List[Path] = []
 
-    if module == 'raiden' or module == 'all':
+    if module == DeploymentModule.RAIDEN or module == DeploymentModule.ALL:
         files.append(contracts_deployed_path(
             chain_id=chain_id,
             version=version,
             services=False,
         ))
 
-    if module == 'services' or module == 'all':
+    if module == DeploymentModule.SERVICES or module == DeploymentModule.ALL:
         files.append(contracts_deployed_path(
             chain_id=chain_id,
             version=version,

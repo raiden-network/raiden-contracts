@@ -7,7 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Added contract_manager.get_contracts_deployed_info() that takes a module (`services`, `raiden` or `all`) instead of `services:bool`
+- Added contract_manager.get_contracts_deployed_info() that takes a module (`SERVICES`, `RAIDEN` or `ALL`) instead of `services:bool`
 - Deprecated get_contracts_deployed() whose name sounded wrong and that had to be called twice.
 - deploy script does not take --registry option anymore.  Use --token-network-registry instead.
 
