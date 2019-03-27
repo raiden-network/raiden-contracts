@@ -1,4 +1,4 @@
-click
+click>=7.0
 rlp>=1.0.0
 coincurve>=8.0.0
 web3>=4.4.1
