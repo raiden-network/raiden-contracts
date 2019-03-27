@@ -30,9 +30,7 @@ class ChannelValues():
             additional_hash=EMPTY_ADDITIONAL_HASH,
     ):
         self.deposit = deposit
-        # FIXME after setTotalWithdraw is enabled again
-        self.withdrawn = 0
-        # self.withdrawn = withdrawn
+        self.withdrawn = withdrawn
         self.nonce = nonce
         self.transferred = transferred
         self.claimable_locked = claimable_locked or locked

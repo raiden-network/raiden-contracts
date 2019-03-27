@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Re-enable setTotalWithdraw() function of TokenNetwork contract.
+
 ## [0.16.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.16.0) - 2019-03-26
 
 - [#775](https://github.com/raiden-network/raiden-contracts/pull/775) Added contract_manager.get_contracts_deployed_info() that takes a module (`SERVICES`, `RAIDEN` or `ALL`) instead of `services:bool`

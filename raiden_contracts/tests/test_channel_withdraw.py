@@ -14,7 +14,6 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_withdraw
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_call(
         token_network,
         create_channel_and_deposit,
@@ -122,7 +121,6 @@ def test_withdraw_call(
     ).transact({'from': A})
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_wrong_state(
         web3,
         token_network,
@@ -176,7 +174,6 @@ def test_withdraw_wrong_state(
         withdraw_channel(channel_identifier, A, withdraw_A, B)
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_bigger(
         web3,
         token_network,
@@ -205,7 +202,6 @@ def test_withdraw_bigger(
     withdraw_channel(channel_identifier, A, deposit_A + deposit_B - 7, B)
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_wrong_signers(
         web3,
         token_network,
@@ -252,7 +248,6 @@ def test_withdraw_wrong_signers(
     ).transact({'from': C})
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_wrong_signature_content(
         web3,
         token_network,
@@ -351,7 +346,6 @@ def test_withdraw_wrong_signature_content(
     ).transact({'from': A})
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_channel_state(
         get_accounts,
         token_network,
@@ -440,7 +434,6 @@ def test_withdraw_channel_state(
     )
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_replay_reopened_channel(
         web3,
         token_network,
@@ -520,7 +513,6 @@ def test_withdraw_replay_reopened_channel(
     ).transact({'from': A})
 
 
-@pytest.mark.skip(reason='Delayed until another milestone')
 def test_withdraw_event(
         token_network,
         create_channel_and_deposit,

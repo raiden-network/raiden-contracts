@@ -4,7 +4,6 @@ from eth_tester.exceptions import TransactionFailed
 from raiden_contracts.tests.utils import fake_bytes
 
 
-@pytest.mark.skip(reason='Delayed to another milestone')
 def test_recover_address_from_withdraw_message(
         token_network_test_signatures,
         create_withdraw_signatures,
