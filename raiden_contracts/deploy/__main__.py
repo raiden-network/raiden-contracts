@@ -299,8 +299,6 @@ def services(
     }
 
     deployer.store_and_verify_deployment_info_services(
-        contracts_version=contracts_version,
-        deployer=deployer,
         deployed_contracts_info=deployed_contracts_info,
         save_info=save_info,
         token_address=token_address,

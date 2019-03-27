@@ -6683,6 +6683,6 @@
         "UserDeposit.sol": "905ee0f23226aa3152c9331a302ccc653f9dffe8ecf4b76c6673e8be40583a07",
         "Utils.sol": "f0a0096783f571a7f7491450d8aa1de0a8ae9381d0a6d73154762d0b67cd8b66"
     },
-    "contracts_version": null,
+    "contracts_version": "0.11.0",
     "overall_checksum": "5aeac37ddf7d9726a17ca989efa68532bf247336b6ef79df85a179e0e1ef6533"
 }
