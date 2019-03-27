@@ -462,3 +462,5 @@ def test_contracts_version_expects_deposit_limits():
     assert contracts_version_expects_deposit_limits('0.10.0')
     assert contracts_version_expects_deposit_limits('0.10.1')
     assert contracts_version_expects_deposit_limits(None)
+    with pytest.raises(ValueError):
+        contracts_version_expects_deposit_limits('not a semver string')
