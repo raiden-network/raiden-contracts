@@ -616,6 +616,14 @@ def deploy_token_contract(
     return {token_type: token_address}
 
 
+def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -> bool:
+    if contracts_version is None:
+        return True
+    if contracts_version == '0.3._':
+        return False
+    return compare(contracts_version, '0.9.0') > -1
+
+
 def register_token_network(
         web3: Web3,
         caller: str,
@@ -631,8 +639,7 @@ def register_token_network(
         gas_price=10,
 ):
     """Register token with a TokenNetworkRegistry contract."""
-    print(contracts_version)
-    with_limits = contracts_version is None or compare(contracts_version, '0.9.0') > -1
+    with_limits = contracts_version_expects_deposit_limits(contracts_version)
     if with_limits:
         assert channel_participant_deposit_limit is not None, \
             'contracts_version 0.9.0 and afterwards expect channel_participant_deposit_limit'
