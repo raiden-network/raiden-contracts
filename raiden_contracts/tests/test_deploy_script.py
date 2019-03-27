@@ -21,6 +21,7 @@ from raiden_contracts.contract_manager import contract_version_string, contracts
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
+    contracts_version_expects_deposit_limits,
     deploy_raiden_contracts,
     deploy_service_contracts,
     deploy_token_contract,
@@ -452,3 +453,14 @@ def test_error_removed_option_raises():
     with pytest.raises(NoSuchOption):
         mock = MagicMock()
         error_removed_option('msg')(None, mock, '0xaabbcc')
+
+
+def test_contracts_version_expects_deposit_limits():
+    assert not contracts_version_expects_deposit_limits('0.3._')
+    assert not contracts_version_expects_deposit_limits('0.4.0')
+    assert contracts_version_expects_deposit_limits('0.9.0')
+    assert contracts_version_expects_deposit_limits('0.10.0')
+    assert contracts_version_expects_deposit_limits('0.10.1')
+    assert contracts_version_expects_deposit_limits(None)
+    with pytest.raises(ValueError):
+        contracts_version_expects_deposit_limits('not a semver string')
