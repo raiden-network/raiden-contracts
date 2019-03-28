@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Optional
 
-from eth_utils import denoms, encode_hex
+from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import Web3
 from web3.contract import ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -124,3 +124,21 @@ class ContractDeployer(ContractVerifyer):
 
     def contract_version_string(self):
         return contract_version_string(self.contracts_version)
+
+    def deploy_token_contract(
+            self,
+            token_supply: int,
+            token_decimals: int,
+            token_name: str,
+            token_symbol: str,
+            token_type: str = 'CustomToken',
+    ):
+        """Deploy a token contract."""
+        receipt = self.deploy(
+            contract_name=token_type,
+            args=[token_supply, token_decimals, token_name, token_symbol],
+        )
+        token_address = receipt['contractAddress']
+        assert token_address and is_address(token_address)
+        token_address = to_checksum_address(token_address)
+        return {token_type: token_address}

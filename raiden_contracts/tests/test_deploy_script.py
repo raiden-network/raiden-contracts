@@ -24,7 +24,6 @@ from raiden_contracts.deploy.__main__ import (
     contracts_version_expects_deposit_limits,
     deploy_raiden_contracts,
     deploy_service_contracts,
-    deploy_token_contract,
     error_removed_option,
     register_token_network,
     validate_address,
@@ -67,8 +66,7 @@ TOKEN_SUPPLY = 10000000
 @pytest.fixture(scope='session')
 def token_address(deployer):
     token_type = 'CustomToken'
-    deployed_token = deploy_token_contract(
-        deployer,
+    deployed_token = deployer.deploy_token_contract(
         token_supply=TOKEN_SUPPLY,
         token_decimals=18,
         token_name='TestToken',
@@ -218,8 +216,7 @@ def test_deploy_script_token(
         wait=10,
     )
 
-    deployed_token = deploy_token_contract(
-        deployer,
+    deployed_token = deployer.deploy_token_contract(
         token_supply=10000000,
         token_decimals=18,
         token_name='TestToken',
@@ -239,8 +236,7 @@ def test_deploy_script_token(
         wait=10,
     )
     with pytest.raises(ValidationError):
-        deploy_token_contract(
-            deployer,
+        deployer.deploy_token_contract(
             token_supply=10000000,
             token_decimals=18,
             token_name='TestToken',

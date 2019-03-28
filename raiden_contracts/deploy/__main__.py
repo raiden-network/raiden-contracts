@@ -356,8 +356,7 @@ def token(
     )
     deployer = ctx.obj['deployer']
     token_supply *= 10 ** token_decimals
-    deployed_token = deploy_token_contract(
-        deployer,
+    deployed_token = deployer.deploy_token_contract(
         token_supply,
         token_decimals,
         token_name,
@@ -593,25 +592,6 @@ def deploy_service_contracts(
     deployer.transact(user_deposit.functions.init(msc.address, one_to_n.address))
 
     return deployed_contracts
-
-
-def deploy_token_contract(
-        deployer: ContractDeployer,
-        token_supply: int,
-        token_decimals: int,
-        token_name: str,
-        token_symbol: str,
-        token_type: str = 'CustomToken',
-):
-    """Deploy a token contract."""
-    receipt = deployer.deploy(
-        contract_name=token_type,
-        args=[token_supply, token_decimals, token_name, token_symbol],
-    )
-    token_address = receipt['contractAddress']
-    assert token_address and is_address(token_address)
-    token_address = to_checksum_address(token_address)
-    return {token_type: token_address}
 
 
 def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -> bool:
