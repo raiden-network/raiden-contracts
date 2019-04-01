@@ -17,11 +17,11 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     DeployedContracts,
-    DeploymentModule,
     contracts_deployed_path,
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
+from raiden_contracts.deployment_module import DeploymentModule
 from raiden_contracts.utils.bytecode import runtime_hexcode
 
 
