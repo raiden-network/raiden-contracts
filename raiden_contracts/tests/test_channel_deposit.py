@@ -350,7 +350,7 @@ def test_deposit_wrong_state_fail(
         ).transact({'from': B})
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,

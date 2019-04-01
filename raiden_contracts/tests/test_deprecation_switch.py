@@ -225,7 +225,7 @@ def test_deprecation_switch_settle(
     )
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Unlock B's pending transfers that were sent to A
     token_network.functions.unlock(

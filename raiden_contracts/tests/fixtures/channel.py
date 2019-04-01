@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
@@ -18,16 +19,21 @@ from raiden_contracts.utils.proofs import (
     sign_cooperative_settle_message,
     sign_withdraw_message,
 )
+from raiden_contracts.utils.transaction import transact_for_success
 
 
 @pytest.fixture(scope='session')
-def create_channel(token_network):
+def create_channel(token_network, web3):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
-        txn_hash = token_network.functions.openChannel(A, B, settle_timeout).transact()
+        receipt = transact_for_success(
+            web3=web3,
+            contract_function=token_network.functions.openChannel(A, B, settle_timeout),
+            transaction_params={},
+        )
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -40,12 +46,12 @@ def create_channel(token_network):
         assert channel_settle_timeout == settle_timeout
         assert channel_state == ChannelState.OPENED
 
-        return (channel_identifier, txn_hash)
+        return (channel_identifier, receipt['transactionHash'])
     return get
 
 
 @pytest.fixture()
-def assign_tokens(token_network, custom_token):
+def assign_tokens(token_network, custom_token, web3):
     def get(participant, deposit):
         owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
@@ -53,17 +59,29 @@ def assign_tokens(token_network, custom_token):
         amount = max(deposit - balance, 0)
         transfer_from_owner = min(amount, owner_balance)
 
-        custom_token.functions.transfer(participant, transfer_from_owner).transact({'from': owner})
+        transact_for_success(
+            web3=web3,
+            contract_function=custom_token.functions.transfer(participant, transfer_from_owner),
+            transaction_params={'from': owner},
+        )
         assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
         if amount > owner_balance:
             minted = amount - owner_balance
-            custom_token.functions.mint(minted).transact({'from': participant})
+            transact_for_success(
+                web3=web3,
+                contract_function=custom_token.functions.mint(minted),
+                transaction_params={'from': participant},
+            )
         assert custom_token.functions.balanceOf(participant).call() >= deposit
-        custom_token.functions.approve(
-            token_network.address,
-            deposit,
-        ).transact({'from': participant})
+        transact_for_success(
+            web3=web3,
+            contract_function=custom_token.functions.approve(
+                token_network.address,
+                deposit,
+            ),
+            transaction_params={'from': participant},
+        )
         assert custom_token.functions.allowance(
             participant,
             token_network.address,
@@ -72,18 +90,22 @@ def assign_tokens(token_network, custom_token):
 
 
 @pytest.fixture()
-def channel_deposit(token_network, assign_tokens):
+def channel_deposit(token_network, assign_tokens, web3):
     def get(channel_identifier, participant, deposit, partner, tx_from=None):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
-        txn_hash = token_network.functions.setTotalDeposit(
-            channel_identifier,
-            participant,
-            deposit,
-            partner,
-        ).transact({'from': tx_from})
-        return txn_hash
+        receipt = transact_for_success(
+            web3=web3,
+            contract_function=token_network.functions.setTotalDeposit(
+                channel_identifier,
+                participant,
+                deposit,
+                partner,
+            ),
+            transaction_params={'from': tx_from},
+        )
+        return receipt['transactionHash']
     return get
 
 
@@ -107,7 +129,7 @@ def create_channel_and_deposit(create_channel, channel_deposit):
 
 
 @pytest.fixture()
-def withdraw_channel(token_network, create_withdraw_signatures):
+def withdraw_channel(token_network, create_withdraw_signatures, web3):
     def get(channel_identifier, participant, withdraw_amount, partner, delegate=None):
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(
@@ -121,14 +143,18 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant,
             withdraw_amount,
         )
-        txn_hash = token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            participant,
-            withdraw_amount,
-            signature_participant,
-            signature_partner,
-        ).transact({'from': delegate})
-        return txn_hash
+        receipt = transact_for_success(
+            web3=web3,
+            contract_function=token_network.functions.setTotalWithdraw(
+                channel_identifier,
+                participant,
+                withdraw_amount,
+                signature_participant,
+                signature_partner,
+            ),
+            transaction_params={},
+        )
+        return receipt['transactionHash']
     return get
 
 
@@ -137,6 +163,7 @@ def close_and_update_channel(
         token_network,
         create_balance_proof,
         create_balance_proof_update_signature,
+        web3,
 ):
     def get(
             channel_identifier,
@@ -174,19 +201,27 @@ def close_and_update_channel(
             *balance_proof_1,
         )
 
-        token_network.functions.closeChannel(
-            channel_identifier,
-            participant2,
-            *balance_proof_2,
-        ).transact({'from': participant1})
+        transact_for_success(
+            web3=web3,
+            contract_function=token_network.functions.closeChannel(
+                channel_identifier,
+                participant2,
+                *balance_proof_2,
+            ),
+            transaction_params={'from': participant1},
+        )
 
-        token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier,
-            participant1,
-            participant2,
-            *balance_proof_1,
-            balance_proof_update_signature_2,
-        ).transact({'from': participant2})
+        transact_for_success(
+            web3=web3,
+            contract_function=token_network.functions.updateNonClosingBalanceProof(
+                channel_identifier,
+                participant1,
+                participant2,
+                *balance_proof_1,
+                balance_proof_update_signature_2,
+            ),
+            transaction_params={'from': participant2},
+        )
     return get
 
 
@@ -247,6 +282,7 @@ def create_settled_channel(
         web3.testing.mine(settle_timeout)
 
         call_settle(
+            web3,
             token_network,
             channel_identifier,
             participant1,
@@ -265,7 +301,11 @@ def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.blockNumber < expiration
-            secret_registry_contract.functions.registerSecret(secret).transact({'from': tx_from})
+            transact_for_success(
+                web3=web3,
+                contract_function=secret_registry_contract.functions.registerSecret(secret),
+                transaction_params={'from': tx_from},
+            )
             assert secret_registry_contract.functions.getSecretRevealBlockHeight(
                 secrethash,
             ).call() == web3.eth.blockNumber
@@ -723,7 +763,7 @@ def create_withdraw_signatures(token_network, get_private_key):
     return get
 
 
-def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
+def call_settle(web3: Web3, token_network, channel_identifier, A, vals_A, B, vals_B):
     A_total_transferred = vals_A.transferred + vals_A.locked
     B_total_transferred = vals_B.transferred + vals_B.locked
     assert B_total_transferred >= A_total_transferred
@@ -742,14 +782,18 @@ def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
                 vals_A.locksroot,
             ).transact({'from': A})
 
-    token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        vals_A.transferred,
-        vals_A.locked,
-        vals_A.locksroot,
-        B,
-        vals_B.transferred,
-        vals_B.locked,
-        vals_B.locksroot,
-    ).transact({'from': A})
+    transact_for_success(
+        web3=web3,
+        contract_function=token_network.functions.settleChannel(
+            channel_identifier,
+            A,
+            vals_A.transferred,
+            vals_A.locked,
+            vals_A.locksroot,
+            B,
+            vals_B.transferred,
+            vals_B.locked,
+            vals_B.locksroot,
+        ),
+        transaction_params={'from': A},
+    )

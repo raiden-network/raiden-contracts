@@ -1,6 +1,7 @@
-from typing import Tuple
+from typing import Dict, Tuple
 
 from web3 import Web3
+from web3.contract import ContractFunction
 from web3.utils.threads import Timeout
 
 
@@ -28,6 +29,26 @@ def wait_for_transaction_receipt(web3, txid, timeout=180):
                         pass  # Empty response from a Parity light client
                     else:
                         raise ex
-                time.sleep(5)
+                time.sleep(1)
 
+    return receipt
+
+
+def transact_for_success(
+        web3: Web3,
+        contract_function: ContractFunction,
+        transaction_params: Dict,
+) -> Dict:
+    """ Executes contract_function.transact(transaction_params) and checks success
+
+    raises TransactionFailed when the receipt indicates failure. """
+    txid = contract_function.transact(transaction_params)
+    receipt = wait_for_transaction_receipt(web3=web3, txid=txid)
+    if 'status' not in receipt:
+        raise NotImplementedError(
+            'A transaction receipt does not contain "status" field.'
+            'Maybe the chain is running rules older than Byzantium.',
+        )
+    if receipt['status'] == 0:
+        raise RuntimeError('Transaction receipt indicates failure.')
     return receipt

@@ -661,7 +661,7 @@ def test_channel_unlock(
     # Settlement window must be over before settling the channel
     web3.testing.mine(settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -865,7 +865,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     web3.testing.mine(settle_timeout)
 
     # settle channel
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -925,7 +925,7 @@ def test_channel_unlock_unregistered_locks(
 
     # Secret hasn't been registered before settlement timeout
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
     token_network.functions.unlock(
@@ -1030,7 +1030,7 @@ def test_channel_unlock_before_settlement_fails(
         ).transact()
 
     # settle channel
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1206,7 +1206,7 @@ def test_channel_unlock_both_participants(
     # Settle channel
     web3.testing.mine(settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1353,7 +1353,7 @@ def test_channel_unlock_with_a_large_expiration(
     # Settle channel after a "long" time
     web3.testing.mine(settle_timeout + 50)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1596,7 +1596,7 @@ def test_unlock_channel_event(
     # Settlement window must be over before settling the channel
     web3.testing.mine(settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(web3, token_network, channel_identifier, A, values_A, B, values_B)
 
     ev_handler = event_handler(token_network)
 

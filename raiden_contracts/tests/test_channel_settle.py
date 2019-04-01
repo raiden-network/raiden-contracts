@@ -123,7 +123,7 @@ def test_settle_channel_state(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Balance & state tests
     settle_state_tests(
@@ -363,7 +363,7 @@ def test_settlement_with_unauthorized_token_transfer(
     settlement = get_settlement_amounts(vals_A, vals_B)
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Fetch onchain balances after settlement
     post_balance_A = custom_token.functions.balanceOf(A).call()
@@ -411,7 +411,7 @@ def test_settle_wrong_state_fail(
     assert settle_timeout == TEST_SETTLE_TIMEOUT_MIN
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
@@ -432,13 +432,13 @@ def test_settle_wrong_state_fail(
     assert web3.eth.blockNumber < settle_block_number
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     assert web3.eth.blockNumber >= settle_block_number
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier,
@@ -507,80 +507,80 @@ def test_settle_wrong_balance_hash(
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
+        call_settle(web3, token_network, channel_identifier, B, vals_A, A, vals_B)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.transferred += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = MAX_UINT256
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+        call_settle(web3, token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locked += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked = MAX_UINT256
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+        call_settle(web3, token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locksroot = EMPTY_LOCKSROOT
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locksroot = fake_bytes(32, '01')
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.transferred += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.transferred = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+        call_settle(web3, token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.transferred = MAX_UINT256
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locked += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locked = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+        call_settle(web3, token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.locked = MAX_UINT256
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locksroot = EMPTY_LOCKSROOT
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locksroot = fake_bytes(32, '01')
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
 
 def test_settle_channel_event(

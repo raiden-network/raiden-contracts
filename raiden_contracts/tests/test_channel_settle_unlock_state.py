@@ -89,7 +89,7 @@ def test_settlement_outcome(
         pre_balance_B = custom_token.functions.balanceOf(B).call()
         pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
         # We do the balance & state tests here for each channel and also compare with
         # the expected settlement amounts
@@ -440,7 +440,7 @@ def test_channel_settle_invalid_balance_proof_values(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(web3, token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # We do the balance & state tests here for each channel and also compare with
     # the expected settlement amounts
