@@ -122,6 +122,13 @@ class OneToNEvent(str, Enum):
     CLAIMED = 'Claimed'
 
 
+class DeploymentModule(Enum):
+    """Groups of contracts that are deployed together"""
+    RAIDEN = 'raiden'
+    SERVICES = 'services'
+    ALL = 'all'
+
+
 # Network configurations
 START_QUERY_BLOCK_KEY = 'DefaultStartBlock'
 

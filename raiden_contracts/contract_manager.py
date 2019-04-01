@@ -1,7 +1,6 @@
 """ContractManager knows binaries and ABI of contracts."""
 import json
 from copy import deepcopy
-from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -9,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from deprecated import deprecated
 from mypy_extensions import TypedDict
 
-from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
+from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, DeploymentModule
 from raiden_contracts.utils.type_aliases import Address
 
 _BASE = Path(__file__).parent
@@ -124,12 +123,6 @@ def contracts_deployed_path(
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
-
-
-class DeploymentModule(Enum):
-    RAIDEN = 'raiden'
-    SERVICES = 'services'
-    ALL = 'all'
 
 
 @deprecated(reason='Use get_contract_deployment_info()')
