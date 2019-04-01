@@ -2,9 +2,8 @@ from typing import Optional
 
 import pytest
 
-from raiden_contracts.constants import CONTRACTS_VERSION
+from raiden_contracts.constants import CONTRACTS_VERSION, DeploymentModule
 from raiden_contracts.contract_manager import (
-    DeploymentModule,
     contracts_data_path,
     contracts_deployed_path,
     get_contracts_deployed,
