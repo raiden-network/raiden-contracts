@@ -130,7 +130,7 @@ def get_contracts_deployed(
         chain_id: int,
         version: Optional[str] = None,
         services: bool = False,
-) -> Dict:
+) -> DeployedContracts:
     """Reads the deployment data."""
     return get_contracts_deployment_info(
         chain_id=chain_id,
@@ -139,7 +139,7 @@ def get_contracts_deployed(
     )
 
 
-def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
+def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) -> DeployedContracts:
     """ Take contents of two deployment JSON files and merge them
 
     The dictionary under 'contracts' key will be merged. The 'contracts'
@@ -150,25 +150,25 @@ def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
         return dict2
     if not dict2:
         return dict1
-    result = {}
-    for k1, v1 in dict1.items():
-        if k1 == 'contracts':
-            v: DeployedContracts = deepcopy(v1)
-            # If keys overlap, we would be overwriing some contents away.
-            assert not v.keys() & dict2['contracts'].keys()
-            v.update(dict2['contracts'])
-            result['contracts'] = v
-        else:
-            assert dict2[k1] == v1
-            result[k1] = v1
-    return result
+    common_contracts: Dict[str, DeployedContract] = deepcopy(dict1['contracts'])
+    assert not common_contracts.keys() & dict2['contracts'].keys()
+    common_contracts.update(dict2['contracts'])
+
+    assert dict2['chain_id'] == dict1['chain_id']
+    assert dict2['contracts_version'] == dict1['contracts_version']
+
+    return {
+        'contracts': common_contracts,
+        'chain_id': dict1['chain_id'],
+        'contracts_version': dict1['contracts_version'],
+    }
 
 
 def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
         module: DeploymentModule = DeploymentModule.ALL,
-) -> Dict:
+) -> DeployedContracts:
     """Reads the deployment data.
 
     Parameter:
@@ -193,7 +193,7 @@ def get_contracts_deployment_info(
             services=True,
         ))
 
-    deployment_data: Dict = {}
+    deployment_data: DeployedContracts = {}  # type: ignore
 
     for f in files:
         try:
@@ -204,4 +204,5 @@ def get_contracts_deployment_info(
                 )
         except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
             raise ValueError(f'Cannot load deployment data file: {ex}') from ex
-    return deployment_data
+    assert deployment_data  # If it's empty, it's not DeployedContracts
+    return deployment_data  # type: ignore
