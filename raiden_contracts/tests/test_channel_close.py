@@ -37,7 +37,7 @@ def test_close_nonexistent_channel(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             signature=EMPTY_SIGNATURE,
-        ).transact({'from': A, 'gas': 81000})
+        ).call({'from': A, 'gas': 81000})
 
 
 def test_close_settled_channel_fail(
