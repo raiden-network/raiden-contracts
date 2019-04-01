@@ -17,9 +17,10 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     DeployedContracts,
+    DeploymentModule,
     contracts_deployed_path,
     contracts_precompiled_path,
-    get_contracts_deployed,
+    get_contracts_deployment_info,
 )
 from raiden_contracts.utils.bytecode import runtime_hexcode
 
@@ -38,9 +39,10 @@ class ContractVerifyer:
     def verify_deployed_contracts_in_filesystem(self):
         chain_id = int(self.web3.version.network)
 
-        deployment_data = get_contracts_deployed(
+        deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
             version=self.contract_manager.contracts_version,
+            module=DeploymentModule.RAIDEN,
         )
         deployment_file_path = contracts_deployed_path(
             chain_id=chain_id,
@@ -59,10 +61,10 @@ class ContractVerifyer:
     ):
         chain_id = int(self.web3.version.network)
 
-        deployment_data = get_contracts_deployed(
+        deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
             version=self.contract_manager.contracts_version,
-            services=True,
+            module=DeploymentModule.SERVICES,
         )
         deployment_file_path = contracts_deployed_path(
             chain_id=chain_id,

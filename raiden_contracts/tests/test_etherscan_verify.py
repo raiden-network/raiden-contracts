@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 import requests_mock
 from click.testing import CliRunner
@@ -12,7 +12,11 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
+from raiden_contracts.contract_manager import (
+    ContractManager,
+    DeployedContracts,
+    contracts_precompiled_path,
+)
 from raiden_contracts.deploy.etherscan_verify import (
     api_of_chain_id,
     etherscan_verify,
@@ -28,7 +32,7 @@ contract_name = 'DummyContract'
 def test_get_constructor_args_no_args():
     """ Test get_constructor_args() on no arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
-    deploy_info: Dict = {
+    deploy_info: DeployedContracts = {  # type: ignore
         'contracts': {
             contract_name: {
                 'constructor_arguments': [],
@@ -51,7 +55,7 @@ def test_get_constructor_args_one_arg():
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256']),
     }
-    deploy_info = {
+    deploy_info: DeployedContracts = {  # type: ignore
         'contracts': {
             contract_name: {
                 'constructor_arguments': [16],
@@ -68,7 +72,7 @@ def test_get_constructor_args_two_args():
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256', 'bool']),
     }
-    deploy_info = {
+    deploy_info: DeployedContracts = {  # type: ignore
         'contracts': {
             contract_name: {
                 'constructor_arguments': [16, True],
@@ -83,7 +87,7 @@ def test_get_constructor_args_two_args():
 def test_post_data_for_etherscan_verification():
     output = post_data_for_etherscan_verification(
         apikey='jkl;jkl;jkl;',
-        deployment_info={'address': 'dummy_address'},
+        deployment_info={'address': 'dummy_address'},  # type: ignore
         source='dummy_source',
         contract_name=contract_name,
         metadata={

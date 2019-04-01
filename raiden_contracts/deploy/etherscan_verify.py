@@ -21,8 +21,10 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
+    DeployedContract,
+    DeployedContracts,
     contracts_precompiled_path,
-    get_contracts_deployed,
+    get_contracts_deployment_info,
 )
 from raiden_contracts.contract_source_manager import contracts_source_path
 
@@ -114,7 +116,7 @@ def join_sources(source_module: str, contract_name: str):
 
 
 def get_constructor_args(
-        deployment_info: Dict,
+        deployment_info: DeployedContracts,
         contract_name: str,
         contract_manager: ContractManager,
 ):
@@ -136,7 +138,7 @@ def get_constructor_args(
 
 def post_data_for_etherscan_verification(
         apikey: str,
-        deployment_info: Dict,
+        deployment_info: DeployedContract,
         source: str,
         contract_name: str,
         metadata: Dict,
@@ -178,9 +180,8 @@ def etherscan_verify_contract(
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     etherscan_api = api_of_chain_id[chain_id]
-    deployment_info = get_contracts_deployed(
+    deployment_info = get_contracts_deployment_info(
         chain_id=chain_id,
-        services=(source_module == 'services'),
     )
     contract_manager = ContractManager(contracts_precompiled_path())
 

@@ -6,7 +6,6 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from deprecated import deprecated
 from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME
@@ -132,20 +131,6 @@ class DeploymentModule(Enum):
     ALL = 'all'
 
 
-@deprecated(reason='Use get_contract_deployment_info()')
-def get_contracts_deployed(
-        chain_id: int,
-        version: Optional[str] = None,
-        services: bool = False,
-) -> Dict:
-    """Reads the deployment data."""
-    return get_contracts_deployment_info(
-        chain_id=chain_id,
-        version=version,
-        module=DeploymentModule.SERVICES if services else DeploymentModule.RAIDEN,
-    )
-
-
 def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
     """ Take contents of two deployment JSON files and merge them
 
@@ -175,7 +160,7 @@ def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
         module: DeploymentModule = DeploymentModule.ALL,
-) -> Dict:
+) -> DeployedContracts:
     """Reads the deployment data.
 
     Parameter:
@@ -211,4 +196,5 @@ def get_contracts_deployment_info(
                 )
         except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
             raise ValueError(f'Cannot load deployment data file: {ex}') from ex
-    return deployment_data
+    assert deployment_data
+    return deployment_data  # type: ignore
