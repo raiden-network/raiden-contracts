@@ -50,7 +50,10 @@ def test_deposit(
     limit = user_deposit_contract.functions.whole_balance_limit().call()
     assert limit > 0
     custom_token.functions.mint(limit + 1).call_and_transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, limit + 1).call_and_transact({'from': A})
+    custom_token.functions.approve(
+        user_deposit_contract.address,
+        limit + 1,
+    ).call_and_transact({'from': A})
     with pytest.raises(TransactionFailed):
         user_deposit_contract.functions.deposit(A, limit + 1).call({'from': A})
 

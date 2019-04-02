@@ -269,7 +269,9 @@ def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.blockNumber < expiration
-            secret_registry_contract.functions.registerSecret(secret).call_and_transact({'from': tx_from})
+            secret_registry_contract.functions.registerSecret(
+                secret,
+            ).call_and_transact({'from': tx_from})
             assert secret_registry_contract.functions.getSecretRevealBlockHeight(
                 secrethash,
             ).call() == web3.eth.blockNumber
