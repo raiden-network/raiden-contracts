@@ -5,7 +5,6 @@ from web3 import Web3
 
 from raiden_contracts.constants import MonitoringServiceEvent
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
-from raiden_contracts.tests.utils.transactions import call_and_transact
 
 REWARD_AMOUNT = 10
 
@@ -273,6 +272,7 @@ def test_updateReward(
         token_network,
         create_reward_proof,
         monitor_data,
+        call_and_transact,
 ):
     A, B = monitor_data['participants']
     reward_identifier = Web3.sha3(
@@ -289,17 +289,14 @@ def test_updateReward(
             nonce=nonce,
         )
         reward_proof_signature = reward_proof[5]
-        call_and_transact(
-            monitoring_service_internals.functions.updateRewardPublic(
-                token_network.address,
-                A, B,
-                REWARD_AMOUNT,
-                nonce,
-                ms_address,
-                reward_proof_signature,
-            ),
-            {'from': ms_address},
-        )
+        monitoring_service_internals.functions.updateRewardPublic(
+            token_network.address,
+            A, B,
+            REWARD_AMOUNT,
+            nonce,
+            ms_address,
+            reward_proof_signature,
+        ).call_and_transact({'from': ms_address})
 
     # normal first call succeeds
     update_with_nonce(2)

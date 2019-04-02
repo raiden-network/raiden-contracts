@@ -11,7 +11,6 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
 )
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
-from raiden_contracts.tests.utils.transactions import call_and_transact
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
@@ -22,16 +21,14 @@ from raiden_contracts.utils.proofs import (
 
 
 @pytest.fixture(scope='session')
-def create_channel(token_network):
+def create_channel(token_network, web3, call_and_transact):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
-        txn_hash = call_and_transact(
-            token_network.functions.openChannel(A, B, settle_timeout),
-            {},
-        )
+        txn_hash = token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
+        web3.testing.mine(1)
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -76,20 +73,17 @@ def assign_tokens(token_network, custom_token):
 
 
 @pytest.fixture()
-def channel_deposit(token_network, assign_tokens):
+def channel_deposit(token_network, assign_tokens, call_and_transact):
     def get(channel_identifier, participant, deposit, partner, tx_from=None):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
-        txn_hash = call_and_transact(
-            token_network.functions.setTotalDeposit(
-                channel_identifier,
-                participant,
-                deposit,
-                partner,
-            ),
-            {'from': tx_from},
-        )
+        txn_hash = token_network.functions.setTotalDeposit(
+            channel_identifier,
+            participant,
+            deposit,
+            partner,
+        ).call_and_transact({'from': tx_from})
         return txn_hash
     return get
 
@@ -114,7 +108,7 @@ def create_channel_and_deposit(create_channel, channel_deposit):
 
 
 @pytest.fixture()
-def withdraw_channel(token_network, create_withdraw_signatures):
+def withdraw_channel(token_network, create_withdraw_signatures, call_and_transact):
     def get(channel_identifier, participant, withdraw_amount, partner, delegate=None):
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(
@@ -128,16 +122,13 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant,
             withdraw_amount,
         )
-        txn_hash = call_and_transact(
-            token_network.functions.setTotalWithdraw(
-                channel_identifier,
-                participant,
-                withdraw_amount,
-                signature_participant,
-                signature_partner,
-            ),
-            {'from': delegate},
-        )
+        txn_hash = token_network.functions.setTotalWithdraw(
+            channel_identifier,
+            participant,
+            withdraw_amount,
+            signature_participant,
+            signature_partner,
+        ).call_and_transact({'from': delegate})
         return txn_hash
     return get
 
@@ -750,19 +741,20 @@ def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
                 vals_A.transferred,
                 vals_A.locked,
                 vals_A.locksroot,
-            ).call({'from': A})
+            ).call_and_transact({'from': A})
 
-    call_and_transact(
-        token_network.functions.settleChannel(
-            channel_identifier,
-            A,
-            vals_A.transferred,
-            vals_A.locked,
-            vals_A.locksroot,
-            B,
-            vals_B.transferred,
-            vals_B.locked,
-            vals_B.locksroot,
-        ),
-        {'from': A},
+    contract_function = token_network.functions.settleChannel(
+        channel_identifier,
+        A,
+        vals_A.transferred,
+        vals_A.locked,
+        vals_A.locksroot,
+        B,
+        vals_B.transferred,
+        vals_B.locked,
+        vals_B.locksroot,
     )
+    # call() raises TransactionFailed exception
+    contract_function.call({'from': A})
+    # transact() changes the chain state
+    contract_function.transact({'from': A})

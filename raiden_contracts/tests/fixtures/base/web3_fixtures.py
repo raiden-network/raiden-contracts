@@ -1,8 +1,10 @@
 import logging
+from typing import Dict, Optional
 
 import pytest
 from eth_tester import EthereumTester, PyEVMBackend
 from web3 import Web3
+from web3.contract import ContractFunction
 from web3.providers.eth_tester import EthereumTesterProvider
 
 from raiden_contracts.tests.utils.constants import (
@@ -73,3 +75,19 @@ def auto_revert_chain(web3: Web3):
     snapshot_id = web3.testing.snapshot()
     yield
     web3.testing.revert(snapshot_id)
+
+
+def _call_and_transact(
+        contract_function: ContractFunction,
+        transaction_params: Optional[Dict] = None,
+) -> str:
+    """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
+    # First 'call' might raise an exception
+    contract_function.call(transaction_params)
+    return contract_function.transact(transaction_params)
+
+
+@pytest.fixture(scope='session')
+def call_and_transact():
+    setattr(ContractFunction, 'call_and_transact', _call_and_transact)
+    yield

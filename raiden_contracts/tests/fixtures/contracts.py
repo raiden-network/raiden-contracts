@@ -1,8 +1,8 @@
 import logging
 
 import pytest
-
 from eth_tester.exceptions import TransactionFailed
+
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 log = logging.getLogger(__name__)
