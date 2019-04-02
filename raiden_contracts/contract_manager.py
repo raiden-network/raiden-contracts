@@ -3,6 +3,7 @@ import json
 from copy import deepcopy
 from json import JSONDecodeError
 from pathlib import Path
+from semver import compare
 from typing import Any, Dict, List, Optional
 
 from deprecated import deprecated
@@ -164,6 +165,16 @@ def merge_deployment_data(dict1: Dict, dict2: Dict) -> Dict:
     return result
 
 
+def version_provides_services(version: Optional[str]) -> bool:
+    if version is None:
+        return True
+    if version == '0.3._':
+        return False
+    if version == '0.8.0_unlimited':
+        return True
+    return compare(version, '0.8.0') > -1
+
+
 def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
@@ -172,7 +183,8 @@ def get_contracts_deployment_info(
     """Reads the deployment data.
 
     Parameter:
-        module The name of the module. ALL means deployed contracts from all modules.
+        module The name of the module. ALL means deployed contracts from all modules that are
+        available for the version.
     """
     if module not in DeploymentModule:
         raise ValueError(f'Unknown module {module} given to get_contracts_deployment_info()')
@@ -186,7 +198,14 @@ def get_contracts_deployment_info(
             services=False,
         ))
 
-    if module == DeploymentModule.SERVICES or module == DeploymentModule.ALL:
+    if module == DeploymentModule.SERVICES and not version_provides_services(version):
+        raise ValueError(
+            f'SERVICES module queried for version {version}, but {version}'
+            'does not provide service contracts.',
+        )
+
+    if (module == DeploymentModule.SERVICES or module == DeploymentModule.ALL) and \
+       version_provides_services(version):
         files.append(contracts_deployed_path(
             chain_id=chain_id,
             version=version,

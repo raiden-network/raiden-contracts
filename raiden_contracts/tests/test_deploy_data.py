@@ -9,6 +9,7 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployed,
     get_contracts_deployment_info,
     merge_deployment_data,
+    version_provides_services,
 )
 
 
@@ -112,3 +113,27 @@ def test_deploy_data_all(
 def test_deploy_data_unknown_module():
     with pytest.raises(ValueError):
         get_contracts_deployment_info(3, None, module=None)  # type: ignore
+
+
+@pytest.mark.parametrize('chain_id', [3, 4, 42])
+def test_deploy_data_for_redeyes_succeed(chain_id):
+    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    assert get_contracts_deployment_info(chain_id, '0.4.0')
+
+
+@pytest.mark.parametrize('chain_id', [3, 4, 42])
+def test_service_deploy_data_for_redeyes_fail(chain_id):
+    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    with pytest.raises(ValueError):
+        assert get_contracts_deployment_info(chain_id, '0.4.0', DeploymentModule.SERVICES)
+
+
+def test_version_provides_services():
+    assert not version_provides_services('0.3._')
+    assert not version_provides_services('0.4.0')
+    assert version_provides_services('0.8.0')
+    assert version_provides_services('0.8.0_unlimited')
+    assert version_provides_services('0.10.1')
+    assert version_provides_services('0.11.0')
+    with pytest.raises(ValueError):
+        assert version_provides_services('not a semver')
