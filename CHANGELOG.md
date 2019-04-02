@@ -7,7 +7,11 @@ Documents changes that result in:
 
 ## Unreleased
 
-## [0.17.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.16.0) - 2019-03-27
+## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-02
+
+- [#809](https://github.com/raiden-network/raiden-contracts/pull/809) fix a bug in `get_contracts_deployment_info()`.
+
+## [0.17.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.17.0) - 2019-03-27
 
 - [#711](https://github.com/raiden-network/raiden-contracts/pull/711) Re-enable setTotalWithdraw() function of TokenNetwork contract.
 - [#788](https://github.com/raiden-network/raiden-contracts/pull/788) Fix a bug that prevented deploying 0.3._ TokenNetworks
