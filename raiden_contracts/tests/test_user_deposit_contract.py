@@ -8,20 +8,24 @@ def test_deposit(
         user_deposit_contract,
         custom_token,
         get_accounts,
+        call_and_transact,
 ):
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(100).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
+    custom_token.functions.mint(100).call_and_transact({'from': A})
+    custom_token.functions.approve(
+        user_deposit_contract.address,
+        30,
+    ).call_and_transact({'from': A})
 
     # deposit to A's own balance
-    user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    user_deposit_contract.functions.deposit(A, 10).call_and_transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 10
     assert user_deposit_contract.functions.total_deposit(A).call() == 10
     assert custom_token.functions.balanceOf(A).call() == 90
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 10
 
     # increase A's deposit
-    user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
+    user_deposit_contract.functions.deposit(A, 20).call_and_transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 20
     assert user_deposit_contract.functions.total_deposit(A).call() == 20
     assert custom_token.functions.balanceOf(A).call() == 80
@@ -32,7 +36,7 @@ def test_deposit(
         user_deposit_contract.functions.deposit(A, 19).call({'from': A})
 
     # A deposits to the benefit of B
-    user_deposit_contract.functions.deposit(B, 10).transact({'from': A})
+    user_deposit_contract.functions.deposit(B, 10).call_and_transact({'from': A})
     assert user_deposit_contract.functions.balances(B).call() == 10
     assert user_deposit_contract.functions.total_deposit(B).call() == 10
     assert custom_token.functions.balanceOf(A).call() == 70
@@ -45,8 +49,8 @@ def test_deposit(
     # Can't deposit more than the whole_balance_limit
     limit = user_deposit_contract.functions.whole_balance_limit().call()
     assert limit > 0
-    custom_token.functions.mint(limit + 1).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, limit + 1).transact({'from': A})
+    custom_token.functions.mint(limit + 1).call_and_transact({'from': A})
+    custom_token.functions.approve(user_deposit_contract.address, limit + 1).call_and_transact({'from': A})
     with pytest.raises(TransactionFailed):
         user_deposit_contract.functions.deposit(A, limit + 1).call({'from': A})
 
@@ -57,13 +61,17 @@ def test_transfer(
         get_accounts,
         event_handler,
         custom_token,
+        call_and_transact,
 ):
     user_deposit_contract = uninitialized_user_deposit_contract
     ev_handler = event_handler(user_deposit_contract)
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(10).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 10).transact({'from': A})
-    user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    custom_token.functions.mint(10).call_and_transact({'from': A})
+    custom_token.functions.approve(
+        user_deposit_contract.address,
+        10,
+    ).call_and_transact({'from': A})
+    user_deposit_contract.functions.deposit(A, 10).call_and_transact({'from': A})
 
     # only trusted contracts can call transfer (init has not been called, yet)
     with pytest.raises(TransactionFailed):
@@ -73,8 +81,8 @@ def test_transfer(
     user_deposit_contract.functions.init(
         udc_transfer_contract.address,
         udc_transfer_contract.address,
-    ).transact()
-    tx_hash = udc_transfer_contract.functions.transfer(A, B, 10).transact()
+    ).call_and_transact()
+    tx_hash = udc_transfer_contract.functions.transfer(A, B, 10).call_and_transact()
     ev_handler.assert_event(tx_hash, UserDepositEvent.BALANCE_REDUCED, dict(owner=A, newBalance=0))
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 10
@@ -92,6 +100,7 @@ def test_deposit_after_transfer(
         udc_transfer_contract,
         custom_token,
         get_accounts,
+        call_and_transact,
 ):
     """ Make sure that `total_deposit` and `balance` are not mixed up.
 
@@ -102,21 +111,24 @@ def test_deposit_after_transfer(
     user_deposit_contract.functions.init(
         udc_transfer_contract.address,
         udc_transfer_contract.address,
-    ).transact()
+    ).call_and_transact()
     (A, B) = get_accounts(2)
-    custom_token.functions.mint(100).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 30).transact({'from': A})
+    custom_token.functions.mint(100).call_and_transact({'from': A})
+    custom_token.functions.approve(
+        user_deposit_contract.address,
+        30,
+    ).call_and_transact({'from': A})
 
     # deposit + transact
-    user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
-    udc_transfer_contract.functions.transfer(A, B, 10).transact()
+    user_deposit_contract.functions.deposit(A, 10).call_and_transact({'from': A})
+    udc_transfer_contract.functions.transfer(A, B, 10).call_and_transact()
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.total_deposit(A).call() == 10
     assert custom_token.functions.balanceOf(A).call() == 90
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 10
 
     # check after another deposit
-    user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
+    user_deposit_contract.functions.deposit(A, 20).call_and_transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 10
     assert user_deposit_contract.functions.total_deposit(A).call() == 20
     assert custom_token.functions.balanceOf(A).call() == 80
@@ -139,7 +151,7 @@ def test_withdraw(
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 30
 
     # plan withdraw of 20 tokens
-    tx_hash = user_deposit_contract.functions.planWithdraw(20).transact({'from': A})
+    tx_hash = user_deposit_contract.functions.planWithdraw(20).call_and_transact({'from': A})
     ev_handler.assert_event(
         tx_hash,
         UserDepositEvent.WITHDRAW_PLANNED,
@@ -150,7 +162,7 @@ def test_withdraw(
 
     # withdraw won't work before withdraw_delay elapsed
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.testing.mine(withdraw_delay - 2)
+    web3.testing.mine(withdraw_delay - 1)
     with pytest.raises(TransactionFailed):
         user_deposit_contract.functions.withdraw(18).call({'from': A})
 
@@ -160,7 +172,7 @@ def test_withdraw(
         user_deposit_contract.functions.withdraw(21).call({'from': A})
 
     # actually withdraw 18 tokens
-    user_deposit_contract.functions.withdraw(18).transact({'from': A})
+    user_deposit_contract.functions.withdraw(18).call_and_transact({'from': A})
     assert user_deposit_contract.functions.balances(A).call() == 12
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
 

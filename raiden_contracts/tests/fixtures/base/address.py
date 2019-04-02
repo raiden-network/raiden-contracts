@@ -21,5 +21,5 @@ def send_funds(
         custom_token.functions.transfer(
             target,
             10000,
-        ).transact({'from': FAUCET_ADDRESS})
+        ).call_and_transact({'from': FAUCET_ADDRESS})
     return f

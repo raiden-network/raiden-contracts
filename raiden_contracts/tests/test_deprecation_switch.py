@@ -59,7 +59,7 @@ def test_deprecation_executor(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact(
+    ).call_and_transact(
         {'from': B},
     )
     assert token_network_registry.functions.token_network_created().call() == 1
@@ -109,7 +109,7 @@ def test_set_deprecation_switch(get_accounts, token_network):
             'from': A,
         })
 
-    token_network.functions.deprecate().transact({
+    token_network.functions.deprecate().call_and_transact({
         'from': deprecation_executor,
     })
     assert token_network.functions.safety_deprecation_switch().call() is True
@@ -121,7 +121,13 @@ def test_set_deprecation_switch(get_accounts, token_network):
         })
 
 
-def test_deprecation_switch(get_accounts, token_network, create_channel, channel_deposit):
+def test_deprecation_switch(
+        get_accounts,
+        token_network,
+        create_channel,
+        channel_deposit,
+        call_and_transact,
+):
     """ Test the effects of the deprecation switch on deposits and channel opening """
 
     deprecation_executor = token_network.functions.deprecation_executor().call()
@@ -133,7 +139,7 @@ def test_deprecation_switch(get_accounts, token_network, create_channel, channel
     channel_deposit(channel_identifier, A, deposit, B)
     channel_deposit(channel_identifier, B, deposit, A)
 
-    token_network.functions.deprecate().transact({
+    token_network.functions.deprecate().call_and_transact({
         'from': deprecation_executor,
     })
     assert token_network.functions.safety_deprecation_switch().call() is True
@@ -210,7 +216,7 @@ def test_deprecation_switch_settle(
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
     # Set the deprecation switch to true
-    token_network.functions.deprecate().transact({
+    token_network.functions.deprecate().call_and_transact({
         'from': deprecation_executor,
     })
     assert token_network.functions.safety_deprecation_switch().call() is True
@@ -223,7 +229,7 @@ def test_deprecation_switch_settle(
         B,
         vals_B,
     )
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
@@ -233,7 +239,7 @@ def test_deprecation_switch_settle(
         A,
         B,
         pending_transfers_tree_B.packed_transfers,
-    ).transact()
+    ).call_and_transact()
 
     # Unlock A's pending transfers that were sent to B
     token_network.functions.unlock(
@@ -241,7 +247,7 @@ def test_deprecation_switch_settle(
         B,
         A,
         pending_transfers_tree_A.packed_transfers,
-    ).transact()
+    ).call_and_transact()
 
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 107
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 93

@@ -33,6 +33,7 @@ def register_token_network(
         web3,
         token_network_registry_contract,
         contracts_manager,
+        call_and_transact,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
@@ -45,7 +46,7 @@ def register_token_network(
             token_address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,

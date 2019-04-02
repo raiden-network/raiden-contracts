@@ -72,7 +72,7 @@ def add_and_register_token(
             token_contract.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         (tx_receipt, _) = check_successful_tx(web3, txid)
         assert len(tx_receipt['logs']) == 1
         event_abi = contracts_manager.get_event_abi(

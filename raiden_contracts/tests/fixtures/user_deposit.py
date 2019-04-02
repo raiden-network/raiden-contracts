@@ -31,7 +31,7 @@ def user_deposit_contract(
     uninitialized_user_deposit_contract.functions.init(
         monitoring_service_external.address,
         one_to_n_contract.address,
-    ).transact()
+    ).call_and_transact()
     return uninitialized_user_deposit_contract
 
 
@@ -55,6 +55,7 @@ def deposit_to_udc(
         get_private_key,
         web3,
         event_handler,
+        call_and_transact,
 ):
     def deposit(receiver, amount):
         """ Uses UDC's monotonous deposit amount handling
@@ -62,10 +63,13 @@ def deposit_to_udc(
         If you call it twice, only amount2 - amount1 will be deposited. More
         will be mined and approved to keep the implementation simple, though.
         """
-        custom_token.functions.mint(amount).transact({'from': receiver})
+        custom_token.functions.mint(amount).call_and_transact({'from': receiver})
         custom_token.functions.approve(
             user_deposit_contract.address,
             amount,
-        ).transact({'from': receiver})
-        user_deposit_contract.functions.deposit(receiver, amount).transact({'from': receiver})
+        ).call_and_transact({'from': receiver})
+        user_deposit_contract.functions.deposit(
+            receiver,
+            amount,
+        ).call_and_transact({'from': receiver})
     return deposit

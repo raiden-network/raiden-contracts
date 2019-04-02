@@ -42,12 +42,12 @@ def test_settle_no_bp_success(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Do not call updateNonClosingBalanceProof
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
 
     # Settling the channel should work with no balance proofs
     token_network.functions.settleChannel(
@@ -60,7 +60,7 @@ def test_settle_no_bp_success(
         participant2_transferred_amount=0,
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     assert custom_token.functions.balanceOf(A).call() == deposit_A
     assert custom_token.functions.balanceOf(B).call() == deposit_B
@@ -117,7 +117,7 @@ def test_settle_channel_state(
         vals_B,
     )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -187,13 +187,13 @@ def test_settle_single_direct_transfer_for_closing_party(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
     token_network.functions.settleChannel(
         channel_identifier=channel_identifier,
         participant1=A,
@@ -204,7 +204,7 @@ def test_settle_single_direct_transfer_for_closing_party(
         participant2_transferred_amount=vals_B.transferred,
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Calculate how much A and B should receive
     expected_settlement = get_settlement_amounts(vals_A, vals_B)
@@ -250,7 +250,7 @@ def test_settle_single_direct_transfer_for_counterparty(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     balance_proof_A = create_balance_proof(
         channel_identifier,
@@ -272,13 +272,13 @@ def test_settle_single_direct_transfer_for_counterparty(
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
     token_network.functions.settleChannel(
         channel_identifier=channel_identifier,
         participant1=B,
@@ -289,7 +289,7 @@ def test_settle_single_direct_transfer_for_counterparty(
         participant2_transferred_amount=vals_A.transferred,
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     # Calculate how much A and B should receive
     expected_settlement = get_settlement_amounts(vals_B, vals_A)
@@ -351,13 +351,13 @@ def test_settlement_with_unauthorized_token_transfer(
     custom_token.functions.transfer(
         token_network.address,
         externally_transferred_amount,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     assert custom_token.functions.balanceOf(token_network.address).call() == (
         pre_balance_contract +
         externally_transferred_amount
     )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 
     # Compute expected settlement amounts
     settlement = get_settlement_amounts(vals_A, vals_B)
@@ -505,7 +505,7 @@ def test_settle_wrong_balance_hash(
         vals_B,
     )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
@@ -615,16 +615,16 @@ def test_settle_channel_event(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
         A,
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
     txn_hash = token_network.functions.settleChannel(
         channel_identifier=channel_identifier,
         participant1=B,
@@ -635,7 +635,7 @@ def test_settle_channel_event(
         participant2_transferred_amount=10,
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(
         channel_identifier,

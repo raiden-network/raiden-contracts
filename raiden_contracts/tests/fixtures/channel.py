@@ -46,7 +46,7 @@ def create_channel(token_network, web3, call_and_transact):
 
 
 @pytest.fixture()
-def assign_tokens(token_network, custom_token):
+def assign_tokens(token_network, custom_token, call_and_transact):
     def get(participant, deposit):
         owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
@@ -54,17 +54,20 @@ def assign_tokens(token_network, custom_token):
         amount = max(deposit - balance, 0)
         transfer_from_owner = min(amount, owner_balance)
 
-        custom_token.functions.transfer(participant, transfer_from_owner).transact({'from': owner})
+        custom_token.functions.transfer(
+            participant,
+            transfer_from_owner,
+        ).call_and_transact({'from': owner})
         assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
         if amount > owner_balance:
             minted = amount - owner_balance
-            custom_token.functions.mint(minted).transact({'from': participant})
+            custom_token.functions.mint(minted).call_and_transact({'from': participant})
         assert custom_token.functions.balanceOf(participant).call() >= deposit
         custom_token.functions.approve(
             token_network.address,
             deposit,
-        ).transact({'from': participant})
+        ).call_and_transact({'from': participant})
         assert custom_token.functions.allowance(
             participant,
             token_network.address,
@@ -179,7 +182,7 @@ def close_and_update_channel(
             channel_identifier,
             participant2,
             *balance_proof_2,
-        ).transact({'from': participant1})
+        ).call_and_transact({'from': participant1})
 
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -187,7 +190,7 @@ def close_and_update_channel(
             participant2,
             *balance_proof_1,
             balance_proof_update_signature_2,
-        ).transact({'from': participant2})
+        ).call_and_transact({'from': participant2})
     return get
 
 
@@ -266,7 +269,7 @@ def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.blockNumber < expiration
-            secret_registry_contract.functions.registerSecret(secret).transact({'from': tx_from})
+            secret_registry_contract.functions.registerSecret(secret).call_and_transact({'from': tx_from})
             assert secret_registry_contract.functions.getSecretRevealBlockHeight(
                 secrethash,
             ).call() == web3.eth.blockNumber

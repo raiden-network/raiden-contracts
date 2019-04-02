@@ -14,13 +14,14 @@ def ms_address(
         get_accounts,
         custom_token,
         service_registry,
+        call_and_transact,
 ):
     (ms, ) = get_accounts(1)
 
     # register MS in the ServiceRegistry contract
-    custom_token.functions.mint(50).transact({'from': ms})
-    custom_token.functions.approve(service_registry.address, 20).transact({'from': ms})
-    service_registry.functions.deposit(20).transact({'from': ms})
+    custom_token.functions.mint(50).call_and_transact({'from': ms})
+    custom_token.functions.approve(service_registry.address, 20).call_and_transact({'from': ms})
+    service_registry.functions.deposit(20).call_and_transact({'from': ms})
 
     return ms
 
@@ -62,7 +63,7 @@ def monitor_data(
     # close channel
     token_network.functions.closeChannel(
         channel_identifier, B, *balance_proof_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # return args for `monitor` function
     return {
@@ -94,7 +95,7 @@ def test_claimReward_with_settle_call(
         REWARD_AMOUNT,
         token_network.address,
         monitor_data['reward_proof_signature'],
-    ).transact({'from': ms_address})
+    ).call_and_transact({'from': ms_address})
 
     # claiming before settlement timeout must fail
     with pytest.raises(TransactionFailed):
@@ -116,14 +117,14 @@ def test_claimReward_with_settle_call(
         20,                  # participant_A_transferred_amount
         0,                   # participant_A_locked_amount
         EMPTY_LOCKSROOT,     # participant_A_locksroot
-    ).transact()
+    ).call_and_transact()
 
     # Claim reward for MS
     monitoring_service_external.functions.claimReward(
         channel_identifier,
         token_network.address,
         A, B,
-    ).transact({'from': ms_address})
+    ).call_and_transact({'from': ms_address})
 
     # Check REWARD_CLAIMED event
     reward_identifier = Web3.sha3(
@@ -165,7 +166,7 @@ def test_claimReward_without_settle_call(
         REWARD_AMOUNT,
         token_network.address,
         monitor_data['reward_proof_signature'],
-    ).transact({'from': ms_address})
+    ).call_and_transact({'from': ms_address})
 
     # claiming before settlement timeout must fail
     with pytest.raises(TransactionFailed):
@@ -183,7 +184,7 @@ def test_claimReward_without_settle_call(
         channel_identifier,
         token_network.address,
         A, B,
-    ).transact({'from': ms_address})
+    ).call_and_transact({'from': ms_address})
 
     # Check REWARD_CLAIMED event
     reward_identifier = Web3.sha3(
@@ -248,7 +249,7 @@ def test_monitor(
         REWARD_AMOUNT,
         token_network.address,
         monitor_data['reward_proof_signature'],
-    ).transact({'from': ms_address})
+    ).call_and_transact({'from': ms_address})
 
     # NEW_BALANCE_PROOF_RECEIVED must get emitted
     ms_ev_handler = event_handler(monitoring_service_external)

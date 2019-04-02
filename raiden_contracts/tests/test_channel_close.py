@@ -46,6 +46,7 @@ def test_close_settled_channel_fail(
         create_channel,
         channel_deposit,
         get_accounts,
+        call_and_transact,
 ):
     """ Test getChannelInfo and closeChannel on an already settled channel """
     (A, B) = get_accounts(2)
@@ -62,8 +63,8 @@ def test_close_settled_channel_fail(
         nonce=0,
         additional_hash=EMPTY_ADDITIONAL_HASH,
         signature=EMPTY_SIGNATURE,
-    ).transact({'from': A})
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    ).call_and_transact({'from': A})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier=channel_identifier,
         participant1=A,
@@ -74,7 +75,7 @@ def test_close_settled_channel_fail(
         participant2_transferred_amount=0,
         participant2_locked_amount=0,
         participant2_locksroot=EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     (
         settle_block_number,
@@ -147,7 +148,7 @@ def test_close_call_twice_fail(
         nonce=0,
         additional_hash=EMPTY_ADDITIONAL_HASH,
         signature=EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
@@ -230,7 +231,7 @@ def test_close_nonce_zero(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.add(close_tx, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
     ev_handler.check()
@@ -282,7 +283,7 @@ def test_close_first_argument_is_for_partner_transfer(
         channel_identifier,
         B,
         *balance_proof,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_close_first_participant_can_close(
@@ -302,7 +303,7 @@ def test_close_first_participant_can_close(
         nonce=0,
         additional_hash=EMPTY_ADDITIONAL_HASH,
         signature=EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     (
         settle_block_number,
@@ -352,7 +353,7 @@ def test_close_second_participant_can_close(
         nonce=0,
         additional_hash=EMPTY_ADDITIONAL_HASH,
         signature=EMPTY_SIGNATURE,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
 
 def test_close_channel_state(
@@ -439,7 +440,7 @@ def test_close_channel_state(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Test that no balances have changed.
     # There are no transfers to be made in closeChannel.
@@ -503,7 +504,7 @@ def test_close_channel_event_no_offchain_transfers(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
     ev_handler.check()
@@ -516,6 +517,7 @@ def test_close_replay_reopened_channel(
         create_channel,
         channel_deposit,
         create_balance_proof,
+        call_and_transact,
 ):
     """ The same balance proof cannot close another channel between the same participants """
     (A, B) = get_accounts(2)
@@ -547,8 +549,8 @@ def test_close_replay_reopened_channel(
         channel_identifier1,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    ).call_and_transact({'from': A})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier=channel_identifier1,
         participant1=A,
@@ -559,7 +561,7 @@ def test_close_replay_reopened_channel(
         participant2_transferred_amount=values_B.transferred,
         participant2_locked_amount=values_B.locked,
         participant2_locksroot=values_B.locksroot,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Reopen the channel and make sure we cannot use the old balance proof
     channel_identifier2 = create_channel(A, B)[0]
@@ -586,7 +588,7 @@ def test_close_replay_reopened_channel(
         channel_identifier2,
         B,
         *balance_proof_B2,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_close_channel_event(
@@ -616,7 +618,7 @@ def test_close_channel_event(
         channel_identifier,
         B,
         *balance_proof,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 3))
     ev_handler.check()

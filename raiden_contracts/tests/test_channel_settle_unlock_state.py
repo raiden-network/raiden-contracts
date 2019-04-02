@@ -33,6 +33,7 @@ def test_settlement_outcome(
         close_and_update_channel,
         settle_state_tests,
         reveal_secrets,
+        call_and_transact,
 ):
     def f(
             participants,
@@ -159,7 +160,7 @@ def test_settlement_outcome(
                 A,
                 B,
                 pending_transfers_tree_B.packed_transfers,
-            ).transact()
+            ).call_and_transact()
 
         # The locked amount should have been removed from contract storage
         info_B = token_network.functions.getChannelParticipantInfo(
@@ -194,7 +195,7 @@ def test_settlement_outcome(
                 B,
                 A,
                 pending_transfers_tree_A.packed_transfers,
-            ).transact()
+            ).call_and_transact()
 
         # The locked amount should have been removed from contract storage
         info_A = token_network.functions.getChannelParticipantInfo(
@@ -434,7 +435,7 @@ def test_channel_settle_invalid_balance_proof_values(
         vals_B,
     )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()

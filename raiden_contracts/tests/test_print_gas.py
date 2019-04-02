@@ -111,6 +111,7 @@ def print_gas_token_network_create(
         channel_participant_deposit_limit,
         token_network_deposit_limit,
         token_network_registry_constructor_args,
+        call_and_transact,
 ):
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     registry = get_token_network_registry(token_network_registry_constructor_args)
@@ -118,16 +119,16 @@ def print_gas_token_network_create(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + ' createERC20TokenNetwork')
 
 
 @pytest.fixture
-def print_gas_secret_registry(secret_registry_contract, print_gas):
+def print_gas_secret_registry(secret_registry_contract, print_gas, call_and_transact):
     """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b'secretsecretsecretsecretsecretse'
-    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
+    txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
 
@@ -142,6 +143,7 @@ def print_gas_channel_cycle(
         print_gas,
         create_balance_proof,
         create_balance_proof_update_signature,
+        call_and_transact,
 ):
     """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
@@ -190,18 +192,22 @@ def print_gas_channel_cycle(
     )
 
     for lock in pending_transfers_tree1.unlockable:
-        txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        txn_hash = secret_registry_contract.functions.registerSecret(
+            lock[3],
+        ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
     for lock in pending_transfers_tree2.unlockable:
-        txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).transact({'from': A})
+        txn_hash = secret_registry_contract.functions.registerSecret(
+            lock[3],
+        ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + '.registerSecret')
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.closeChannel')
 
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
@@ -210,7 +216,7 @@ def print_gas_channel_cycle(
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.updateNonClosingBalanceProof')
 
     web3.testing.mine(settle_timeout)
@@ -224,7 +230,7 @@ def print_gas_channel_cycle(
         10,
         locked_amount1,
         locksroot1,
-    ).transact()
+    ).call_and_transact()
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + '.settleChannel')
 
     txn_hash = token_network.functions.unlock(
@@ -232,7 +238,7 @@ def print_gas_channel_cycle(
         A,
         B,
         pending_transfers_tree2.packed_transfers,
-    ).transact()
+    ).call_and_transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         CONTRACT_TOKEN_NETWORK,
         len(pending_transfers_tree2.transfers),
@@ -243,7 +249,7 @@ def print_gas_channel_cycle(
         B,
         A,
         pending_transfers_tree1.packed_transfers,
-    ).transact()
+    ).call_and_transact()
     print_gas(txn_hash, '{0}.unlock {1} locks'.format(
         CONTRACT_TOKEN_NETWORK,
         len(pending_transfers_tree1.transfers),
@@ -255,7 +261,7 @@ def print_gas_endpointregistry(endpoint_registry_contract, get_accounts, print_g
     """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
     A = get_accounts(1)[0]
     ENDPOINT = '127.0.0.1:38647'
-    txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).transact({
+    txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).call_and_transact({
         'from': A,
     })
     print_gas(txn_hash, CONTRACT_ENDPOINT_REGISTRY + '.registerEndpoint')
@@ -282,9 +288,9 @@ def print_gas_monitoring_service(
     deposit_to_udc(B, reward_amount)
 
     # register MS in the ServiceRegistry contract
-    custom_token.functions.mint(50).transact({'from': MS})
-    custom_token.functions.approve(service_registry.address, 20).transact({'from': MS})
-    service_registry.functions.deposit(20).transact({'from': MS})
+    custom_token.functions.mint(50).call_and_transact({'from': MS})
+    custom_token.functions.approve(service_registry.address, 20).call_and_transact({'from': MS})
+    service_registry.functions.deposit(20).call_and_transact({'from': MS})
 
     # open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
@@ -308,7 +314,7 @@ def print_gas_monitoring_service(
     # c1 closes channel
     txn_hash = token_network.functions.closeChannel(
         channel_identifier, B, *balance_proof_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = monitoring_service_external.functions.monitor(
@@ -322,7 +328,7 @@ def print_gas_monitoring_service(
         reward_proof[1],          # reward amount
         token_network.address,    # token network address
         reward_proof[5],          # reward proof signature
-    ).transact({'from': MS})
+    ).call_and_transact({'from': MS})
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.monitor')
 
     # settle channel
@@ -337,7 +343,7 @@ def print_gas_monitoring_service(
         20,                  # participant1_transferred_amount
         0,                   # participant1_locked_amount
         EMPTY_LOCKSROOT,     # participant1_locksroot
-    ).transact()
+    ).call_and_transact()
 
     # MS claims the reward
     txn_hash = monitoring_service_external.functions.claimReward(
@@ -345,7 +351,7 @@ def print_gas_monitoring_service(
         token_network.address,
         A,
         B,
-    ).transact({'from': MS})
+    ).call_and_transact({'from': MS})
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.claimReward')
 
 
@@ -374,7 +380,7 @@ def print_gas_one_to_n(
     )
     txn_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')
 
 
@@ -385,6 +391,7 @@ def print_gas_user_deposit(
         get_accounts,
         web3,
         print_gas,
+        call_and_transact,
 ):
     """ Abusing pytest to print gas cost of UserDeposit functions
 
@@ -392,23 +399,26 @@ def print_gas_user_deposit(
     contracts as part of another function.
     """
     (A, ) = get_accounts(1)
-    custom_token.functions.mint(20).transact({'from': A})
-    custom_token.functions.approve(user_deposit_contract.address, 20).transact({'from': A})
+    custom_token.functions.mint(20).call_and_transact({'from': A})
+    custom_token.functions.approve(
+        user_deposit_contract.address,
+        20,
+    ).call_and_transact({'from': A})
 
     # deposit
-    txn_hash = user_deposit_contract.functions.deposit(A, 10).transact({'from': A})
+    txn_hash = user_deposit_contract.functions.deposit(A, 10).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.deposit')
-    txn_hash = user_deposit_contract.functions.deposit(A, 20).transact({'from': A})
+    txn_hash = user_deposit_contract.functions.deposit(A, 20).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.deposit (increase balance)')
 
     # plan withdraw
-    txn_hash = user_deposit_contract.functions.planWithdraw(10).transact({'from': A})
+    txn_hash = user_deposit_contract.functions.planWithdraw(10).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.planWithdraw')
 
     # withdraw
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.testing.mine(withdraw_delay - 1)
-    txn_hash = user_deposit_contract.functions.withdraw(10).transact({'from': A})
+    web3.testing.mine(withdraw_delay)
+    txn_hash = user_deposit_contract.functions.withdraw(10).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + '.withdraw')
 
 

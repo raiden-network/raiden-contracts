@@ -42,6 +42,7 @@ def deploy_contract_txhash():
         if args is None:
             args = []
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        # Failure does not fire an exception.  Check the receipt for status.
         return contract.constructor(*args).transact({'from': deployer_address})
     return fn
 

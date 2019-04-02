@@ -35,7 +35,7 @@ def test_update_call(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, '02'))
     balance_proof_update_signature_B = create_balance_proof_update_signature(
@@ -124,7 +124,7 @@ def test_update_call(
         additional_hash,
         closing_signature,
         balance_proof_update_signature_B,
-    ).transact({'from': C})
+    ).call_and_transact({'from': C})
 
 
 def test_update_nonexistent_fail(
@@ -223,7 +223,7 @@ def test_update_wrong_nonce_fail(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
@@ -231,7 +231,7 @@ def test_update_wrong_nonce_fail(
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': Delegate})
+    ).call_and_transact({'from': Delegate})
 
     # updateNonClosingBalanceProof should fail for the same nonce as provided previously
     with pytest.raises(TransactionFailed):
@@ -334,7 +334,7 @@ def test_update_wrong_signatures(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -360,7 +360,7 @@ def test_update_wrong_signatures(
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': C})
+    ).call_and_transact({'from': C})
 
 
 def test_update_channel_state(
@@ -393,7 +393,7 @@ def test_update_channel_state(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     pre_eth_balance_A = web3.eth.getBalance(A)
     pre_eth_balance_B = web3.eth.getBalance(B)
@@ -410,7 +410,7 @@ def test_update_channel_state(
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': Delegate})
+    ).call_and_transact({'from': Delegate})
 
     # Test that no balances have changed.
     # There are no transfers to be made in updateNonClosingBalanceProof.
@@ -459,7 +459,7 @@ def test_update_channel_fail_no_offchain_transfers(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -509,7 +509,7 @@ def test_update_not_allowed_after_settlement_period(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     web3.testing.mine(settle_timeout + 1)
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -554,7 +554,7 @@ def test_update_not_allowed_for_the_closing_address(
         channel_identifier,
         B,
         *balance_proof_B_0,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Someone wants to update with later balance proof - not possible
     with pytest.raises(TransactionFailed):
@@ -606,7 +606,7 @@ def test_update_invalid_balance_proof_arguments(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     balance_proof = namedtuple(
         'balance_proof',
@@ -806,7 +806,7 @@ def test_update_invalid_balance_proof_arguments(
         B,
         *balance_proof_valid,
         valid_balance_proof_update_signature,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
 
 def test_update_signature_on_invalid_arguments(
@@ -838,7 +838,7 @@ def test_update_signature_on_invalid_arguments(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     #  Create valid balance_proof
     balance_proof_valid = balance_proof(*create_balance_proof(
@@ -980,7 +980,7 @@ def test_update_signature_on_invalid_arguments(
         B,
         *balance_proof_valid,
         balance_proof_update_signature,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
 
 def test_update_replay_reopened_channel(
@@ -1031,7 +1031,7 @@ def test_update_replay_reopened_channel(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier1,
@@ -1039,9 +1039,9 @@ def test_update_replay_reopened_channel(
         A,
         *balance_proof_B,
         balance_proof_update_signature_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier1,
         A,
@@ -1052,7 +1052,7 @@ def test_update_replay_reopened_channel(
         values_B.transferred,
         values_B.locked,
         values_B.locksroot,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Make sure we cannot update balance proofs after settleChannel is called
     with pytest.raises(TransactionFailed):
@@ -1074,7 +1074,7 @@ def test_update_replay_reopened_channel(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     assert channel_identifier1 != channel_identifier2
     with pytest.raises(TransactionFailed):
@@ -1107,7 +1107,7 @@ def test_update_replay_reopened_channel(
         A,
         *balance_proof_B2,
         balance_proof_update_signature_A2,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_update_channel_event(
@@ -1140,14 +1140,14 @@ def test_update_channel_event(
         channel_identifier,
         B,
         *balance_proof_B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
         A,
         B,
         *balance_proof_A,
         balance_proof_update_signature_B,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     ev_handler.add(
         txn_hash,
@@ -1169,7 +1169,7 @@ def test_update_channel_event(
         B,
         *balance_proof_A2,
         balance_proof_update_signature_B2,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     ev_handler.add(
         txn_hash,

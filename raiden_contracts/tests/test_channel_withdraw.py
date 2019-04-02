@@ -40,7 +40,7 @@ def test_withdraw_call(
             total_withdraw=withdraw_A,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
-        ).transact({'from': A})
+        )
 
     # Failure with the empty string instead of an address
     with pytest.raises(ValidationError):
@@ -50,7 +50,7 @@ def test_withdraw_call(
             total_withdraw=withdraw_A,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
-        ).transact({'from': A})
+        )
 
     # Failure with a negative number as the total withdrawn amount
     with pytest.raises(ValidationError):
@@ -60,7 +60,7 @@ def test_withdraw_call(
             total_withdraw=-1,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
-        ).transact({'from': A})
+        )
 
     # Failure with an overflown number as the total withdrawn amount
     with pytest.raises(ValidationError):
@@ -70,7 +70,7 @@ def test_withdraw_call(
             total_withdraw=MAX_UINT256 + 1,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
-        ).transact({'from': A})
+        )
 
     # Failure with the zero address insted of a participant's address
     with pytest.raises(TransactionFailed):
@@ -118,7 +118,7 @@ def test_withdraw_call(
         total_withdraw=withdraw_A,
         participant_signature=signature_A_for_A,
         partner_signature=signature_B_for_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_withdraw_wrong_state(
@@ -148,14 +148,14 @@ def test_withdraw_wrong_state(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, B)
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier,
         A,
@@ -166,7 +166,7 @@ def test_withdraw_wrong_state(
         0,
         0,
         EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
 
@@ -245,7 +245,7 @@ def test_withdraw_wrong_signers(
         withdraw_A,
         signature_A_for_A,
         signature_B_for_A,
-    ).transact({'from': C})
+    ).call_and_transact({'from': C})
 
 
 def test_withdraw_wrong_signature_content(
@@ -343,7 +343,7 @@ def test_withdraw_wrong_signature_content(
         withdraw_A,
         signature_A_for_A,
         signature_B_for_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_withdraw_channel_state(
@@ -460,7 +460,7 @@ def test_withdraw_replay_reopened_channel(
         withdraw_A,
         signature_A_for_A,
         signature_B_for_A,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     token_network.functions.closeChannel(
         channel_identifier1,
@@ -469,8 +469,8 @@ def test_withdraw_replay_reopened_channel(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': B})
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    ).call_and_transact({'from': B})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier1,
         A,
@@ -481,7 +481,7 @@ def test_withdraw_replay_reopened_channel(
         0,
         0,
         EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Reopen the channel and make sure we cannot use the old withdraw proof
     channel_identifier2 = create_channel(A, B)[0]
@@ -510,7 +510,7 @@ def test_withdraw_replay_reopened_channel(
         withdraw_A,
         signature_A_for_A2,
         signature_B_for_A2,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 def test_withdraw_event(

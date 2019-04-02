@@ -218,6 +218,7 @@ def test_create_erc20_token_network_call(
         get_accounts,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
+        call_and_transact,
 ):
     """ Calling createERC20TokenNetwork() with various wrong arguments """
 
@@ -226,7 +227,7 @@ def test_create_erc20_token_network_call(
 
     # failure with no arguments
     with pytest.raises(ValidationError):
-        token_network_registry_contract.functions.createERC20TokenNetwork().transact()
+        token_network_registry_contract.functions.createERC20TokenNetwork()
 
     # failures with integers instead of a Token contract address
     with pytest.raises(ValidationError):
@@ -234,13 +235,13 @@ def test_create_erc20_token_network_call(
             3,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        )
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             0,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        )
 
     # failures with strings that are not addresses
     with pytest.raises(ValidationError):
@@ -248,13 +249,13 @@ def test_create_erc20_token_network_call(
             '',
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        )
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             FAKE_ADDRESS,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        )
 
     # failures with addresses where no Token contract can be found
     with pytest.raises(TransactionFailed):
@@ -305,7 +306,7 @@ def test_create_erc20_token_network_call(
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({'from': CONTRACT_DEPLOYER_ADDRESS})
 
 
 @pytest.mark.usefixtures('no_token_network')

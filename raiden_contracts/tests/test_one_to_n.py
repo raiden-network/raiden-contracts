@@ -30,7 +30,7 @@ def test_claim(
     )
     tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.assert_event(
         tx_hash,
@@ -83,6 +83,7 @@ def test_claim_with_insufficient_deposit(
         get_private_key,
         web3,
         event_handler,
+        call_and_transact,
 ):
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
@@ -106,7 +107,7 @@ def test_claim_with_insufficient_deposit(
     # check that transaction succeeds
     one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 6
@@ -122,11 +123,11 @@ def test_claim_with_insufficient_deposit(
     )
     one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     deposit_to_udc(A, 6 + 4)
     tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     ev_handler.assert_event(
         tx_hash,
         OneToNEvent.CLAIMED,
