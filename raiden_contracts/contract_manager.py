@@ -172,7 +172,7 @@ def version_provides_services(version: Optional[str]) -> bool:
         return False
     if version == '0.8.0_unlimited':
         return True
-    return compare(version, '0.8.0') > -1
+    return compare(version, '0.8.0') >= 0
 
 
 def get_contracts_deployment_info(
@@ -189,9 +189,12 @@ def get_contracts_deployment_info(
     if module not in DeploymentModule:
         raise ValueError(f'Unknown module {module} given to get_contracts_deployment_info()')
 
+    def module_chosen(to_be_added: DeploymentModule):
+        return module == to_be_added or module == DeploymentModule.ALL
+
     files: List[Path] = []
 
-    if module == DeploymentModule.RAIDEN or module == DeploymentModule.ALL:
+    if module_chosen(DeploymentModule.RAIDEN):
         files.append(contracts_deployed_path(
             chain_id=chain_id,
             version=version,
@@ -200,12 +203,11 @@ def get_contracts_deployment_info(
 
     if module == DeploymentModule.SERVICES and not version_provides_services(version):
         raise ValueError(
-            f'SERVICES module queried for version {version}, but {version}'
+            f'SERVICES module queried for version {version}, but {version} '
             'does not provide service contracts.',
         )
 
-    if (module == DeploymentModule.SERVICES or module == DeploymentModule.ALL) and \
-       version_provides_services(version):
+    if module_chosen(DeploymentModule.SERVICES) and version_provides_services(version):
         files.append(contracts_deployed_path(
             chain_id=chain_id,
             version=version,
