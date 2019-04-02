@@ -112,6 +112,7 @@ config = {
         'build_py': BuildPyCommand,
     },
     'zip_safe': False,
+    'package_data': {"raiden_contracts": ["py.typed"]},
 }
 
 setup(**config)
