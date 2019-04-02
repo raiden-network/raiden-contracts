@@ -91,7 +91,7 @@ def test_close_settled_channel_fail(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             signature=EMPTY_SIGNATURE,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_close_wrong_signature(
@@ -126,7 +126,7 @@ def test_close_wrong_signature(
             channel_identifier,
             B,
             *balance_proof,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_close_call_twice_fail(
@@ -157,7 +157,7 @@ def test_close_call_twice_fail(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             signature=EMPTY_SIGNATURE,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_close_wrong_sender(
@@ -179,7 +179,7 @@ def test_close_wrong_sender(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             signature=EMPTY_SIGNATURE,
-        ).transact({'from': C})
+        ).call({'from': C})
 
 
 def test_close_nonce_zero(
@@ -275,7 +275,7 @@ def test_close_first_argument_is_for_partner_transfer(
             channel_identifier,
             B,
             *balance_proof,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Else, closeChannel works with this balance proof
     token_network.functions.closeChannel(
@@ -571,7 +571,7 @@ def test_close_replay_reopened_channel(
             channel_identifier2,
             B,
             *balance_proof_B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # Balance proof with correct channel_identifier must work
     balance_proof_B2 = create_balance_proof(

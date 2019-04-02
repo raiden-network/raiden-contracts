@@ -5,6 +5,7 @@ from web3 import Web3
 
 from raiden_contracts.constants import MonitoringServiceEvent
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
+from raiden_contracts.tests.utils.transactions import call_and_transact
 
 REWARD_AMOUNT = 10
 
@@ -102,7 +103,7 @@ def test_claimReward_with_settle_call(
             channel_identifier,
             token_network.address,
             A, B,
-        ).transact({'from': ms_address})
+        ).call({'from': ms_address})
 
     # Settle channel after settle_timeout elapsed
     token_network.web3.testing.mine(8)
@@ -173,7 +174,7 @@ def test_claimReward_without_settle_call(
             channel_identifier,
             token_network.address,
             A, B,
-        ).transact({'from': ms_address})
+        ).call({'from': ms_address})
 
     # Wait for settle_timeout to elapse
     token_network.web3.testing.mine(8)
@@ -227,7 +228,7 @@ def test_monitor(
             REWARD_AMOUNT + 1,
             token_network.address,
             monitor_data['reward_proof_signature'],
-        ).transact({'from': ms_address})
+        ).call({'from': ms_address})
 
     # only registered service provicers may call `monitor`
     with pytest.raises(TransactionFailed):
@@ -238,7 +239,7 @@ def test_monitor(
             REWARD_AMOUNT + 1,
             token_network.address,
             monitor_data['reward_proof_signature'],
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # successful monitor call
     txn_hash = monitoring_service_external.functions.monitor(
@@ -288,14 +289,17 @@ def test_updateReward(
             nonce=nonce,
         )
         reward_proof_signature = reward_proof[5]
-        monitoring_service_internals.functions.updateRewardPublic(
-            token_network.address,
-            A, B,
-            REWARD_AMOUNT,
-            nonce,
-            ms_address,
-            reward_proof_signature,
-        ).transact({'from': ms_address})
+        call_and_transact(
+            monitoring_service_internals.functions.updateRewardPublic(
+                token_network.address,
+                A, B,
+                REWARD_AMOUNT,
+                nonce,
+                ms_address,
+                reward_proof_signature,
+            ),
+            {'from': ms_address},
+        )
 
     # normal first call succeeds
     update_with_nonce(2)

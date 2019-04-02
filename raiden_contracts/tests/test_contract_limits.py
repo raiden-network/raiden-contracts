@@ -51,7 +51,7 @@ def test_register_three_but_not_four(
             token3.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        ).call()
 
 
 def test_channel_participant_deposit_limit_value(token_network):
@@ -86,14 +86,14 @@ def test_participant_deposit_limit(
             A,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Deposit some tokens, under the limit
     token_network.functions.setTotalDeposit(
@@ -120,14 +120,14 @@ def test_participant_deposit_limit(
             A,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,

@@ -18,6 +18,7 @@ from raiden_contracts.tests.utils import (
 )
 from raiden_contracts.utils import get_pending_transfers_tree
 from raiden_contracts.utils.events import check_channel_settled
+from raiden_contracts.tests.utils.transactions import call_and_transact
 
 
 def test_settle_no_bp_success(
@@ -413,14 +414,17 @@ def test_settle_wrong_state_fail(
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    txn_hash = token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    txn_hash = call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier,
+            B,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+        ),
+        {'from': A},
+    )
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier,
@@ -434,8 +438,8 @@ def test_settle_wrong_state_fail(
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
-    assert web3.eth.blockNumber >= settle_block_number
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    assert web3.eth.blockNumber > settle_block_number
 
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)

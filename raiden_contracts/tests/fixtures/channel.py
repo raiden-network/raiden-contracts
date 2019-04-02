@@ -11,6 +11,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
 )
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.transactions import call_and_transact
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
@@ -27,7 +28,10 @@ def create_channel(token_network):
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
-        txn_hash = token_network.functions.openChannel(A, B, settle_timeout).transact()
+        txn_hash = call_and_transact(
+            token_network.functions.openChannel(A, B, settle_timeout),
+            {},
+        )
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -77,12 +81,15 @@ def channel_deposit(token_network, assign_tokens):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
-        txn_hash = token_network.functions.setTotalDeposit(
-            channel_identifier,
-            participant,
-            deposit,
-            partner,
-        ).transact({'from': tx_from})
+        txn_hash = call_and_transact(
+            token_network.functions.setTotalDeposit(
+                channel_identifier,
+                participant,
+                deposit,
+                partner,
+            ),
+            {'from': tx_from},
+        )
         return txn_hash
     return get
 
@@ -121,13 +128,16 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             participant,
             withdraw_amount,
         )
-        txn_hash = token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            participant,
-            withdraw_amount,
-            signature_participant,
-            signature_partner,
-        ).transact({'from': delegate})
+        txn_hash = call_and_transact(
+            token_network.functions.setTotalWithdraw(
+                channel_identifier,
+                participant,
+                withdraw_amount,
+                signature_participant,
+                signature_partner,
+            ),
+            {'from': delegate},
+        )
         return txn_hash
     return get
 
@@ -740,16 +750,19 @@ def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
                 vals_A.transferred,
                 vals_A.locked,
                 vals_A.locksroot,
-            ).transact({'from': A})
+            ).call({'from': A})
 
-    token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        vals_A.transferred,
-        vals_A.locked,
-        vals_A.locksroot,
-        B,
-        vals_B.transferred,
-        vals_B.locked,
-        vals_B.locksroot,
-    ).transact({'from': A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier,
+            A,
+            vals_A.transferred,
+            vals_A.locked,
+            vals_A.locksroot,
+            B,
+            vals_B.transferred,
+            vals_B.locked,
+            vals_B.locksroot,
+        ),
+        {'from': A},
+    )

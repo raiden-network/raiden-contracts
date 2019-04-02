@@ -53,7 +53,7 @@ def test_update_call(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # Failure with the zero address instead of B's address
     with pytest.raises(TransactionFailed):
@@ -63,7 +63,7 @@ def test_update_call(
             EMPTY_ADDRESS,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # Failure with the zero signature
     with pytest.raises(TransactionFailed):
@@ -73,7 +73,7 @@ def test_update_call(
             B,
             *balance_proof_A,
             EMPTY_SIGNATURE,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # Failure with the empty balance hash
     with pytest.raises(TransactionFailed):
@@ -86,7 +86,7 @@ def test_update_call(
             additional_hash,
             closing_signature,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # Failure with nonce zero
     with pytest.raises(TransactionFailed):
@@ -99,7 +99,7 @@ def test_update_call(
             additional_hash,
             closing_signature,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # Failure with the empty signature
     with pytest.raises(TransactionFailed):
@@ -112,7 +112,7 @@ def test_update_call(
             additional_hash,
             EMPTY_SIGNATURE,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # See a success to make sure the above failures are not spurious
     token_network.functions.updateNonClosingBalanceProof(
@@ -158,7 +158,7 @@ def test_update_nonexistent_fail(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
 
 def test_update_notclosed_fail(
@@ -195,7 +195,7 @@ def test_update_notclosed_fail(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
 
 
 def test_update_wrong_nonce_fail(
@@ -241,7 +241,7 @@ def test_update_wrong_nonce_fail(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': Delegate})
+        ).call({'from': Delegate})
     balance_proof_A_same_nonce = create_balance_proof(
         channel_identifier,
         A,
@@ -257,7 +257,7 @@ def test_update_wrong_nonce_fail(
             B,
             *balance_proof_A_same_nonce,
             balance_proof_update_signature_B,
-        ).transact({'from': Delegate})
+        ).call({'from': Delegate})
 
     balance_proof_A_lower_nonce = create_balance_proof(
         channel_identifier,
@@ -280,7 +280,7 @@ def test_update_wrong_nonce_fail(
             B,
             *balance_proof_A_lower_nonce,
             balance_proof_update_signature_B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     update_state_tests(
         channel_identifier,
@@ -343,7 +343,7 @@ def test_update_wrong_signatures(
             B,
             *balance_proof_A_fake,
             balance_proof_update_signature_B,
-        ).transact({'from': C})
+        ).call({'from': C})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -351,7 +351,7 @@ def test_update_wrong_signatures(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B_fake,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # See a success to make sure that the above failures are not spurious
     token_network.functions.updateNonClosingBalanceProof(
@@ -471,7 +471,7 @@ def test_update_channel_fail_no_offchain_transfers(
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
             EMPTY_SIGNATURE,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -480,7 +480,7 @@ def test_update_channel_fail_no_offchain_transfers(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': B})
+        ).call({'from': B})
 
 
 def test_update_not_allowed_after_settlement_period(
@@ -510,7 +510,7 @@ def test_update_not_allowed_after_settlement_period(
         B,
         *balance_proof_B,
     ).transact({'from': A})
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -518,7 +518,7 @@ def test_update_not_allowed_after_settlement_period(
             B,
             *balance_proof_A,
             balance_proof_update_signature_B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_update_not_allowed_for_the_closing_address(
@@ -564,7 +564,7 @@ def test_update_not_allowed_for_the_closing_address(
             B,
             *balance_proof_B_1,
             balance_proof_update_signature_B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -572,7 +572,7 @@ def test_update_not_allowed_for_the_closing_address(
             B,
             *balance_proof_B_1,
             balance_proof_update_signature_B,
-        ).transact({'from': B})
+        ).call({'from': B})
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -580,7 +580,7 @@ def test_update_not_allowed_for_the_closing_address(
             B,
             *balance_proof_B_1,
             balance_proof_update_signature_B,
-        ).transact({'from': M})
+        ).call({'from': M})
 
 
 def test_update_invalid_balance_proof_arguments(
@@ -659,7 +659,7 @@ def test_update_invalid_balance_proof_arguments(
             B,
             *balance_proof_invalid_token_network,
             signature_invalid_token_network,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     #  Create balance_proof for invalid channel participant
     balance_proof_invalid_channel_participant = balance_proof(*create_balance_proof(
@@ -686,7 +686,7 @@ def test_update_invalid_balance_proof_arguments(
             B,
             *balance_proof_invalid_channel_participant,
             signature_invalid_channel_participant,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     #  Create balance_proof for invalid channel identifier
     balance_proof_invalid_channel_identifier = balance_proof(*create_balance_proof(
@@ -713,7 +713,7 @@ def test_update_invalid_balance_proof_arguments(
             B,
             *balance_proof_invalid_channel_identifier,
             signature_invalid_channel_identifier,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_balance_hash = create_balance_proof_update_signature(
         B,
@@ -733,7 +733,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
             signature_invalid_balance_hash,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_nonce = create_balance_proof_update_signature(
         B,
@@ -754,7 +754,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
             signature_invalid_nonce,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_additional_hash = create_balance_proof_update_signature(
         B,
@@ -775,7 +775,7 @@ def test_update_invalid_balance_proof_arguments(
             fake_bytes(32, '02'),  # invalid additional_hash
             balance_proof_valid.signature,
             signature_invalid_additional_hash,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_closing_signature = create_balance_proof_update_signature(
         B,
@@ -796,7 +796,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
             signature_invalid_closing_signature[::-1],  # invalid non-closing signature
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Call with same balance_proof and signature on valid arguments still works
 
@@ -864,7 +864,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_token_network_address,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_participant = create_balance_proof_update_signature(
         C,  # invalid signer
@@ -881,7 +881,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_participant,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_channel_identifier = create_balance_proof_update_signature(
         B,
@@ -898,7 +898,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_channel_identifier,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_balance_hash = create_balance_proof_update_signature(
         B,
@@ -915,7 +915,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_balance_hash,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_nonce = create_balance_proof_update_signature(
         B,
@@ -932,7 +932,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_nonce,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_additional_hash = create_balance_proof_update_signature(
         B,
@@ -949,7 +949,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_additional_hash,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     signature_invalid_closing_signature = create_balance_proof_update_signature(
         B,
@@ -966,7 +966,7 @@ def test_update_signature_on_invalid_arguments(
             B,
             *balance_proof_valid,
             signature_invalid_closing_signature,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Call with same balance_proof and signature on valid arguments works
     balance_proof_update_signature = create_balance_proof_update_signature(
@@ -1062,7 +1062,7 @@ def test_update_replay_reopened_channel(
             A,
             *balance_proof_B,
             balance_proof_update_signature_A,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # Reopen the channel and make sure we cannot use the old balance proof
     channel_identifier2 = create_channel(A, B)[0]
@@ -1084,7 +1084,7 @@ def test_update_replay_reopened_channel(
             A,
             *balance_proof_B,
             balance_proof_update_signature_A,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # Correct channel_identifier must work
     balance_proof_B2 = create_balance_proof(

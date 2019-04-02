@@ -20,7 +20,7 @@ def test_deposit(
 
     # custom_token does not allow transfer of more tokens
     with pytest.raises(TransactionFailed):
-        service_registry.functions.deposit(1).transact({'from': A})
+        service_registry.functions.deposit(1).call({'from': A})
 
 
 def test_setURL(

@@ -70,7 +70,7 @@ def test_deprecation_executor(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact(
+        ).call(
             {'from': B},
         )
     with pytest.raises(TransactionFailed):
@@ -78,7 +78,7 @@ def test_deprecation_executor(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact(
+        ).call(
             {'from': deprecation_executor},
         )
 
@@ -105,7 +105,7 @@ def test_set_deprecation_switch(get_accounts, token_network):
     assert token_network.functions.safety_deprecation_switch().call() is False
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.deprecate().transact({
+        token_network.functions.deprecate().call({
             'from': A,
         })
 
@@ -116,7 +116,7 @@ def test_set_deprecation_switch(get_accounts, token_network):
 
     # We should not be able to call it again
     with pytest.raises(TransactionFailed):
-        token_network.functions.deprecate().transact({
+        token_network.functions.deprecate().call({
             'from': A,
         })
 

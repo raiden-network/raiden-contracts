@@ -29,7 +29,7 @@ def test_deposit(
 
     # a deposit can't be decreased by calling deposit
     with pytest.raises(TransactionFailed):
-        user_deposit_contract.functions.deposit(A, 19).transact({'from': A})
+        user_deposit_contract.functions.deposit(A, 19).call({'from': A})
 
     # A deposits to the benefit of B
     user_deposit_contract.functions.deposit(B, 10).transact({'from': A})
@@ -40,7 +40,7 @@ def test_deposit(
 
     # Can't deposit more than the token contract allows
     with pytest.raises(TransactionFailed):
-        user_deposit_contract.functions.deposit(A, 21).transact({'from': A})
+        user_deposit_contract.functions.deposit(A, 21).call({'from': A})
 
     # Can't deposit more than the whole_balance_limit
     limit = user_deposit_contract.functions.whole_balance_limit().call()
@@ -48,7 +48,7 @@ def test_deposit(
     custom_token.functions.mint(limit + 1).transact({'from': A})
     custom_token.functions.approve(user_deposit_contract.address, limit + 1).transact({'from': A})
     with pytest.raises(TransactionFailed):
-        user_deposit_contract.functions.deposit(A, limit + 1).transact({'from': A})
+        user_deposit_contract.functions.deposit(A, limit + 1).call({'from': A})
 
 
 def test_transfer(
@@ -67,7 +67,7 @@ def test_transfer(
 
     # only trusted contracts can call transfer (init has not been called, yet)
     with pytest.raises(TransactionFailed):
-        udc_transfer_contract.functions.transfer(A, B, 10).transact()
+        udc_transfer_contract.functions.transfer(A, B, 10).call()
 
     # happy case
     user_deposit_contract.functions.init(
@@ -152,12 +152,12 @@ def test_withdraw(
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
     web3.testing.mine(withdraw_delay - 2)
     with pytest.raises(TransactionFailed):
-        user_deposit_contract.functions.withdraw(18).transact({'from': A})
+        user_deposit_contract.functions.withdraw(18).call({'from': A})
 
     # can't withdraw more then planned
     web3.testing.mine(1)  # now withdraw_delay is over
     with pytest.raises(TransactionFailed):
-        user_deposit_contract.functions.withdraw(21).transact({'from': A})
+        user_deposit_contract.functions.withdraw(21).call({'from': A})
 
     # actually withdraw 18 tokens
     user_deposit_contract.functions.withdraw(18).transact({'from': A})

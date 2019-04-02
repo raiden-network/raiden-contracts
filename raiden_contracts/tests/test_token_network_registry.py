@@ -13,6 +13,7 @@ from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAKE_ADDRESS,
 )
+from raiden_contracts.tests.utils.transactions import call_and_transact
 from raiden_contracts.utils.events import check_token_network_created
 
 
@@ -262,19 +263,19 @@ def test_create_erc20_token_network_call(
             EMPTY_ADDRESS,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        ).call()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             A,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        ).call()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             fake_token_contract,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        ).call()
 
     # failures with invalid deposit limits
     with pytest.raises(TransactionFailed):
@@ -282,14 +283,14 @@ def test_create_erc20_token_network_call(
             custom_token.address,
             0,
             token_network_deposit_limit,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call({'from': CONTRACT_DEPLOYER_ADDRESS})
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
             0,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call({'from': CONTRACT_DEPLOYER_ADDRESS})
 
     with pytest.raises(TransactionFailed):
         # fails because token_network_deposit_limit is smaller than
@@ -298,7 +299,7 @@ def test_create_erc20_token_network_call(
             custom_token.address,
             token_network_deposit_limit,
             channel_participant_deposit_limit,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call({'from': CONTRACT_DEPLOYER_ADDRESS})
 
     # see a success to make sure above tests were meaningful
     token_network_registry_contract.functions.createERC20TokenNetwork(
@@ -355,21 +356,22 @@ def test_create_erc20_token_network_twice_fails(
 ):
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
-    token_network_registry_contract.transact(
-        {'from': CONTRACT_DEPLOYER_ADDRESS},
-    ).createERC20TokenNetwork(
-        custom_token.address,
-        channel_participant_deposit_limit,
-        token_network_deposit_limit,
-    )
-
-    with pytest.raises(TransactionFailed):
-        token_network_registry_contract.transact(
-            {'from': CONTRACT_DEPLOYER_ADDRESS},
-        ).createERC20TokenNetwork(
+    call_and_transact(
+        token_network_registry_contract.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
+        ),
+        {'from': CONTRACT_DEPLOYER_ADDRESS},
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        ).call(
+            {'from': CONTRACT_DEPLOYER_ADDRESS},
         )
 
 

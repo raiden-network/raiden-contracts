@@ -113,7 +113,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             EMPTY_ADDRESS,
             deposit_A,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -121,7 +121,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             EMPTY_ADDRESS,
-        ).transact({'from': A})
+        ).call({'from': A})
     # Transaction failure with zero total deposit
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -129,7 +129,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             0,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,
@@ -160,7 +160,7 @@ def test_deposit_notapproved(
             A,
             deposit_A,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_null_or_negative_deposit_fail(
@@ -179,9 +179,9 @@ def test_null_or_negative_deposit_fail(
 
     # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).transact({'from': A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).transact({'from': A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({'from': A})
 
 
 def test_deposit_delegate_works(token_network, get_accounts, create_channel, channel_deposit):
@@ -209,14 +209,14 @@ def test_deposit_wrong_channel(
             A,
             10,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             A,
             10,
             C,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,
@@ -340,14 +340,14 @@ def test_deposit_wrong_state_fail(
             A,
             vals_A.deposit,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             vals_B.deposit,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
@@ -357,14 +357,14 @@ def test_deposit_wrong_state_fail(
             A,
             vals_A.deposit,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             vals_B.deposit,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
 
 def test_deposit_channel_event(

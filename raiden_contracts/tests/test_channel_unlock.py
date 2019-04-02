@@ -205,7 +205,7 @@ def test_merkle_tree_components_order(
             B,
             A,
             wrong_order_packed,
-        ).transact()
+        ).call()
 
     wrong_order = pending_transfers_tree.transfers
     wrong_order[0], wrong_order[-1] = wrong_order[-1], wrong_order[0]
@@ -224,7 +224,7 @@ def test_merkle_tree_components_order(
             B,
             A,
             wrong_order_packed,
-        ).transact()
+        ).call()
 
     (
         locksroot,
@@ -364,7 +364,7 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             pending_transfers_tree_A_fake.packed_transfers,
-        ).transact()
+        ).call()
 
     # Fails for an empty merkle tree
     with pytest.raises(TransactionFailed):
@@ -373,7 +373,7 @@ def test_unlock_wrong_locksroot(
             B,
             A,
             b'',
-        ).transact()
+        ).call()
 
     token_network.functions.unlock(
         channel_identifier,
@@ -599,14 +599,14 @@ def test_channel_unlock_no_locked_amount_fail(
             B,
             A,
             b'',
-        ).transact()
+        ).call()
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
             channel_identifier,
             B,
             A,
             pending_transfers_tree_A.packed_transfers,
-        ).transact()
+        ).call()
 
 
 def test_channel_unlock(
@@ -986,7 +986,7 @@ def test_channel_unlock_before_settlement_fails(
             A,
             B,
             pending_transfers_tree.packed_transfers,
-        ).transact()
+        ).call()
 
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
@@ -998,7 +998,7 @@ def test_channel_unlock_before_settlement_fails(
             A,
             B,
             pending_transfers_tree.packed_transfers,
-        ).transact()
+        ).call()
 
     close_and_update_channel(
         channel_identifier,
@@ -1015,7 +1015,7 @@ def test_channel_unlock_before_settlement_fails(
             A,
             B,
             pending_transfers_tree.packed_transfers,
-        ).transact()
+        ).call()
 
     # Settlement window must be over before settling the channel
     web3.testing.mine(settle_timeout)
@@ -1027,7 +1027,7 @@ def test_channel_unlock_before_settlement_fails(
             A,
             B,
             pending_transfers_tree.packed_transfers,
-        ).transact()
+        ).call()
 
     # settle channel
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
@@ -1090,7 +1090,7 @@ def test_unlock_fails_with_partial_merkle_proof(
                 B,
                 A,
                 packed_transfers_tampered,
-            ).transact({'from': A})
+            ).call({'from': A})
 
     # Unlock with full merkle tree does work
     token_network.functions.unlock(
@@ -1139,7 +1139,7 @@ def test_unlock_tampered_merkle_proof_fails(
                 B,
                 A,
                 packed_transfers_tampered,
-            ).transact({'from': A})
+            ).call({'from': A})
 
     # Unlock with correct merkle tree does work
     token_network.functions.unlock(
@@ -1295,7 +1295,7 @@ def test_unlock_twice_fails(
             B,
             A,
             pending_transfers_tree_1.packed_transfers,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_channel_unlock_with_a_large_expiration(
@@ -1413,7 +1413,7 @@ def test_reverse_participants_unlock(
             A,
             B,
             pending_transfers_tree_A.packed_transfers,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # Delegate trying to unlock A's own locksroot & locked amount on behalf of A MUST fail
     with pytest.raises(TransactionFailed):
@@ -1422,7 +1422,7 @@ def test_reverse_participants_unlock(
             A,
             B,
             pending_transfers_tree_A.packed_transfers,
-        ).transact({'from': C})
+        ).call({'from': C})
 
     # B trying to unlock its own locksroot & locked amount MUST fail
     with pytest.raises(TransactionFailed):
@@ -1431,7 +1431,7 @@ def test_reverse_participants_unlock(
             B,
             A,
             pending_transfers_tree_B.packed_transfers,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Delegate trying to unlock B's own locksroot & locked amount on behalf of B MUST fail
     with pytest.raises(TransactionFailed):
@@ -1440,7 +1440,7 @@ def test_reverse_participants_unlock(
             B,
             A,
             pending_transfers_tree_B.packed_transfers,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
@@ -1448,7 +1448,7 @@ def test_reverse_participants_unlock(
             A,
             A,
             pending_transfers_tree_A.packed_transfers,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
@@ -1456,7 +1456,7 @@ def test_reverse_participants_unlock(
             B,
             B,
             pending_transfers_tree_B.packed_transfers,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Someone trying to unlock B's locksroot & locked amount on behalf of A MUST succeed
     token_network.functions.unlock(
@@ -1518,14 +1518,14 @@ def test_unlock_different_channel_same_participants_fail(
             B,
             A,
             pending_transfers_tree_2.packed_transfers,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
             channel_identifier2,
             B,
             A,
             pending_transfers_tree_1.packed_transfers,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     token_network.functions.unlock(
         channel_identifier,

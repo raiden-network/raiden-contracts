@@ -44,11 +44,11 @@ def test_claim(
     with pytest.raises(TransactionFailed):
         one_to_n_contract.functions.claim(
             A, B, amount, expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # IOU expired
     with pytest.raises(TransactionFailed):
-        bad_expiration = web3.eth.blockNumber
+        bad_expiration = web3.eth.blockNumber + 1
         signature = sign_one_to_n_iou(
             get_private_key(A),
             sender=A,
@@ -58,7 +58,7 @@ def test_claim(
         )
         one_to_n_contract.functions.claim(
             A, B, amount, bad_expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # bad signature
     with pytest.raises(TransactionFailed):
@@ -72,7 +72,7 @@ def test_claim(
         )
         one_to_n_contract.functions.claim(
             A, B, amount, expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_claim_with_insufficient_deposit(

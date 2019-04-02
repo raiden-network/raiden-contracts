@@ -41,9 +41,7 @@ def web3(
     provider = EthereumTesterProvider(ethereum_tester)
     web3 = Web3(provider)
     # Improve test speed by skipping the gas cost estimation.
-    # Currently commented out because setting cast costs in single cases
-    # already causes enough problems.
-    # web3.eth.estimateGas = lambda txn: int(5.7e6)
+    web3.eth.estimateGas = lambda txn: int(5.2e6)  # pylint: disable=E1101
 
     # add faucet account to tester
     ethereum_tester.add_account(FAUCET_PRIVATE_KEY)

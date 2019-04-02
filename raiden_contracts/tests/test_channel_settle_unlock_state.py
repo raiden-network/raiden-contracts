@@ -152,7 +152,7 @@ def test_settlement_outcome(
                     A,
                     B,
                     pending_transfers_tree_B.packed_transfers,
-                ).transact()
+                ).call()
         else:
             token_network.functions.unlock(
                 channel_identifier,
@@ -187,7 +187,7 @@ def test_settlement_outcome(
                     B,
                     A,
                     pending_transfers_tree_A.packed_transfers,
-                ).transact()
+                ).call()
         else:
             token_network.functions.unlock(
                 channel_identifier,

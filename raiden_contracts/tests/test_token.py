@@ -63,7 +63,7 @@ def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
 
     assert web3.eth.getBalance(token.address) == 0
     with pytest.raises(TransactionFailed):
-        token.functions.transferFunds().transact({'from': owner})
+        token.functions.transferFunds().call({'from': owner})
 
     token.functions.mint(50).transact({'from': A})
     assert web3.eth.getBalance(token.address) == 0

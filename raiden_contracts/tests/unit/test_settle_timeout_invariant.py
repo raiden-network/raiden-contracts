@@ -22,10 +22,10 @@ def test_settle_timeout_inrange(
     large_settle_timeout = TEST_SETTLE_TIMEOUT_MAX + 1
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, small_settle_timeout).transact()
+        token_network.functions.openChannel(A, B, small_settle_timeout).call()
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, large_settle_timeout).transact()
+        token_network.functions.openChannel(A, B, large_settle_timeout).call()
 
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
