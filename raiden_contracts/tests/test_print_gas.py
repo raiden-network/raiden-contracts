@@ -111,7 +111,6 @@ def print_gas_token_network_create(
         channel_participant_deposit_limit,
         token_network_deposit_limit,
         token_network_registry_constructor_args,
-        call_and_transact,
 ):
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     registry = get_token_network_registry(token_network_registry_constructor_args)
@@ -125,7 +124,7 @@ def print_gas_token_network_create(
 
 
 @pytest.fixture
-def print_gas_secret_registry(secret_registry_contract, print_gas, call_and_transact):
+def print_gas_secret_registry(secret_registry_contract, print_gas):
     """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b'secretsecretsecretsecretsecretse'
     txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
@@ -143,7 +142,6 @@ def print_gas_channel_cycle(
         print_gas,
         create_balance_proof,
         create_balance_proof_update_signature,
-        call_and_transact,
 ):
     """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
@@ -391,7 +389,6 @@ def print_gas_user_deposit(
         get_accounts,
         web3,
         print_gas,
-        call_and_transact,
 ):
     """ Abusing pytest to print gas cost of UserDeposit functions
 

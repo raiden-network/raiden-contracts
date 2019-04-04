@@ -126,7 +126,6 @@ def test_deprecation_switch(
         token_network,
         create_channel,
         channel_deposit,
-        call_and_transact,
 ):
     """ Test the effects of the deprecation switch on deposits and channel opening """
 

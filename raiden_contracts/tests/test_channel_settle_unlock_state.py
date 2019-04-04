@@ -33,7 +33,6 @@ def test_settlement_outcome(
         close_and_update_channel,
         settle_state_tests,
         reveal_secrets,
-        call_and_transact,
 ):
     def f(
             participants,

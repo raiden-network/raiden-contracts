@@ -33,7 +33,6 @@ def register_token_network(
         web3,
         token_network_registry_contract,
         contracts_manager,
-        call_and_transact,
 ):
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""

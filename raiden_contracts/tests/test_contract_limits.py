@@ -17,7 +17,6 @@ def test_register_three_but_not_four(
         custom_token_factory,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-        call_and_transact,
 ):
     """ Check that TokenNetworkRegistry observes the max number of tokens """
     token_network_registry = get_token_network_registry([
@@ -72,7 +71,6 @@ def test_participant_deposit_limit(
         token_network,
         create_channel,
         assign_tokens,
-        call_and_transact,
 ):
     """ Observe failure to deposit a bit more tokens than the participant deposit limit """
     (A, B) = get_accounts(2)

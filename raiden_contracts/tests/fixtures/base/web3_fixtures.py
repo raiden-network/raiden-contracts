@@ -87,6 +87,6 @@ def _call_and_transact(
     return contract_function.transact(transaction_params)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session', autouse=True)
 def call_and_transact():
     ContractFunction.call_and_transact = _call_and_transact

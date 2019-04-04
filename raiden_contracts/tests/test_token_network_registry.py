@@ -218,7 +218,6 @@ def test_create_erc20_token_network_call(
         get_accounts,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-        call_and_transact,
 ):
     """ Calling createERC20TokenNetwork() with various wrong arguments """
 
@@ -353,7 +352,6 @@ def test_create_erc20_token_network_twice_fails(
         custom_token,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-        call_and_transact,
 ):
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 

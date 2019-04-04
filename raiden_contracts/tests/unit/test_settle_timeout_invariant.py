@@ -9,7 +9,6 @@ def test_settle_timeout_inrange(
         token_network,
         get_accounts,
         web3,
-        call_and_transact,
 ):
     """ The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.

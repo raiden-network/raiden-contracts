@@ -38,7 +38,6 @@ def test_merkle_root_1_item_unlockable(
         get_accounts,
         token_network_test_utils,
         secret_registry_contract,
-        call_and_transact,
 ):
     """ Test getMerkleRootAndUnlockedAmount() on a single item whose secret has been registered """
     A = get_accounts(1)[0]
@@ -707,7 +706,6 @@ def test_channel_settle_and_unlock(
         get_accounts,
         create_settled_channel,
         reveal_secrets,
-        call_and_transact,
 ):
     """ Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock """
     (A, B) = get_accounts(2)

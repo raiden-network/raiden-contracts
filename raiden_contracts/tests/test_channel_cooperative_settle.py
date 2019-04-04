@@ -199,7 +199,6 @@ def test_cooperative_settle_channel_0(
         get_accounts,
         create_cooperative_settle_signatures,
         cooperative_settle_state_tests,
-        call_and_transact,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20

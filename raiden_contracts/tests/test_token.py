@@ -29,7 +29,7 @@ def test_token_mint(web3, custom_token, get_accounts):
     assert web3.eth.getBalance(token.address) == token_pre_balance
 
 
-def test_approve_transfer(web3, custom_token, get_accounts, call_and_transact):
+def test_approve_transfer(web3, custom_token, get_accounts):
     """ Use the approve() function of the custom token contract """
 
     (A, B) = get_accounts(2)

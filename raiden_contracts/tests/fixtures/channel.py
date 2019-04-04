@@ -21,7 +21,7 @@ from raiden_contracts.utils.proofs import (
 
 
 @pytest.fixture(scope='session')
-def create_channel(token_network, web3, call_and_transact):
+def create_channel(token_network, web3):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
@@ -46,7 +46,7 @@ def create_channel(token_network, web3, call_and_transact):
 
 
 @pytest.fixture()
-def assign_tokens(token_network, custom_token, call_and_transact):
+def assign_tokens(token_network, custom_token):
     def get(participant, deposit):
         owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
@@ -76,7 +76,7 @@ def assign_tokens(token_network, custom_token, call_and_transact):
 
 
 @pytest.fixture()
-def channel_deposit(token_network, assign_tokens, call_and_transact):
+def channel_deposit(token_network, assign_tokens):
     def get(channel_identifier, participant, deposit, partner, tx_from=None):
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
@@ -111,7 +111,7 @@ def create_channel_and_deposit(create_channel, channel_deposit):
 
 
 @pytest.fixture()
-def withdraw_channel(token_network, create_withdraw_signatures, call_and_transact):
+def withdraw_channel(token_network, create_withdraw_signatures):
     def get(channel_identifier, participant, withdraw_amount, partner, delegate=None):
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(

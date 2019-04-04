@@ -55,7 +55,6 @@ def deposit_to_udc(
         get_private_key,
         web3,
         event_handler,
-        call_and_transact,
 ):
     def deposit(receiver, amount):
         """ Uses UDC's monotonous deposit amount handling

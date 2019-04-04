@@ -395,7 +395,6 @@ def test_settle_wrong_state_fail(
         token_network,
         create_channel_and_deposit,
         get_block,
-        call_and_transact,
 ):
     """ settleChannel() fails on OPENED state and on CLOSED state before the settlement block """
     (A, B) = get_accounts(2)

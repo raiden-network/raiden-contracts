@@ -46,7 +46,6 @@ def test_close_settled_channel_fail(
         create_channel,
         channel_deposit,
         get_accounts,
-        call_and_transact,
 ):
     """ Test getChannelInfo and closeChannel on an already settled channel """
     (A, B) = get_accounts(2)
@@ -517,7 +516,6 @@ def test_close_replay_reopened_channel(
         create_channel,
         channel_deposit,
         create_balance_proof,
-        call_and_transact,
 ):
     """ The same balance proof cannot close another channel between the same participants """
     (A, B) = get_accounts(2)

@@ -8,7 +8,6 @@ def test_deposit(
         user_deposit_contract,
         custom_token,
         get_accounts,
-        call_and_transact,
 ):
     (A, B) = get_accounts(2)
     custom_token.functions.mint(100).call_and_transact({'from': A})
@@ -64,7 +63,6 @@ def test_transfer(
         get_accounts,
         event_handler,
         custom_token,
-        call_and_transact,
 ):
     user_deposit_contract = uninitialized_user_deposit_contract
     ev_handler = event_handler(user_deposit_contract)
@@ -103,7 +101,6 @@ def test_deposit_after_transfer(
         udc_transfer_contract,
         custom_token,
         get_accounts,
-        call_and_transact,
 ):
     """ Make sure that `total_deposit` and `balance` are not mixed up.
 

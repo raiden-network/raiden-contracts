@@ -83,7 +83,6 @@ def test_claim_with_insufficient_deposit(
         get_private_key,
         web3,
         event_handler,
-        call_and_transact,
 ):
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)

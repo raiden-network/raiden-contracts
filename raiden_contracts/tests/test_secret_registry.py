@@ -31,7 +31,7 @@ def test_register_secret_call(secret_registry_contract, event_handler):
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32, '02')).call() is True
 
 
-def test_register_secret_return_value(secret_registry_contract, get_accounts, call_and_transact):
+def test_register_secret_return_value(secret_registry_contract, get_accounts):
     """ The same secret cannot be registered twice """
     (A, B) = get_accounts(2)
     secret = b'secretsecretsecretsecretsecretse'
@@ -47,7 +47,7 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts, ca
     assert secret_registry_contract.functions.registerSecret(secret).call({'from': B}) is False
 
 
-def test_register_secret(secret_registry_contract, get_accounts, get_block, call_and_transact):
+def test_register_secret(secret_registry_contract, get_accounts, get_block):
     """ Register a secret and see it's registered """
     A = get_accounts(1)[0]
     secret = b'secretsecretsecretsecretsecretse'
@@ -112,7 +112,7 @@ def test_events(secret_registry_contract, event_handler):
     ev_handler.check()
 
 
-def test_register_secret_batch_events(secret_registry_contract, event_handler, call_and_transact):
+def test_register_secret_batch_events(secret_registry_contract, event_handler):
     """ A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events """
     secrets = [fake_bytes(32, '02'), fake_bytes(32, '03'), fake_bytes(32, '04')]
     secret_hashes = [Web3.sha3(secret) for secret in secrets]

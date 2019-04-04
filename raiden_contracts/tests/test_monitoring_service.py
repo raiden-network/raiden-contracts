@@ -14,7 +14,6 @@ def ms_address(
         get_accounts,
         custom_token,
         service_registry,
-        call_and_transact,
 ):
     (ms, ) = get_accounts(1)
 
@@ -273,7 +272,6 @@ def test_updateReward(
         token_network,
         create_reward_proof,
         monitor_data,
-        call_and_transact,
 ):
     A, B = monitor_data['participants']
     reward_identifier = Web3.sha3(
