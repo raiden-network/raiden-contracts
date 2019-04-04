@@ -89,5 +89,4 @@ def _call_and_transact(
 
 @pytest.fixture(scope='session')
 def call_and_transact():
-    setattr(ContractFunction, 'call_and_transact', _call_and_transact)
-    yield
+    ContractFunction.call_and_transact = _call_and_transact
