@@ -45,7 +45,7 @@ def register_token_network(
             token_address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact({'from': CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({'from': CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY,

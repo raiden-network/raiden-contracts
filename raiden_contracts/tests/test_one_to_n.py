@@ -30,7 +30,7 @@ def test_claim(
     )
     tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     ev_handler.assert_event(
         tx_hash,
@@ -44,11 +44,11 @@ def test_claim(
     with pytest.raises(TransactionFailed):
         one_to_n_contract.functions.claim(
             A, B, amount, expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # IOU expired
     with pytest.raises(TransactionFailed):
-        bad_expiration = web3.eth.blockNumber
+        bad_expiration = web3.eth.blockNumber + 1
         signature = sign_one_to_n_iou(
             get_private_key(A),
             sender=A,
@@ -58,7 +58,7 @@ def test_claim(
         )
         one_to_n_contract.functions.claim(
             A, B, amount, bad_expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # bad signature
     with pytest.raises(TransactionFailed):
@@ -72,7 +72,7 @@ def test_claim(
         )
         one_to_n_contract.functions.claim(
             A, B, amount, expiration, signature,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_claim_with_insufficient_deposit(
@@ -106,7 +106,7 @@ def test_claim_with_insufficient_deposit(
     # check that transaction succeeds
     one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 6
@@ -122,11 +122,11 @@ def test_claim_with_insufficient_deposit(
     )
     one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     deposit_to_udc(A, 6 + 4)
     tx_hash = one_to_n_contract.functions.claim(
         A, B, amount, expiration, signature,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     ev_handler.assert_event(
         tx_hash,
         OneToNEvent.CLAIMED,

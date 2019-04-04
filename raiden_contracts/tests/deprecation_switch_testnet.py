@@ -86,7 +86,7 @@ def deprecation_test(
 
     # Activate deprecation switch
     assert token_network.functions.safety_deprecation_switch().call() is False
-    txhash = token_network.functions.deprecate().transact(
+    txhash = token_network.functions.deprecate().call_and_transact(
         deployer.transaction,
     )
     log.debug(f'Deprecation txHash={encode_hex(txhash)}')
@@ -142,7 +142,7 @@ def deprecation_test_setup(
     )
 
     # Mint some tokens for the owner
-    txhash = token_contract.functions.mint(token_amount).transact(
+    txhash = token_contract.functions.mint(token_amount).call_and_transact(
         deployer.transaction,
     )
 
@@ -173,9 +173,10 @@ def deprecation_test_setup(
         f'Registered the token and created a TokenNetwork contract at {token_network_address}.',
     )
 
-    txhash = token_contract.functions.approve(token_network.address, token_amount).transact(
-        deployer.transaction,
-    )
+    txhash = token_contract.functions.approve(
+        token_network.address,
+        token_amount,
+    ).call_and_transact(deployer.transaction)
     log.debug(f'Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}')
     check_successful_tx(deployer.web3, txhash, deployer.wait)
 
@@ -200,9 +201,11 @@ def open_and_deposit(
         txn_success_status=True,
 ):
     try:
-        txhash = token_network.functions.openChannel(A, B, DEPLOY_SETTLE_TIMEOUT_MIN).transact(
-            deployer.transaction,
-        )
+        txhash = token_network.functions.openChannel(
+            A,
+            B,
+            DEPLOY_SETTLE_TIMEOUT_MIN,
+        ).call_and_transact(deployer.transaction)
         log.debug(f'Opening a channel between {A} and {B} txHash={encode_hex(txhash)}')
         check_successful_tx(deployer.web3, txhash, deployer.wait)
 
@@ -223,9 +226,7 @@ def open_and_deposit(
             A,
             int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
             B,
-        ).transact(
-            deployer.transaction,
-        )
+        ).call_and_transact(deployer.transaction)
         log.debug(
             f'Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {A} in a channel with '
             f'identifier={channel_identifier} and partner= {B} txHash={encode_hex(txhash)}',
@@ -245,7 +246,7 @@ def open_and_deposit(
             B,
             int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
             A,
-        ).transact(
+        ).call_and_transact(
             deployer.transaction,
         )
         log.debug(

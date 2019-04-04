@@ -22,9 +22,9 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
     deposit_A = 200
     channel_identifier = create_channel(A, B)[0]
 
-    custom_token.functions.mint(deposit_A).transact({'from': A})
+    custom_token.functions.mint(deposit_A).call_and_transact({'from': A})
 
-    custom_token.functions.approve(token_network.address, deposit_A).transact({'from': A})
+    custom_token.functions.approve(token_network.address, deposit_A).call_and_transact({'from': A})
 
     # Validation failure with an invalid channel identifier
     with pytest.raises(ValidationError):
@@ -33,7 +33,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             B,
-        ).transact({'from': A})
+        )
     # Validation failure with the empty string instead of a channel identifier
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -41,7 +41,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             B,
-        ).transact({'from': A})
+        )
     # Validation failure with a negative number instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -49,7 +49,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             -1,
             A,
             deposit_A,
-        ).transact({'from': A})
+        )
     # Validation failure with an empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -57,7 +57,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             '',
             deposit_A,
             B,
-        ).transact({'from': A})
+        )
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -65,7 +65,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             FAKE_ADDRESS,
             deposit_A,
             B,
-        ).transact({'from': A})
+        )
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -73,7 +73,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             0x0,
             deposit_A,
             B,
-        ).transact({'from': A})
+        )
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -81,7 +81,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             '',
-        ).transact({'from': A})
+        )
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -89,7 +89,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             FAKE_ADDRESS,
-        ).transact({'from': A})
+        )
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -97,7 +97,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             0x0,
-        ).transact({'from': A})
+        )
     # Validation failure with a negative amount of deposit
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(
@@ -105,7 +105,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             -1,
             B,
-        ).transact({'from': A})
+        )
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -113,7 +113,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             EMPTY_ADDRESS,
             deposit_A,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -121,7 +121,7 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             deposit_A,
             EMPTY_ADDRESS,
-        ).transact({'from': A})
+        ).call({'from': A})
     # Transaction failure with zero total deposit
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -129,14 +129,14 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
             A,
             0,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,
         A,
         deposit_A,
         B,
-    ).transact({'from': A})
+    )
 
 
 def test_deposit_notapproved(
@@ -144,15 +144,17 @@ def test_deposit_notapproved(
         custom_token,
         create_channel,
         get_accounts,
+        web3,
 ):
     """ Calling setTotalDeposit() fails without approving transfers on the token contract """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     deposit_A = 1
 
-    custom_token.functions.mint(deposit_A).transact({'from': A})
+    custom_token.functions.mint(deposit_A).call_and_transact({'from': A})
+    web3.testing.mine(1)
     balance = custom_token.functions.balanceOf(A).call()
-    assert balance >= deposit_A
+    assert balance >= deposit_A, f'minted {deposit_A} but the balance is still {balance}'
 
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -160,7 +162,7 @@ def test_deposit_notapproved(
             A,
             deposit_A,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
 
 def test_null_or_negative_deposit_fail(
@@ -179,9 +181,9 @@ def test_null_or_negative_deposit_fail(
 
     # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).transact({'from': A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call({'from': A})
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).transact({'from': A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({'from': A})
 
 
 def test_deposit_delegate_works(token_network, get_accounts, create_channel, channel_deposit):
@@ -209,21 +211,21 @@ def test_deposit_wrong_channel(
             A,
             10,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             A,
             10,
             C,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,
         A,
         10,
         B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
 
 @pytest.mark.skip('Not necessary with limited deposits for the test release.')
@@ -313,13 +315,13 @@ def test_deposit_wrong_state_fail(
         A,
         vals_A.deposit,
         B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     token_network.functions.setTotalDeposit(
         channel_identifier,
         B,
         vals_B.deposit,
         A,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
     token_network.functions.closeChannel(
         channel_identifier,
@@ -328,7 +330,7 @@ def test_deposit_wrong_state_fail(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     assign_tokens(A, 10)
     assign_tokens(B, 10)
@@ -340,16 +342,16 @@ def test_deposit_wrong_state_fail(
             A,
             vals_A.deposit,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             vals_B.deposit,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
@@ -357,14 +359,14 @@ def test_deposit_wrong_state_fail(
             A,
             vals_A.deposit,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             vals_B.deposit,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
 
 def test_deposit_channel_event(

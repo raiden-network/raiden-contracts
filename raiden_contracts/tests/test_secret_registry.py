@@ -16,15 +16,15 @@ def test_version(secret_registry_contract):
 def test_register_secret_call(secret_registry_contract, event_handler):
     """ Test the registrable and not registrable secrets """
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret().transact()
+        secret_registry_contract.functions.registerSecret()
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret(3).transact()
+        secret_registry_contract.functions.registerSecret(3)
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret(0).transact()
+        secret_registry_contract.functions.registerSecret(0)
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret('').transact()
+        secret_registry_contract.functions.registerSecret('')
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret(fake_bytes(33)).transact()
+        secret_registry_contract.functions.registerSecret(fake_bytes(33))
 
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is False
     assert secret_registry_contract.functions.registerSecret(fake_bytes(10, '02')).call() is True
@@ -40,7 +40,7 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts):
     # even though this does not change the state
     assert secret_registry_contract.functions.registerSecret(secret).call({'from': A}) is True
 
-    secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
+    secret_registry_contract.functions.registerSecret(secret).call_and_transact({'from': A})
 
     # We use call here to get the return value
     assert secret_registry_contract.functions.registerSecret(secret).call({'from': A}) is False
@@ -56,14 +56,16 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
 
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
 
-    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact({'from': A})
+    txn_hash = secret_registry_contract.functions.registerSecret(
+        secret,
+    ).call_and_transact({'from': A})
 
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
         secrethash,
     ).call() == get_block(txn_hash)
 
     # A should be able to register any number of secrets
-    secret_registry_contract.functions.registerSecret(secret2).transact({'from': A})
+    secret_registry_contract.functions.registerSecret(secret2).call_and_transact({'from': A})
 
 
 def test_register_secret_batch(secret_registry_contract, get_accounts, get_block):
@@ -75,7 +77,7 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
     for h in secret_hashes:
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == 0
 
-    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).transact({
+    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).call_and_transact({
         'from': A,
     })
     block = get_block(txn_hash)
@@ -94,7 +96,7 @@ def test_register_secret_batch_return_value(secret_registry_contract, get_accoun
     secrets[2] = fake_bytes(32, '04')
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is True
 
-    secret_registry_contract.functions.registerSecret(secrets[1]).transact({'from': A})
+    secret_registry_contract.functions.registerSecret(secrets[1]).call_and_transact({'from': A})
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is False
 
 
@@ -104,7 +106,7 @@ def test_events(secret_registry_contract, event_handler):
     secrethash = Web3.sha3(secret)
     ev_handler = event_handler(secret_registry_contract)
 
-    txn_hash = secret_registry_contract.functions.registerSecret(secret).transact()
+    txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
 
     ev_handler.add(txn_hash, EVENT_SECRET_REVEALED, check_secret_revealed(secrethash, secret))
     ev_handler.check()
@@ -117,7 +119,7 @@ def test_register_secret_batch_events(secret_registry_contract, event_handler):
 
     ev_handler = event_handler(secret_registry_contract)
 
-    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).transact()
+    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).call_and_transact()
 
     ev_handler.add(
         txn_hash,

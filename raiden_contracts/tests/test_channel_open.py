@@ -32,51 +32,51 @@ def test_open_channel_call(token_network, get_accounts):
 
     # Validation failure with a negative settle timeout
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, B, -3).transact()
+        token_network.functions.openChannel(A, B, -3)
 
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(0x0, B, settle_timeout).transact()
+        token_network.functions.openChannel(0x0, B, settle_timeout)
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel('', B, settle_timeout).transact()
+        token_network.functions.openChannel('', B, settle_timeout)
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(FAKE_ADDRESS, B, settle_timeout).transact()
+        token_network.functions.openChannel(FAKE_ADDRESS, B, settle_timeout)
 
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, 0x0, settle_timeout).transact()
+        token_network.functions.openChannel(A, 0x0, settle_timeout)
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, '', settle_timeout).transact()
+        token_network.functions.openChannel(A, '', settle_timeout)
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, FAKE_ADDRESS, settle_timeout).transact()
+        token_network.functions.openChannel(A, FAKE_ADDRESS, settle_timeout)
 
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(EMPTY_ADDRESS, B, settle_timeout).transact()
+        token_network.functions.openChannel(EMPTY_ADDRESS, B, settle_timeout).call()
 
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, EMPTY_ADDRESS, settle_timeout).transact()
+        token_network.functions.openChannel(A, EMPTY_ADDRESS, settle_timeout).call()
 
     # Cannot open a channel between 2 participants with the same address
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, A, settle_timeout).transact()
+        token_network.functions.openChannel(A, A, settle_timeout).call()
 
     # Cannot open a channel for one-too-small settle timeout
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN - 1).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN - 1).call()
 
     # Cannot open a channel for one-too-big settle timeout
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).call()
 
 
 def test_max_1_channel(token_network, get_accounts, create_channel):
@@ -85,9 +85,9 @@ def test_max_1_channel(token_network, get_accounts, create_channel):
     create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).call()
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).transact()
+        token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).call()
 
 
 def test_participants_hash(token_network, get_accounts):
@@ -201,7 +201,7 @@ def test_open_channel_state(token_network, get_accounts):
     ).call() == 0
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
-    token_network.functions.openChannel(A, B, settle_timeout).transact()
+    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
@@ -262,7 +262,7 @@ def test_reopen_channel(
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
-    token_network.functions.openChannel(A, B, settle_timeout).transact()
+    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
         get_participants_hash(A, B),
@@ -270,7 +270,7 @@ def test_reopen_channel(
 
     # Opening twice fails
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, settle_timeout).transact()
+        token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Close channel
     token_network.functions.closeChannel(
@@ -280,14 +280,14 @@ def test_reopen_channel(
         0,
         EMPTY_ADDITIONAL_HASH,
         EMPTY_SIGNATURE,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Reopen Channel before settlement fails
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, settle_timeout).transact()
+        token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout)
+    web3.testing.mine(settle_timeout + 1)
 
     # Settle channel
     token_network.functions.settleChannel(
@@ -300,10 +300,10 @@ def test_reopen_channel(
         0,
         0,
         EMPTY_LOCKSROOT,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # Reopening the channel should work iff channel is settled
-    token_network.functions.openChannel(A, B, settle_timeout).transact()
+    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
     assert channel_identifier2 != channel_identifier1
     assert token_network.functions.participants_hash_to_channel_identifier(
@@ -358,7 +358,11 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
-    txn_hash = token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
+    txn_hash = token_network.functions.openChannel(
+        A,
+        B,
+        TEST_SETTLE_TIMEOUT_MIN,
+    ).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     ev_handler.add(

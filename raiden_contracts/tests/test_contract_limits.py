@@ -35,23 +35,23 @@ def test_register_three_but_not_four(
         token0.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact()
+    ).call_and_transact()
     token_network_registry.functions.createERC20TokenNetwork(
         token1.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact()
+    ).call_and_transact()
     token_network_registry.functions.createERC20TokenNetwork(
         token2.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
-    ).transact()
+    ).call_and_transact()
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
             token3.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).transact()
+        ).call()
 
 
 def test_channel_participant_deposit_limit_value(token_network):
@@ -86,14 +86,14 @@ def test_participant_deposit_limit(
             A,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     # Deposit some tokens, under the limit
     token_network.functions.setTotalDeposit(
@@ -101,7 +101,7 @@ def test_participant_deposit_limit(
         A,
         deposit_A,
         B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert info_A[ParticipantInfoIndex.DEPOSIT] == deposit_A
 
@@ -110,7 +110,7 @@ def test_participant_deposit_limit(
         B,
         deposit_B,
         A,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.DEPOSIT] == deposit_B
 
@@ -120,27 +120,27 @@ def test_participant_deposit_limit(
             A,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(
             channel_identifier,
             B,
             MAX_ETH_CHANNEL_PARTICIPANT + 1,
             A,
-        ).transact({'from': B})
+        ).call({'from': B})
 
     token_network.functions.setTotalDeposit(
         channel_identifier,
         A,
         MAX_ETH_CHANNEL_PARTICIPANT,
         B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
     token_network.functions.setTotalDeposit(
         channel_identifier,
         B,
         MAX_ETH_CHANNEL_PARTICIPANT,
         A,
-    ).transact({'from': B})
+    ).call_and_transact({'from': B})
 
 
 @pytest.mark.skip(reason='Only for local testing, otherwise it takes too much time to run.')
@@ -171,7 +171,7 @@ def test_network_deposit_limit(
             participant1,
             remaining_to_reach_limit,
             participant2,
-        ).transact({'from': participant1})
+        ).call_and_transact({'from': participant1})
 
     remaining_to_reach_limit = remaining()
     while remaining_to_reach_limit > 0:
@@ -187,7 +187,7 @@ def test_network_deposit_limit(
                 A,
                 MAX_ETH_CHANNEL_PARTICIPANT,
                 B,
-            ).transact({'from': A})
+            ).call_and_transact({'from': A})
         except TransactionFailed:
             send_remaining(channel_identifier, A, B)
             break
@@ -198,7 +198,7 @@ def test_network_deposit_limit(
                 B,
                 MAX_ETH_CHANNEL_PARTICIPANT,
                 A,
-            ).transact({'from': B})
+            ).call_and_transact({'from': B})
         except TransactionFailed:
             send_remaining(channel_identifier, B, A)
             break
@@ -219,7 +219,7 @@ def test_network_deposit_limit(
         A,
         last_deposit,
         B,
-    ).transact({'from': A})
+    ).call_and_transact({'from': A})
 
     # After token network limit is reached, we cannot deposit anymore tokens in existent channels
     with pytest.raises(TransactionFailed):
@@ -228,7 +228,7 @@ def test_network_deposit_limit(
             A,
             1,
             B,
-        ).transact({'from': A})
+        ).call({'from': A})
 
     # After token network limit is reached, we cannot open new channels
     C = create_account()

@@ -110,7 +110,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
             self.token.functions.transfer(
                 address,
                 token_amount,
-            ).transact({
+            ).call_and_transact({
                 'from': private_key_to_address(deployer_key.to_hex()),
             })
 
@@ -141,7 +141,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
             self.token.address,
             MAX_ETH_CHANNEL_PARTICIPANT,
             MAX_ETH_TOKEN_NETWORK,
-        ).transact()
+        ).call_and_transact()
 
         token_network_address = self.token_network_registry.functions.token_to_token_networks(
             self.token.address,

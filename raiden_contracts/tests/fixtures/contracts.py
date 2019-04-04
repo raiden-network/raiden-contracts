@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
@@ -41,6 +42,7 @@ def deploy_contract_txhash():
         if args is None:
             args = []
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
+        # Failure does not fire an exception.  Check the receipt for status.
         return contract.constructor(*args).transact({'from': deployer_address})
     return fn
 
@@ -59,6 +61,9 @@ def deploy_contract(deploy_contract_txhash):
         txhash = deploy_contract_txhash(web3, deployer_address, abi, bytecode, args)
         contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
         web3.testing.mine(1)
+
+        if web3.eth.getTransactionReceipt(txhash).status != 1:
+            raise TransactionFailed('deployment failed')
 
         return contract(contract_address)
     return fn

@@ -22,12 +22,12 @@ def test_settle_timeout_inrange(
     large_settle_timeout = TEST_SETTLE_TIMEOUT_MAX + 1
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, small_settle_timeout).transact()
+        token_network.functions.openChannel(A, B, small_settle_timeout).call()
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.openChannel(A, B, large_settle_timeout).transact()
+        token_network.functions.openChannel(A, B, large_settle_timeout).call()
 
-    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).transact()
+    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (
         settle_block_number,
@@ -43,8 +43,8 @@ def test_settle_timeout_inrange(
         0,
         fake_bytes(32),
         fake_bytes(64),
-    ).transact({'from': A})
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+    ).call_and_transact({'from': A})
+    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
         channel_identifier,
         A,
@@ -55,8 +55,8 @@ def test_settle_timeout_inrange(
         0,
         0,
         fake_bytes(32),
-    ).transact({'from': A})
-    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).transact()
+    ).call_and_transact({'from': A})
+    token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (
         settle_block_number,
