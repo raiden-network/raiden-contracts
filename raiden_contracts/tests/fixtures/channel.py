@@ -762,4 +762,4 @@ def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
     # call() raises TransactionFailed exception
     contract_function.call({'from': A})
     # transact() changes the chain state
-    contract_function.transact({'from': A})
+    contract_function.call_and_transact({'from': A})
