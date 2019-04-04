@@ -3,11 +3,11 @@ import json
 from copy import deepcopy
 from json import JSONDecodeError
 from pathlib import Path
-from semver import compare
 from typing import Any, Dict, List, Optional
 
 from deprecated import deprecated
 from mypy_extensions import TypedDict
+from semver import compare
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, DeploymentModule
 from raiden_contracts.utils.type_aliases import Address
