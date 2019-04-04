@@ -5,7 +5,6 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from deprecated import deprecated
 from mypy_extensions import TypedDict
 from semver import compare
 
@@ -124,20 +123,6 @@ def contracts_deployed_path(
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else 'private_net'
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
-
-
-@deprecated(reason='Use get_contract_deployment_info()')
-def get_contracts_deployed(
-        chain_id: int,
-        version: Optional[str] = None,
-        services: bool = False,
-) -> DeployedContracts:
-    """Reads the deployment data."""
-    return get_contracts_deployment_info(
-        chain_id=chain_id,
-        version=version,
-        module=DeploymentModule.SERVICES if services else DeploymentModule.RAIDEN,
-    )
 
 
 def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) -> DeployedContracts:
