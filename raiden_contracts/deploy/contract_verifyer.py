@@ -213,16 +213,16 @@ class ContractVerifyer:
             contracts[contract_name]['transaction_hash'],
         )
         assert receipt['blockNumber'] == contracts[contract_name]['block_number'], (
-            f'We have block_number {contracts[contract_name]["block_number"]} '
-            f'instead of {receipt["blockNumber"]}'
+            f'We have block_number {contracts[contract_name]["block_number"]} in the deployment '
+            f'info, but {receipt["blockNumber"]} in the transaction receipt from web3.'
         )
         assert receipt['gasUsed'] == contracts[contract_name]['gas_cost'], (
-            f'We have gasUsed {contracts[contract_name]["gas_cost"]} '
-            f'instead of {receipt["gasUsed"]}'
+            f'We have gasUsed {contracts[contract_name]["gas_cost"]} in the deployment info, '
+            f'but {receipt["gasUsed"]} in the transaction receipt from web3.'
         )
         assert receipt['contractAddress'] == contracts[contract_name]['address'], (
-            f'We have contractAddress {contracts[contract_name]["address"]} '
-            f'instead of {receipt["contractAddress"]}'
+            f'We have contractAddress {contracts[contract_name]["address"]} in the deployment info'
+            f' but {receipt["contractAddress"]} in the transaction receipt from web3.'
         )
 
         # Check the contract version
