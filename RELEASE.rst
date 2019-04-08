@@ -132,6 +132,14 @@ Create a New Data Directory
 
 Copy ``data`` directory into ``data_x.y.z`` where ``x.y.z`` is the contract version.  Also, edit ``data_x.y.z/contracts.json`` to change ``contracts_version`` from ``null`` to ``x.y.z``.
 
+.. _change-changelog:
+
+Change the Versions of CHANGELOG.md
+-----------------------------------
+
+* Make sure all significant changes from the last release are listed.
+* Turn the existing ``Unreleased`` section into a new release section.
+
 .. _bump-package:
 
 Bump Package Version
@@ -152,14 +160,6 @@ Before bumping the package version, ``git add`` the deployment data at ``data/de
 * ``patch`` bumps are made for any other fix
 
 This command triggers a commit and a local tag is created. A PR must be made with the commit changes.
-
-.. _change-changelog:
-
-Change the Versions of CHANGELOG.md
------------------------------------
-
-* Make sure all significant changes from the last release are listed.
-* Turn the existing ``Unreleased`` section into a new release section.
 
 .. _release-package:
 
