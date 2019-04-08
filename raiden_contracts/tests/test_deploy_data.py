@@ -6,9 +6,7 @@ from raiden_contracts.constants import CONTRACTS_VERSION, DeploymentModule
 from raiden_contracts.contract_manager import (
     contracts_data_path,
     contracts_deployed_path,
-    get_contracts_deployed,
     get_contracts_deployment_info,
-    merge_deployment_data,
     version_provides_services,
 )
 
@@ -60,9 +58,7 @@ def test_deploy_data_has_fields_raiden(
         version: Optional[str],
         chain_id: int,
 ):
-    data = get_contracts_deployed(chain_id, version, services=False)
-    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
-    assert data2 == data
+    data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
@@ -80,9 +76,7 @@ def test_deploy_data_has_fields_services(
         version: Optional[str],
         chain_id: int,
 ):
-    data = get_contracts_deployed(chain_id, version, services=True)
-    data2 = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
-    assert data2 == data
+    data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
@@ -97,12 +91,8 @@ def test_deploy_data_all(
         version: Optional[str],
         chain_id: int,
 ):
-    data_services = get_contracts_deployed(chain_id, version, services=True)
-    data_raiden = get_contracts_deployed(chain_id, version, services=False)
-    data_all_computed = merge_deployment_data(data_services, data_raiden)
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
-    data_default = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
-    assert data_all == data_all_computed
+    data_default = get_contracts_deployment_info(chain_id, version)
     assert data_all == data_default
 
     for name in RAIDEN_CONTRACT_NAMES + SERVICE_CONTRACT_NAMES:

@@ -11,8 +11,13 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    DeploymentModule,
 )
-from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
+from raiden_contracts.contract_manager import (
+    ContractManager,
+    DeployedContracts,
+    contracts_precompiled_path,
+)
 from raiden_contracts.deploy.etherscan_verify import (
     api_of_chain_id,
     etherscan_verify,
@@ -35,7 +40,7 @@ def test_get_constructor_args_no_args():
             },
         },
     }
-    assert get_constructor_args(deploy_info, contract_name, contract_manager) == ''
+    assert get_constructor_args(deploy_info, contract_name, contract_manager) == ''  # type: ignore
 
 
 def abi_with_constructor_input_types(types: List[str]):
@@ -51,7 +56,7 @@ def test_get_constructor_args_one_arg():
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256']),
     }
-    deploy_info = {
+    deploy_info: DeployedContracts = {  # type: ignore
         'contracts': {
             contract_name: {
                 'constructor_arguments': [16],
@@ -68,7 +73,7 @@ def test_get_constructor_args_two_args():
     contract_manager.contracts[contract_name] = {
         'abi': abi_with_constructor_input_types(['uint256', 'bool']),
     }
-    deploy_info = {
+    deploy_info: DeployedContracts = {  # type: ignore
         'contracts': {
             contract_name: {
                 'constructor_arguments': [16, True],
@@ -83,7 +88,7 @@ def test_get_constructor_args_two_args():
 def test_post_data_for_etherscan_verification():
     output = post_data_for_etherscan_verification(
         apikey='jkl;jkl;jkl;',
-        deployment_info={'address': 'dummy_address'},
+        deployment_info={'address': 'dummy_address'},  # type: ignore
         source='dummy_source',
         contract_name=contract_name,
         metadata={
@@ -113,13 +118,13 @@ def test_post_data_for_etherscan_verification():
 
 def test_run_join_contracts():
     """ Just running join_sources() """
-    join_sources('raiden', CONTRACT_TOKEN_NETWORK_REGISTRY)
-    join_sources('raiden', CONTRACT_SECRET_REGISTRY)
-    join_sources('raiden', CONTRACT_ENDPOINT_REGISTRY)
-    join_sources('services', CONTRACT_MONITORING_SERVICE)
-    join_sources('services', CONTRACT_SERVICE_REGISTRY)
-    join_sources('services', CONTRACT_ONE_TO_N)
-    join_sources('services', CONTRACT_USER_DEPOSIT)
+    join_sources(DeploymentModule.RAIDEN, CONTRACT_TOKEN_NETWORK_REGISTRY)
+    join_sources(DeploymentModule.RAIDEN, CONTRACT_SECRET_REGISTRY)
+    join_sources(DeploymentModule.RAIDEN, CONTRACT_ENDPOINT_REGISTRY)
+    join_sources(DeploymentModule.SERVICES, CONTRACT_MONITORING_SERVICE)
+    join_sources(DeploymentModule.SERVICES, CONTRACT_SERVICE_REGISTRY)
+    join_sources(DeploymentModule.SERVICES, CONTRACT_ONE_TO_N)
+    join_sources(DeploymentModule.SERVICES, CONTRACT_USER_DEPOSIT)
 
 
 def test_guid_status():

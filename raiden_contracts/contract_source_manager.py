@@ -7,7 +7,7 @@ from typing import Dict
 
 from solc import compile_files
 
-from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS
+from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS, DeploymentModule
 from raiden_contracts.contract_manager import ContractManager
 
 _BASE = Path(__file__).parent
@@ -148,6 +148,15 @@ class ContractSourceManager():
 
 def contracts_source_path():
     return contracts_source_path_with_stem('data/source')
+
+
+def contracts_source_path_of_deployment_module(module: DeploymentModule):
+    if module == DeploymentModule.RAIDEN:
+        return contracts_source_path()['raiden']
+    elif module == DeploymentModule.SERVICES:
+        return contracts_source_path()['services']
+    else:
+        raise ValueError(f'No source known for module {module}')
 
 
 def contracts_source_path_with_stem(stem):

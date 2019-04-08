@@ -18,24 +18,30 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
     ContractManager,
+    DeployedContract,
+    DeployedContracts,
     contracts_precompiled_path,
-    get_contracts_deployed,
+    get_contracts_deployment_info,
 )
-from raiden_contracts.contract_source_manager import contracts_source_path
+from raiden_contracts.contract_source_manager import (
+    contracts_source_path,
+    contracts_source_path_of_deployment_module,
+)
 
 ContractListEntry = namedtuple('ContractListEntry', 'module name')
 
 CONTRACT_LIST = [
-    ContractListEntry(module='raiden', name=CONTRACT_ENDPOINT_REGISTRY),
-    ContractListEntry(module='raiden', name=CONTRACT_SECRET_REGISTRY),
-    ContractListEntry(module='raiden', name=CONTRACT_TOKEN_NETWORK_REGISTRY),
-    ContractListEntry(module='services', name=CONTRACT_SERVICE_REGISTRY),
-    ContractListEntry(module='services', name=CONTRACT_MONITORING_SERVICE),
-    ContractListEntry(module='services', name=CONTRACT_ONE_TO_N),
-    ContractListEntry(module='services', name=CONTRACT_USER_DEPOSIT),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_ENDPOINT_REGISTRY),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_SECRET_REGISTRY),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK_REGISTRY),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_SERVICE_REGISTRY),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_MONITORING_SERVICE),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_ONE_TO_N),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_USER_DEPOSIT),
 ]
 
 
@@ -87,7 +93,7 @@ api_of_chain_id = {
 }
 
 
-def join_sources(source_module: str, contract_name: str):
+def join_sources(source_module: DeploymentModule, contract_name: str):
     """ Use join-contracts.py to concatenate all imported Solidity files.
 
     Args:
@@ -100,7 +106,9 @@ def join_sources(source_module: str, contract_name: str):
         './utils/join-contracts.py',
         '--import-map',
         json.dumps(remapping),
-        str(contracts_source_path()[source_module].joinpath(contract_name + '.sol')),
+        str(contracts_source_path_of_deployment_module(
+            source_module,
+        ).joinpath(contract_name + '.sol')),
         str(joined_file),
     ]
     working_dir = Path(__file__).parent.parent
@@ -114,7 +122,7 @@ def join_sources(source_module: str, contract_name: str):
 
 
 def get_constructor_args(
-        deployment_info: Dict,
+        deployment_info: DeployedContracts,
         contract_name: str,
         contract_manager: ContractManager,
 ):
@@ -136,7 +144,7 @@ def get_constructor_args(
 
 def post_data_for_etherscan_verification(
         apikey: str,
-        deployment_info: Dict,
+        deployment_info: DeployedContract,
         source: str,
         contract_name: str,
         metadata: Dict,
@@ -166,7 +174,7 @@ def post_data_for_etherscan_verification(
 def etherscan_verify_contract(
         chain_id: int,
         apikey: str,
-        source_module: str,
+        source_module: DeploymentModule,
         contract_name: str,
 ):
     """ Calls Etherscan API for verifying the Solidity source of a contract.
@@ -178,9 +186,9 @@ def etherscan_verify_contract(
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     etherscan_api = api_of_chain_id[chain_id]
-    deployment_info = get_contracts_deployed(
+    deployment_info = get_contracts_deployment_info(
         chain_id=chain_id,
-        services=(source_module == 'services'),
+        module=source_module,
     )
     contract_manager = ContractManager(contracts_precompiled_path())
 
