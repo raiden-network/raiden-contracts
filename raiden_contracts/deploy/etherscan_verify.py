@@ -27,7 +27,10 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
-from raiden_contracts.contract_source_manager import contracts_source_path
+from raiden_contracts.contract_source_manager import (
+    contracts_source_path,
+    contracts_source_path_of_deployment_module,
+)
 
 ContractListEntry = namedtuple('ContractListEntry', 'module name')
 
@@ -103,7 +106,9 @@ def join_sources(source_module: DeploymentModule, contract_name: str):
         './utils/join-contracts.py',
         '--import-map',
         json.dumps(remapping),
-        str(contracts_source_path()[source_module].joinpath(contract_name + '.sol')),
+        str(contracts_source_path_of_deployment_module(
+            source_module,
+        ).joinpath(contract_name + '.sol')),
         str(joined_file),
     ]
     working_dir = Path(__file__).parent.parent
