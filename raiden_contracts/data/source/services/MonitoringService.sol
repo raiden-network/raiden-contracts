@@ -111,7 +111,7 @@ contract MonitoringService is Utils {
         address monitoring_service_address,
         bytes memory reward_proof_signature
     )
-    internal
+        internal
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
         uint256 channel_identifier = token_network.getChannelIdentifier(
