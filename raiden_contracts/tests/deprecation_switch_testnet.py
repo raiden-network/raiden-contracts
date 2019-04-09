@@ -147,16 +147,12 @@ def deprecation_test_setup(
 
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
     token_network_address = register_token_network(
-        web3=deployer.web3,
-        caller=deployer.owner,
+        deployer=deployer,
         token_registry_abi=abi,
         token_registry_address=deployed_contracts[CONTRACT_TOKEN_NETWORK_REGISTRY]['address'],
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
-        token_registry_version=deployer.contract_manager.version_string(),
-        wait=deployer.wait,
-        contracts_version=deployer.contracts_version,
     )
 
     token_network_abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)

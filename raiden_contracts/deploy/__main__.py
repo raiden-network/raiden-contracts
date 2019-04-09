@@ -9,22 +9,17 @@ from typing import Dict, Optional
 
 import click
 from click import BadParameter
-from eth_utils import denoms, encode_hex, is_address, to_checksum_address
+from eth_utils import is_address, to_checksum_address
 from semver import compare
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK_REGISTRY
-from raiden_contracts.contract_manager import (
-    ContractManager,
-    contract_version_string,
-    contracts_precompiled_path,
-)
+from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.utils.transaction import check_successful_tx
 
 LOG = getLogger(__name__)
 
@@ -413,7 +408,6 @@ def register(
     )
     token_type = ctx.obj['token_type']
     deployer = ctx.obj['deployer']
-    expected_version = contract_version_string(contracts_version)
 
     if token_address:
         ctx.obj['deployed_contracts'][token_type] = token_address
@@ -425,17 +419,12 @@ def register(
     assert token_type in ctx.obj['deployed_contracts']
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
     register_token_network(
-        web3=deployer.web3,
-        caller=deployer.owner,
+        deployer=deployer,
         token_registry_abi=abi,
         token_registry_address=ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj['deployed_contracts'][token_type],
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
-        wait=ctx.obj['wait'],
-        gas_price=gas_price,
-        token_registry_version=expected_version,
-        contracts_version=contracts_version,
     )
 
 
@@ -468,21 +457,15 @@ def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -
 
 
 def register_token_network(
-        web3: Web3,
-        caller: str,
+        deployer: ContractDeployer,
         token_registry_abi: Dict,
         token_registry_address: str,
-        token_registry_version: str,
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-        contracts_version: Optional[str],
-        wait=10,
-        gas_limit=4000000,
-        gas_price=10,
 ):
     """Register token with a TokenNetworkRegistry contract."""
-    with_limits = contracts_version_expects_deposit_limits(contracts_version)
+    with_limits = contracts_version_expects_deposit_limits(deployer.contracts_version)
     if with_limits:
         assert channel_participant_deposit_limit is not None, \
             'contracts_version 0.9.0 and afterwards expect channel_participant_deposit_limit'
@@ -493,14 +476,14 @@ def register_token_network(
             'contracts_version below 0.9.0 does not expect channel_participant_deposit_limit'
         assert token_network_deposit_limit is None, \
             'contracts_version below 0.9.0 does not expect token_network_deposit_limit'
-    token_network_registry = web3.eth.contract(
+    token_network_registry = deployer.web3.eth.contract(
         abi=token_registry_abi,
         address=token_registry_address,
     )
 
-    assert token_network_registry.functions.contract_version().call() == token_registry_version, \
-        f'got {token_network_registry.functions.contract_version().call()},' \
-        f'expected {token_registry_version}'
+    version_from_onchain = token_network_registry.functions.contract_version().call()
+    assert version_from_onchain == deployer.contract_manager.version_string(), \
+        f'got {version_from_onchain}, expected {deployer.contract_manager.version_string()}'
 
     command = token_network_registry.functions.createERC20TokenNetwork(
         token_address,
@@ -509,22 +492,7 @@ def register_token_network(
     ) if with_limits else token_network_registry.functions.createERC20TokenNetwork(
         token_address,
     )
-
-    txhash = command.transact(
-        {
-            'from': caller,
-            'gas': gas_limit,
-            'gasPrice': gas_price * denoms.gwei,  # pylint: disable=E1101
-        },
-    )
-    LOG.debug(
-        'calling createERC20TokenNetwork(%s) txHash=%s' %
-        (
-            token_address,
-            encode_hex(txhash),
-        ),
-    )
-    (receipt, _) = check_successful_tx(web3=web3, txid=txhash, timeout=wait)
+    deployer.transact(command)
 
     token_network_address = token_network_registry.functions.token_to_token_networks(
         token_address,
@@ -532,9 +500,8 @@ def register_token_network(
     token_network_address = to_checksum_address(token_network_address)
 
     print(
-        'TokenNetwork address: {0} Gas used: {1}'.format(
+        'TokenNetwork address: {0}'.format(
             token_network_address,
-            receipt['gasUsed'],
         ),
     )
     return token_network_address
