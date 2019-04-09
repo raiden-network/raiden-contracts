@@ -22,8 +22,6 @@ from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
     contracts_version_expects_deposit_limits,
-    deploy_raiden_contracts,
-    deploy_service_contracts,
     error_removed_option,
     register_token_network,
     validate_address,
@@ -54,8 +52,7 @@ def deployer(web3):
 @pytest.mark.slow
 @pytest.fixture(scope='session')
 def deployed_raiden_info(deployer):
-    return deploy_raiden_contracts(
-        deployer=deployer,
+    return deployer.deploy_raiden_contracts(
         max_num_of_token_networks=1,
     )
 
@@ -82,8 +79,7 @@ DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
 @pytest.mark.slow
 @pytest.fixture(scope='session')
 def deployed_service_info(deployer, token_address):
-    return deploy_service_contracts(
-        deployer=deployer,
+    return deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
     )
@@ -193,7 +189,7 @@ def test_deploy_script_raiden(
         wait=10,
     )
     with pytest.raises(ValidationError):
-        deploy_raiden_contracts(deployer, 1)
+        deployer.deploy_raiden_contracts(1)
 
 
 def test_deploy_script_token(
@@ -439,8 +435,7 @@ def test_red_eyes_deployer(web3):
         wait=10,
         contracts_version='0.4.0',
     )
-    deploy_raiden_contracts(
-        deployer=deployer,
+    deployer.deploy_raiden_contracts(
         max_num_of_token_networks=None,
     )
 

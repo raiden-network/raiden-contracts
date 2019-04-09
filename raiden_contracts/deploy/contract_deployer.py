@@ -1,15 +1,26 @@
 from logging import getLogger
-from typing import Optional
+from typing import List, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
 from web3 import Web3
-from web3.contract import ContractFunction
+from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
 
-from raiden_contracts.constants import CONTRACTS_VERSION
+from raiden_contracts.constants import (
+    CONTRACT_ENDPOINT_REGISTRY,
+    CONTRACT_MONITORING_SERVICE,
+    CONTRACT_ONE_TO_N,
+    CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    CONTRACT_USER_DEPOSIT,
+    CONTRACTS_VERSION,
+    DEPLOY_SETTLE_TIMEOUT_MAX,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
+)
 from raiden_contracts.contract_manager import contract_version_string
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
-from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
+from raiden_contracts.deploy.contract_verifyer import ContractVerifyer, DeployedContracts
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 
@@ -142,3 +153,116 @@ class ContractDeployer(ContractVerifyer):
         assert token_address and is_address(token_address)
         token_address = to_checksum_address(token_address)
         return {token_type: token_address}
+
+    def deploy_raiden_contracts(
+            self,
+            max_num_of_token_networks: Optional[int],
+    ) -> DeployedContracts:
+        """ Deploy all required raiden contracts and return a dict of contract_name:address
+
+        Args:
+            max_num_of_token_networks (Optional[int]): The max number of tokens that can be
+            registered to the TokenNetworkRegistry. If None, the argument is omitted from
+            the call to the constructor of TokenNetworkRegistry.
+        """
+
+        deployed_contracts: DeployedContracts = {
+            'contracts_version': self.contract_version_string(),
+            'chain_id': int(self.web3.version.network),
+            'contracts': {},
+        }
+
+        self._deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployed_contracts)
+        secret_registry = self._deploy_and_remember(
+            contract_name=CONTRACT_SECRET_REGISTRY,
+            arguments=[],
+            deployed_contracts=deployed_contracts,
+        )
+        token_network_registry_args = [
+            secret_registry.address,
+            deployed_contracts['chain_id'],
+            DEPLOY_SETTLE_TIMEOUT_MIN,
+            DEPLOY_SETTLE_TIMEOUT_MAX,
+        ]
+        if max_num_of_token_networks:
+            token_network_registry_args.append(max_num_of_token_networks)
+        self._deploy_and_remember(
+            contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
+            arguments=token_network_registry_args,
+            deployed_contracts=deployed_contracts,
+        )
+
+        return deployed_contracts
+
+    def _deploy_and_remember(
+            self,
+            contract_name: str,
+            arguments: List,
+            deployed_contracts: 'DeployedContracts',
+    ) -> Contract:
+        """ Deploys contract_name with arguments and store the result in deployed_contracts. """
+        receipt = self.deploy(contract_name, arguments)
+        deployed_contracts['contracts'][contract_name] = _deployed_data_from_receipt(
+            receipt=receipt,
+            constructor_arguments=arguments,
+        )
+        return self.web3.eth.contract(
+            abi=self.contract_manager.get_contract_abi(contract_name),
+            address=deployed_contracts['contracts'][contract_name]['address'],
+        )
+
+    def deploy_service_contracts(
+            self,
+            token_address: str,
+            user_deposit_whole_balance_limit: int,
+    ):
+        """Deploy 3rd party service contracts"""
+        deployed_contracts: DeployedContracts = {
+            'contracts_version': self.contract_version_string(),
+            'chain_id': int(self.web3.version.network),
+            'contracts': {},
+        }
+
+        self._deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployed_contracts)
+        user_deposit = self._deploy_and_remember(
+            contract_name=CONTRACT_USER_DEPOSIT,
+            arguments=[token_address, user_deposit_whole_balance_limit],
+            deployed_contracts=deployed_contracts,
+        )
+
+        monitoring_service_constructor_args = [
+            token_address,
+            deployed_contracts['contracts'][CONTRACT_SERVICE_REGISTRY]['address'],
+            deployed_contracts['contracts'][CONTRACT_USER_DEPOSIT]['address'],
+        ]
+        msc = self._deploy_and_remember(
+            contract_name=CONTRACT_MONITORING_SERVICE,
+            arguments=monitoring_service_constructor_args,
+            deployed_contracts=deployed_contracts,
+        )
+
+        one_to_n = self._deploy_and_remember(
+            contract_name=CONTRACT_ONE_TO_N,
+            arguments=[user_deposit.address],
+            deployed_contracts=deployed_contracts,
+        )
+
+        # Tell the UserDeposit instance about other contracts.
+        LOG.debug(
+            'Calling UserDeposit.init() with '
+            f'msc_address={msc.address} '
+            f'one_to_n_address={one_to_n.address}',
+        )
+        self.transact(user_deposit.functions.init(msc.address, one_to_n.address))
+
+        return deployed_contracts
+
+
+def _deployed_data_from_receipt(receipt, constructor_arguments):
+    return {
+        'address': to_checksum_address(receipt['contractAddress']),
+        'transaction_hash': encode_hex(receipt['transactionHash']),
+        'block_number': receipt['blockNumber'],
+        'gas_cost': receipt['gasUsed'],
+        'constructor_arguments': constructor_arguments,
+    }
