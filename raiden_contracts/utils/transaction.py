@@ -10,6 +10,11 @@ def check_successful_tx(web3: Web3, txid: str, timeout=180) -> Tuple[dict, dict]
     """
     receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
     txinfo = web3.eth.getTransaction(txid)
+    if 'status' not in receipt:
+        raise KeyError(
+            'A transaction receipt does not contain the "status" field. '
+            'Does your chain have Byzantium rules enabled?',
+        )
     if receipt['status'] == 0:
         raise ValueError(f'Status 0 indicates failure')
     if txinfo['gas'] == receipt['gasUsed']:
