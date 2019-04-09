@@ -11,11 +11,7 @@ from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
 )
-from raiden_contracts.deploy.__main__ import (
-    deploy_raiden_contracts,
-    register_token_network,
-    setup_ctx,
-)
+from raiden_contracts.deploy.__main__ import register_token_network, setup_ctx
 from raiden_contracts.utils.transaction import check_successful_tx
 
 log = getLogger(__name__)
@@ -109,8 +105,7 @@ def deprecation_test_setup(
         channel_participant_deposit_limit: int,
         token_network_deposit_limit: int,
 ):
-    deployed_contracts = deploy_raiden_contracts(
-        deployer=deployer,
+    deployed_contracts = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=1,
     )['contracts']
 
