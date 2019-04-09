@@ -17,7 +17,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import contract_version_string, contracts_precompiled_path
+from raiden_contracts.contract_manager import contracts_precompiled_path
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
@@ -273,15 +273,12 @@ def test_deploy_script_register(
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address']
     token_network_address = register_token_network(
-        web3=web3,
-        caller=deployer.owner,
+        deployer=deployer,
         token_registry_abi=token_registry_abi,
         token_registry_address=token_registry_address,
-        token_registry_version=contract_version_string(version=None),
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
-        contracts_version=deployer.contracts_version,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
