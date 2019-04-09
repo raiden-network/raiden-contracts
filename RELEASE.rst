@@ -90,6 +90,7 @@ We currently deploy on:
 * Ropsten - for all releases
 * Rinkeby - for all releases
 * Kovan - for all releases
+* Görli - for all releases
 * Mainnet - only for pre-major or major releases
 
 
