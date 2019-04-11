@@ -25,7 +25,7 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]):
 
 
 @pytest.mark.parametrize('version', [None, CONTRACTS_VERSION])
-@pytest.mark.parametrize('chain_id', [3, 4, 42])
+@pytest.mark.parametrize('chain_id', [3, 4, 5, 42])
 @pytest.mark.parametrize('services', [False, True])
 def test_deploy_data_file_exists(
         version: Optional[str],
@@ -53,7 +53,7 @@ RAIDEN_CONTRACT_NAMES = ('EndpointRegistry', 'TokenNetworkRegistry', 'SecretRegi
 
 
 @pytest.mark.parametrize('version', [None])
-@pytest.mark.parametrize('chain_id', [3, 4, 42])
+@pytest.mark.parametrize('chain_id', [3, 4, 5, 42])
 def test_deploy_data_has_fields_raiden(
         version: Optional[str],
         chain_id: int,
@@ -71,7 +71,7 @@ SERVICE_CONTRACT_NAMES = ('ServiceRegistry', 'MonitoringService', 'OneToN', 'Use
 
 
 @pytest.mark.parametrize('version', [None])
-@pytest.mark.parametrize('chain_id', [3, 4, 42])
+@pytest.mark.parametrize('chain_id', [3, 4, 5, 42])
 def test_deploy_data_has_fields_services(
         version: Optional[str],
         chain_id: int,
@@ -86,7 +86,7 @@ def test_deploy_data_has_fields_services(
 
 
 @pytest.mark.parametrize('version', [None])
-@pytest.mark.parametrize('chain_id', [3, 4, 42])
+@pytest.mark.parametrize('chain_id', [3, 4, 5, 42])
 def test_deploy_data_all(
         version: Optional[str],
         chain_id: int,
@@ -111,7 +111,7 @@ def test_deploy_data_for_redeyes_succeed(chain_id):
     assert get_contracts_deployment_info(chain_id, '0.4.0')
 
 
-@pytest.mark.parametrize('chain_id', [3, 4, 42])
+@pytest.mark.parametrize('chain_id', [3, 4, 5, 42])
 def test_service_deploy_data_for_redeyes_fail(chain_id):
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
     with pytest.raises(ValueError):

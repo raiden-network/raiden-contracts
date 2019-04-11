@@ -1,7 +1,7 @@
 from enum import Enum, IntEnum
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
-CONTRACTS_VERSION = '0.11.0'
+CONTRACTS_VERSION = '0.11.1'
 
 PRECOMPILED_DATA_FIELDS = ['abi', 'bin', 'bin-runtime', 'metadata']
 
@@ -136,6 +136,7 @@ ID_TO_NETWORKNAME = {
     1: 'mainnet',
     3: 'ropsten',
     4: 'rinkeby',
+    5: 'goerli',
     42: 'kovan',
     627: 'smoketest',
 }
