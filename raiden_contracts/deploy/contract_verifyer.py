@@ -22,7 +22,6 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
-from raiden_contracts.utils.bytecode import runtime_hexcode
 
 
 class ContractVerifyer:
@@ -199,10 +198,7 @@ class ContractVerifyer:
 
         # Check that the deployed bytecode matches the precompiled data
         blockchain_bytecode = self.web3.eth.getCode(contract_address).hex()
-        compiled_bytecode = runtime_hexcode(
-            contracts_manager=self.contract_manager,
-            name=contract_name,
-        )
+        compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
         assert blockchain_bytecode == compiled_bytecode
 
         print(

@@ -1,6 +1,5 @@
 # flake8: noqa
 
-from .bytecode import *
 from .events import *
 from .logs import *
 from .merkle import *
