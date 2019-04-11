@@ -1,4 +1,5 @@
 import json
+from sys import argv
 from typing import Dict
 
 import pytest
@@ -111,9 +112,21 @@ def gas_measurement_results():
     return results
 
 
+def sys_args_contain(searched: str) -> bool:
+    """ Returns True if 'searched' appears in any of the command line arguments. """
+    for arg in argv:
+        if arg.find(searched) != -1:
+            return True
+    return False
+
+
 @pytest.fixture
 def print_gas(web3, txn_gas, gas_measurement_results):
     def get(txn_hash, message=None, additional_gas=0):
+        if not sys_args_contain('test_print_gas'):
+            # If the command line arguments don't contain 'test_print_gas', do nothing
+            return
+
         gas_used = txn_gas(txn_hash)
         if not message:
             message = txn_hash
