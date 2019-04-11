@@ -21,11 +21,11 @@ from raiden_contracts.contract_manager import contracts_precompiled_path
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
-    contracts_version_expects_deposit_limits,
     error_removed_option,
-    register_token_network,
     validate_address,
 )
+from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
+
 from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
@@ -272,8 +272,7 @@ def test_deploy_script_register(
     token_registry_address = deployed_contracts_raiden['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address']
-    token_network_address = register_token_network(
-        deployer=deployer,
+    token_network_address = deployer.register_token_network(
         token_registry_abi=token_registry_abi,
         token_registry_address=token_registry_address,
         token_address=token_address,

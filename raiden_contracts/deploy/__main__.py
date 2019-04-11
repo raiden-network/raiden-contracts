@@ -5,12 +5,11 @@ import functools
 import json
 import logging
 from logging import getLogger
-from typing import Dict, Optional
+from typing import Optional
 
 import click
 from click import BadParameter
 from eth_utils import is_address, to_checksum_address
-from semver import compare
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
@@ -418,8 +417,7 @@ def register(
     assert CONTRACT_TOKEN_NETWORK_REGISTRY in ctx.obj['deployed_contracts']
     assert token_type in ctx.obj['deployed_contracts']
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
-    register_token_network(
-        deployer=deployer,
+    deployer.register_token_network(
         token_registry_abi=abi,
         token_registry_address=ctx.obj['deployed_contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj['deployed_contracts'][token_type],
@@ -446,65 +444,6 @@ def verify(ctx, rpc_provider, contracts_version):
 
     verifyer = ContractVerifyer(web3=web3, contracts_version=contracts_version)
     verifyer.verify_deployed_contracts_in_filesystem()
-
-
-def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -> bool:
-    if contracts_version is None:
-        return True
-    if contracts_version == '0.3._':
-        return False
-    return compare(contracts_version, '0.9.0') > -1
-
-
-def register_token_network(
-        deployer: ContractDeployer,
-        token_registry_abi: Dict,
-        token_registry_address: str,
-        token_address: str,
-        channel_participant_deposit_limit: Optional[int],
-        token_network_deposit_limit: Optional[int],
-):
-    """Register token with a TokenNetworkRegistry contract."""
-    with_limits = contracts_version_expects_deposit_limits(deployer.contracts_version)
-    if with_limits:
-        assert channel_participant_deposit_limit is not None, \
-            'contracts_version 0.9.0 and afterwards expect channel_participant_deposit_limit'
-        assert token_network_deposit_limit is not None, \
-            'contracts_version 0.9.0 and afterwards expect token_network_deposit_limit'
-    else:
-        assert channel_participant_deposit_limit is None, \
-            'contracts_version below 0.9.0 does not expect channel_participant_deposit_limit'
-        assert token_network_deposit_limit is None, \
-            'contracts_version below 0.9.0 does not expect token_network_deposit_limit'
-    token_network_registry = deployer.web3.eth.contract(
-        abi=token_registry_abi,
-        address=token_registry_address,
-    )
-
-    version_from_onchain = token_network_registry.functions.contract_version().call()
-    assert version_from_onchain == deployer.contract_manager.version_string(), \
-        f'got {version_from_onchain}, expected {deployer.contract_manager.version_string()}'
-
-    command = token_network_registry.functions.createERC20TokenNetwork(
-        token_address,
-        channel_participant_deposit_limit,
-        token_network_deposit_limit,
-    ) if with_limits else token_network_registry.functions.createERC20TokenNetwork(
-        token_address,
-    )
-    deployer.transact(command)
-
-    token_network_address = token_network_registry.functions.token_to_token_networks(
-        token_address,
-    ).call()
-    token_network_address = to_checksum_address(token_network_address)
-
-    print(
-        'TokenNetwork address: {0}'.format(
-            token_network_address,
-        ),
-    )
-    return token_network_address
 
 
 if __name__ == '__main__':
