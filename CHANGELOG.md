@@ -5,7 +5,9 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## Unreleased
+## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-12
+
+- [#831](https://github.com/raiden-network/raiden-contracts/pull/831) Add contracts_version=0.11.1 that includes Görli deployment
 
 ## [0.17.2](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.17.2) - 2019-04-06
 
