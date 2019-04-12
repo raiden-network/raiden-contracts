@@ -249,8 +249,11 @@ class ContractDeployer(ContractVerifyer):
         )
 
         version_from_onchain = token_network_registry.functions.contract_version().call()
-        assert version_from_onchain == self.contract_manager.version_string(), \
-            f'got {version_from_onchain}, expected {self.contract_manager.version_string()}'
+        if version_from_onchain != self.contract_manager.version_string():
+            raise RuntimeError(
+                f'got {version_from_onchain} from the chain, expected '
+                f'{self.contract_manager.version_string()} in the deployment data',
+            )
 
         if with_limits:
             command = token_network_registry.functions.createERC20TokenNetwork(
