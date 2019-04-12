@@ -21,15 +21,24 @@ def test_claim(
     # happy case
     amount = 10
     expiration = web3.eth.blockNumber + 2
+    chain_id = int(web3.version.network)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
         receiver=B,
         amount=amount,
         expiration=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
     )
     tx_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
+        signature=signature,
     ).call_and_transact({'from': A})
 
     ev_handler.assert_event(
@@ -43,7 +52,7 @@ def test_claim(
     # can't be claimed twice
     with pytest.raises(TransactionFailed):
         one_to_n_contract.functions.claim(
-            A, B, amount, expiration, signature,
+            A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
         ).call({'from': A})
 
     # IOU expired
@@ -55,9 +64,26 @@ def test_claim(
             receiver=B,
             amount=amount,
             expiration=bad_expiration,
+            one_to_n_address=one_to_n_contract.address,
+            chain_id=chain_id,
         )
         one_to_n_contract.functions.claim(
-            A, B, amount, bad_expiration, signature,
+            A, B, amount, bad_expiration, one_to_n_contract.address, chain_id, signature,
+        ).call({'from': A})
+
+    # Wrong OneToN address
+    with pytest.raises(TransactionFailed):
+        signature = sign_one_to_n_iou(
+            get_private_key(A),
+            sender=A,
+            receiver=B,
+            amount=amount,
+            expiration=expiration,
+            one_to_n_address=A,   # Inject an error
+            chain_id=chain_id,
+        )
+        one_to_n_contract.functions.claim(
+            A, B, amount, expiration, A, chain_id, signature,
         ).call({'from': A})
 
     # bad signature
@@ -69,9 +95,11 @@ def test_claim(
             receiver=B,
             amount=amount + 1,  # this does not match amount below
             expiration=expiration,
+            one_to_n_address=one_to_n_contract.address,
+            chain_id=chain_id,
         )
         one_to_n_contract.functions.claim(
-            A, B, amount, expiration, signature,
+            A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
         ).call({'from': A})
 
 
@@ -87,6 +115,7 @@ def test_claim_with_insufficient_deposit(
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 6)
+    chain_id = int(web3.version.network)
 
     amount = 10
     expiration = web3.eth.blockNumber + 1
@@ -96,16 +125,18 @@ def test_claim_with_insufficient_deposit(
         receiver=B,
         amount=amount,
         expiration=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
     )
 
     # amount is 10, but only 6 are in deposit
     # check return value (transactions don't give back return values, so use call)
     assert one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
     ).call({'from': A}) == 6
     # check that transaction succeeds
     one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
     ).call_and_transact({'from': A})
 
     assert user_deposit_contract.functions.balances(A).call() == 0
@@ -119,13 +150,15 @@ def test_claim_with_insufficient_deposit(
         receiver=B,
         amount=amount,
         expiration=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
     )
     one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
     ).call_and_transact({'from': A})
     deposit_to_udc(A, 6 + 4)
     tx_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
     ).call_and_transact({'from': A})
     ev_handler.assert_event(
         tx_hash,

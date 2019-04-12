@@ -56,6 +56,8 @@ contract OneToN is Utils {
         address receiver,
         uint256 amount,
         uint256 expiration_block,
+        address one_to_n_address,
+        uint256 chain_id,
         bytes memory signature
     )
         public
@@ -69,6 +71,8 @@ contract OneToN is Utils {
             receiver,
             amount,
             expiration_block,
+            one_to_n_address,
+            chain_id,
             signature
         );
         require(addressFromSignature == sender);
@@ -101,6 +105,8 @@ contract OneToN is Utils {
         address receiver,
         uint256 amount,
         uint256 expiration_block,
+        address one_to_n_address,
+        uint256 chain_id,
         bytes memory signature
     )
         pure
@@ -108,11 +114,13 @@ contract OneToN is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n104",
+            "\x19Ethereum Signed Message:\n156",
             sender,
             receiver,
             amount,
-            expiration_block
+            expiration_block,
+            one_to_n_address,
+            chain_id
         ));
         return ECVerify.ecverify(message_hash, signature);
     }

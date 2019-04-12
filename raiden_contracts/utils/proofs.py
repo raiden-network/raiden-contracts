@@ -231,12 +231,16 @@ def sign_one_to_n_iou(
         receiver,
         amount,
         expiration,
+        one_to_n_address: str,
+        chain_id: int,
         v=27,
 ):
     iou_hash = eth_sign_hash_message(
         Web3.toBytes(hexstr=sender) +
         Web3.toBytes(hexstr=receiver) +
         encode_single('uint256', amount) +
-        encode_single('uint256', expiration),
+        encode_single('uint256', expiration) +
+        Web3.toBytes(hexstr=one_to_n_address) +
+        encode_single('uint256', chain_id),
     )
     return sign(privkey=privatekey, msg=iou_hash, v=v)
