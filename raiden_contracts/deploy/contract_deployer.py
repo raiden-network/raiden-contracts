@@ -241,13 +241,16 @@ class ContractDeployer(ContractVerifyer):
         assert version_from_onchain == self.contract_manager.version_string(), \
             f'got {version_from_onchain}, expected {self.contract_manager.version_string()}'
 
-        command = token_network_registry.functions.createERC20TokenNetwork(
-            token_address,
-            channel_participant_deposit_limit,
-            token_network_deposit_limit,
-        ) if with_limits else token_network_registry.functions.createERC20TokenNetwork(
-            token_address,
-        )
+        if with_limits:
+            command = token_network_registry.functions.createERC20TokenNetwork(
+                _token_address=token_address,
+                _channel_participant_deposit_limit=channel_participant_deposit_limit,
+                _token_network_deposit_limit=token_network_deposit_limit,
+            )
+        else:
+            command = token_network_registry.functions.createERC20TokenNetwork(
+                token_address,
+            )
         self.transact(command)
 
         token_network_address = token_network_registry.functions.token_to_token_networks(
