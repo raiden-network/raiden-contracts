@@ -223,15 +223,26 @@ class ContractDeployer(ContractVerifyer):
         """Register token with a TokenNetworkRegistry contract."""
         with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
         if with_limits:
-            assert channel_participant_deposit_limit is not None, \
-                'contracts_version 0.9.0 and afterwards expect channel_participant_deposit_limit'
-            assert token_network_deposit_limit is not None, \
-                'contracts_version 0.9.0 and afterwards expect token_network_deposit_limit'
+            if channel_participant_deposit_limit is None:
+                raise ValueError(
+                    'contracts_version 0.9.0 and afterwards expect '
+                    'channel_participant_deposit_limit',
+                )
+            if token_network_deposit_limit is None:
+                raise ValueError(
+                    'contracts_version 0.9.0 and afterwards expect '
+                    'token_network_deposit_limit',
+                )
         else:
-            assert channel_participant_deposit_limit is None, \
-                'contracts_version below 0.9.0 does not expect channel_participant_deposit_limit'
-            assert token_network_deposit_limit is None, \
-                'contracts_version below 0.9.0 does not expect token_network_deposit_limit'
+            if channel_participant_deposit_limit:
+                raise ValueError(
+                    'contracts_version below 0.9.0 does not expect '
+                    'channel_participant_deposit_limit',
+                )
+            if token_network_deposit_limit:
+                raise ValueError(
+                    'contracts_version below 0.9.0 does not expect token_network_deposit_limit',
+                )
         token_network_registry = self.web3.eth.contract(
             abi=token_registry_abi,
             address=token_registry_address,
