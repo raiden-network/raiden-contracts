@@ -45,6 +45,9 @@ CONTRACT_LIST = [
 ]
 
 
+CONTRACT_NAMES_SEPARATED = ' | '.join([c.name for c in CONTRACT_LIST])
+
+
 @click.command()
 @click.option(
     '--chain-id',
@@ -63,7 +66,8 @@ CONTRACT_LIST = [
 @click.option(
     '--contract-name',
     default=None,
-    help='Contract name. Options: EndpointRegistry | SecretRegistry | TokenNetworkRegistry',
+    help=f'Contract name. Options: {CONTRACT_NAMES_SEPARATED}. '
+    ' Default is to submit the sources of all contracts.',
 )
 def etherscan_verify(
         chain_id: int,
