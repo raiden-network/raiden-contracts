@@ -49,11 +49,31 @@ def deployer(web3):
     )
 
 
+@pytest.fixture(scope='session')
+def deployer_0_4_0(web3):
+    return ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version='0.4.0',
+    )
+
+
 @pytest.mark.slow
 @pytest.fixture(scope='session')
 def deployed_raiden_info(deployer):
     return deployer.deploy_raiden_contracts(
         max_num_of_token_networks=1,
+    )
+
+
+@pytest.mark.slow
+@pytest.fixture(scope='session')
+def deployed_raiden_info_0_4_0(deployer_0_4_0):
+    return deployer_0_4_0.deploy_raiden_contracts(
+        max_num_of_token_networks=None,
     )
 
 
@@ -278,6 +298,36 @@ def test_deploy_script_register(
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
+    )
+    assert token_network_address is not None
+    assert isinstance(token_network_address, T_Address)
+
+
+@pytest.mark.slow
+def test_deploy_script_register_without_limit(
+        web3,
+        token_address,
+        deployer_0_4_0,
+        deployed_raiden_info_0_4_0,
+):
+    """ Run token register function used in the deployment script
+
+    This checks if register_token_network() works correctly in the happy case for 0.4.0 version,
+    to make sure no code dependencies have been changed, affecting the deployment script.
+    This does not check however that the cli command works correctly.
+    """
+    token_registry_abi = deployer_0_4_0.contract_manager.get_contract_abi(
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+    )
+    token_registry_address = deployed_raiden_info_0_4_0['contracts'][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]['address']
+    token_network_address = deployer_0_4_0.register_token_network(
+        token_registry_abi=token_registry_abi,
+        token_registry_address=token_registry_address,
+        token_address=token_address,
+        channel_participant_deposit_limit=None,
+        token_network_deposit_limit=None,
     )
     assert token_network_address is not None
     assert isinstance(token_network_address, T_Address)
