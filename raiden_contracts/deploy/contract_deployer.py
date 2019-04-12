@@ -1,7 +1,8 @@
 from logging import getLogger
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
+from semver import compare
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -211,6 +212,68 @@ class ContractDeployer(ContractVerifyer):
             address=deployed_contracts['contracts'][contract_name]['address'],
         )
 
+    def register_token_network(
+            self,
+            token_registry_abi: Dict,
+            token_registry_address: str,
+            token_address: str,
+            channel_participant_deposit_limit: Optional[int],
+            token_network_deposit_limit: Optional[int],
+    ):
+        """Register token with a TokenNetworkRegistry contract."""
+        with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
+        if with_limits:
+            if channel_participant_deposit_limit is None:
+                raise ValueError(
+                    'contracts_version 0.9.0 and afterwards expect '
+                    'channel_participant_deposit_limit',
+                )
+            if token_network_deposit_limit is None:
+                raise ValueError(
+                    'contracts_version 0.9.0 and afterwards expect '
+                    'token_network_deposit_limit',
+                )
+        else:
+            if channel_participant_deposit_limit:
+                raise ValueError(
+                    'contracts_version below 0.9.0 does not expect '
+                    'channel_participant_deposit_limit',
+                )
+            if token_network_deposit_limit:
+                raise ValueError(
+                    'contracts_version below 0.9.0 does not expect token_network_deposit_limit',
+                )
+        token_network_registry = self.web3.eth.contract(
+            abi=token_registry_abi,
+            address=token_registry_address,
+        )
+
+        version_from_onchain = token_network_registry.functions.contract_version().call()
+        if version_from_onchain != self.contract_manager.version_string():
+            raise RuntimeError(
+                f'got {version_from_onchain} from the chain, expected '
+                f'{self.contract_manager.version_string()} in the deployment data',
+            )
+
+        if with_limits:
+            command = token_network_registry.functions.createERC20TokenNetwork(
+                _token_address=token_address,
+                _channel_participant_deposit_limit=channel_participant_deposit_limit,
+                _token_network_deposit_limit=token_network_deposit_limit,
+            )
+        else:
+            command = token_network_registry.functions.createERC20TokenNetwork(
+                token_address,
+            )
+        self.transact(command)
+
+        token_network_address = token_network_registry.functions.token_to_token_networks(
+            token_address,
+        ).call()
+        token_network_address = to_checksum_address(token_network_address)
+        LOG.debug(f'TokenNetwork address: {token_network_address}')
+        return token_network_address
+
     def deploy_service_contracts(
             self,
             token_address: str,
@@ -256,6 +319,14 @@ class ContractDeployer(ContractVerifyer):
         self.transact(user_deposit.functions.init(msc.address, one_to_n.address))
 
         return deployed_contracts
+
+
+def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -> bool:
+    if contracts_version is None:
+        return True
+    if contracts_version == '0.3._':
+        return False
+    return compare(contracts_version, '0.9.0') > -1
 
 
 def _deployed_data_from_receipt(receipt, constructor_arguments):
