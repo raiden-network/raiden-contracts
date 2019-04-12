@@ -257,12 +257,7 @@ class ContractDeployer(ContractVerifyer):
             token_address,
         ).call()
         token_network_address = to_checksum_address(token_network_address)
-
-        print(
-            'TokenNetwork address: {0}'.format(
-                token_network_address,
-            ),
-        )
+        print(f'TokenNetwork address: {token_network_address}')
         return token_network_address
 
     def deploy_service_contracts(
