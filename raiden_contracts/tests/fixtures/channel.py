@@ -734,7 +734,7 @@ def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
     B_total_transferred = vals_B.transferred + vals_B.locked
     assert B_total_transferred >= A_total_transferred
 
-    if B_total_transferred != B_total_transferred:
+    if A_total_transferred != B_total_transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(
                 channel_identifier,
