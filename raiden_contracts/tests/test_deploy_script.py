@@ -283,6 +283,102 @@ def test_deploy_script_register(
     assert isinstance(token_network_address, T_Address)
 
 
+def test_deploy_script_register_missing_limits(
+        web3,
+        token_network_deposit_limit,
+        channel_participant_deposit_limit,
+        deployed_raiden_info,
+        token_address,
+        deployer,
+):
+    """ Run token register function used in the deployment script
+
+    without the expected channel participant deposit limit.
+    """
+    token_registry_abi = deployer.contract_manager.get_contract_abi(
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+    )
+    token_registry_address = deployed_raiden_info['contracts'][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]['address']
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=None,
+            token_network_deposit_limit=token_network_deposit_limit,
+        )
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=channel_participant_deposit_limit,
+            token_network_deposit_limit=None,
+        )
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=None,
+            token_network_deposit_limit=None,
+        )
+
+
+def test_deploy_script_register_unexpected_limits(
+        web3,
+        token_network_deposit_limit,
+        channel_participant_deposit_limit,
+        token_address,
+        deployed_raiden_info,
+):
+    """ Run token register function used in the deployment script
+
+    without the expected channel participant deposit limit.
+    """
+    deployer = ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version='0.4.0',
+    )
+
+    token_registry_abi = deployer.contract_manager.get_contract_abi(
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+    )
+    token_registry_address = deployed_raiden_info['contracts'][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]['address']
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=None,
+            token_network_deposit_limit=token_network_deposit_limit,
+        )
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=channel_participant_deposit_limit,
+            token_network_deposit_limit=None,
+        )
+    with pytest.raises(ValueError):
+        deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=channel_participant_deposit_limit,
+            token_network_deposit_limit=token_network_deposit_limit,
+        )
+
+
 @pytest.mark.slow
 def test_deploy_script_service(
         web3,
