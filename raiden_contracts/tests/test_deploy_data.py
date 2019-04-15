@@ -105,6 +105,10 @@ def test_deploy_data_unknown_module():
         get_contracts_deployment_info(3, None, module=None)  # type: ignore
 
 
+def test_deploy_data_not_deployed():
+    assert get_contracts_deployment_info(1, '0.8.0', module=DeploymentModule.RAIDEN) is None
+
+
 @pytest.mark.parametrize('chain_id', [3, 4, 42])
 def test_deploy_data_for_redeyes_succeed(chain_id):
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """

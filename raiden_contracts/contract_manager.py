@@ -164,7 +164,7 @@ def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
         module: DeploymentModule = DeploymentModule.ALL,
-) -> DeployedContracts:
+) -> Optional[DeployedContracts]:
     """Reads the deployment data.
 
     Parameter:
@@ -208,7 +208,9 @@ def get_contracts_deployment_info(
                     deployment_data,
                     json.load(deployment_file),
                 )
-        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
-            raise ValueError(f'Cannot load deployment data file: {ex}') from ex
+        except (FileNotFoundError) as ex:
+            return None
+        except (JSONDecodeError, UnicodeDecodeError) as ex:
+            raise ValueError(f'Deployment data file is corrupted: {ex}') from ex
     assert deployment_data  # If it's empty, it's not DeployedContracts
     return deployment_data  # type: ignore
