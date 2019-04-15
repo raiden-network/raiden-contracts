@@ -367,6 +367,7 @@ def print_gas_one_to_n(
     deposit_to_udc(A, 30)
 
     # happy case
+    chain_id = int(web3.version.network)
     amount = 10
     expiration = web3.eth.blockNumber + 2
     signature = sign_one_to_n_iou(
@@ -374,10 +375,12 @@ def print_gas_one_to_n(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration=expiration,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
     )
     txn_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, signature,
+        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
     ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')
 
