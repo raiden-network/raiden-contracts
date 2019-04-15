@@ -5,6 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## Unreleased
+
+- [#853](https://github.com/raiden-network/raiden-contracts/pull/853) add chain_id in the IOU claims
+
 ## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-12
 
 - [#831](https://github.com/raiden-network/raiden-contracts/pull/831) Add contracts_version=0.11.1 that includes Görli deployment
