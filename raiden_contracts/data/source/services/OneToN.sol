@@ -63,6 +63,7 @@ contract OneToN is Utils {
         public
         returns (uint)
     {
+        require(one_to_n_address == address(this));
         require(block.number <= expiration_block);
 
         // validate signature
