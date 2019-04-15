@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Deploy 0.4.0 version on Goerli
 - [#853](https://github.com/raiden-network/raiden-contracts/pull/853) add chain_id in the IOU claims
 
 ## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-12
