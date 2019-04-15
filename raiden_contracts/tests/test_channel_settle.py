@@ -455,7 +455,6 @@ def test_settle_wrong_balance_hash(
         token_network,
         create_channel_and_deposit,
         close_and_update_channel,
-        get_block,
         reveal_secrets,
 ):
     """ Calling settleChannel() with various wrong arguments and see failures """

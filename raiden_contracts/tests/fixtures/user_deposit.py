@@ -17,7 +17,6 @@ def uninitialized_user_deposit_contract(
 ):
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
-        {},
         [custom_token.address, user_deposit_whole_balance_limit],
     )
 
@@ -42,7 +41,6 @@ def udc_transfer_contract(
 ):
     return deploy_tester_contract(
         'UDCTransfer',
-        {},
         [uninitialized_user_deposit_contract.address],
     )
 
@@ -51,10 +49,6 @@ def udc_transfer_contract(
 def deposit_to_udc(
         user_deposit_contract,
         custom_token,
-        get_accounts,
-        get_private_key,
-        web3,
-        event_handler,
 ):
     def deposit(receiver, amount):
         """ Uses UDC's monotonous deposit amount handling

@@ -63,7 +63,7 @@ def get_accounts(create_account):
 
 
 @pytest.fixture(scope='session')
-def get_private_key(web3, ethereum_tester):
+def get_private_key(ethereum_tester):
     def get(account_address):
         keys = [
             key.to_hex() for key in ethereum_tester.backend.account_keys
@@ -78,7 +78,7 @@ def get_private_key(web3, ethereum_tester):
 
 
 @pytest.fixture(scope='session')
-def event_handler(contracts_manager, web3):
+def event_handler(web3):
     def get(contract=None, address=None, abi=None):
         if contract:
             abi = contract.abi
@@ -121,7 +121,7 @@ def sys_args_contain(searched: str) -> bool:
 
 
 @pytest.fixture
-def print_gas(web3, txn_gas, gas_measurement_results):
+def print_gas(txn_gas, gas_measurement_results):
     def get(txn_hash, message=None, additional_gas=0):
         if not sys_args_contain('test_print_gas'):
             # If the command line arguments don't contain 'test_print_gas', do nothing

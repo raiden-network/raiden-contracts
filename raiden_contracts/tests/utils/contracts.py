@@ -25,7 +25,7 @@ def get_web3(eth_tester, deployer_key):
     return web3
 
 
-def deploy_contract(web3, contracts_manager, contract_name, deployer_key, libs=None, args=None):
+def deploy_contract(web3, contracts_manager, contract_name, deployer_key, args=None):
     deployer_address = private_key_to_address(deployer_key.to_hex())
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(

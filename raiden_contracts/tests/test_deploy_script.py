@@ -118,11 +118,8 @@ def test_contract_version_with_max_token_networks(version: Optional[str], expect
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('version, max_num_of_token_networks', [(None, 1), ('0.3._', None)])
 def test_deploy_script_raiden(
         web3,
-        version: Optional[str],
-        max_num_of_token_networks: Optional[int],
         deployer,
         deployed_raiden_info,
 ):
@@ -305,7 +302,6 @@ def test_deploy_script_register(
 
 @pytest.mark.slow
 def test_deploy_script_register_without_limit(
-        web3,
         token_address,
         deployer_0_4_0,
         deployed_raiden_info_0_4_0,
@@ -334,7 +330,6 @@ def test_deploy_script_register_without_limit(
 
 
 def test_deploy_script_register_missing_limits(
-        web3,
         token_network_deposit_limit,
         channel_participant_deposit_limit,
         deployed_raiden_info,
@@ -523,7 +518,7 @@ def fs_reload_deployer():
 
 
 @pytest.mark.slow
-def test_store_and_verify_raiden(fs_reload_deployer, web3, deployed_raiden_info, deployer):
+def test_store_and_verify_raiden(fs_reload_deployer, deployed_raiden_info, deployer):
     """ Store some raiden contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(
         version=None,
@@ -542,7 +537,6 @@ def test_store_and_verify_raiden(fs_reload_deployer, web3, deployed_raiden_info,
 @pytest.mark.slow
 def test_store_and_verify_services(
         fs_reload_deployer,
-        web3,
         deployer,
         deployed_service_info,
         token_address,

@@ -143,7 +143,7 @@ class LogFilter:
 
         event_abi = [i for i in abi if i['type'] == 'event' and i['name'] == event_name]
         if len(event_abi) == 0:
-            return None
+            return
 
         self.event_abi = event_abi[0]
         assert self.event_abi

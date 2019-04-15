@@ -34,7 +34,6 @@ def monitor_data(
         create_balance_proof_update_signature,
         create_reward_proof,
         token_network,
-        ms_address,
 ):
     # Create two parties and a channel between them
     (A, B) = get_accounts(2)

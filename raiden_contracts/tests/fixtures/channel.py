@@ -532,7 +532,6 @@ def withdraw_state_tests(custom_token, token_network):
             pre_balance_partner,
             pre_balance_contract,
             delegate=None,
-            pre_balance_delegate=None,
     ):
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
         (_, state) = token_network.functions.getChannelInfo(

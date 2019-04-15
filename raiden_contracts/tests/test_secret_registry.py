@@ -13,7 +13,7 @@ def test_version(secret_registry_contract):
     assert version == CONTRACTS_VERSION
 
 
-def test_register_secret_call(secret_registry_contract, event_handler):
+def test_register_secret_call(secret_registry_contract):
     """ Test the registrable and not registrable secrets """
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret()
@@ -86,7 +86,7 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == block
 
 
-def test_register_secret_batch_return_value(secret_registry_contract, get_accounts, get_block):
+def test_register_secret_batch_return_value(secret_registry_contract, get_accounts):
     """ See registerSecret returns True only when all secrets are registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, '02'), fake_bytes(32, '03'), fake_bytes(11)]

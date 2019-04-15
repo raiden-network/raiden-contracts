@@ -2,7 +2,6 @@ import pytest
 from web3.contract import get_event_data
 
 from raiden_contracts.constants import (
-    CONTRACT_SECRET_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
@@ -17,12 +16,11 @@ snapshot_before_token_network = None
 
 
 @pytest.fixture
-def get_token_network(web3, deploy_tester_contract):
+def get_token_network(deploy_tester_contract):
     """Deploy a token network as a separate contract (registry is not used)"""
     def get(arguments):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK,
-            {},
             arguments,
         )
     return get
@@ -72,7 +70,7 @@ def token_network_deposit_limit():
 
 
 @pytest.fixture
-def no_token_network(token_network, web3):
+def no_token_network(web3):
     """ Some tests must be executed before a token network gets created
 
     These tests should use this fixture. Otherwise a session level token
@@ -127,10 +125,6 @@ def token_network_contract(
     network_id = int(secret_registry_contract.web3.version.network)
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
-        {
-            'Token': standard_token_contract.address.encode(),
-            CONTRACT_SECRET_REGISTRY: secret_registry_contract.address.encode(),
-        },
         [standard_token_contract.address, secret_registry_contract.address, network_id],
     )
 

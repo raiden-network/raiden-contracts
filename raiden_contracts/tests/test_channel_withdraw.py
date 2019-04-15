@@ -175,8 +175,6 @@ def test_withdraw_wrong_state(
 
 
 def test_withdraw_bigger(
-        web3,
-        token_network,
         create_channel_and_deposit,
         get_accounts,
         withdraw_channel,
@@ -203,11 +201,9 @@ def test_withdraw_bigger(
 
 
 def test_withdraw_wrong_signers(
-        web3,
         token_network,
         create_channel_and_deposit,
         get_accounts,
-        withdraw_channel,
         create_withdraw_signatures,
 ):
     (A, B, C) = get_accounts(3)
@@ -249,11 +245,9 @@ def test_withdraw_wrong_signers(
 
 
 def test_withdraw_wrong_signature_content(
-        web3,
         token_network,
         create_channel_and_deposit,
         get_accounts,
-        withdraw_channel,
         create_withdraw_signatures,
 ):
     (A, B, C) = get_accounts(3)
@@ -364,7 +358,6 @@ def test_withdraw_channel_state(
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
-    balance_C = custom_token.functions.balanceOf(C).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     (_, withdrawn_amount, _, _, _, _, _) = token_network.functions.getChannelParticipantInfo(
@@ -388,12 +381,11 @@ def test_withdraw_channel_state(
         0,
         balance_B,
         balance_contract,
-        C, balance_C,
+        C,
     )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
-    balance_C = custom_token.functions.balanceOf(C).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     withdraw_channel(channel_identifier, B, withdraw_B, A)
@@ -414,7 +406,6 @@ def test_withdraw_channel_state(
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
-    balance_C = custom_token.functions.balanceOf(C).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     withdraw_channel(channel_identifier, B, withdraw_B + 3, A)

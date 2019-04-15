@@ -16,7 +16,6 @@ def custom_token_factory(deploy_tester_contract, token_args):
     def f():
         return deploy_tester_contract(
             CONTRACT_CUSTOM_TOKEN,
-            [],
             token_args,
         )
     return f
@@ -42,7 +41,6 @@ def deploy_token_contract(deploy_tester_contract):
         assert decimals > 0
         return deploy_tester_contract(
             CONTRACT_HUMAN_STANDARD_TOKEN,
-            [],
             [initial_amount, decimals, token_name, token_symbol],
         )
 

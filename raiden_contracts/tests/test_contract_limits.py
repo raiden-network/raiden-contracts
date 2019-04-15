@@ -145,7 +145,6 @@ def test_participant_deposit_limit(
 
 @pytest.mark.skip(reason='Only for local testing, otherwise it takes too much time to run.')
 def test_network_deposit_limit(
-        web3,
         create_account,
         custom_token,
         token_network,

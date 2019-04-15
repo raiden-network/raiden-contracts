@@ -13,7 +13,6 @@ def monitoring_service_external(
 ):
     return deploy_tester_contract(
         CONTRACT_MONITORING_SERVICE,
-        {},
         [
             custom_token.address,
             service_registry.address,
@@ -31,7 +30,6 @@ def monitoring_service_internals(
 ):
     return deploy_tester_contract(
         'MonitoringServiceInternalsTest',
-        {},
         [
             custom_token.address,
             service_registry.address,
