@@ -165,7 +165,7 @@ def get_contracts_deployment_info(
         version: Optional[str] = None,
         module: DeploymentModule = DeploymentModule.ALL,
 ) -> Optional[DeployedContracts]:
-    """Reads the deployment data.
+    """Reads the deployment data. Returns None if the file is not found.
 
     Parameter:
         module The name of the module. ALL means deployed contracts from all modules that are
