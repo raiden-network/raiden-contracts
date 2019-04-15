@@ -262,13 +262,14 @@ def test_etherscan_verify_success():
 
 
 def first_fail_second_succeed(request, context):
+    """ Simulate Etherscan saying for the first time 'wait', but for the second time 'success'. """
     context.status_code = 200
     try:
-        if first_fail_second_succeed.called:
+        if first_fail_second_succeed.called:  # type: ignore
             return '{ "status": "1", "result" : "Pass - Verified", "message" : "" }'
     except AttributeError:  # first time
         pass
-    first_fail_second_succeed.called = True
+    first_fail_second_succeed.called = True  # type: ignore
     return '{ "status": "0", "result" : "wait for a moment", "message" : "" }'
 
 
