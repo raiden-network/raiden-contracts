@@ -204,6 +204,37 @@ def test_etherscan_verify_unknown_error():
         assert result.exit_code != 0
 
 
+def test_etherscan_verify_unable_to_verify():
+    with requests_mock.Mocker() as m:
+        chain_id = 3
+        etherscan_api = api_of_chain_id[chain_id]
+        m.post(
+            etherscan_api,
+            text='{ "status": "1",'
+            '"result" : "dummy_guid", '
+            '"message" : "" }',
+        )
+        m.get(
+            etherscan_api,
+            text='{ "status": "0",'
+            '"result" : "Fail - Unable to verify", '
+            '"message" : "" }',
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            etherscan_verify,
+            [
+                '--chain-id',
+                str(chain_id),
+                '--apikey',
+                'API',
+                '--contract-name',
+                'EndpointRegistry',
+            ],
+        )
+        assert result.exit_code != 0
+
+
 def test_etherscan_verify_success():
     with requests_mock.Mocker() as m:
         chain_id = 3
