@@ -22,42 +22,10 @@ def test_claim(
     amount = 10
     expiration = web3.eth.blockNumber + 2
     chain_id = int(web3.version.network)
-    signature = sign_one_to_n_iou(
-        get_private_key(A),
-        sender=A,
-        receiver=B,
-        amount=amount,
-        expiration_block=expiration,
-        one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
-    )
-    tx_hash = one_to_n_contract.functions.claim(
-        sender=A,
-        receiver=B,
-        amount=amount,
-        expiration_block=expiration,
-        one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
-        signature=signature,
-    ).call_and_transact({'from': A})
-
-    ev_handler.assert_event(
-        tx_hash,
-        OneToNEvent.CLAIMED,
-        dict(sender=A, receiver=B, expiration_block=expiration, transferred=amount),
-    )
-    assert user_deposit_contract.functions.balances(A).call() == 20
-    assert user_deposit_contract.functions.balances(B).call() == 10
-
-    # can't be claimed twice
-    with pytest.raises(TransactionFailed):
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
-        ).call({'from': A})
 
     # IOU expired
     with pytest.raises(TransactionFailed):
-        bad_expiration = web3.eth.blockNumber + 1
+        bad_expiration = web3.eth.blockNumber - 1
         signature = sign_one_to_n_iou(
             get_private_key(A),
             sender=A,
@@ -98,6 +66,40 @@ def test_claim(
             one_to_n_address=one_to_n_contract.address,
             chain_id=chain_id,
         )
+        one_to_n_contract.functions.claim(
+            A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
+        ).call({'from': A})
+
+    signature = sign_one_to_n_iou(
+        get_private_key(A),
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
+    )
+
+    tx_hash = one_to_n_contract.functions.claim(
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
+        signature=signature,
+    ).call_and_transact({'from': A})
+
+    ev_handler.assert_event(
+        tx_hash,
+        OneToNEvent.CLAIMED,
+        dict(sender=A, receiver=B, expiration_block=expiration, transferred=amount),
+    )
+    assert user_deposit_contract.functions.balances(A).call() == 20
+    assert user_deposit_contract.functions.balances(B).call() == 10
+
+    # can't be claimed twice
+    with pytest.raises(TransactionFailed):
         one_to_n_contract.functions.claim(
             A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
         ).call({'from': A})
