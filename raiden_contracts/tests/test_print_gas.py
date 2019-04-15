@@ -375,7 +375,7 @@ def print_gas_one_to_n(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration=expiration,
+        expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=chain_id,
     )

@@ -27,7 +27,7 @@ def test_claim(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration=expiration,
+        expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=chain_id,
     )
@@ -63,7 +63,7 @@ def test_claim(
             sender=A,
             receiver=B,
             amount=amount,
-            expiration=bad_expiration,
+            expiration_block=bad_expiration,
             one_to_n_address=one_to_n_contract.address,
             chain_id=chain_id,
         )
@@ -78,7 +78,7 @@ def test_claim(
             sender=A,
             receiver=B,
             amount=amount,
-            expiration=expiration,
+            expiration_block=expiration,
             one_to_n_address=A,   # Inject an error
             chain_id=chain_id,
         )
@@ -94,7 +94,7 @@ def test_claim(
             sender=A,
             receiver=B,
             amount=amount + 1,  # this does not match amount below
-            expiration=expiration,
+            expiration_block=expiration,
             one_to_n_address=one_to_n_contract.address,
             chain_id=chain_id,
         )
@@ -124,7 +124,7 @@ def test_claim_with_insufficient_deposit(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration=expiration,
+        expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=chain_id,
     )
@@ -149,7 +149,7 @@ def test_claim_with_insufficient_deposit(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration=expiration,
+        expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=chain_id,
     )
