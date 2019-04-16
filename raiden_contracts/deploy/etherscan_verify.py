@@ -200,10 +200,14 @@ def etherscan_verify_contract(
     data = post_data_for_etherscan_verification(
         apikey=apikey,
         deployment_info=deployment_info['contracts'][contract_name],
-        source=join_sources(source_module, contract_name),
+        source=join_sources(source_module=source_module, contract_name=contract_name),
         contract_name=contract_name,
         metadata=json.loads(contract_manager.contracts[contract_name]['metadata']),
-        constructor_args=get_constructor_args(deployment_info, contract_name, contract_manager),
+        constructor_args=get_constructor_args(
+            deployment_info=deployment_info,
+            contract_name=contract_name,
+            contract_manager=contract_manager,
+        ),
     )
     response = requests.post(etherscan_api, data=data)
     content = json.loads(response.content.decode())

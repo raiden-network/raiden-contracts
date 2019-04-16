@@ -37,11 +37,11 @@ def get_pending_transfers_tree(
     types = ['uint256', 'uint256', 'bytes32']
     packed_transfers = b''
     (unlockable_locks, expired_locks) = get_pending_transfers(
-        web3,
-        unlockable_amounts,
-        expired_amounts,
-        min_expiration_delta,
-        max_expiration_delta,
+        web3=web3,
+        unlockable_amounts=unlockable_amounts,
+        expired_amounts=expired_amounts,
+        min_expiration_delta=min_expiration_delta,
+        max_expiration_delta=max_expiration_delta,
     )
 
     pending_transfers = unlockable_locks + expired_locks
@@ -57,7 +57,10 @@ def get_pending_transfers_tree(
             pending_transfers,
         )))
         pending_transfers = list(pending_transfers)
-        packed_transfers = get_packed_transfers(pending_transfers, types)
+        packed_transfers = get_packed_transfers(
+            pending_transfers=pending_transfers,
+            types=types,
+        )
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
     merkle_root = get_merkle_root(merkle_tree)

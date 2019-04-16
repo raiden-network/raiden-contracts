@@ -28,10 +28,10 @@ class LogHandler:
         if event_name not in self.event_waiting:
             self.event_waiting[event_name] = {}
             self.event_filters[event_name] = LogFilter(
-                self.web3,
-                self.abi,
-                self.address,
-                event_name,
+                web3=self.web3,
+                abi=self.abi,
+                address=self.address,
+                event_name=event_name,
                 callback=self.handle_log,
             )
 
@@ -109,7 +109,7 @@ class LogHandler:
         """
         def assert_args(event):
             assert event['args'] == args, f'{event["args"]} == {args}'
-        self.add(txn_hash, event_name, assert_args)
+        self.add(txn_hash=txn_hash, event_name=event_name, callback=assert_args)
         self.check(timeout=timeout)
 
 
@@ -151,7 +151,7 @@ class LogFilter:
         filters = filters if filters else {}
 
         data_filter_set, filter_params = construct_event_filter_params(
-            self.event_abi,
+            event_abi=self.event_abi,
             argument_filters=filters,
             **filter_kwargs,
         )
@@ -177,7 +177,7 @@ class LogFilter:
         return formatted_logs
 
     def set_log_data(self, log):
-        log['args'] = get_event_data(self.event_abi, log)['args']
+        log['args'] = get_event_data(event_abi=self.event_abi, log_entry=log)['args']
         log['event'] = self.event_name
         return log
 

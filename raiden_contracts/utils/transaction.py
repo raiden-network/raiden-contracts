@@ -8,7 +8,7 @@ def check_successful_tx(web3: Web3, txid: str, timeout=180) -> Tuple[dict, dict]
     """See if transaction went through (Solidity code did not throw).
     :return: Transaction receipt and transaction info
     """
-    receipt = wait_for_transaction_receipt(web3, txid, timeout=timeout)
+    receipt = wait_for_transaction_receipt(web3=web3, txid=txid, timeout=timeout)
     txinfo = web3.eth.getTransaction(txid)
     if 'status' not in receipt:
         raise KeyError(
