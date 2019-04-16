@@ -160,9 +160,13 @@ def test_etherscan_verify_already_verified():
         etherscan_api = api_of_chain_id[chain_id]
         m.post(
             etherscan_api,
-            text='{ "status": "0",'
-            '"result" : "Contract source code already verified",'
-            '"message" : "" }',
+            text="""
+            {
+                "status": "0",
+                "result" : "Contract source code already verified",
+                "message" : ""
+            }
+            """,
         )
         runner = CliRunner()
         result = runner.invoke(
@@ -185,9 +189,52 @@ def test_etherscan_verify_unknown_error():
         etherscan_api = api_of_chain_id[chain_id]
         m.post(
             etherscan_api,
-            text='{ "status": "0",'
-            '"result" : "Unknown message", '
-            '"message" : "" }',
+            text="""
+            {
+                "status": "0",'
+                "result" : "Unknown message",
+                "message" : ""
+            }
+            """,
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            etherscan_verify,
+            [
+                '--chain-id',
+                str(chain_id),
+                '--apikey',
+                'API',
+                '--contract-name',
+                'EndpointRegistry',
+            ],
+        )
+        assert result.exit_code != 0
+
+
+def test_etherscan_verify_unable_to_verify():
+    with requests_mock.Mocker() as m:
+        chain_id = 3
+        etherscan_api = api_of_chain_id[chain_id]
+        m.post(
+            etherscan_api,
+            text="""
+            {
+                "status": "1",
+                "result" : "dummy_guid",
+                "message" : ""
+            }
+            """,
+        )
+        m.get(
+            etherscan_api,
+            text="""
+            {
+                "status": "0",
+                "result" : "Fail - Unable to verify",
+                "message" : ""
+            }
+            """,
         )
         runner = CliRunner()
         result = runner.invoke(
@@ -211,9 +258,49 @@ def test_etherscan_verify_success():
         m.post(etherscan_api, text='{ "status": "1", "result" : "guid", "message" : "" }')
         m.get(
             etherscan_api,
-            text='{ "status": "1",'
-            '"result" : "Pass - Verified",'
-            ' "message" : "" }',
+            text="""
+            {
+                "status": "1",
+                "result" : "Pass - Verified",
+                "message" : ""
+            }
+            """,
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            etherscan_verify,
+            [
+                '--chain-id',
+                str(chain_id),
+                '--apikey',
+                'API',
+                '--contract-name',
+                'EndpointRegistry',
+            ],
+        )
+        assert result.exit_code == 0
+
+
+def first_fail_second_succeed(request, context):
+    """ Simulate Etherscan saying for the first time 'wait', but for the second time 'success'. """
+    context.status_code = 200
+    try:
+        if first_fail_second_succeed.called:  # type: ignore
+            return '{ "status": "1", "result" : "Pass - Verified", "message" : "" }'
+    except AttributeError:  # first time
+        pass
+    first_fail_second_succeed.called = True  # type: ignore
+    return '{ "status": "0", "result" : "wait for a moment", "message" : "" }'
+
+
+def test_etherscan_verify_success_after_a_loop():
+    with requests_mock.Mocker() as m:
+        chain_id = 3
+        etherscan_api = api_of_chain_id[chain_id]
+        m.post(etherscan_api, text='{ "status": "1", "result" : "guid", "message" : "" }')
+        m.get(
+            etherscan_api,
+            text=first_fail_second_succeed,
         )
         runner = CliRunner()
         result = runner.invoke(

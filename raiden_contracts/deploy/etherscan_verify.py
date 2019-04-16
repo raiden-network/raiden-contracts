@@ -212,22 +212,7 @@ def etherscan_verify_contract(
     Visit {etherscan_url}
     Use raiden_contracts/deploy/joined.sol."""
 
-    if content['status'] == '1':  # submission succeeded, obtained GUID
-        guid = content['result']
-        status = '0'
-        retries = 10
-        while status == '0' and retries > 0:
-            retries -= 1
-            r = guid_status(etherscan_api=etherscan_api, guid=guid)
-            status = r['status']
-            if r['result'] == 'Fail - Unable to verify':
-                raise ValueError(manual_submission_guide)
-            if r['result'] == 'Pass - Verified':
-                return
-            print('Retrying...')
-            sleep(5)
-        raise TimeoutError(manual_submission_guide)
-    else:
+    if content['status'] != '1':
         if content['result'] == 'Contract source code already verified':
             return
         else:
@@ -235,6 +220,22 @@ def etherscan_verify_contract(
                 'Etherscan submission failed for an unknown reason\n' +
                 manual_submission_guide,
             )
+
+    # submission succeeded, obtained GUID
+    guid = content['result']
+    status = '0'
+    retries = 10
+    while status == '0' and retries > 0:
+        retries -= 1
+        r = guid_status(etherscan_api=etherscan_api, guid=guid)
+        status = r['status']
+        if r['result'] == 'Fail - Unable to verify':
+            raise ValueError(manual_submission_guide)
+        if r['result'] == 'Pass - Verified':
+            return
+        print('Retrying...')
+        sleep(5)
+    raise TimeoutError(manual_submission_guide)
 
 
 def guid_status(etherscan_api: str, guid: str):
