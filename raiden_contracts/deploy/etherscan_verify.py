@@ -168,7 +168,7 @@ def post_data_for_etherscan_verification(
         # Typo is intentional. Etherscan does not like the correct spelling.
         'constructorArguements': constructor_args,
     }
-    pprint.pprint({k: v for k, v in data.items() if k is not 'sourceCode'})
+    pprint.pprint({k: v for k, v in data.items() if k != 'sourceCode'})
     return data
 
 
