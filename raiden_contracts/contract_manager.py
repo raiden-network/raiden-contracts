@@ -207,8 +207,9 @@ def get_contracts_deployment_info(
             _load_json_from_path(f),
         )
 
-    assert deployment_data  # If it's empty, it's not DeployedContracts
-    return deployment_data  # type: ignore
+    if not deployment_data:
+        deployment_data = None
+    return deployment_data
 
 
 def _load_json_from_path(f: Path):
