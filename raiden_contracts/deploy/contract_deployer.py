@@ -340,9 +340,10 @@ class ContractDeployer(ContractVerifyer):
             user_deposit_whole_balance_limit: int,
     ):
         """Deploy 3rd party service contracts"""
+        chain_id = int(self.web3.version.network)
         deployed_contracts: DeployedContracts = {
             'contracts_version': self.contract_version_string(),
-            'chain_id': int(self.web3.version.network),
+            'chain_id': chain_id,
             'contracts': {},
         }
 
@@ -366,7 +367,7 @@ class ContractDeployer(ContractVerifyer):
 
         one_to_n = self._deploy_and_remember(
             contract_name=CONTRACT_ONE_TO_N,
-            arguments=[user_deposit.address],
+            arguments=[user_deposit.address, chain_id],
             deployed_contracts=deployed_contracts,
         )
 
