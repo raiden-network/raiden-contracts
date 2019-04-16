@@ -9,6 +9,10 @@ contract OneToN is Utils {
 
     UserDeposit public deposit_contract;
 
+    // The signature given to claim() has to be computed with
+    // this chain_id.  Otherwise the call fails.
+    uint256 public chain_id;
+
     // Indicates which sessions have already been settled by storing
     // keccak256(receiver, sender, expiration_block) => expiration_block.
     mapping (bytes32 => uint256) public settled_sessions;
@@ -36,10 +40,14 @@ contract OneToN is Utils {
      */
 
     /// @param _deposit_contract Address of UserDeposit contract
-    constructor(address _deposit_contract)
+    constructor(
+        address _deposit_contract,
+        uint256 _chain_id
+    )
         public
     {
         deposit_contract = UserDeposit(_deposit_contract);
+        chain_id = _chain_id;
     }
 
     /// @notice Submit an IOU to claim the owed amount.
@@ -57,7 +65,6 @@ contract OneToN is Utils {
         uint256 amount,
         uint256 expiration_block,
         address one_to_n_address,
-        uint256 chain_id,
         bytes memory signature
     )
         public

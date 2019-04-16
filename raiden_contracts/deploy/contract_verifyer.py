@@ -291,7 +291,8 @@ class ContractVerifyer:
             one_to_n.functions.deposit_contract().call(),
         ) == user_deposit.address
         assert user_deposit.address == constructor_arguments[0]
-        assert len(constructor_arguments) == 1
+        assert chain_id == constructor_arguments[1]
+        assert len(constructor_arguments) == 2
 
         # Check that UserDeposit.init() had the right effect
         onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())

@@ -380,7 +380,7 @@ def print_gas_one_to_n(
         chain_id=chain_id,
     )
     txn_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, one_to_n_contract.address, chain_id, signature,
+        A, B, amount, expiration, one_to_n_contract.address, signature,
     ).call_and_transact({'from': A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + '.claim')
 
