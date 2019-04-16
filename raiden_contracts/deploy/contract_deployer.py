@@ -223,26 +223,44 @@ class ContractDeployer(ContractVerifyer):
         """Register token with a TokenNetworkRegistry contract."""
         with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
         if with_limits:
-            if channel_participant_deposit_limit is None:
-                raise ValueError(
-                    'contracts_version 0.9.0 and afterwards expect '
-                    'channel_participant_deposit_limit',
-                )
-            if token_network_deposit_limit is None:
-                raise ValueError(
-                    'contracts_version 0.9.0 and afterwards expect '
-                    'token_network_deposit_limit',
-                )
+            return self._register_token_network_with_limits(
+                token_registry_abi,
+                token_registry_address,
+                token_address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+            )
         else:
-            if channel_participant_deposit_limit:
-                raise ValueError(
-                    'contracts_version below 0.9.0 does not expect '
-                    'channel_participant_deposit_limit',
-                )
-            if token_network_deposit_limit:
-                raise ValueError(
-                    'contracts_version below 0.9.0 does not expect token_network_deposit_limit',
-                )
+            return self._register_token_network_without_limits(
+                token_registry_abi,
+                token_registry_address,
+                token_address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+            )
+
+    def _register_token_network_without_limits(
+            self,
+            token_registry_abi: Dict,
+            token_registry_address: str,
+            token_address: str,
+            channel_participant_deposit_limit: Optional[int],
+            token_network_deposit_limit: Optional[int],
+    ):
+        """Register token with a TokenNetworkRegistry contract
+
+        with a contracts-version that doesn't require deposit limits in the TokenNetwork
+        constructor.
+        """
+        if channel_participant_deposit_limit:
+            raise ValueError(
+                'contracts_version below 0.9.0 does not expect '
+                'channel_participant_deposit_limit',
+            )
+        if token_network_deposit_limit:
+            raise ValueError(
+                'contracts_version below 0.9.0 does not expect token_network_deposit_limit',
+            )
         token_network_registry = self.web3.eth.contract(
             abi=token_registry_abi,
             address=token_registry_address,
@@ -255,16 +273,58 @@ class ContractDeployer(ContractVerifyer):
                 f'{self.contract_manager.version_string()} in the deployment data',
             )
 
-        if with_limits:
-            command = token_network_registry.functions.createERC20TokenNetwork(
-                _token_address=token_address,
-                _channel_participant_deposit_limit=channel_participant_deposit_limit,
-                _token_network_deposit_limit=token_network_deposit_limit,
+        command = token_network_registry.functions.createERC20TokenNetwork(
+            token_address,
+        )
+        self.transact(command)
+
+        token_network_address = token_network_registry.functions.token_to_token_networks(
+            token_address,
+        ).call()
+        token_network_address = to_checksum_address(token_network_address)
+        LOG.debug(f'TokenNetwork address: {token_network_address}')
+        return token_network_address
+
+    def _register_token_network_with_limits(
+            self,
+            token_registry_abi: Dict,
+            token_registry_address: str,
+            token_address: str,
+            channel_participant_deposit_limit: Optional[int],
+            token_network_deposit_limit: Optional[int],
+    ):
+        """Register token with a TokenNetworkRegistry contract
+
+        with a contracts-version that requires deposit limits in the TokenNetwork
+        constructor.
+        """
+        if channel_participant_deposit_limit is None:
+            raise ValueError(
+                'contracts_version 0.9.0 and afterwards expect '
+                'channel_participant_deposit_limit',
             )
-        else:
-            command = token_network_registry.functions.createERC20TokenNetwork(
-                token_address,
+        if token_network_deposit_limit is None:
+            raise ValueError(
+                'contracts_version 0.9.0 and afterwards expect '
+                'token_network_deposit_limit',
             )
+        token_network_registry = self.web3.eth.contract(
+            abi=token_registry_abi,
+            address=token_registry_address,
+        )
+
+        version_from_onchain = token_network_registry.functions.contract_version().call()
+        if version_from_onchain != self.contract_manager.version_string():
+            raise RuntimeError(
+                f'got {version_from_onchain} from the chain, expected '
+                f'{self.contract_manager.version_string()} in the deployment data',
+            )
+
+        command = token_network_registry.functions.createERC20TokenNetwork(
+            _token_address=token_address,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+        )
         self.transact(command)
 
         token_network_address = token_network_registry.functions.token_to_token_networks(
