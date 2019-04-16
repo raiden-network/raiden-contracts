@@ -1,5 +1,5 @@
 -r requirements.txt
-eth-tester[py-evm]<=0.1.0b33
+eth-tester[py-evm]==0.1.0-beta.39
 pytest
 pytest-cov
 pyfakefs
