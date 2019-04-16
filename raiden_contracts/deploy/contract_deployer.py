@@ -249,7 +249,7 @@ class ContractDeployer(ContractVerifyer):
     ):
         """Register token with a TokenNetworkRegistry contract
 
-        where a contract-version that doesn't requires deposit limits in the TokenNetwork
+        with a contracts-version that doesn't require deposit limits in the TokenNetwork
         constructor.
         """
         if channel_participant_deposit_limit:
@@ -295,7 +295,7 @@ class ContractDeployer(ContractVerifyer):
     ):
         """Register token with a TokenNetworkRegistry contract
 
-        where a contract-version that requires deposit limits in the TokenNetwork
+        with a contracts-version that requires deposit limits in the TokenNetwork
         constructor.
         """
         if channel_participant_deposit_limit is None:
