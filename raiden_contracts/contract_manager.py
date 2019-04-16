@@ -202,15 +202,20 @@ def get_contracts_deployment_info(
     deployment_data: DeployedContracts = {}  # type: ignore
 
     for f in files:
-        try:
-            with f.open() as deployment_file:
-                deployment_data = merge_deployment_data(
-                    deployment_data,
-                    json.load(deployment_file),
-                )
-        except (FileNotFoundError) as ex:
-            return None
-        except (JSONDecodeError, UnicodeDecodeError) as ex:
-            raise ValueError(f'Deployment data file is corrupted: {ex}') from ex
+        deployment_data = merge_deployment_data(
+            deployment_data,
+            _load_json_from_path(f),
+        )
+
     assert deployment_data  # If it's empty, it's not DeployedContracts
     return deployment_data  # type: ignore
+
+
+def _load_json_from_path(f: Path):
+    try:
+        with f.open() as deployment_file:
+            return json.load(deployment_file)
+    except (FileNotFoundError) as ex:
+        return None
+    except (JSONDecodeError, UnicodeDecodeError) as ex:
+        raise ValueError(f'Deployment data file is corrupted: {ex}') from ex
