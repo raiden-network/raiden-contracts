@@ -89,11 +89,8 @@ def deprecation_test(
 
     # Activate deprecation switch
     assert token_network.functions.safety_deprecation_switch().call() is False
-    txhash = token_network.functions.deprecate().call_and_transact(
-        deployer.transaction,
-    )
+    txhash = deployer.transact(token_network.functions.deprecate())
     log.debug(f'Deprecation txHash={encode_hex(txhash)}')
-    check_successful_tx(web3=deployer.web3, txid=txhash, timeout=deployer.wait)
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     log.info('Checking that channels cannot be opened anymore and no more deposits are allowed.')
