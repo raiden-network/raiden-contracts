@@ -85,6 +85,14 @@ class ContractManager:
             event_name=event_name,
         )
 
+    def get_constructor_argument_types(self, contract_name: str) -> List:
+        abi = self.get_contract_abi(contract_name=contract_name)
+        return [
+            arg['type'] for arg in list(
+                filter(lambda x: x['type'] == 'constructor', abi),
+            )[0]['inputs']
+        ]
+
     @property
     def version_string(self):
         """Return a flavored version string."""
