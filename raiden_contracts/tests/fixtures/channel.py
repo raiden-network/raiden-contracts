@@ -27,7 +27,11 @@ def create_channel(token_network, web3):
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
-        txn_hash = token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
+        txn_hash = token_network.functions.openChannel(
+            participant1=A,
+            participant2=B,
+            settle_timeout=settle_timeout,
+        ).call_and_transact()
         web3.testing.mine(1)
 
         # Get the channel identifier
@@ -55,8 +59,8 @@ def assign_tokens(token_network, custom_token):
         transfer_from_owner = min(amount, owner_balance)
 
         custom_token.functions.transfer(
-            participant,
-            transfer_from_owner,
+            _to=participant,
+            _value=transfer_from_owner,
         ).call_and_transact({'from': owner})
         assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
@@ -65,12 +69,12 @@ def assign_tokens(token_network, custom_token):
             custom_token.functions.mint(minted).call_and_transact({'from': participant})
         assert custom_token.functions.balanceOf(participant).call() >= deposit
         custom_token.functions.approve(
-            token_network.address,
-            deposit,
+            _spender=token_network.address,
+            _value=deposit,
         ).call_and_transact({'from': participant})
         assert custom_token.functions.allowance(
-            participant,
-            token_network.address,
+            _owner=participant,
+            _spender=token_network.address,
         ).call() >= deposit
     return get
 
@@ -82,10 +86,10 @@ def channel_deposit(token_network, assign_tokens):
         assign_tokens(tx_from, deposit)
 
         txn_hash = token_network.functions.setTotalDeposit(
-            channel_identifier,
-            participant,
-            deposit,
-            partner,
+            channel_identifier=channel_identifier,
+            participant=participant,
+            total_deposit=deposit,
+            partner=partner,
         ).call_and_transact({'from': tx_from})
         return txn_hash
     return get
