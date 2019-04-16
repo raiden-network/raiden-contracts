@@ -139,14 +139,14 @@ def test_deploy_script_raiden(
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts_version'] = '0.0.0'
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         deployer._verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['chain_id'] = 0
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         deployer._verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
@@ -456,7 +456,7 @@ def test_deploy_script_service(
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['contracts_version'] = '0.0.0'
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         deployer._verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
