@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Dict, List, Optional
 
 from eth_utils import denoms, encode_hex, is_address, to_checksum_address
-from semver import compare
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -24,6 +23,7 @@ from raiden_contracts.contract_source_manager import ContractSourceManager, cont
 from raiden_contracts.deploy.contract_verifyer import ContractVerifyer, DeployedContracts
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
+from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
 
 LOG = getLogger(__name__)
 
@@ -319,14 +319,6 @@ class ContractDeployer(ContractVerifyer):
         self.transact(user_deposit.functions.init(msc.address, one_to_n.address))
 
         return deployed_contracts
-
-
-def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -> bool:
-    if contracts_version is None:
-        return True
-    if contracts_version == '0.3._':
-        return False
-    return compare(contracts_version, '0.9.0') > -1
 
 
 def _deployed_data_from_receipt(receipt, constructor_arguments):

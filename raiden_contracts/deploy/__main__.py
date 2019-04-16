@@ -14,11 +14,11 @@ from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK_REGISTRY
-from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.versions import contract_version_with_max_token_networks
 
 LOG = getLogger(__name__)
 
@@ -130,25 +130,6 @@ def setup_ctx(
 @click.group(chain=True)
 def main():
     pass
-
-
-def contract_version_with_max_token_networks(version: Optional[str]) -> bool:
-    manager = ContractManager(contracts_precompiled_path(version))
-    abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
-    constructors = list(filter(lambda x: x['type'] == 'constructor', abi))
-    assert len(constructors) == 1
-    inputs = constructors[0]['inputs']
-    max_token_networks_args = list(filter(lambda x: x['name'] == '_max_token_networks', inputs))
-    found_args = len(max_token_networks_args)
-    if found_args == 0:
-        return False
-    elif found_args == 1:
-        return True
-    else:
-        raise ValueError(
-            "TokenNetworkRegistry's constructor has more than one arguments that are "
-            'called "_max_token_networks".',
-        )
 
 
 def check_version_dependent_parameters(
