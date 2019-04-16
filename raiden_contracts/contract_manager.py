@@ -164,8 +164,8 @@ def get_contracts_deployment_info(
         chain_id: int,
         version: Optional[str] = None,
         module: DeploymentModule = DeploymentModule.ALL,
-) -> DeployedContracts:
-    """Reads the deployment data.
+) -> Optional[DeployedContracts]:
+    """Reads the deployment data. Returns None if the file is not found.
 
     Parameter:
         module The name of the module. ALL means deployed contracts from all modules that are
@@ -202,13 +202,21 @@ def get_contracts_deployment_info(
     deployment_data: DeployedContracts = {}  # type: ignore
 
     for f in files:
-        try:
-            with f.open() as deployment_file:
-                deployment_data = merge_deployment_data(
-                    deployment_data,
-                    json.load(deployment_file),
-                )
-        except (JSONDecodeError, UnicodeDecodeError, FileNotFoundError) as ex:
-            raise ValueError(f'Cannot load deployment data file: {ex}') from ex
-    assert deployment_data  # If it's empty, it's not DeployedContracts
-    return deployment_data  # type: ignore
+        deployment_data = merge_deployment_data(
+            deployment_data,
+            _load_json_from_path(f),
+        )
+
+    if not deployment_data:
+        deployment_data = None
+    return deployment_data
+
+
+def _load_json_from_path(f: Path):
+    try:
+        with f.open() as deployment_file:
+            return json.load(deployment_file)
+    except (FileNotFoundError) as ex:
+        return None
+    except (JSONDecodeError, UnicodeDecodeError) as ex:
+        raise ValueError(f'Deployment data file is corrupted: {ex}') from ex

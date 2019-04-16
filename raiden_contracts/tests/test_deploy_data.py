@@ -59,6 +59,7 @@ def test_deploy_data_has_fields_raiden(
         chain_id: int,
 ):
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
+    assert data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
@@ -77,6 +78,7 @@ def test_deploy_data_has_fields_services(
         chain_id: int,
 ):
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
+    assert data
     assert data['contracts_version'] == version if version else CONTRACTS_VERSION
     assert data['chain_id'] == chain_id
     contracts = data['contracts']
@@ -93,6 +95,7 @@ def test_deploy_data_all(
 ):
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     data_default = get_contracts_deployment_info(chain_id, version)
+    assert data_all
     assert data_all == data_default
 
     for name in RAIDEN_CONTRACT_NAMES + SERVICE_CONTRACT_NAMES:
@@ -103,6 +106,10 @@ def test_deploy_data_all(
 def test_deploy_data_unknown_module():
     with pytest.raises(ValueError):
         get_contracts_deployment_info(3, None, module=None)  # type: ignore
+
+
+def test_deploy_data_not_deployed():
+    assert get_contracts_deployment_info(1, '0.8.0', module=DeploymentModule.RAIDEN) is None
 
 
 @pytest.mark.parametrize('chain_id', [3, 4, 42])

@@ -191,6 +191,10 @@ def etherscan_verify_contract(
         chain_id=chain_id,
         module=source_module,
     )
+    if deployment_info is None:
+        raise FileNotFoundError(
+            f'Deployment file not found for chain_id={chain_id} and module={source_module}',
+        )
     contract_manager = ContractManager(contracts_precompiled_path())
 
     data = post_data_for_etherscan_verification(
