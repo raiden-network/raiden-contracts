@@ -25,7 +25,6 @@ from raiden_contracts.deploy.__main__ import (
     validate_address,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
-
 from raiden_contracts.tests.utils import get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,

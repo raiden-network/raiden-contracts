@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from raiden_contracts.contract_manager import _load_json_from_path
