@@ -2,8 +2,7 @@ from typing import Union
 
 from coincurve import PrivateKey, PublicKey
 from eth_utils import keccak, remove_0x_prefix, to_bytes, to_checksum_address
-
-from .type_aliases import Address
+from eth_utils.typing import ChecksumAddress
 
 sha3 = keccak
 
@@ -23,7 +22,7 @@ def sign(privkey: str, msg: bytes, v=0) -> bytes:
     return sig
 
 
-def private_key_to_address(private_key: Union[str, bytes]) -> Address:
+def private_key_to_address(private_key: Union[str, bytes]) -> ChecksumAddress:
     """ Converts a private key to an Ethereum address. """
     if isinstance(private_key, str):
         private_key_bytes = to_bytes(hexstr=private_key)
@@ -33,7 +32,7 @@ def private_key_to_address(private_key: Union[str, bytes]) -> Address:
     return public_key_to_address(pk.public_key)
 
 
-def public_key_to_address(public_key: Union[PublicKey, bytes]) -> Address:
+def public_key_to_address(public_key: Union[PublicKey, bytes]) -> ChecksumAddress:
     """ Converts a public key to an Ethereum address. """
     if isinstance(public_key, PublicKey):
         public_key = public_key.format(compressed=False)

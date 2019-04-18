@@ -1,5 +1,6 @@
 import pytest
-from eth_utils import denoms, is_address
+from eth_utils import is_address
+from eth_utils.units import units
 
 from raiden_contracts.tests.utils.constants import FAUCET_ADDRESS
 
@@ -16,7 +17,7 @@ def send_funds(
             'from': FAUCET_ADDRESS,
             'to': target,
             'gas': 21000,
-            'value': 1 * denoms.ether,  # pylint: disable=E1101
+            'value': 1 * int(units['ether']),
         })
         custom_token.functions.transfer(
             target,

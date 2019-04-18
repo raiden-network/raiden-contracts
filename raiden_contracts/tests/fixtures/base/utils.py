@@ -4,7 +4,8 @@ from typing import Dict
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from eth_utils import denoms, is_same_address
+from eth_utils import is_same_address
+from eth_utils.units import units
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import get_random_privkey
@@ -42,7 +43,7 @@ def create_account(web3, ethereum_tester):
                 web3.eth.sendTransaction({
                     'from': faucet,
                     'to': address,
-                    'value': 1 * denoms.finney,  # pylint: disable=E1101
+                    'value': 1 * int(units['finney']),
                 })
                 break
             except TransactionFailed:

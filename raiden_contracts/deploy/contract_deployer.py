@@ -1,7 +1,8 @@
 from logging import getLogger
 from typing import Dict, List, Optional
 
-from eth_utils import denoms, encode_hex, is_address, to_checksum_address
+from eth_utils import encode_hex, is_address, to_checksum_address
+from eth_utils.units import units
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -44,7 +45,7 @@ class ContractDeployer(ContractVerifyer):
         self.owner = private_key_to_address(private_key)
         self.transaction = {'from': self.owner, 'gas': gas_limit}
         if gas_price != 0:
-            self.transaction['gasPrice'] = gas_price * denoms.gwei
+            self.transaction['gasPrice'] = gas_price * int(units['gwei'])
 
         self.web3.middleware_stack.add(
             construct_sign_and_send_raw_middleware(private_key),
