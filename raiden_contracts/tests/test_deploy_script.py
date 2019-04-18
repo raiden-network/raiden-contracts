@@ -462,6 +462,15 @@ def test_deploy_script_service(
             deployment_data=deployed_info_fail,
         )
 
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail['chain_id'] = deployed_service_contracts['chain_id'] + 1
+    with pytest.raises(RuntimeError):
+        deployer._verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployment_data=deployed_info_fail,
+        )
+
     def test_missing_deployment(contract_name):
         deployed_info_fail = deepcopy(deployed_service_contracts)
         deployed_info_fail['contracts'][
