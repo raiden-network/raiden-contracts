@@ -12,7 +12,6 @@ def token_network_test_storage(
 ):
     return deploy_tester_contract(
         'TokenNetworkInternalStorageTest',
-        {},
         [
             custom_token.address,
             secret_registry_contract.address,
@@ -32,7 +31,6 @@ def token_network_test_signatures(
 ):
     return deploy_tester_contract(
         'TokenNetworkSignatureTest',
-        {},
         [
             custom_token.address,
             secret_registry_contract.address,
@@ -52,7 +50,6 @@ def token_network_test_utils(
 ):
     return deploy_tester_contract(
         'TokenNetworkUtilsTest',
-        {},
         [
             custom_token.address,
             secret_registry_contract.address,

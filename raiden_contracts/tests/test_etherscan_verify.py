@@ -281,7 +281,7 @@ def test_etherscan_verify_success():
         assert result.exit_code == 0
 
 
-def first_fail_second_succeed(request, context):
+def first_fail_second_succeed(_, context):
     """ Simulate Etherscan saying for the first time 'wait', but for the second time 'success'. """
     context.status_code = 200
     try:

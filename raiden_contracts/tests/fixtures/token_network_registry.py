@@ -15,10 +15,9 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 @pytest.fixture()
 def get_token_network_registry(deploy_tester_contract):
-    def get(arguments, transaction=None):
+    def get(arguments):
         return deploy_tester_contract(
             CONTRACT_TOKEN_NETWORK_REGISTRY,
-            {},
             arguments,
         )
     return get
@@ -38,14 +37,11 @@ def token_network_registry_constructor_args(web3, secret_registry_contract):
 @pytest.fixture(scope='session')
 def token_network_registry_contract(
         deploy_tester_contract,
-        secret_registry_contract,
-        web3,
         token_network_registry_constructor_args,
 ):
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [],
         token_network_registry_constructor_args,
     )
 

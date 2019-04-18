@@ -24,7 +24,6 @@ from raiden_contracts.utils import get_pending_transfers_tree
 @pytest.fixture()
 def test_settlement_outcome(
         web3,
-        get_accounts,
         secret_registry_contract,
         custom_token,
         token_network,
@@ -37,8 +36,6 @@ def test_settlement_outcome(
     def f(
             participants,
             channel_values,
-            expected_settlement0,
-            expected_settlement_onchain0,
             expected_final_balance_A0,
             expected_final_balance_B0,
     ):
@@ -263,7 +260,6 @@ def test_settlement_outcome(
 @pytest.mark.parametrize('tested_range', ('one_old', 'both_old_1', 'both_old_2'))
 # This test is split in three so it does not time out on travis
 def test_channel_settle_old_balance_proof_values(
-        web3,
         get_accounts,
         assign_tokens,
         channel_test_values,
@@ -283,12 +279,6 @@ def test_channel_settle_old_balance_proof_values(
     # We make sure the contract has more tokens than A, B will deposit
     create_channel_and_deposit(C, D, 40, 60)
 
-    # Calculate how much A and B should receive while not knowing who will receive the
-    # locked amounts
-    expected_settlement0 = get_settlement_amounts(vals_A0, vals_B0)
-    # Calculate how much A and B receive according to onchain computation
-    expected_settlement_onchain0 = get_onchain_settlement_amounts(vals_A0, vals_B0)
-
     # Calculate the final expected balances after the channel lifecycle, (after settlement and
     # unlocks), when we know how the locked amounts will be distributed.
     # This is a very important check. This must be true for the last known balance proofs,
@@ -306,8 +296,6 @@ def test_channel_settle_old_balance_proof_values(
         test_settlement_outcome(
             (A, B),
             (vals_A0, vals_B0, 'valid'),
-            expected_settlement0,
-            expected_settlement_onchain0,
             expected_final_balance_A0,
             expected_final_balance_B0,
         )
@@ -318,8 +306,6 @@ def test_channel_settle_old_balance_proof_values(
                 test_settlement_outcome(
                     (A, B),
                     (vals_A, vals_B, 'old_last'),
-                    expected_settlement0,
-                    expected_settlement_onchain0,
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
@@ -330,8 +316,6 @@ def test_channel_settle_old_balance_proof_values(
                 test_settlement_outcome(
                     (A, B),
                     (vals_A, vals_B, 'last_old'),
-                    expected_settlement0,
-                    expected_settlement_onchain0,
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
@@ -347,8 +331,6 @@ def test_channel_settle_old_balance_proof_values(
                         test_settlement_outcome(
                             (A, B),
                             (vals_A, vals_B, 'invalid'),
-                            expected_settlement0,
-                            expected_settlement_onchain0,
                             expected_final_balance_A0,
                             expected_final_balance_B0,
                         )
@@ -364,8 +346,6 @@ def test_channel_settle_old_balance_proof_values(
                         test_settlement_outcome(
                             (A, B),
                             (vals_A, vals_B, 'invalid'),
-                            expected_settlement0,
-                            expected_settlement_onchain0,
                             expected_final_balance_A0,
                             expected_final_balance_B0,
                         )

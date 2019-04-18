@@ -186,7 +186,7 @@ def test_null_or_negative_deposit_fail(
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({'from': A})
 
 
-def test_deposit_delegate_works(token_network, get_accounts, create_channel, channel_deposit):
+def test_deposit_delegate_works(get_accounts, create_channel, channel_deposit):
     """ A third party can successfully call setTokenDeposit() """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -229,7 +229,7 @@ def test_deposit_wrong_channel(
 
 
 @pytest.mark.skip('Not necessary with limited deposits for the test release.')
-def test_channel_deposit_overflow(token_network, get_accounts, create_channel, channel_deposit):
+def test_channel_deposit_overflow(get_accounts, create_channel, channel_deposit):
     (A, B) = get_accounts(2)
     deposit_A = 50
     deposit_B_ok = MAX_UINT256 - deposit_A
@@ -301,7 +301,6 @@ def test_deposit_wrong_state_fail(
         token_network,
         create_channel,
         assign_tokens,
-        close_and_update_channel,
 ):
     """ setTotalDeposit() fails on Closed or Settled channels. """
     (A, B) = get_accounts(2)

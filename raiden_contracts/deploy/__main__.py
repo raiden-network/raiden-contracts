@@ -418,7 +418,7 @@ def register(
     help='Contracts version to verify. Current version will be used by default.',
 )
 @click.pass_context
-def verify(ctx, rpc_provider, contracts_version):
+def verify(_, rpc_provider, contracts_version):
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])

@@ -29,7 +29,7 @@ def test_token_mint(web3, custom_token, get_accounts):
     assert web3.eth.getBalance(token.address) == token_pre_balance
 
 
-def test_approve_transfer(web3, custom_token, get_accounts):
+def test_approve_transfer(custom_token, get_accounts):
     """ Use the approve() function of the custom token contract """
 
     (A, B) = get_accounts(2)
@@ -49,7 +49,7 @@ def test_approve_transfer(web3, custom_token, get_accounts):
     assert custom_token.functions.allowance(_owner=A, _spender=token.address).call() == 0
 
 
-def test_token_transfer_funds(web3, custom_token, get_accounts, txn_gas):
+def test_token_transfer_funds(web3, custom_token, get_accounts):
     """ transferFunds() should fail when the ETH balance of the contract is zero """
 
     A = get_accounts(1)[0]

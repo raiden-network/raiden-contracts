@@ -143,7 +143,7 @@ class LogFilter:
 
         event_abi = [i for i in abi if i['type'] == 'event' and i['name'] == event_name]
         if len(event_abi) == 0:
-            return None
+            raise ValueError(f'Event of name {event_name} not found')
 
         self.event_abi = event_abi[0]
         assert self.event_abi

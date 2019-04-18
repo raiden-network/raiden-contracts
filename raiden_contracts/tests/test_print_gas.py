@@ -54,13 +54,11 @@ def print_gas_token_network_registry(
         web3,
         deploy_tester_contract_txhash,
         secret_registry_contract,
-        custom_token,
         print_gas,
 ):
     """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [],
         [
             secret_registry_contract.address,
             int(web3.version.network),
@@ -87,7 +85,6 @@ def print_gas_token_network_deployment(
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
-        [],
         [
             custom_token.address,
             secret_registry_contract.address,
@@ -106,7 +103,6 @@ def print_gas_token_network_deployment(
 def print_gas_token_network_create(
         print_gas,
         custom_token,
-        secret_registry_contract,
         get_token_network_registry,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
@@ -425,15 +421,17 @@ def print_gas_user_deposit(
 # All gas printing is done in a single test. Otherwise, after a parallel
 # execution of multiple gas printing tests, you see a corrupted gas.json.
 @pytest.mark.slow
+@pytest.mark.usefixtures(
+    'print_gas_token_network_registry',
+    'print_gas_token_network_deployment',
+    'print_gas_token_network_create',
+    'print_gas_secret_registry',
+    'print_gas_channel_cycle',
+    'print_gas_endpointregistry',
+    'print_gas_monitoring_service',
+    'print_gas_one_to_n',
+    'print_gas_user_deposit',
+)
 def test_print_gas(
-        print_gas_token_network_registry,
-        print_gas_token_network_deployment,
-        print_gas_token_network_create,
-        print_gas_secret_registry,
-        print_gas_channel_cycle,
-        print_gas_endpointregistry,
-        print_gas_monitoring_service,
-        print_gas_one_to_n,
-        print_gas_user_deposit,
 ):
     pass

@@ -23,7 +23,7 @@ from raiden_contracts.utils.merkle import get_merkle_root
 # pytest: disable=C0103
 
 
-def test_merkle_root_0_items(token_network_test_utils, token_network):
+def test_merkle_root_0_items(token_network_test_utils):
     """ getMerkleRootAndUnlockedAmount() returns a reasonable return value for no items """
     (
         locksroot,
@@ -101,7 +101,6 @@ def test_merkle_root_odd_even_components(
         web3,
         get_accounts,
         token_network_test_utils,
-        secret_registry_contract,
         reveal_secrets,
 ):
     """ Test getMerkleRootAndUnlockedAmount() on an odd/even number of locks """
@@ -142,7 +141,6 @@ def test_merkle_tree_components_order(
         web3,
         get_accounts,
         token_network_test_utils,
-        secret_registry_contract,
         reveal_secrets,
         token_network,
         create_settled_channel,
@@ -569,8 +567,6 @@ def test_channel_unlock_bigger_unlocked_amount(
 def test_channel_unlock_no_locked_amount_fail(
         web3,
         token_network,
-        custom_token,
-        secret_registry_contract,
         create_settled_channel,
         get_accounts,
         reveal_secrets,
@@ -613,13 +609,11 @@ def test_channel_unlock(
         web3,
         custom_token,
         token_network,
-        secret_registry_contract,
         create_channel,
         channel_deposit,
         get_accounts,
         close_and_update_channel,
         reveal_secrets,
-        event_handler,
 ):
     """ unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties """
@@ -810,7 +804,6 @@ def test_channel_unlock_registered_expired_lock_refunds(
         create_channel,
         channel_deposit,
         get_accounts,
-        reveal_secrets,
         close_and_update_channel,
 ):
     """ unlock() should refund tokens locked with secrets revealed after the expiration """
@@ -946,7 +939,6 @@ def test_channel_unlock_before_settlement_fails(
         web3,
         custom_token,
         token_network,
-        secret_registry_contract,
         create_channel,
         channel_deposit,
         get_accounts,
@@ -1302,7 +1294,6 @@ def test_channel_unlock_with_a_large_expiration(
         web3,
         custom_token,
         token_network,
-        secret_registry_contract,
         create_channel,
         channel_deposit,
         get_accounts,

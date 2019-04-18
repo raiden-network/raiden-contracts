@@ -4,7 +4,8 @@ from typing import Dict
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from eth_utils import denoms, is_same_address
+from eth_utils import is_same_address
+from eth_utils.units import units
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import get_random_privkey
@@ -42,7 +43,7 @@ def create_account(web3, ethereum_tester):
                 web3.eth.sendTransaction({
                     'from': faucet,
                     'to': address,
-                    'value': 1 * denoms.finney,  # pylint: disable=E1101
+                    'value': 1 * int(units['finney']),
                 })
                 break
             except TransactionFailed:
@@ -63,7 +64,7 @@ def get_accounts(create_account):
 
 
 @pytest.fixture(scope='session')
-def get_private_key(web3, ethereum_tester):
+def get_private_key(ethereum_tester):
     def get(account_address):
         keys = [
             key.to_hex() for key in ethereum_tester.backend.account_keys
@@ -78,7 +79,7 @@ def get_private_key(web3, ethereum_tester):
 
 
 @pytest.fixture(scope='session')
-def event_handler(contracts_manager, web3):
+def event_handler(web3):
     def get(contract=None, address=None, abi=None):
         if contract:
             abi = contract.abi
@@ -121,7 +122,7 @@ def sys_args_contain(searched: str) -> bool:
 
 
 @pytest.fixture
-def print_gas(web3, txn_gas, gas_measurement_results):
+def print_gas(txn_gas, gas_measurement_results):
     def get(txn_hash, message=None, additional_gas=0):
         if not sys_args_contain('test_print_gas'):
             # If the command line arguments don't contain 'test_print_gas', do nothing

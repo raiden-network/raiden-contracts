@@ -13,8 +13,6 @@ from raiden_contracts.utils.signature import sign
 def signature_test_contract(deploy_tester_contract):
     return deploy_tester_contract(
         'SignatureVerifyTest',
-        {},
-        [],
     )
 
 

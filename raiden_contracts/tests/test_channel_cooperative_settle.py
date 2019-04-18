@@ -13,7 +13,6 @@ def test_cooperative_settle_channel_call(
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -408,13 +407,11 @@ def test_cooperative_settle_channel_state_withdraw(
 
 @pytest.mark.skip(reason='Delayed until another milestone')
 def test_cooperative_settle_channel_bigger_withdraw(
-        custom_token,
         token_network,
         create_channel_and_deposit,
         withdraw_channel,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -452,12 +449,10 @@ def test_cooperative_settle_channel_bigger_withdraw(
 
 @pytest.mark.skip(reason='Delayed until another milestone')
 def test_cooperative_settle_channel_wrong_balances(
-        custom_token,
         token_network,
         create_channel_and_deposit,
         get_accounts,
         create_cooperative_settle_signatures,
-        cooperative_settle_state_tests,
 ):
     (A, B, C) = get_accounts(3)
     deposit_A = 20
