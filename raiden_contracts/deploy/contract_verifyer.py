@@ -145,7 +145,7 @@ class ContractVerifyer:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
-        if self.contract_manager.version_string() != deployment_data['contracts_version']:
+        if self.contract_manager.version_string != deployment_data['contracts_version']:
             raise RuntimeError('Version string mismatch.')
         if chain_id != deployment_data['chain_id']:
             raise RuntimeError('chain id mismatch.')
@@ -248,7 +248,7 @@ class ContractVerifyer:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
-        if self.contract_manager.version_string() != deployment_data['contracts_version']:
+        if self.contract_manager.version_string != deployment_data['contracts_version']:
             raise RuntimeError('Version string mismatch')
         if chain_id != deployment_data['chain_id']:
             raise RuntimeError('chain_id mismatch')
