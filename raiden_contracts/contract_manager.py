@@ -219,7 +219,7 @@ def _load_json_from_path(f: Path):
     try:
         with f.open() as deployment_file:
             return json.load(deployment_file)
-    except FileNotFoundError as ex:
+    except FileNotFoundError:
         return None
     except (JSONDecodeError, UnicodeDecodeError) as ex:
         raise ValueError(f'Deployment data file is corrupted: {ex}') from ex
