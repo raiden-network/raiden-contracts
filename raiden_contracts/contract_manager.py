@@ -86,6 +86,14 @@ class ContractManager:
         """Return a flavored version string."""
         return contract_version_string(self.contracts_version)
 
+    def get_runtime_hexcode(self, contract_name: str):
+        """ Calculate the runtime hexcode with 0x prefix.
+
+        Parameters:
+            contract_name: name of the contract such as CONTRACT_TOKEN_NETWORK
+        """
+        return '0x' + self.contracts[contract_name]['bin-runtime']
+
 
 def contract_version_string(version: Optional[str] = None):
     """ The version string that should be found in the Solidity source """
