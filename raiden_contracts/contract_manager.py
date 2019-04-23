@@ -82,6 +82,7 @@ class ContractManager:
         contract_abi = self.get_contract_abi(contract_name)
         return find_matching_event_abi(contract_abi, event_name)
 
+    @property
     def version_string(self):
         """Return a flavored version string."""
         return contract_version_string(self.contracts_version)

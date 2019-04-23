@@ -47,7 +47,8 @@ class ContractVerifyer:
             chain_id=chain_id,
             version=self.contract_manager.contracts_version,
         )
-        assert deployment_data is not None
+        if deployment_data is None:
+            raise RuntimeError(f'Deployment data cannot be found at {deployment_file_path}')
 
         if self._verify_deployment_data(deployment_data):
             print(f'Deployment info from {deployment_file_path} has been verified'
@@ -70,7 +71,8 @@ class ContractVerifyer:
             version=self.contract_manager.contracts_version,
             services=True,
         )
-        assert deployment_data is not None
+        if deployment_data is None:
+            raise RuntimeError(f'Deployment data cannot be found at {deployment_file_path}')
 
         if self._verify_service_contracts_deployment_data(
                 token_address=token_address,
@@ -142,8 +144,10 @@ class ContractVerifyer:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
-        assert self.contract_manager.version_string() == deployment_data['contracts_version']
-        assert chain_id == deployment_data['chain_id']
+        if self.contract_manager.version_string != deployment_data['contracts_version']:
+            raise RuntimeError('Version string mismatch.')
+        if chain_id != deployment_data['chain_id']:
+            raise RuntimeError('chain id mismatch.')
 
         self._verify_deployed_contract(
             deployment_data=deployment_data,
@@ -240,8 +244,10 @@ class ContractVerifyer:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
-        assert self.contract_manager.version_string() == deployment_data['contracts_version']
-        assert chain_id == deployment_data['chain_id']
+        if self.contract_manager.version_string != deployment_data['contracts_version']:
+            raise RuntimeError('Version string mismatch')
+        if chain_id != deployment_data['chain_id']:
+            raise RuntimeError('chain_id mismatch')
 
         service_bundle, constructor_arguments = self._verify_deployed_contract(
             deployment_data=deployment_data,

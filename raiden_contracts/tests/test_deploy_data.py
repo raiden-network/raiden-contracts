@@ -1,4 +1,5 @@
 from typing import Optional
+from unittest.mock import Mock
 
 import pytest
 
@@ -9,6 +10,8 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployment_info,
     version_provides_services,
 )
+from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
+from raiden_contracts.tests.utils.constants import FAKE_ADDRESS
 
 
 @pytest.mark.parametrize('version', [None, CONTRACTS_VERSION])
@@ -134,3 +137,20 @@ def test_version_provides_services():
     assert version_provides_services('0.11.0')
     with pytest.raises(ValueError):
         assert version_provides_services('not a semver')
+
+
+def test_verify_nonexistent_deployment(
+        user_deposit_whole_balance_limit,
+):
+    """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
+    web3_mock = Mock()
+    web3_mock.version.network = 1
+    # contracts_version 0.10.1 does not contain a main net deployment.
+    verifyer = ContractVerifyer(web3=web3_mock, contracts_version='0.10.1')
+    with pytest.raises(RuntimeError):
+        verifyer.verify_deployed_contracts_in_filesystem()
+    with pytest.raises(RuntimeError):
+        verifyer.verify_deployed_service_contracts_in_filesystem(
+            token_address=FAKE_ADDRESS,
+            user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+        )
