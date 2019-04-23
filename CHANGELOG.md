@@ -7,9 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
-- get_contracts_deployment_info() returns None instead of raising a ValueError when no deployment file is found.
+- get_contracts_deployment_info() returns None instead of raising a ValueError when no deployment file is found
 - Deploy 0.4.0 version on Goerli
 - [#853](https://github.com/raiden-network/raiden-contracts/pull/853) add chain_id in the IOU claims
+- [#886](https://github.com/raiden-network/raiden-contracts/pull/886) upgrade Solidity compiler to 0.5.7
 
 ## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-12
 
