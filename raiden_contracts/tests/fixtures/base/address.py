@@ -20,7 +20,7 @@ def send_funds(
             'value': 1 * int(units['ether']),
         })
         custom_token.functions.transfer(
-            target,
-            10000,
+            _to=target,
+            _value=10000,
         ).call_and_transact({'from': FAUCET_ADDRESS})
     return f

@@ -80,7 +80,10 @@ class ContractManager:
 
         assert self.contracts, 'ContractManager should have contracts compiled'
         contract_abi = self.get_contract_abi(contract_name)
-        return find_matching_event_abi(contract_abi, event_name)
+        return find_matching_event_abi(
+            abi=contract_abi,
+            event_name=event_name,
+        )
 
     @property
     def version_string(self):
@@ -225,7 +228,7 @@ def _load_json_from_path(f: Path):
     try:
         with f.open() as deployment_file:
             return json.load(deployment_file)
-    except (FileNotFoundError) as ex:
+    except FileNotFoundError:
         return None
     except (JSONDecodeError, UnicodeDecodeError) as ex:
         raise ValueError(f'Deployment data file is corrupted: {ex}') from ex

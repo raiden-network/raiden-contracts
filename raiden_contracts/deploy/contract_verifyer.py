@@ -51,8 +51,10 @@ class ContractVerifyer:
             raise RuntimeError(f'Deployment data cannot be found at {deployment_file_path}')
 
         if self._verify_deployment_data(deployment_data):
-            print(f'Deployment info from {deployment_file_path} has been verified'
-                  'and it is CORRECT.')
+            print(
+                f'Deployment info from {deployment_file_path} has been verified'
+                'and it is CORRECT.',
+            )
 
     def verify_deployed_service_contracts_in_filesystem(
             self,
@@ -79,8 +81,10 @@ class ContractVerifyer:
                 user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
                 deployment_data=deployment_data,
         ):
-            print(f'Deployment info from {deployment_file_path} has been verified '
-                  'and it is CORRECT.')
+            print(
+                f'Deployment info from {deployment_file_path} has been verified '
+                'and it is CORRECT.',
+            )
 
     def store_and_verify_deployment_info_raiden(
             self,

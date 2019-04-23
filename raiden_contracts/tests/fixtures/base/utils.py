@@ -86,7 +86,7 @@ def event_handler(web3):
             address = contract.address
 
         if address and abi:
-            return LogHandler(web3, address, abi)
+            return LogHandler(web3=web3, address=address, abi=abi)
         else:
             raise Exception('event_handler called without a contract instance')
     return get

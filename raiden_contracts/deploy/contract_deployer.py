@@ -378,7 +378,10 @@ class ContractDeployer(ContractVerifyer):
             f'msc_address={msc.address} '
             f'one_to_n_address={one_to_n.address}',
         )
-        self.transact(user_deposit.functions.init(msc.address, one_to_n.address))
+        self.transact(user_deposit.functions.init(
+            _msc_address=msc.address,
+            _one_to_n_address=one_to_n.address,
+        ))
 
         return deployed_contracts
 
