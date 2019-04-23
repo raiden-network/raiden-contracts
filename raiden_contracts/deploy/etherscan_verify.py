@@ -129,12 +129,7 @@ def get_constructor_args(
 ):
     constructor_arguments = deployment_info['contracts'][contract_name]['constructor_arguments']
     if constructor_arguments != []:
-        abi = contract_manager.contracts[contract_name]['abi']
-        constructor_types = [
-            arg['type'] for arg in list(
-                filter(lambda x: x['type'] == 'constructor', abi),
-            )[0]['inputs']
-        ]
+        constructor_types = contract_manager.get_constructor_argument_types(contract_name)
         constructor_args = encode_abi(types=constructor_types, args=constructor_arguments).hex()
     else:
         constructor_types = []
