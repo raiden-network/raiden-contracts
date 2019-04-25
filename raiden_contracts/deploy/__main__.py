@@ -105,8 +105,8 @@ def setup_ctx(
     logging.getLogger('urllib3').setLevel(logging.INFO)
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
-    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-    print('Web3 provider is', web3.providers[0])
+    web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    print('Web3 provider is', web3.provider)
     private_key = get_private_key(private_key)
     assert private_key is not None
     owner = private_key_to_address(private_key)
@@ -420,8 +420,8 @@ def register(
 @click.pass_context
 def verify(_, rpc_provider, contracts_version):
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={'timeout': 60}))
-    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-    print('Web3 provider is', web3.providers[0])
+    web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    print('Web3 provider is', web3.provider)
 
     verifyer = ContractVerifyer(web3=web3, contracts_version=contracts_version)
     verifyer.verify_deployed_contracts_in_filesystem()

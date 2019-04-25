@@ -27,7 +27,7 @@ def get_token_network_registry(deploy_tester_contract):
 def token_network_registry_constructor_args(web3, secret_registry_contract):
     return [
         secret_registry_contract.address,
-        int(web3.version.network),
+        int(web3.eth.protocolVersion),
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
         1,

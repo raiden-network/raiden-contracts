@@ -36,7 +36,7 @@ class ContractVerifyer:
         self.contract_manager = ContractManager(self.precompiled_path)
 
     def verify_deployed_contracts_in_filesystem(self):
-        chain_id = int(self.web3.version.network)
+        chain_id = int(self.web3.eth.protocolVersion)
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -61,7 +61,7 @@ class ContractVerifyer:
             token_address: str,
             user_deposit_whole_balance_limit: int,
     ):
-        chain_id = int(self.web3.version.network)
+        chain_id = int(self.web3.eth.protocolVersion)
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -129,7 +129,7 @@ class ContractVerifyer:
             deployment_info: DeployedContracts,
     ):
         deployment_file_path = contracts_deployed_path(
-            chain_id=int(self.web3.version.network),
+            chain_id=int(self.web3.eth.protocolVersion),
             version=self.contracts_version,
             services=services,
         )
@@ -145,7 +145,7 @@ class ContractVerifyer:
             self,
             deployment_data: DeployedContracts,
     ):
-        chain_id = int(self.web3.version.network)
+        chain_id = int(self.web3.eth.protocolVersion)
         assert deployment_data is not None
 
         if self.contract_manager.version_string != deployment_data['contracts_version']:
@@ -245,7 +245,7 @@ class ContractVerifyer:
             user_deposit_whole_balance_limit: int,
             deployment_data: DeployedContracts,
     ):
-        chain_id = int(self.web3.version.network)
+        chain_id = int(self.web3.eth.protocolVersion)
         assert deployment_data is not None
 
         if self.contract_manager.version_string != deployment_data['contracts_version']:

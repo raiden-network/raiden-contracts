@@ -22,11 +22,10 @@ def test_register_secret_call(secret_registry_contract):
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret(0)
     with pytest.raises(ValidationError):
-        secret_registry_contract.functions.registerSecret('')
-    with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret(fake_bytes(33))
 
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is False
+    assert secret_registry_contract.functions.registerSecret('').call() is False
     assert secret_registry_contract.functions.registerSecret(fake_bytes(10, '02')).call() is True
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32, '02')).call() is True
 

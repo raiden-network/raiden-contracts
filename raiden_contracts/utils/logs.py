@@ -3,9 +3,9 @@ from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
 from typing import Dict, List
 
-from web3.utils.events import get_event_data
-from web3.utils.filters import construct_event_filter_params
-from web3.utils.threads import Timeout
+from web3._utils.events import get_event_data
+from web3._utils.filters import construct_event_filter_params
+from web3._utils.threads import Timeout
 
 # A concrete event added in a transaction.
 LogRecorded = namedtuple('LogRecorded', 'message callback count')

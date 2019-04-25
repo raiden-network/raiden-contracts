@@ -144,7 +144,7 @@ def test_verify_nonexistent_deployment(
 ):
     """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
     web3_mock = Mock()
-    web3_mock.version.network = 1
+    web3_mock.eth.protocolVersion = '1'
     # contracts_version 0.10.1 does not contain a main net deployment.
     verifyer = ContractVerifyer(web3=web3_mock, contracts_version='0.10.1')
     with pytest.raises(RuntimeError):

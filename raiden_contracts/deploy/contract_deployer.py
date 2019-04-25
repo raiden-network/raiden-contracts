@@ -47,7 +47,7 @@ class ContractDeployer(ContractVerifyer):
         if gas_price != 0:
             self.transaction['gasPrice'] = gas_price * int(units['gwei'])
 
-        self.web3.middleware_stack.add(
+        self.web3.middleware_onion.add(
             construct_sign_and_send_raw_middleware(private_key),
         )
 
@@ -170,7 +170,7 @@ class ContractDeployer(ContractVerifyer):
 
         deployed_contracts: DeployedContracts = {
             'contracts_version': self.contract_version_string(),
-            'chain_id': int(self.web3.version.network),
+            'chain_id': int(self.web3.eth.protocolVersion),
             'contracts': {},
         }
 
@@ -341,7 +341,7 @@ class ContractDeployer(ContractVerifyer):
             user_deposit_whole_balance_limit: int,
     ):
         """Deploy 3rd party service contracts"""
-        chain_id = int(self.web3.version.network)
+        chain_id = int(self.web3.eth.protocolVersion)
         deployed_contracts: DeployedContracts = {
             'contracts_version': self.contract_version_string(),
             'chain_id': chain_id,

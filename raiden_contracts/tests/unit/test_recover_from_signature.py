@@ -35,7 +35,7 @@ def test_verify(
     signature = balance_proof_A[3]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
-        int(web3.version.network),
+        int(web3.eth.protocolVersion),
         channel_identifier,
         *balance_proof_A[:3],
     )
@@ -46,7 +46,7 @@ def test_verify(
     signature = balance_proof_B[3]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
-        int(web3.version.network),
+        int(web3.eth.protocolVersion),
         channel_identifier,
         *balance_proof_B[:3],
     )
@@ -91,7 +91,7 @@ def test_ecrecover_output(
     v = signature[64:]
     balance_proof_hash = hash_balance_proof(
         token_network.address,
-        int(web3.version.network),
+        int(web3.eth.protocolVersion),
         channel_identifier,
         *balance_proof_A[:3],
     )

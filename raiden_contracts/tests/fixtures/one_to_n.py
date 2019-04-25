@@ -9,7 +9,7 @@ def one_to_n_contract(
         uninitialized_user_deposit_contract,
         web3,
 ):
-    chain_id = int(web3.version.network)
+    chain_id = int(web3.eth.protocolVersion)
     return deploy_tester_contract(
         CONTRACT_ONE_TO_N,
         [uninitialized_user_deposit_contract.address, chain_id],

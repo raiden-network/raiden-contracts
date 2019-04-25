@@ -31,7 +31,7 @@ def test_constructor_call(
 ):
     """ Try to create a TokenNetworkRegistry with various wrong arguments. """
     A = get_accounts(1)[0]
-    chain_id = int(web3.version.network)
+    chain_id = int(web3.eth.protocolVersion)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
 
@@ -195,7 +195,7 @@ def test_constructor_call(
 def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
     """ The constructor should set the parameters into the storage of the contract """
 
-    chain_id = int(web3.version.network)
+    chain_id = int(web3.eth.protocolVersion)
 
     registry = get_token_network_registry([
         secret_registry_contract.address,

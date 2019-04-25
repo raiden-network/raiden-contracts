@@ -16,7 +16,7 @@ def hash_balance_data(transferred_amount, locked_amount, locksroot):
 
 def eth_sign_hash_message(encoded_message):
     signature_prefix = '\x19Ethereum Signed Message:\n'
-    return Web3.sha3(
+    return Web3.keccak(
         Web3.toBytes(text=signature_prefix) +
         Web3.toBytes(text=str(len(encoded_message))) +
         encoded_message,
