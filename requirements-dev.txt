@@ -15,4 +15,4 @@ pylint
 pylint-quotes
 requests_mock
 isort
-eth-typing<2.0.0
+eth-typing<3.0.0,>=2.0.0
