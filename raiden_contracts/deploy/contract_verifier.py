@@ -79,7 +79,7 @@ class ContractVerifier:
         if self.verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
-                deployment_data=deployment_data,
+                deployed_contracts_info=deployment_data,
         ):
             print(
                 f'Deployment info from {deployment_file_path} has been verified '
@@ -100,7 +100,7 @@ class ContractVerifier:
             self,
             deployed_contracts_info: DeployedContracts,
             token_address: str,
-            user_deposit_whole_limit: int,
+            user_deposit_whole_balance_limit: int,
     ):
         self._store_deployment_info(
             services=True,
@@ -108,7 +108,7 @@ class ContractVerifier:
         )
         self.verify_deployed_service_contracts_in_filesystem(
             token_address=token_address,
-            user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
         )
 
     def _store_deployment_info(
@@ -231,25 +231,25 @@ class ContractVerifier:
             self,
             token_address: str,
             user_deposit_whole_balance_limit: int,
-            deployment_data: DeployedContracts,
+            deployed_contracts_info: DeployedContracts,
     ):
         chain_id = int(self.web3.version.network)
-        assert deployment_data is not None
+        assert deployed_contracts_info is not None
 
-        if self.contract_manager.version_string != deployment_data['contracts_version']:
+        if self.contract_manager.version_string != deployed_contracts_info['contracts_version']:
             raise RuntimeError('Version string mismatch')
-        if chain_id != deployment_data['chain_id']:
+        if chain_id != deployed_contracts_info['chain_id']:
             raise RuntimeError('chain_id mismatch')
 
         service_bundle, constructor_arguments = self._verify_deployed_contract(
-            deployment_data=deployment_data,
+            deployment_data=deployed_contracts_info,
             contract_name=CONTRACT_SERVICE_REGISTRY,
         )
         assert to_checksum_address(service_bundle.functions.token().call()) == token_address
         assert token_address == constructor_arguments[0]
 
         user_deposit, constructor_arguments = self._verify_deployed_contract(
-            deployment_data=deployment_data,
+            deployment_data=deployed_contracts_info,
             contract_name=CONTRACT_USER_DEPOSIT,
         )
         assert len(constructor_arguments) == 2
@@ -260,7 +260,7 @@ class ContractVerifier:
         assert user_deposit_whole_balance_limit == constructor_arguments[1]
 
         monitoring_service, constructor_arguments = self._verify_deployed_contract(
-            deployment_data,
+            deployed_contracts_info,
             CONTRACT_MONITORING_SERVICE,
         )
         assert len(constructor_arguments) == 3
@@ -278,7 +278,7 @@ class ContractVerifier:
         assert user_deposit.address == constructor_arguments[2]
 
         one_to_n, constructor_arguments = self._verify_deployed_contract(
-            deployment_data=deployment_data,
+            deployment_data=deployed_contracts_info,
             contract_name=CONTRACT_ONE_TO_N,
         )
         assert to_checksum_address(

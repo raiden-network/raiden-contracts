@@ -450,7 +450,7 @@ def test_deploy_script_service(
     deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
-        deployment_data=deployed_service_contracts,
+        deployed_contracts_info=deployed_service_contracts,
     )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -459,7 +459,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
-            deployment_data=deployed_info_fail,
+            deployed_contracts_info=deployed_info_fail,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -468,7 +468,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
-            deployment_data=deployed_info_fail,
+            deployed_contracts_info=deployed_info_fail,
         )
 
     def test_missing_deployment(contract_name):
@@ -480,7 +480,7 @@ def test_deploy_script_service(
             deployer.verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
-                deployment_data=deployed_info_fail,
+                deployed_contracts_info=deployed_info_fail,
             )
 
     for contract_name in [
@@ -554,13 +554,13 @@ def test_store_and_verify_services(
     deployed_contracts_info = deployed_service_info
     deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
-        deployment_data=deployed_contracts_info,
+        deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
     )
     deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
-        user_deposit_whole_limit=DEPOSIT_LIMIT,
+        user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
     )
 
 
