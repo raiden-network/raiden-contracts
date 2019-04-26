@@ -132,21 +132,21 @@ def test_deploy_script_raiden(
     """
     deployed_contracts_info = deployed_raiden_info
 
-    deployer._verify_deployment_data(
+    deployer.verify_deployment_data(
         deployment_data=deployed_contracts_info,
     )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(RuntimeError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['chain_id'] = 0
     with pytest.raises(RuntimeError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployment_data=deployed_contracts_info_fail,
         )
 
@@ -155,14 +155,14 @@ def test_deploy_script_raiden(
         CONTRACT_ENDPOINT_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
@@ -171,28 +171,28 @@ def test_deploy_script_raiden(
         CONTRACT_TOKEN_NETWORK_REGISTRY
     ]['address'] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_ENDPOINT_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'] = 0
     with pytest.raises(AssertionError):
-        deployer._verify_deployment_data(
+        deployer.verify_deployment_data(
             deployed_contracts_info_fail,
         )
 
@@ -534,11 +534,9 @@ def test_store_and_verify_raiden(fs_reload_deployer, deployed_raiden_info, deplo
     deployed_contracts_info = deployed_raiden_info
     deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info,
-        save_info=False,
     )
     deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info,
-        save_info=True,
     )
 
 

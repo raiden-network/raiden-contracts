@@ -50,7 +50,7 @@ class ContractVerifier:
         if deployment_data is None:
             raise RuntimeError(f'Deployment data cannot be found at {deployment_file_path}')
 
-        if self._verify_deployment_data(deployment_data):
+        if self.verify_deployment_data(deployment_data):
             print(
                 f'Deployment info from {deployment_file_path} has been verified'
                 'and it is CORRECT.',
@@ -89,16 +89,12 @@ class ContractVerifier:
     def store_and_verify_deployment_info_raiden(
             self,
             deployed_contracts_info: DeployedContracts,
-            save_info: bool,
     ):
-        if save_info:
-            self._store_deployment_info(
-                deployment_info=deployed_contracts_info,
-                services=False,
-            )
-            self.verify_deployed_contracts_in_filesystem()
-        else:
-            self._verify_deployment_data(deployed_contracts_info)
+        self._store_deployment_info(
+            deployment_info=deployed_contracts_info,
+            services=False,
+        )
+        self.verify_deployed_contracts_in_filesystem()
 
     def store_and_verify_deployment_info_services(
             self,
@@ -141,7 +137,7 @@ class ContractVerifier:
             f' has been updated at {deployment_file_path}.',
         )
 
-    def _verify_deployment_data(
+    def verify_deployment_data(
             self,
             deployment_data: DeployedContracts,
     ):
