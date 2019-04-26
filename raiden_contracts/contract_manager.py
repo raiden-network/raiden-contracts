@@ -65,7 +65,12 @@ class ContractManager:
     def get_contract(self, contract_name: str) -> Dict:
         """ Return ABI, BIN of the given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"
-        return self.contracts[contract_name]
+        try:
+            return self.contracts[contract_name]
+        except KeyError:
+            raise KeyError(
+                f"contracts_version {self.contracts_version} does not have {contract_name}"
+            )
 
     def get_contract_abi(self, contract_name: str) -> Dict:
         """ Returns the ABI for a given contract. """
