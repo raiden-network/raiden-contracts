@@ -76,7 +76,7 @@ class ContractVerifier:
         if deployment_data is None:
             raise RuntimeError(f'Deployment data cannot be found at {deployment_file_path}')
 
-        if self._verify_service_contracts_deployment_data(
+        if self.verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
                 deployment_data=deployment_data,
@@ -99,25 +99,17 @@ class ContractVerifier:
     def store_and_verify_deployment_info_services(
             self,
             deployed_contracts_info: DeployedContracts,
-            save_info: bool,
             token_address: str,
             user_deposit_whole_limit: int,
     ):
-        if save_info:
-            self._store_deployment_info(
-                services=True,
-                deployment_info=deployed_contracts_info,
-            )
-            self.verify_deployed_service_contracts_in_filesystem(
-                token_address=token_address,
-                user_deposit_whole_balance_limit=user_deposit_whole_limit,
-            )
-        else:
-            self._verify_service_contracts_deployment_data(
-                token_address=token_address,
-                user_deposit_whole_balance_limit=user_deposit_whole_limit,
-                deployment_data=deployed_contracts_info,
-            )
+        self._store_deployment_info(
+            services=True,
+            deployment_info=deployed_contracts_info,
+        )
+        self.verify_deployed_service_contracts_in_filesystem(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_limit,
+        )
 
     def _store_deployment_info(
             self,
@@ -235,7 +227,7 @@ class ContractVerifier:
 
         return contract_instance, contracts[contract_name]['constructor_arguments']
 
-    def _verify_service_contracts_deployment_data(
+    def verify_service_contracts_deployment_data(
             self,
             token_address: str,
             user_deposit_whole_balance_limit: int,

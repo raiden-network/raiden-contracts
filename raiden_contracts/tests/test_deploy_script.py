@@ -447,7 +447,7 @@ def test_deploy_script_service(
     deposit_limit = token_supply // 2
 
     deployed_service_contracts = deployed_service_info
-    deployer._verify_service_contracts_deployment_data(
+    deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
         deployment_data=deployed_service_contracts,
@@ -456,7 +456,7 @@ def test_deploy_script_service(
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['contracts_version'] = '0.0.0'
     with pytest.raises(RuntimeError):
-        deployer._verify_service_contracts_deployment_data(
+        deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployment_data=deployed_info_fail,
@@ -465,7 +465,7 @@ def test_deploy_script_service(
     deployed_info_fail = deepcopy(deployed_service_contracts)
     deployed_info_fail['chain_id'] = deployed_service_contracts['chain_id'] + 1
     with pytest.raises(RuntimeError):
-        deployer._verify_service_contracts_deployment_data(
+        deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployment_data=deployed_info_fail,
@@ -477,7 +477,7 @@ def test_deploy_script_service(
             contract_name
         ]['address'] = EMPTY_ADDRESS
         with pytest.raises(AssertionError):
-            deployer._verify_service_contracts_deployment_data(
+            deployer.verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
                 deployment_data=deployed_info_fail,
@@ -552,16 +552,14 @@ def test_store_and_verify_services(
         version=None,
     ).parent)
     deployed_contracts_info = deployed_service_info
-    deployer.store_and_verify_deployment_info_services(
+    deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
-        deployed_contracts_info=deployed_contracts_info,
-        save_info=False,
-        user_deposit_whole_limit=DEPOSIT_LIMIT,
+        deployment_data=deployed_contracts_info,
+        user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
     )
     deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
-        save_info=True,
         user_deposit_whole_limit=DEPOSIT_LIMIT,
     )
 
