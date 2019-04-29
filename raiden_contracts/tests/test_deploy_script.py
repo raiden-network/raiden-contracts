@@ -1,9 +1,10 @@
 from copy import deepcopy
 from typing import Optional
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from click import BadParameter, NoSuchOption
+from click.testing import CliRunner
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem_unittest import Patcher
 
@@ -22,6 +23,7 @@ from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
     error_removed_option,
+    token,
     validate_address,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
@@ -595,3 +597,34 @@ def test_contracts_version_expects_deposit_limits():
     assert contracts_version_expects_deposit_limits(None)
     with pytest.raises(ValueError):
         contracts_version_expects_deposit_limits('not a semver string')
+
+
+def test_deploy_token_invalid_privkey():
+    """ Call deploy token command with invalid private key """
+    with patch.object(
+            ContractDeployer,
+            'deploy_token_contract',
+            spec=ContractDeployer,
+    ) as mock_deployer:
+        runner = CliRunner()
+        result = runner.invoke(
+            token,
+            [
+                '--rpc-provider',
+                'rpc_provider',
+                '--private-key',
+                'wrong_privkey',
+                '--gas-price',
+                '12',
+                '--token-supply',
+                '20000000',
+                '--token-name',
+                'ServiceToken',
+                '--token-decimals',
+                '18',
+                '--token-symbol',
+                'SVT',
+            ],
+        )
+        assert result != 0
+        mock_deployer.assert_not_called()
