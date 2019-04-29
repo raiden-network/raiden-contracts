@@ -108,10 +108,12 @@ def setup_ctx(
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
     private_key = get_private_key(private_key)
-    assert private_key is not None
+    if not private_key:
+        raise RuntimeError('Could not access the private key.')
     owner = private_key_to_address(private_key)
     # pylint: disable=E1101
-    assert web3.eth.getBalance(owner) > 0, 'Account with insuficient funds.'
+    if web3.eth.getBalance(owner) == 0:
+        raise RuntimeError('Account with insuficient funds.')
     deployer = ContractDeployer(
         web3=web3,
         private_key=private_key,
