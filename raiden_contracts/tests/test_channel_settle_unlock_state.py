@@ -55,8 +55,8 @@ def test_settlement_outcome(
         # Mock pending transfers data for A -> B
         pending_transfers_tree_A = get_pending_transfers_tree(
             web3,
-            unlockable_amount=vals_A.claimable_locked,
-            expired_amount=vals_A.unclaimable_locked,
+            unlockable_amount=vals_A.locked_amounts.claimable_locked,
+            expired_amount=vals_A.locked_amounts.unclaimable_locked,
         )
         vals_A.locksroot = pending_transfers_tree_A.merkle_root
         # Reveal A's secrets.
@@ -65,8 +65,8 @@ def test_settlement_outcome(
         # Mock pending transfers data for B -> A
         pending_transfers_tree_B = get_pending_transfers_tree(
             web3,
-            unlockable_amount=vals_B.claimable_locked,
-            expired_amount=vals_B.unclaimable_locked,
+            unlockable_amount=vals_B.locked_amounts.claimable_locked,
+            expired_amount=vals_B.locked_amounts.unclaimable_locked,
         )
         vals_B.locksroot = pending_transfers_tree_B.merkle_root
         # Reveal B's secrets
@@ -130,7 +130,7 @@ def test_settlement_outcome(
         assert get_unlocked_amount(
             secret_registry_contract,
             pending_transfers_tree_B.packed_transfers,
-        ) == vals_B.claimable_locked
+        ) == vals_B.locked_amounts.claimable_locked
 
         # A unlocks B's pending transfers
         info_B = token_network.functions.getChannelParticipantInfo(
@@ -327,7 +327,9 @@ def test_channel_settle_old_balance_proof_values(
                 for vals_B in channel_test_values['last_old'][:5]:
                     # We only need to test for cases  where the we have the same argument ordering
                     # for settleChannel, keeping the order of balance calculations
-                    if vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked:
+                    B_total = vals_B.transferred + vals_B.locked_amounts.locked
+                    A_total = vals_A.transferred + vals_A.locked_amounts.locked
+                    if B_total >= A_total:
                         test_settlement_outcome(
                             (A, B),
                             (vals_A, vals_B, 'invalid'),
@@ -342,7 +344,9 @@ def test_channel_settle_old_balance_proof_values(
                 for vals_B in channel_test_values['last_old'][5:]:
                     # We only need to test for cases  where the we have the same argument ordering
                     # for settleChannel, keeping the order of balance calculations
-                    if vals_B.transferred + vals_B.locked >= vals_A.transferred + vals_A.locked:
+                    B_total = vals_B.transferred + vals_B.locked_amounts.locked
+                    A_total = vals_A.transferred + vals_A.locked_amounts.locked
+                    if B_total >= A_total:
                         test_settlement_outcome(
                             (A, B),
                             (vals_A, vals_B, 'invalid'),
@@ -389,8 +393,8 @@ def test_channel_settle_invalid_balance_proof_values(
     # Mock pending transfers data for A -> B
     pending_transfers_tree_A = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_A.claimable_locked,
-        expired_amount=vals_A.unclaimable_locked,
+        unlockable_amount=vals_A.locked_amounts.claimable_locked,
+        expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
     vals_A.locksroot = pending_transfers_tree_A.merkle_root
     # Reveal A's secrets.
@@ -399,8 +403,8 @@ def test_channel_settle_invalid_balance_proof_values(
     # Mock pending transfers data for B -> A
     pending_transfers_tree_B = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_B.claimable_locked,
-        expired_amount=vals_B.unclaimable_locked,
+        unlockable_amount=vals_B.locked_amounts.claimable_locked,
+        expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
     vals_B.locksroot = pending_transfers_tree_B.merkle_root
     # Reveal B's secrets

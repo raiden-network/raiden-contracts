@@ -5,6 +5,7 @@ from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     ChannelValues,
+    LockedAmounts,
     fake_bytes,
     get_onchain_settlement_amounts,
     get_participants_hash,
@@ -162,7 +163,7 @@ def close_and_update_channel(
             channel_identifier,
             participant1,
             participant1_values.transferred,
-            participant1_values.locked,
+            participant1_values.locked_amounts.locked,
             nonce1,
             participant1_values.locksroot,
             additional_hash1,
@@ -171,7 +172,7 @@ def close_and_update_channel(
             channel_identifier,
             participant2,
             participant2_values.transferred,
-            participant2_values.locked,
+            participant2_values.locked_amounts.locked,
             nonce2,
             participant2_values.locksroot,
             additional_hash2,
@@ -216,22 +217,26 @@ def create_settled_channel(
     ):
         participant1_values = ChannelValues(
             transferred=5,
-            locked=locked_amount1,
+            locked_amounts=LockedAmounts(
+                claimable_locked=locked_amount1,
+            ),
             locksroot=locksroot1,
         )
         participant2_values = ChannelValues(
             transferred=40,
-            locked=locked_amount2,
+            locked_amounts=LockedAmounts(
+                claimable_locked=locked_amount2,
+            ),
             locksroot=locksroot2,
         )
 
         participant1_values.deposit = (
-            participant1_values.locked +
+            participant1_values.locked_amounts.locked +
             participant1_values.transferred -
             5
         )
         participant2_values.deposit = (
-            participant2_values.locked +
+            participant2_values.locked_amounts.locked +
             participant2_values.transferred +
             5
         )
@@ -732,34 +737,41 @@ def create_withdraw_signatures(token_network, get_private_key):
     return get
 
 
-def call_settle(token_network, channel_identifier, A, vals_A, B, vals_B):
-    A_total_transferred = vals_A.transferred + vals_A.locked
-    B_total_transferred = vals_B.transferred + vals_B.locked
+def call_settle(
+        token_network,
+        channel_identifier,
+        A,
+        vals_A: ChannelValues,
+        B,
+        vals_B: ChannelValues,
+):
+    A_total_transferred = vals_A.transferred + vals_A.locked_amounts.locked
+    B_total_transferred = vals_B.transferred + vals_B.locked_amounts.locked
     assert B_total_transferred >= A_total_transferred
 
     if A_total_transferred != B_total_transferred:
         with pytest.raises(TransactionFailed):
             token_network.functions.settleChannel(
-                channel_identifier,
-                B,
-                vals_B.transferred,
-                vals_B.locked,
-                vals_B.locksroot,
-                A,
-                vals_A.transferred,
-                vals_A.locked,
-                vals_A.locksroot,
+                channel_identifier=channel_identifier,
+                participant1=B,
+                participant1_transferred_amount=0,
+                participant1_locked_amount=0,
+                participant1_locksroot=vals_B.locksroot,
+                participant2=A,
+                participant2_transferred_amount=0,
+                participant2_locked_amount=0,
+                participant2_locksroot=vals_A.locksroot,
             ).call_and_transact({'from': A})
 
     contract_function = token_network.functions.settleChannel(
         channel_identifier,
         A,
         vals_A.transferred,
-        vals_A.locked,
+        vals_A.locked_amounts.locked,
         vals_A.locksroot,
         B,
         vals_B.transferred,
-        vals_B.locked,
+        vals_B.locked_amounts.locked,
         vals_B.locksroot,
     )
     # call() raises TransactionFailed exception

@@ -304,8 +304,8 @@ def test_deposit_wrong_state_fail(
 ):
     """ setTotalDeposit() fails on Closed or Settled channels. """
     (A, B) = get_accounts(2)
-    vals_A = ChannelValues(deposit=2, transferred=0, locked=0)
-    vals_B = ChannelValues(deposit=2, transferred=0, locked=0)
+    vals_A = ChannelValues(deposit=2, transferred=0)
+    vals_B = ChannelValues(deposit=2, transferred=0)
     channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
     assign_tokens(A, vals_A.deposit)
     assign_tokens(B, vals_B.deposit)

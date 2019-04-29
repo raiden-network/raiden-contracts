@@ -8,7 +8,6 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
-    EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
     ChannelValues,
     fake_bytes,
@@ -998,14 +997,10 @@ def test_update_replay_reopened_channel(
     values_A = ChannelValues(
         deposit=10,
         transferred=0,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=20,
         transferred=15,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
 
     channel_identifier1 = create_channel(A, B)[0]
@@ -1014,7 +1009,7 @@ def test_update_replay_reopened_channel(
         channel_identifier1,
         B,
         values_B.transferred,
-        values_B.locked,
+        values_B.locked_amounts.locked,
         nonce_B,
         values_B.locksroot,
     )
@@ -1046,11 +1041,11 @@ def test_update_replay_reopened_channel(
         channel_identifier1,
         A,
         values_A.transferred,
-        values_A.locked,
+        values_A.locked_amounts.locked,
         values_A.locksroot,
         B,
         values_B.transferred,
-        values_B.locked,
+        values_B.locked_amounts.locked,
         values_B.locksroot,
     ).call_and_transact({'from': A})
 
@@ -1091,7 +1086,7 @@ def test_update_replay_reopened_channel(
         channel_identifier2,
         B,
         values_B.transferred,
-        values_B.locked,
+        values_B.locked_amounts.locked,
         nonce_B,
         values_B.locksroot,
     )
