@@ -24,7 +24,7 @@ from raiden_contracts.contract_manager import (
 )
 
 
-class ContractVerifyer:
+class ContractVerifier:
     def __init__(
             self,
             web3: Web3,

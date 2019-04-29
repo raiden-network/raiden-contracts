@@ -21,7 +21,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import contract_version_string
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
-from raiden_contracts.deploy.contract_verifyer import ContractVerifyer, DeployedContracts
+from raiden_contracts.deploy.contract_verifier import ContractVerifier, DeployedContracts
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
@@ -29,7 +29,7 @@ from raiden_contracts.utils.versions import contracts_version_expects_deposit_li
 LOG = getLogger(__name__)
 
 
-class ContractDeployer(ContractVerifyer):
+class ContractDeployer(ContractVerifier):
     def __init__(
             self,
             web3: Web3,

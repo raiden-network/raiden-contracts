@@ -10,7 +10,7 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployment_info,
     version_provides_services,
 )
-from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
+from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.tests.utils.constants import FAKE_ADDRESS
 
 
@@ -146,11 +146,11 @@ def test_verify_nonexistent_deployment(
     web3_mock = Mock()
     web3_mock.version.network = 1
     # contracts_version 0.10.1 does not contain a main net deployment.
-    verifyer = ContractVerifyer(web3=web3_mock, contracts_version='0.10.1')
+    verifier = ContractVerifier(web3=web3_mock, contracts_version='0.10.1')
     with pytest.raises(RuntimeError):
-        verifyer.verify_deployed_contracts_in_filesystem()
+        verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
-        verifyer.verify_deployed_service_contracts_in_filesystem(
+        verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=FAKE_ADDRESS,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
         )

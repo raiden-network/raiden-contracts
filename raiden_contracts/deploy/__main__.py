@@ -15,7 +15,7 @@ from web3.middleware import geth_poa_middleware
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK_REGISTRY
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
-from raiden_contracts.deploy.contract_verifyer import ContractVerifyer
+from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.versions import contract_version_with_max_token_networks
@@ -423,8 +423,8 @@ def verify(_, rpc_provider, contracts_version):
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print('Web3 provider is', web3.providers[0])
 
-    verifyer = ContractVerifyer(web3=web3, contracts_version=contracts_version)
-    verifyer.verify_deployed_contracts_in_filesystem()
+    verifier = ContractVerifier(web3=web3, contracts_version=contracts_version)
+    verifier.verify_deployed_contracts_in_filesystem()
 
 
 if __name__ == '__main__':
