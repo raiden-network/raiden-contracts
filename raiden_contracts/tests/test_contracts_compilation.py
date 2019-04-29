@@ -188,6 +188,8 @@ def contract_manager_meta(contracts_path, source: bool):
         assert isinstance(abi, list)
         with pytest.raises(KeyError):
             manager.get_contract_abi("SomeName")
+        with pytest.raises(KeyError):
+            manager.get_contract("SomeName")
 
         abi = manager.get_event_abi(CONTRACT_TOKEN_NETWORK, ChannelEvent.CLOSED)
         assert isinstance(abi, dict)
