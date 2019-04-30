@@ -156,18 +156,16 @@ def test_verify_nonexistent_deployment(
         )
 
 
-def test_verify_existent_deployment(
-        user_deposit_whole_balance_limit,
-):
+def test_verify_existent_deployment():
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data. """
     web3_mock = Mock()
     web3_mock.version.network = 42
-    verifyer = ContractVerifyer(web3=web3_mock, contracts_version='0.11.1')
+    verifier = ContractVerifier(web3=web3_mock, contracts_version='0.11.1')
     # The Mock doesn't return the runtime code, so the code comparison fails.
     with pytest.raises(AssertionError):
-        verifyer.verify_deployed_contracts_in_filesystem()
+        verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(AssertionError):
-        verifyer.verify_deployed_service_contracts_in_filesystem(
+        verifier.verify_deployed_service_contracts_in_filesystem(
             token_address='0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c',
             user_deposit_whole_balance_limit=2 ** 256 - 1,
         )
