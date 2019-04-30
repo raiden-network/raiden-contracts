@@ -1,9 +1,10 @@
 import pytest
 from eth_abi import encode_single
 from eth_tester.exceptions import TransactionFailed
+from eth_utils import to_checksum_address
 from web3 import Web3
 
-from raiden_contracts.constants import MonitoringServiceEvent
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, MonitoringServiceEvent
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
 
 REWARD_AMOUNT = 10
@@ -34,9 +35,11 @@ def monitor_data(
         create_balance_proof_update_signature,
         create_reward_proof,
         token_network,
+        ms_address,
+        monitoring_service_external,
 ):
     # Create two parties and a channel between them
-    (A, B) = get_accounts(2)
+    (A, B) = get_accounts(2, privkeys=['0x' + '1' * 64, '0x' + '2' * 64])
     deposit_to_udc(B, REWARD_AMOUNT)
     channel_identifier = create_channel(A, B)[0]
 
@@ -63,6 +66,18 @@ def monitor_data(
         channel_identifier, B, *balance_proof_A,
     ).call_and_transact({'from': A})
 
+    # calculate when this MS is allowed to monitor
+    (settle_block_number, _) = token_network.functions.getChannelInfo(
+        channel_identifier, A, B,
+    ).call()
+    first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
+        closed_at_block=settle_block_number - TEST_SETTLE_TIMEOUT_MIN,
+        settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
+        participant1=A,
+        participant2=B,
+        monitoring_service_address=ms_address,
+    ).call()
+
     # return args for `monitor` function
     return {
         'participants': (A, B),
@@ -71,6 +86,7 @@ def monitor_data(
         'non_closing_signature': non_closing_signature_B,
         'reward_proof_signature': reward_proof[5],
         'channel_identifier': channel_identifier,
+        'first_allowed': first_allowed,
     }
 
 
@@ -81,9 +97,13 @@ def test_claimReward_with_settle_call(
         event_handler,
         monitor_data,
         ms_address,
+        web3,
 ):
     A, B = monitor_data['participants']
     channel_identifier = monitor_data['channel_identifier']
+
+    # wait until MS is allowed to monitor
+    token_network.web3.testing.mine(monitor_data['first_allowed'] - web3.eth.blockNumber)
 
     # MS updates closed channel on behalf of B
     txn_hash = monitoring_service_external.functions.monitor(
@@ -152,9 +172,13 @@ def test_claimReward_without_settle_call(
         event_handler,
         monitor_data,
         ms_address,
+        web3,
 ):
     A, B = monitor_data['participants']
     channel_identifier = monitor_data['channel_identifier']
+
+    # wait until MS is allowed to monitor
+    token_network.web3.testing.mine(monitor_data['first_allowed'] - web3.eth.blockNumber)
 
     # MS updates closed channel on behalf of B
     txn_hash = monitoring_service_external.functions.monitor(
@@ -211,6 +235,7 @@ def test_monitor(
         monitor_data,
         ms_address,
         event_handler,
+        web3,
 ):
     A, B = monitor_data['participants']
 
@@ -238,6 +263,21 @@ def test_monitor(
             token_network.address,
             monitor_data['reward_proof_signature'],
         ).call({'from': B})
+
+    # monitoring too early must fail
+    with pytest.raises(TransactionFailed):
+        assert web3.eth.blockNumber < monitor_data['first_allowed']
+        txn_hash = monitoring_service_external.functions.monitor(
+            A, B,
+            *monitor_data['balance_proof_B'],
+            monitor_data['non_closing_signature'],
+            REWARD_AMOUNT,
+            token_network.address,
+            monitor_data['reward_proof_signature'],
+        ).call_and_transact({'from': ms_address})
+
+    # wait until MS is allowed to monitor
+    token_network.web3.testing.mine(monitor_data['first_allowed'] - web3.eth.blockNumber)
 
     # successful monitor call
     txn_hash = monitoring_service_external.functions.monitor(
@@ -307,3 +347,40 @@ def test_updateReward(
     # calling again with higher nonce succeeds
     update_with_nonce(3)
     assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 3
+
+
+def test_firstAllowedBlock(monitoring_service_external):
+    def call(addresses, closed_at_block=1000, settle_timeout=100):
+        first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
+            closed_at_block=closed_at_block,
+            settle_timeout=settle_timeout,
+            participant1=to_checksum_address('0x%040x' % addresses[0]),
+            participant2=to_checksum_address('0x%040x' % addresses[1]),
+            monitoring_service_address=to_checksum_address('0x%040x' % addresses[2]),
+        ).call()
+        assert closed_at_block < first_allowed <= closed_at_block + settle_timeout
+        return first_allowed
+
+    # Basic example
+    assert call([1, 2, 3]) == 1000 + 30 + (1 + 2 + 3)
+
+    # Modulo used for one address
+    assert call([100, 2, 3]) == 1000 + 30 + (100 % 50 + 2 + 3)
+
+    # Modulo not used for any single address, but the sum of them
+    assert call([40, 40, 40]) == 1000 + 30 + (40 + 40 + 40) % 50
+
+    # Show that high address values don't cause overflows
+    MAX_ADDRESS = 256**20 - 1
+    assert call([MAX_ADDRESS] * 3) == 1000 + 30 + (3 * MAX_ADDRESS) % 50
+
+    # The highest settle_timeout does not cause overflows
+    MAX_SETTLE_TIMEOUT = (2**256 - 1) // 100 - 1
+    assert call(
+        [1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT,
+    ) == 1000 + (MAX_SETTLE_TIMEOUT * 30) // 100 + (1 + 2 + 3)
+
+    # Extreme settle_timeout that would cause overflows will make the
+    # transaction fail instead of giving the wrong result
+    with pytest.raises(TransactionFailed):
+        assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT + 1)
