@@ -175,15 +175,8 @@ contract MonitoringService is Utils {
         canMonitor(msg.sender)
         public
     {
-        TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(
-            closing_participant, non_closing_participant
-        );
-        require(isAllowedToMonitor(
-            token_network, channel_identifier,
-            closing_participant, non_closing_participant, msg.sender
-        ));
-
+        // Call updateReward first to avoid reentrancy problems when the
+        // token_network_address belongs to a malicious contract.
         updateReward(
             token_network_address,
             closing_participant,
@@ -193,6 +186,15 @@ contract MonitoringService is Utils {
             msg.sender,
             reward_proof_signature
         );
+
+        TokenNetwork token_network = TokenNetwork(token_network_address);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
+        require(isAllowedToMonitor(
+            token_network, channel_identifier,
+            closing_participant, non_closing_participant, msg.sender
+        ));
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
@@ -236,6 +238,7 @@ contract MonitoringService is Utils {
         // We don't actually know when the channel has been closed. So we'll
         // make a guess so that assumed_close_block >= real_close_block.
         uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
+        require(settle_block_number >= assumed_settle_timeout);
         uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
         return block.number >= firstBlockAllowedToMonitor(
             assumed_close_block,
@@ -258,9 +261,10 @@ contract MonitoringService is Utils {
     {
         // avoid overflows when multiplying with percentages
         require(settle_timeout < uint256(2**256 - 1) / 100);
+        require(closed_at_block < uint256(2**256 - 1) / 100);
 
-        // First allowed block as percentage of settle_timeout. We're using iteger's
-        // here to exactly match the solidity contract's behaviour
+        // First allowed block as percentage of settle_timeout. We're using
+        // integers here to avoid accuracy loss during calculations.
         uint256 BEST_CASE = 30;
         uint256 WORST_CASE = 80;
 
@@ -275,7 +279,6 @@ contract MonitoringService is Utils {
             + uint256(participant2)
             + uint256(monitoring_service_address)
         ) % range_length;
-        assert(ms_offset <= best_case_block + range_length);
 
         return best_case_block + ms_offset;
     }
