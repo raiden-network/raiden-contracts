@@ -175,6 +175,15 @@ contract MonitoringService is Utils {
         canMonitor(msg.sender)
         public
     {
+        TokenNetwork token_network = TokenNetwork(token_network_address);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
+        require(isAllowedToMonitor(
+            token_network, channel_identifier,
+            closing_participant, non_closing_participant, msg.sender
+        ));
+
         updateReward(
             token_network_address,
             closing_participant,
@@ -183,10 +192,6 @@ contract MonitoringService is Utils {
             nonce,
             msg.sender,
             reward_proof_signature
-        );
-        TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(
-            closing_participant, non_closing_participant
         );
 
         // Call updateTransfer in the corresponding TokenNetwork
@@ -209,6 +214,70 @@ contract MonitoringService is Utils {
             msg.sender,
             non_closing_participant
         );
+    }
+
+    function isAllowedToMonitor(
+        TokenNetwork token_network,
+        uint256 channel_identifier,
+        address closing_participant,
+        address non_closing_participant,
+        address monitoring_service_address
+    )
+        internal
+        returns (bool)
+    {
+        TokenNetwork.ChannelState channel_state;
+        uint256 settle_block_number;
+        (settle_block_number, channel_state) = token_network.getChannelInfo(
+            channel_identifier, closing_participant, non_closing_participant
+        );
+        require(channel_state == TokenNetwork.ChannelState.Closed);
+
+        // We don't actually know when the channel has been closed. So we'll
+        // make a guess so that assumed_close_block >= real_close_block.
+        uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
+        uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
+        return block.number >= firstBlockAllowedToMonitor(
+            assumed_close_block,
+            assumed_settle_timeout,
+            closing_participant,
+            non_closing_participant,
+            msg.sender
+        );
+    }
+
+    function firstBlockAllowedToMonitor(
+        uint256 closed_at_block,
+        uint256 settle_timeout,
+        address participant1,
+        address participant2,
+        address monitoring_service_address
+    )
+        public pure
+        returns (uint256)
+    {
+        // avoid overflows when multiplying with percentages
+        require(settle_timeout < uint256(2**256 - 1) / 100);
+
+        // First allowed block as percentage of settle_timeout. We're using iteger's
+        // here to exactly match the solidity contract's behaviour
+        uint256 BEST_CASE = 30;
+        uint256 WORST_CASE = 80;
+
+        // When is the first block that any MS might be allowed to monitor
+        uint256 best_case_block = closed_at_block + BEST_CASE * settle_timeout / 100;
+        // Length of the range into which the first allowed block will fall
+        uint256 range_length = (WORST_CASE - BEST_CASE) * settle_timeout / 100;
+
+        // Offset for this specific MS within the range
+        uint256 ms_offset = (
+            uint256(participant1)
+            + uint256(participant2)
+            + uint256(monitoring_service_address)
+        ) % range_length;
+        assert(ms_offset <= best_case_block + range_length);
+
+        return best_case_block + ms_offset;
     }
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward
