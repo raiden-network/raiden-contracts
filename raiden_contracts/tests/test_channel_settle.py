@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import pytest
-from eth_tester.exceptions import TransactionFailed, ValidationError
+from eth_tester.exceptions import TransactionFailed
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
 from raiden_contracts.tests.fixtures.channel import call_settle
