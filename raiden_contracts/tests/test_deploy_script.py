@@ -1,4 +1,5 @@
 from copy import deepcopy
+from tempfile import NamedTemporaryFile
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
@@ -628,3 +629,39 @@ def test_deploy_token_invalid_privkey():
         )
         assert result != 0
         mock_deployer.assert_not_called()
+
+
+def test_deploy_token_no_balance(get_accounts, get_private_key):
+    """ Call deploy token command with a private key with no balance """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.flush()
+        with patch.object(
+                ContractDeployer,
+                'deploy_token_contract',
+                spec=ContractDeployer,
+        ) as mock_deployer:
+            runner = CliRunner()
+            result = runner.invoke(
+                token,
+                [
+                    '--rpc-provider',
+                    'rpc_provider',
+                    '--private-key',
+                    privkey_file.name,
+                    '--gas-price',
+                    '12',
+                    '--token-supply',
+                    '20000000',
+                    '--token-name',
+                    'ServiceToken',
+                    '--token-decimals',
+                    '18',
+                    '--token-symbol',
+                    'SVT',
+                ],
+            )
+            assert result != 0
+            mock_deployer.assert_not_called()
