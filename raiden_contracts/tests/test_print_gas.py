@@ -14,7 +14,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import contracts_gas_path
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, EMPTY_LOCKSROOT
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.merkle import get_merkle_root
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
@@ -309,6 +309,7 @@ def print_gas_monitoring_service(
     txn_hash = token_network.functions.closeChannel(
         channel_identifier, B, *balance_proof_A,
     ).call_and_transact({'from': A})
+    token_network.web3.testing.mine(4)
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = monitoring_service_external.functions.monitor(
@@ -325,19 +326,7 @@ def print_gas_monitoring_service(
     ).call_and_transact({'from': MS})
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + '.monitor')
 
-    # settle channel
-    token_network.web3.testing.mine(8)
-    token_network.functions.settleChannel(
-        channel_identifier,
-        B,                   # participant2
-        10,                  # participant2_transferred_amount
-        0,                   # participant2_locked_amount
-        EMPTY_LOCKSROOT,     # participant2_locksroot
-        A,                   # participant1
-        20,                  # participant1_transferred_amount
-        0,                   # participant1_locked_amount
-        EMPTY_LOCKSROOT,     # participant1_locksroot
-    ).call_and_transact()
+    token_network.web3.testing.mine(1)
 
     # MS claims the reward
     txn_hash = monitoring_service_external.functions.claimReward(
