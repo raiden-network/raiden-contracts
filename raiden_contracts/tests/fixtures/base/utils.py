@@ -9,27 +9,8 @@ from eth_utils.units import units
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import get_random_privkey
-from raiden_contracts.tests.utils.constants import passphrase
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
-
-
-@pytest.fixture()
-def create_accounts(web3):
-    def get(number):
-        new_accounts = []
-        for _ in range(0, number):
-            new_account = web3.personal.newAccount(passphrase)
-            amount = int(web3.eth.getBalance(web3.eth.accounts[0]) / 2 / number)
-            web3.eth.sendTransaction({
-                'from': web3.eth.accounts[0],
-                'to': new_account,
-                'value': amount,
-            })
-            web3.personal.unlockAccount(new_account, passphrase)
-            new_accounts.append(new_account)
-        return new_accounts
-    return get
 
 
 @pytest.fixture(scope='session')
