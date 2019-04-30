@@ -15,10 +15,15 @@ from raiden_contracts.utils.signature import private_key_to_address
 
 @pytest.fixture(scope='session')
 def create_account(web3, ethereum_tester):
-    def get():
-        privkey = get_random_privkey()
+    def get(privkey=None):
+        if not privkey:
+            privkey = get_random_privkey()
         address = private_key_to_address(privkey)
-        ethereum_tester.add_account(privkey)
+
+        if not any((is_same_address(address, x) for x in ethereum_tester.get_accounts())):
+            # account has not been added to ethereum_tester, yet
+            ethereum_tester.add_account(privkey)
+
         for faucet in web3.eth.accounts[:10]:
             try:
                 web3.eth.sendTransaction({
@@ -35,9 +40,10 @@ def create_account(web3, ethereum_tester):
 
 @pytest.fixture(scope='session')
 def get_accounts(create_account):
-    def get(number):
+    def get(number, privkeys=()):
+        privkeys = iter(privkeys)
         return [
-            create_account()
+            create_account(privkey=next(privkeys, None))
             for x in range(number)
         ]
 
