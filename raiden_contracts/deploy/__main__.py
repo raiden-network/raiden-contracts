@@ -200,10 +200,14 @@ def raiden(
         for contract_name, info in deployed_contracts_info['contracts'].items()
     }
 
-    deployer.store_and_verify_deployment_info_raiden(
-        deployed_contracts_info=deployed_contracts_info,
-        save_info=save_info,
-    )
+    if save_info:
+        deployer.store_and_verify_deployment_info_raiden(
+            deployed_contracts_info=deployed_contracts_info,
+        )
+    else:
+        deployer.verify_deployment_data(
+            deployed_contracts_info=deployed_contracts_info,
+        )
 
     print(json.dumps(deployed_contracts, indent=4))
     ctx.obj['deployed_contracts'].update(deployed_contracts)
@@ -261,12 +265,18 @@ def services(
         for contract_name, info in deployed_contracts_info['contracts'].items()
     }
 
-    deployer.store_and_verify_deployment_info_services(
-        deployed_contracts_info=deployed_contracts_info,
-        save_info=save_info,
-        token_address=token_address,
-        user_deposit_whole_limit=user_deposit_whole_limit,
-    )
+    if save_info:
+        deployer.store_and_verify_deployment_info_services(
+            deployed_contracts_info=deployed_contracts_info,
+            token_address=token_address,
+            user_deposit_whole_limit=user_deposit_whole_limit,
+        )
+    else:
+        deployer.verify_service_contracts_deployment_data(
+            deployed_contracts_info=deployed_contracts_info,
+            token_address=token_address,
+            user_deposit_whole_limit=user_deposit_whole_limit,
+        )
 
     print(json.dumps(deployed_contracts, indent=4))
     ctx.obj['deployed_contracts'].update(deployed_contracts)
