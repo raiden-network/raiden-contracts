@@ -36,6 +36,10 @@ This causes problems when storage accesses and an external call interleave.  For
 possibly has a bug, where an attacker can set up `other_contract.method()` so that it calls back into this piece of code.
 Then, the `check()` still sees an old value.
 
+#### assert() and require()
+
+``assert(cond)`` and ``require(cond)`` both cause a failure in the EVM execution when ``cond`` evaluates to 0.  They use different EVM opcodes that cause different gas consumptions.  More importantly, a convention dictates when to use which.  Whenever ``assert()`` fires, that's the Solidity programmer's fault.  For detecting invalid user inputs or invalid return values from other contracts, use ``require()``.
+
 #### Resources
 
 * [Solidity documentation](https://solidity.readthedocs.io/) usually has an answer somewhere.
