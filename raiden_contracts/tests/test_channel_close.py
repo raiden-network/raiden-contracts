@@ -8,6 +8,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
     ChannelValues,
+    LockedAmounts,
     fake_bytes,
 )
 from raiden_contracts.utils.events import check_channel_closed
@@ -195,8 +196,10 @@ def test_close_nonce_zero(
         deposit=20,
         transferred=5,
         locksroot=fake_bytes(32, '03'),
-        claimable_locked=3,
-        unclaimable_locked=4,
+        locked_amounts=LockedAmounts(
+            claimable_locked=3,
+            unclaimable_locked=4,
+        ),
         nonce=0,
     )
     # Create channel and deposit
@@ -207,7 +210,7 @@ def test_close_nonce_zero(
         channel_identifier,
         B,
         vals_B.transferred,
-        vals_B.locked,
+        vals_B.locked_amounts.locked,
         vals_B.nonce,
         vals_B.locksroot,
     )
@@ -377,8 +380,10 @@ def test_close_channel_state(
         deposit=20,
         transferred=5,
         locksroot=fake_bytes(32, '03'),
-        claimable_locked=3,
-        unclaimable_locked=4,
+        locked_amounts=LockedAmounts(
+            claimable_locked=3,
+            unclaimable_locked=4,
+        ),
         nonce=3,
     )
 
@@ -430,7 +435,7 @@ def test_close_channel_state(
         channel_identifier,
         B,
         vals_B.transferred,
-        vals_B.locked,
+        vals_B.locked_amounts.locked,
         vals_B.nonce,
         vals_B.locksroot,
     )
@@ -523,14 +528,10 @@ def test_close_replay_reopened_channel(
     values_A = ChannelValues(
         deposit=10,
         transferred=0,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=20,
         transferred=15,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     channel_identifier1 = create_channel(A, B)[0]
     channel_deposit(channel_identifier1, B, values_B.deposit, A)
@@ -539,7 +540,7 @@ def test_close_replay_reopened_channel(
         channel_identifier1,
         B,
         values_B.transferred,
-        values_B.locked,
+        values_B.locked_amounts.locked,
         nonce,
         values_B.locksroot,
     )
@@ -553,11 +554,11 @@ def test_close_replay_reopened_channel(
         channel_identifier=channel_identifier1,
         participant1=A,
         participant1_transferred_amount=values_A.transferred,
-        participant1_locked_amount=values_A.locked,
+        participant1_locked_amount=values_A.locked_amounts.locked,
         participant1_locksroot=values_A.locksroot,
         participant2=B,
         participant2_transferred_amount=values_B.transferred,
-        participant2_locked_amount=values_B.locked,
+        participant2_locked_amount=values_B.locked_amounts.locked,
         participant2_locksroot=values_B.locksroot,
     ).call_and_transact({'from': A})
 
@@ -578,7 +579,7 @@ def test_close_replay_reopened_channel(
         channel_identifier2,
         B,
         values_B.transferred,
-        values_B.locked,
+        values_B.locked_amounts.locked,
         nonce,
         values_B.locksroot,
     )

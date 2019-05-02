@@ -12,6 +12,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_SIGNATURE,
     MAX_UINT256,
     ChannelValues,
+    LockedAmounts,
     fake_bytes,
     get_onchain_settlement_amounts,
     get_settlement_amounts,
@@ -82,26 +83,30 @@ def test_settle_channel_state(
         deposit=40,
         withdrawn=10,
         transferred=20020,
-        claimable_locked=3,
-        unclaimable_locked=4,
+        locked_amounts=LockedAmounts(
+            claimable_locked=3,
+            unclaimable_locked=4,
+        ),
     )
     vals_B = ChannelValues(
         deposit=35,
         withdrawn=5,
         transferred=20030,
-        claimable_locked=2,
-        unclaimable_locked=3,
+        locked_amounts=LockedAmounts(
+            claimable_locked=2,
+            unclaimable_locked=3,
+        ),
     )
 
     pending_transfers_tree_A = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_A.claimable_locked,
-        expired_amount=vals_A.unclaimable_locked,
+        unlockable_amount=vals_A.locked_amounts.claimable_locked,
+        expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
     pending_transfers_tree_B = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_B.claimable_locked,
-        expired_amount=vals_B.unclaimable_locked,
+        unlockable_amount=vals_B.locked_amounts.claimable_locked,
+        expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
     vals_A.locksroot = pending_transfers_tree_A.merkle_root
     vals_B.locksroot = pending_transfers_tree_B.merkle_root
@@ -166,8 +171,8 @@ def test_settle_single_direct_transfer_for_closing_party(
     """
     (A, B) = get_accounts(2)
     (vals_A, vals_B) = (
-        ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
-        ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
+        ChannelValues(deposit=1, withdrawn=0, transferred=0),
+        ChannelValues(deposit=10, withdrawn=0, transferred=5),
     )
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
@@ -179,7 +184,7 @@ def test_settle_single_direct_transfer_for_closing_party(
         channel_identifier,
         B,
         vals_B.transferred,
-        vals_B.locked,
+        vals_B.locked_amounts.locked,
         1,
         EMPTY_LOCKSROOT,
     )
@@ -235,8 +240,8 @@ def test_settle_single_direct_transfer_for_counterparty(
     """
     (A, B) = get_accounts(2)
     (vals_A, vals_B) = (
-        ChannelValues(deposit=10, withdrawn=0, transferred=5, locked=0),
-        ChannelValues(deposit=1, withdrawn=0, transferred=0, locked=0),
+        ChannelValues(deposit=10, withdrawn=0, transferred=5),
+        ChannelValues(deposit=1, withdrawn=0, transferred=0),
     )
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
@@ -256,7 +261,7 @@ def test_settle_single_direct_transfer_for_counterparty(
         channel_identifier,
         A,
         vals_A.transferred,
-        vals_A.locked,
+        vals_A.locked_amounts.locked,
         1,
         EMPTY_LOCKSROOT,
     )
@@ -319,8 +324,8 @@ def test_settlement_with_unauthorized_token_transfer(
     externally_transferred_amount = 5
     (A, B) = get_accounts(2)
     (vals_A, vals_B) = (
-        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=0),
-        ChannelValues(deposit=40, withdrawn=10, transferred=0, locked=0),
+        ChannelValues(deposit=35, withdrawn=10, transferred=0),
+        ChannelValues(deposit=40, withdrawn=10, transferred=0),
     )
     vals_A.locksroot = fake_bytes(32, '02')
     vals_B.locksroot = fake_bytes(32, '03')
@@ -463,23 +468,27 @@ def test_settle_wrong_balance_hash(
         deposit=35,
         withdrawn=0,
         transferred=5,
-        claimable_locked=10,
-        unclaimable_locked=2,
+        locked_amounts=LockedAmounts(
+            claimable_locked=10,
+            unclaimable_locked=2,
+        ),
     )
     vals_B = ChannelValues(
         deposit=40,
         withdrawn=0,
         transferred=15,
-        claimable_locked=5,
-        unclaimable_locked=4,
+        locked_amounts=LockedAmounts(
+            claimable_locked=5,
+            unclaimable_locked=4,
+        ),
     )
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
 
     # Mock pending transfers data for A -> B
     pending_transfers_tree_A = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_A.claimable_locked,
-        expired_amount=vals_A.unclaimable_locked,
+        unlockable_amount=vals_A.locked_amounts.claimable_locked,
+        expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
     vals_A.locksroot = pending_transfers_tree_A.merkle_root
     # Reveal A's secrets.
@@ -488,8 +497,8 @@ def test_settle_wrong_balance_hash(
     # Mock pending transfers data for B -> A
     pending_transfers_tree_B = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_B.claimable_locked,
-        expired_amount=vals_B.unclaimable_locked,
+        unlockable_amount=vals_B.locked_amounts.claimable_locked,
+        expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
     vals_B.locksroot = pending_transfers_tree_B.merkle_root
     # Reveal B's secrets
@@ -522,15 +531,16 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
-    vals_A_fail.locked += 1
+    vals_A_fail.locked_amounts.claimable_locked += 1
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
-    vals_A_fail.locked = 0
+    vals_A_fail.locked_amounts.claimable_locked = 0
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
-    vals_A_fail.locked = MAX_UINT256
+    vals_A_fail.locked_amounts.unclaimable_locked = 0
+    vals_A_fail.locked_amounts.claimable_locked = MAX_UINT256
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
@@ -557,15 +567,16 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
-    vals_B_fail.locked += 1
+    vals_B_fail.locked_amounts.claimable_locked += 1
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
-    vals_B_fail.locked = 0
-    with pytest.raises(TransactionFailed):
+    vals_B_fail.locked_amounts.claimable_locked = 0
+    with pytest.raises(AssertionError):
         call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
-    vals_B_fail.locked = MAX_UINT256
+    vals_B_fail.locked_amounts.unclaimable_locked = 0
+    vals_B_fail.locked_amounts.claimable_locked = MAX_UINT256
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 

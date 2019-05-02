@@ -6,6 +6,7 @@ from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_LOCKSROOT,
     ChannelValues,
+    LockedAmounts,
     TestLockIndex,
     fake_bytes,
     get_unlocked_amount,
@@ -623,8 +624,6 @@ def test_channel_unlock(
     values_A = ChannelValues(
         deposit=20,
         transferred=5,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -639,7 +638,9 @@ def test_channel_unlock(
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     values_B.locksroot = pending_transfers_tree.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree.transfers),
+    )
 
     # Reveal secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree.unlockable)
@@ -667,7 +668,7 @@ def test_channel_unlock(
         A,
     ).call()
     assert info_B[ParticipantInfoIndex.LOCKSROOT] == values_B.locksroot
-    assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == values_B.locked
+    assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == values_B.locked_amounts.locked
 
     # Unlock the tokens
     token_network.functions.unlock(
@@ -690,7 +691,7 @@ def test_channel_unlock(
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
     assert balance_A == pre_balance_A + 9
     assert balance_B == pre_balance_B + 6
-    assert balance_contract == pre_balance_contract - values_B.locked
+    assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
 @pytest.mark.slow
@@ -814,8 +815,6 @@ def test_channel_unlock_registered_expired_lock_refunds(
     values_A = ChannelValues(
         deposit=20,
         transferred=5,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -836,7 +835,9 @@ def test_channel_unlock_registered_expired_lock_refunds(
         max_expiration_delta=max_lock_expiration,
     )
     values_B.locksroot = pending_transfers_tree.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree.transfers),
+    )
 
     # Locks expire
     web3.testing.mine(max_lock_expiration)
@@ -878,8 +879,8 @@ def test_channel_unlock_registered_expired_lock_refunds(
 
     # check that all tokens have been refunded, as locks have expired already
     assert balance_A == pre_balance_A
-    assert balance_B == pre_balance_B + values_B.locked
-    assert balance_contract == pre_balance_contract - values_B.locked
+    assert balance_B == pre_balance_B + values_B.locked_amounts.locked
+    assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
 def test_channel_unlock_unregistered_locks(
@@ -898,8 +899,15 @@ def test_channel_unlock_unregistered_locks(
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     locked_A = pending_transfers_tree.locked_amount
     (vals_A, vals_B) = (
-        ChannelValues(deposit=35, withdrawn=10, transferred=0, locked=locked_A),
-        ChannelValues(deposit=40, withdrawn=10, transferred=20, locked=0),
+        ChannelValues(
+            deposit=35,
+            withdrawn=10,
+            transferred=0,
+            locked_amounts=LockedAmounts(
+                claimable_locked=locked_A,
+            ),
+        ),
+        ChannelValues(deposit=40, withdrawn=10, transferred=20),
     )
 
     vals_A.locksroot = '0x' + get_merkle_root(pending_transfers_tree.merkle_tree).hex()
@@ -952,8 +960,6 @@ def test_channel_unlock_before_settlement_fails(
     values_A = ChannelValues(
         deposit=20,
         transferred=5,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -966,7 +972,9 @@ def test_channel_unlock_before_settlement_fails(
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     values_B.locksroot = pending_transfers_tree.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree.transfers),
+    )
 
     # Reveal secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree.unlockable)
@@ -1041,7 +1049,7 @@ def test_channel_unlock_before_settlement_fails(
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
     assert balance_A == pre_balance_A + 9
     assert balance_B == pre_balance_B + 6
-    assert balance_contract == pre_balance_contract - values_B.locked
+    assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
 def test_unlock_fails_with_partial_merkle_proof(
@@ -1174,7 +1182,9 @@ def test_channel_unlock_both_participants(
     # Mock pending transfers data for A
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     values_A.locksroot = pending_transfers_tree_A.merkle_root
-    values_A.locked = get_locked_amount(pending_transfers_tree_A.transfers)
+    values_A.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree_A.transfers),
+    )
 
     # Reveal A's secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
@@ -1182,7 +1192,9 @@ def test_channel_unlock_both_participants(
     # Mock pending transfers data for B
     pending_transfers_tree_B = get_pending_transfers_tree(web3, [2, 4, 6], [5, 10], settle_timeout)
     values_B.locksroot = pending_transfers_tree_B.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree_B.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree_B.transfers),
+    )
 
     # Reveal B's secrets before settlement window ends
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
@@ -1243,7 +1255,9 @@ def test_channel_unlock_both_participants(
     expired_B = get_locked_amount(pending_transfers_tree_B.expired)
 
     # check that A and B both received the expected amounts
-    assert balance_contract == pre_balance_contract - values_B.locked - values_A.locked
+    assert balance_contract == (
+        pre_balance_contract - values_B.locked_amounts.locked - values_A.locked_amounts.locked
+    )
     assert balance_A == pre_balance_A + unlockable_B + expired_A
     assert balance_B == pre_balance_B + unlockable_A + expired_B
 
@@ -1307,8 +1321,6 @@ def test_channel_unlock_with_a_large_expiration(
     values_A = ChannelValues(
         deposit=20,
         transferred=5,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -1328,7 +1340,9 @@ def test_channel_unlock_with_a_large_expiration(
         settle_timeout + 100,
     )
     values_B.locksroot = pending_transfers_tree.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree.transfers),
+    )
 
     # Reveal secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree.unlockable)
@@ -1363,7 +1377,7 @@ def test_channel_unlock_with_a_large_expiration(
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
     assert balance_A == pre_balance_A + 9
     assert balance_B == pre_balance_B + 6
-    assert balance_contract == pre_balance_contract - values_B.locked
+    assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
 def test_reverse_participants_unlock(
@@ -1550,8 +1564,6 @@ def test_unlock_channel_event(
     values_A = ChannelValues(
         deposit=20,
         transferred=5,
-        locked=0,
-        locksroot=EMPTY_LOCKSROOT,
     )
     values_B = ChannelValues(
         deposit=30,
@@ -1571,7 +1583,9 @@ def test_unlock_channel_event(
         settle_timeout + 100,
     )
     values_B.locksroot = pending_transfers_tree.merkle_root
-    values_B.locked = get_locked_amount(pending_transfers_tree.transfers)
+    values_B.locked_amounts = LockedAmounts(
+        claimable_locked=get_locked_amount(pending_transfers_tree.transfers),
+    )
 
     # Reveal secrets before settlement window ends
     reveal_secrets(A, pending_transfers_tree.unlockable)
@@ -1611,7 +1625,7 @@ def test_unlock_channel_event(
         B,
         values_B.locksroot,
         unlocked_amount,
-        values_B.locked - unlocked_amount,
+        values_B.locked_amounts.locked - unlocked_amount,
     ))
 
     # Check that event was properly emitted

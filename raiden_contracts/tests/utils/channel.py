@@ -1,4 +1,5 @@
 from collections import namedtuple
+from copy import deepcopy
 
 from eth_utils import keccak, to_canonical_address
 
@@ -16,6 +17,23 @@ SettlementValues = namedtuple('SettlementValues', [
 ])
 
 
+class LockedAmounts():
+    def __init__(
+            self,
+            claimable_locked=0,
+            unclaimable_locked=0,
+    ):
+        self.claimable_locked = claimable_locked
+        self.unclaimable_locked = unclaimable_locked
+
+    @property
+    def locked(self):
+        return self.claimable_locked + self.unclaimable_locked
+
+
+ZERO_LOCKED_VALUES = LockedAmounts()
+
+
 class ChannelValues():
     def __init__(
             self,
@@ -23,9 +41,7 @@ class ChannelValues():
             withdrawn=0,
             nonce=0,
             transferred=0,
-            locked=0,
-            claimable_locked=0,
-            unclaimable_locked=0,
+            locked_amounts=ZERO_LOCKED_VALUES,
             locksroot=EMPTY_LOCKSROOT,
             additional_hash=EMPTY_ADDITIONAL_HASH,
     ):
@@ -33,18 +49,18 @@ class ChannelValues():
         self.withdrawn = withdrawn
         self.nonce = nonce
         self.transferred = transferred
-        self.claimable_locked = claimable_locked or locked
-        self.unclaimable_locked = unclaimable_locked
-        self.locked = self.claimable_locked + self.unclaimable_locked or locked
+        # deepcopy is necessary because later some elements are incremented in-place.
+        self.locked_amounts = deepcopy(locked_amounts)
         self.locksroot = locksroot
         self.additional_hash = additional_hash
 
     def __repr__(self):
         return (
             f'ChannelValues deposit:{self.deposit} withdrawn:{self.withdrawn} '
-            f'transferred:{self.transferred} claimable_locked:{self.claimable_locked} '
-            f'unclaimable_locked:{self.unclaimable_locked} '
-            f'locked:{self.locked} locksroot:{self.locksroot} '
+            f'transferred:{self.transferred} claimable_'
+            f'locked:{self.locked_amounts.claimable_locked} '
+            f'unclaimable_locked:{self.locked_amounts.unclaimable_locked} '
+            f'locked:{self.locked_amounts.locked} locksroot:{self.locksroot} '
         )
 
 
@@ -59,7 +75,7 @@ def get_participant_available_balance(participant1, participant2):
         participant2.transferred -
         participant1.withdrawn -
         participant1.transferred -
-        participant1.locked
+        participant1.locked_amounts.locked
     )
 
 
@@ -75,14 +91,14 @@ def are_balance_proofs_valid(participant1, participant2):
     total_available_deposit = get_total_available_deposit(participant1, participant2)
 
     return (
-        participant1.transferred + participant1.locked <= MAX_UINT256 and
-        participant2.transferred + participant2.locked <= MAX_UINT256 and
+        participant1.transferred + participant1.locked_amounts.locked <= MAX_UINT256 and
+        participant2.transferred + participant2.locked_amounts.locked <= MAX_UINT256 and
         participant1_available_balance >= 0 and
         participant2_available_balance >= 0 and
         participant1_available_balance <= total_available_deposit and
         participant2_available_balance <= total_available_deposit and
-        participant1.locked <= participant1_available_balance and
-        participant2.locked <= participant2_available_balance
+        participant1.locked_amounts.locked <= participant1_available_balance and
+        participant2.locked_amounts.locked <= participant2_available_balance
     )
 
 
@@ -93,8 +109,8 @@ def were_balance_proofs_valid(participant1, participant2):
     # Regardless of issuance time, the locked amount must be smaller than the
     # total channel deposit.
     return (
-        participant1.locked <= deposit and
-        participant2.locked <= deposit
+        participant1.locked_amounts.locked <= deposit and
+        participant2.locked_amounts.locked <= deposit
     )
 
 
@@ -126,11 +142,11 @@ def get_settlement_amounts(participant1, participant2):
     """
     total_available_deposit = get_total_available_deposit(participant1, participant2)
     participant1_max_transferred = min(
-        participant1.transferred + participant1.locked,
+        participant1.transferred + participant1.locked_amounts.locked,
         MAX_UINT256,
     )
     participant2_max_transferred = min(
-        participant2.transferred + participant2.locked,
+        participant2.transferred + participant2.locked_amounts.locked,
         MAX_UINT256,
     )
     participant1_max_amount_receivable = (
@@ -150,8 +166,14 @@ def get_settlement_amounts(participant1, participant2):
         participant1_max_amount_receivable
     )
 
-    participant2_locked = min(participant2.locked, participant1_max_amount_receivable)
-    participant1_locked = min(participant1.locked, participant2_max_amount_receivable)
+    participant2_locked = min(
+        participant2.locked_amounts.locked,
+        participant1_max_amount_receivable,
+    )
+    participant1_locked = min(
+        participant1.locked_amounts.locked,
+        participant2_max_amount_receivable,
+    )
 
     participant1_amount = participant1_max_amount_receivable - participant2_locked
     participant2_amount = participant2_max_amount_receivable - participant1_locked
@@ -182,16 +204,16 @@ def get_expected_after_settlement_unlock_amounts(participant1, participant2):
         participant1.withdrawn +
         participant2.transferred -
         participant1.transferred +
-        participant2.claimable_locked -
-        participant1.claimable_locked
+        participant2.locked_amounts.claimable_locked -
+        participant1.locked_amounts.claimable_locked
     )
     participant2_balance = (
         participant2.deposit -
         participant2.withdrawn +
         participant1.transferred -
         participant2.transferred +
-        participant1.claimable_locked -
-        participant2.claimable_locked
+        participant1.locked_amounts.claimable_locked -
+        participant2.locked_amounts.claimable_locked
     )
     return (participant1_balance, participant2_balance)
 
@@ -226,8 +248,8 @@ def failsafe_sub(a, b):
 
 
 def get_onchain_settlement_amounts(
-        participant1,
-        participant2,
+        participant1: ChannelValues,
+        participant2: ChannelValues,
 ):
     """ Settlement algorithm
 
@@ -238,8 +260,8 @@ def get_onchain_settlement_amounts(
     """
 
     assert(
-        participant2.transferred + participant2.locked >=
-        participant1.transferred + participant1.locked
+        participant2.transferred + participant2.locked_amounts.locked >=
+        participant1.transferred + participant1.locked_amounts.locked
     )
 
     total_available_deposit = get_total_available_deposit(participant1, participant2)
@@ -247,8 +269,14 @@ def get_onchain_settlement_amounts(
     # we assume that total_available_deposit does not overflow in settleChannel
     assert total_available_deposit <= MAX_UINT256
 
-    participant1_max_transferred = failsafe_add(participant1.transferred, participant1.locked)
-    participant2_max_transferred = failsafe_add(participant2.transferred, participant2.locked)
+    participant1_max_transferred = failsafe_add(
+        participant1.transferred,
+        participant1.locked_amounts.locked,
+    )
+    participant2_max_transferred = failsafe_add(
+        participant2.transferred,
+        participant2.locked_amounts.locked,
+    )
 
     assert participant1_max_transferred <= MAX_UINT256
     assert participant2_max_transferred <= MAX_UINT256
@@ -264,12 +292,12 @@ def get_onchain_settlement_amounts(
 
     (participant1_amount, participant2_locked_amount) = failsafe_sub(
         participant1_max_amount,
-        participant2.locked,
+        participant2.locked_amounts.locked,
     )
 
     (participant2_amount, participant1_locked_amount) = failsafe_sub(
         participant2_max_amount,
-        participant1.locked,
+        participant1.locked_amounts.locked,
     )
 
     assert total_available_deposit == (

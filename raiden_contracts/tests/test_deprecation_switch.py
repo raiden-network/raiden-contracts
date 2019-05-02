@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.tests.utils import ChannelValues
+from raiden_contracts.tests.utils import ChannelValues, LockedAmounts
 from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree
 
 
@@ -174,15 +174,19 @@ def test_deprecation_switch_settle(
             deposit=deposit,
             withdrawn=0,
             transferred=5,
-            claimable_locked=2,
-            unclaimable_locked=4,
+            locked_amounts=LockedAmounts(
+                claimable_locked=2,
+                unclaimable_locked=4,
+            ),
         ),
         ChannelValues(
             deposit=deposit,
             withdrawn=0,
             transferred=10,
-            claimable_locked=4,
-            unclaimable_locked=6,
+            locked_amounts=LockedAmounts(
+                claimable_locked=4,
+                unclaimable_locked=6,
+            ),
         ),
     )
 
@@ -197,8 +201,8 @@ def test_deprecation_switch_settle(
     # Mock pending transfers data for A -> B
     pending_transfers_tree_A = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_A.claimable_locked,
-        expired_amount=vals_A.unclaimable_locked,
+        unlockable_amount=vals_A.locked_amounts.claimable_locked,
+        expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
     vals_A.locksroot = pending_transfers_tree_A.merkle_root
     # Reveal A's secrets.
@@ -207,8 +211,8 @@ def test_deprecation_switch_settle(
     # Mock pending transfers data for B -> A
     pending_transfers_tree_B = get_pending_transfers_tree(
         web3,
-        unlockable_amount=vals_B.claimable_locked,
-        expired_amount=vals_B.unclaimable_locked,
+        unlockable_amount=vals_B.locked_amounts.claimable_locked,
+        expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
     vals_B.locksroot = pending_transfers_tree_B.merkle_root
     # Reveal B's secrets
