@@ -754,7 +754,7 @@ def call_settle(
             token_network.functions.settleChannel(
                 channel_identifier=channel_identifier,
                 participant1=B,
-                participant1_transferred_amount=0,
+                participant1_transferred_amount=vals_B.transferred,
                 participant1_locked_amount=0,
                 participant1_locksroot=vals_B.locksroot,
                 participant2=A,
