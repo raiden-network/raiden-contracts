@@ -5,7 +5,7 @@ import "services/UserDeposit.sol";
 import "lib/ECVerify.sol";
 
 contract OneToN is Utils {
-    string constant public contract_version = "0.11.1";
+    string constant public contract_version = "0.12.0";
 
     UserDeposit public deposit_contract;
 
