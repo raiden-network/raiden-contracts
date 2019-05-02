@@ -3,6 +3,8 @@ from tempfile import NamedTemporaryFile
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
+from web3.eth import Eth
+
 import pytest
 from click import BadParameter, NoSuchOption
 from click.testing import CliRunner
@@ -643,25 +645,30 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
                 'deploy_token_contract',
                 spec=ContractDeployer,
         ) as mock_deployer:
-            runner = CliRunner()
-            result = runner.invoke(
-                token,
-                [
-                    '--rpc-provider',
-                    'rpc_provider',
-                    '--private-key',
-                    privkey_file.name,
-                    '--gas-price',
-                    '12',
-                    '--token-supply',
-                    '20000000',
-                    '--token-name',
-                    'ServiceToken',
-                    '--token-decimals',
-                    '18',
-                    '--token-symbol',
-                    'SVT',
-                ],
-            )
-            assert result != 0
-            mock_deployer.assert_not_called()
+            with patch.object(
+                    Eth,
+                    'getBalance',
+                    return_value=0,
+            ):
+                runner = CliRunner()
+                result = runner.invoke(
+                    token,
+                    [
+                        '--rpc-provider',
+                        'rpc_provider',
+                        '--private-key',
+                        privkey_file.name,
+                        '--gas-price',
+                        '12',
+                        '--token-supply',
+                        '20000000',
+                        '--token-name',
+                        'ServiceToken',
+                        '--token-decimals',
+                        '18',
+                        '--token-symbol',
+                        'SVT',
+                    ],
+                )
+                assert result != 0
+                mock_deployer.assert_not_called()
