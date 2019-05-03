@@ -11,7 +11,8 @@ from raiden_contracts.contract_manager import (
     version_provides_services,
 )
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
-from raiden_contracts.tests.utils.constants import FAKE_ADDRESS
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
+from raiden_contracts.utils.type_aliases import Address
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
@@ -136,7 +137,7 @@ def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit,):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address=FAKE_ADDRESS,
+            token_address=EMPTY_ADDRESS,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
         )
 
@@ -151,6 +152,6 @@ def test_verify_existent_deployment():
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(AssertionError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address="0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c",
+            token_address=Address("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
         )
