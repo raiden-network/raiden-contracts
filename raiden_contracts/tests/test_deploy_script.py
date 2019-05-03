@@ -1,9 +1,13 @@
 from copy import deepcopy
+from tempfile import NamedTemporaryFile
 from typing import Optional
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+
+from web3.eth import Eth
 
 import pytest
 from click import BadParameter, NoSuchOption
+from click.testing import CliRunner
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem_unittest import Patcher
 
@@ -22,6 +26,7 @@ from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
     error_removed_option,
+    token,
     validate_address,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
@@ -595,3 +600,95 @@ def test_contracts_version_expects_deposit_limits():
     assert contracts_version_expects_deposit_limits(None)
     with pytest.raises(ValueError):
         contracts_version_expects_deposit_limits('not a semver string')
+
+
+def deploy_token_arguments(privkey: str):
+    return [
+        '--rpc-provider',
+        'rpc_provider',
+        '--private-key',
+        privkey,
+        '--gas-price',
+        '12',
+        '--token-supply',
+        '20000000',
+        '--token-name',
+        'ServiceToken',
+        '--token-decimals',
+        '18',
+        '--token-symbol',
+        'SVT',
+    ]
+
+
+def test_deploy_token_invalid_privkey():
+    """ Call deploy token command with invalid private key """
+    with patch.object(
+            ContractDeployer,
+            'deploy_token_contract',
+            spec=ContractDeployer,
+    ) as mock_deployer:
+        runner = CliRunner()
+        result = runner.invoke(
+            token,
+            deploy_token_arguments(privkey='wrong_priv_key'),
+        )
+        assert result.exit_code != 0
+        assert type(result.exception) == RuntimeError
+        assert result.exception.args == ('Could not access the private key.',)
+        mock_deployer.assert_not_called()
+
+
+def test_deploy_token_no_balance(get_accounts, get_private_key):
+    """ Call deploy token command with a private key with no balance """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.flush()
+        with patch.object(
+                ContractDeployer,
+                'deploy_token_contract',
+                spec=ContractDeployer,
+        ) as mock_deployer:
+            with patch.object(
+                    Eth,
+                    'getBalance',
+                    return_value=0,
+            ):
+                runner = CliRunner()
+                result = runner.invoke(
+                    token,
+                    deploy_token_arguments(privkey=privkey_file.name),
+                )
+                assert result.exit_code != 0
+                assert type(result.exception) == RuntimeError
+                assert result.exception.args == ('Account with insufficient funds.',)
+                mock_deployer.assert_not_called()
+
+
+def test_deploy_token_with_balance(get_accounts, get_private_key):
+    """ Call deploy token command with a private key with no balance """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.flush()
+        with patch.object(
+                ContractDeployer,
+                'deploy_token_contract',
+                spec=ContractDeployer,
+                return_value={},
+        ) as mock_deployer:
+            with patch.object(
+                    Eth,
+                    'getBalance',
+                    return_value=100,
+            ):
+                runner = CliRunner()
+                result = runner.invoke(
+                    token,
+                    deploy_token_arguments(privkey=privkey_file.name),
+                )
+                assert result.exit_code == 0
+                mock_deployer.assert_called_once()
