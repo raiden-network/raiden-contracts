@@ -198,7 +198,9 @@ def test_deploy_script_raiden(web3, deployer, deployed_raiden_info):
         )
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['address'] = FAKE_ADDRESS
+    deployed_contracts_info_fail['contracts'][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]['address'] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(
             deployed_contracts_info_fail,
