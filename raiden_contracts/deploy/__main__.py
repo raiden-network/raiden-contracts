@@ -228,7 +228,7 @@ def raiden(
     help='Maximum amount of tokens deposited in UserDeposit',
 )
 @click.option(
-    '--save-info',
+    '--save-info/--no-save-info',
     default=True,
     help='Save deployment info to a file.',
 )
