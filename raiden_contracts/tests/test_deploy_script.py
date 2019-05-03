@@ -698,8 +698,10 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
 def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]):
     if save_info is None:
         save_info_arguments = []
-    else: # save_info is True or False
-        save_info_arguments = ['--save-info', str(save_info)]
+    elif save_info is True:
+        save_info_arguments = ['--save-info']
+    else:
+        save_info_arguments = ['--no-save-info']
     return [
         '--private-key',
         privkey,
@@ -738,5 +740,29 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
             mock_verify.assert_called_once()
 
 
-# def test_deploy_raiden():
-#     """ Calling deploy raiden command without --save_info false """
+@patch.object(ContractDeployer, 'deploy_raiden_contracts')
+@patch.object(ContractDeployer, 'verify_deployment_data')
+def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
+    """ Calling deploy raiden command with --save_info False"""
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.flush()
+        with patch.object(
+                Eth,
+                'getBalance',
+                return_value=1,
+        ):
+            runner = CliRunner()
+            result = runner.invoke(
+                raiden,
+                deploy_raiden_arguments(
+                    privkey=privkey_file.name,
+                    save_info=False,
+                )
+            )
+            assert result.exception is None
+            assert result.exit_code == 0
+            mock_deploy.assert_called_once()
+            mock_verify.assert_called_once()
