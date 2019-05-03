@@ -159,7 +159,7 @@ def check_version_dependent_parameters(
 @main.command()
 @common_options
 @click.option(
-    '--save-info',
+    '--save-info/--no-save-info',
     default=True,
     help='Save deployment info to a file.',
 )
