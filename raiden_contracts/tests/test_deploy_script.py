@@ -27,6 +27,7 @@ from raiden_contracts.deploy.__main__ import (
     contract_version_with_max_token_networks,
     error_removed_option,
     token,
+    raiden,
     validate_address,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
@@ -692,3 +693,50 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                 )
                 assert result.exit_code == 0
                 mock_deployer.assert_called_once()
+
+
+def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]):
+    if save_info is None:
+        save_info_arguments = []
+    else: # save_info is True or False
+        save_info_arguments = ['--save-info', str(save_info)]
+    return [
+        '--private-key',
+        privkey,
+        '--max-token-networks',
+        1,
+        '--rpc-provider',
+        'rpc_provider',
+    ] + save_info_arguments
+
+
+@patch.object(ContractDeployer, 'deploy_raiden_contracts')
+@patch.object(ContractDeployer, 'store_and_verify_deployment_info_raiden')
+def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
+    """ Calling deploy raiden command """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.flush()
+        with patch.object(
+                Eth,
+                'getBalance',
+                return_value=1,
+        ):
+            runner = CliRunner()
+            result = runner.invoke(
+                raiden,
+                deploy_raiden_arguments(
+                    privkey=privkey_file.name,
+                    save_info=None,
+                )
+            )
+            assert result.exception is None
+            assert result.exit_code == 0
+            mock_deploy.assert_called_once()
+            mock_verify.assert_called_once()
+
+
+# def test_deploy_raiden():
+#     """ Calling deploy raiden command without --save_info false """
