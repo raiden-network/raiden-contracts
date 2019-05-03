@@ -200,12 +200,12 @@ class ContractVerifier:
 
         # Check the contract version
         version = contract_instance.functions.contract_version().call()
-        if version != deployment_data['contracts_version']:
-            raise RuntimeError(
-                f'got {version} expected {deployment_data["contracts_version"]}. '
-                'contract_manager has contracts_version'
-                f'{self.contract_manager.contracts_version}',
-            )
+
+        # It's an assert because the caller of this function should have checked this.
+        assert version == deployment_data['contracts_version'], \
+            f'got {version} expected {deployment_data["contracts_version"]}. ' \
+            'contract_manager has contracts_version' \
+            f'{self.contract_manager.contracts_version}'
 
         return contract_instance, contracts[contract_name]["constructor_arguments"]
 
