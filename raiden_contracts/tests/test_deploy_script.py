@@ -602,6 +602,25 @@ def test_contracts_version_expects_deposit_limits():
         contracts_version_expects_deposit_limits('not a semver string')
 
 
+def deploy_token_arguments(privkey: str):
+    return [
+        '--rpc-provider',
+        'rpc_provider',
+        '--private-key',
+        privkey,
+        '--gas-price',
+        '12',
+        '--token-supply',
+        '20000000',
+        '--token-name',
+        'ServiceToken',
+        '--token-decimals',
+        '18',
+        '--token-symbol',
+        'SVT',
+    ]
+
+
 def test_deploy_token_invalid_privkey():
     """ Call deploy token command with invalid private key """
     with patch.object(
@@ -612,22 +631,7 @@ def test_deploy_token_invalid_privkey():
         runner = CliRunner()
         result = runner.invoke(
             token,
-            [
-                '--rpc-provider',
-                'rpc_provider',
-                '--private-key',
-                'wrong_privkey',
-                '--gas-price',
-                '12',
-                '--token-supply',
-                '20000000',
-                '--token-name',
-                'ServiceToken',
-                '--token-decimals',
-                '18',
-                '--token-symbol',
-                'SVT',
-            ],
+            deploy_token_arguments(privkey='wrong_priv_key'),
         )
         assert result != 0
         mock_deployer.assert_not_called()
@@ -653,22 +657,7 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
                 runner = CliRunner()
                 result = runner.invoke(
                     token,
-                    [
-                        '--rpc-provider',
-                        'rpc_provider',
-                        '--private-key',
-                        privkey_file.name,
-                        '--gas-price',
-                        '12',
-                        '--token-supply',
-                        '20000000',
-                        '--token-name',
-                        'ServiceToken',
-                        '--token-decimals',
-                        '18',
-                        '--token-symbol',
-                        'SVT',
-                    ],
+                    deploy_token_arguments(privkey=privkey_file.name),
                 )
                 assert result != 0
                 mock_deployer.assert_not_called()
@@ -694,22 +683,7 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                 runner = CliRunner()
                 result = runner.invoke(
                     token,
-                    [
-                        '--rpc-provider',
-                        'rpc_provider',
-                        '--private-key',
-                        privkey_file.name,
-                        '--gas-price',
-                        '12',
-                        '--token-supply',
-                        '20000000',
-                        '--token-name',
-                        'ServiceToken',
-                        '--token-decimals',
-                        '18',
-                        '--token-symbol',
-                        'SVT',
-                    ],
+                    deploy_token_arguments(privkey=privkey_file.name),
                 )
                 assert result != 0
                 mock_deployer.assert_called_once()
