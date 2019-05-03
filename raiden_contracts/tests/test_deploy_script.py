@@ -633,7 +633,9 @@ def test_deploy_token_invalid_privkey():
             token,
             deploy_token_arguments(privkey='wrong_priv_key'),
         )
-        assert result != 0
+        assert result.exit_code != 0
+        assert type(result.exception) == RuntimeError
+        assert result.exception.args == ('Could not access the private key.',)
         mock_deployer.assert_not_called()
 
 
@@ -659,7 +661,7 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
                     token,
                     deploy_token_arguments(privkey=privkey_file.name),
                 )
-                assert result != 0
+                assert result.exit_code != 0
                 mock_deployer.assert_not_called()
 
 
@@ -685,5 +687,5 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                     token,
                     deploy_token_arguments(privkey=privkey_file.name),
                 )
-                assert result != 0
+                assert result.exit_code == 0
                 mock_deployer.assert_called_once()
