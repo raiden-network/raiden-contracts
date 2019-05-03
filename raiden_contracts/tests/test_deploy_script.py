@@ -482,6 +482,81 @@ def test_deploy_script_service(web3, deployed_service_info, token_address: Addre
             deployed_contracts_info=deployed_info_fail,
         )
 
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail["contracts"][CONTRACT_USER_DEPOSIT]["constructor_arguments"][1] = (
+        deposit_limit + 1
+    )
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    original = deployed_info_fail["contracts"][CONTRACT_MONITORING_SERVICE][
+        "constructor_arguments"
+    ]
+    deployed_info_fail["contracts"][CONTRACT_MONITORING_SERVICE][
+        "constructor_arguments"
+    ] += original
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail["contracts"][CONTRACT_MONITORING_SERVICE]["constructor_arguments"][
+        0
+    ] = EMPTY_ADDRESS
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail["contracts"][CONTRACT_MONITORING_SERVICE]["constructor_arguments"][
+        2
+    ] = EMPTY_ADDRESS
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail["contracts"][CONTRACT_ONE_TO_N]["constructor_arguments"][0] = EMPTY_ADDRESS
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    deployed_info_fail["contracts"][CONTRACT_ONE_TO_N]["constructor_arguments"][1] = EMPTY_ADDRESS
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
+    deployed_info_fail = deepcopy(deployed_service_contracts)
+    original = deployed_info_fail["contracts"][CONTRACT_ONE_TO_N]["constructor_arguments"]
+    deployed_info_fail["contracts"][CONTRACT_ONE_TO_N]["constructor_arguments"] += original
+    with pytest.raises(RuntimeError):
+        deployer.verify_service_contracts_deployment_data(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=deposit_limit,
+            deployed_contracts_info=deployed_info_fail,
+        )
+
     def test_missing_deployment(contract_name):
         deployed_info_fail = deepcopy(deployed_service_contracts)
         deployed_info_fail["contracts"][contract_name]["address"] = EMPTY_ADDRESS
