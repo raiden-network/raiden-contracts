@@ -166,17 +166,6 @@ class ContractVerifier:
             abi=self.contract_manager.get_contract_abi(contract_name), address=contract_address
         )
 
-        # Check that the deployed bytecode matches the precompiled data
-        blockchain_bytecode = self.web3.eth.getCode(contract_address).hex()
-        compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
-        if blockchain_bytecode == compiled_bytecode:
-            print(
-                f'{contract_name} at {contract_address} '
-                f'matches the compiled data from contracts.json',
-            )
-        else:
-            raise RuntimeError(f'{contract_name} at {contract_address} has wrong code')
-
         # Check blockchain transaction hash & block information
         receipt = self.web3.eth.getTransactionReceipt(
             contracts[contract_name]['transaction_hash'],
@@ -197,6 +186,17 @@ class ContractVerifier:
                 f'We have contractAddress {contracts[contract_name]["address"]} in the deployment'
                 f' info but {receipt["contractAddress"]} in the transaction receipt from web3.',
             )
+
+        # Check that the deployed bytecode matches the precompiled data
+        blockchain_bytecode = self.web3.eth.getCode(contract_address).hex()
+        compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
+        if blockchain_bytecode == compiled_bytecode:
+            print(
+                f'{contract_name} at {contract_address} '
+                f'matches the compiled data from contracts.json',
+            )
+        else:
+            raise RuntimeError(f'{contract_name} at {contract_address} has wrong code')
 
         # Check the contract version
         version = contract_instance.functions.contract_version().call()
