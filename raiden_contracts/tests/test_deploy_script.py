@@ -678,6 +678,7 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                 ContractDeployer,
                 'deploy_token_contract',
                 spec=ContractDeployer,
+                return_value={},
         ) as mock_deployer:
             with patch.object(
                     Eth,
