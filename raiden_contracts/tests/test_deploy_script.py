@@ -662,6 +662,8 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
                     deploy_token_arguments(privkey=privkey_file.name),
                 )
                 assert result.exit_code != 0
+                assert type(result.exception) == RuntimeError
+                assert result.exception.args == ('Account with insufficient funds.',)
                 mock_deployer.assert_not_called()
 
 

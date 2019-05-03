@@ -113,7 +113,7 @@ def setup_ctx(
     owner = private_key_to_address(private_key)
     # pylint: disable=E1101
     if web3.eth.getBalance(owner) == 0:
-        raise RuntimeError('Account with insuficient funds.')
+        raise RuntimeError('Account with insufficient funds.')
     deployer = ContractDeployer(
         web3=web3,
         private_key=private_key,
