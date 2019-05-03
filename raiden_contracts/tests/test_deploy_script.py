@@ -1,15 +1,14 @@
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
-from typing import Optional
+from typing import List, Optional
 from unittest.mock import MagicMock, patch
-
-from web3.eth import Eth
 
 import pytest
 from click import BadParameter, NoSuchOption
 from click.testing import CliRunner
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem_unittest import Patcher
+from web3.eth import Eth
 
 import raiden_contracts
 from raiden_contracts.constants import (
@@ -26,8 +25,8 @@ from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     contract_version_with_max_token_networks,
     error_removed_option,
-    token,
     raiden,
+    token,
     validate_address,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
@@ -695,21 +694,22 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                 mock_deployer.assert_called_once()
 
 
-def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]):
+def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]) -> List:
     if save_info is None:
-        save_info_arguments = []
+        save_info_arguments: List = []
     elif save_info is True:
         save_info_arguments = ['--save-info']
     else:
         save_info_arguments = ['--no-save-info']
-    return [
+    common_arguments: List = [
         '--private-key',
         privkey,
         '--max-token-networks',
         1,
         '--rpc-provider',
         'rpc_provider',
-    ] + save_info_arguments
+    ]
+    return common_arguments + save_info_arguments
 
 
 @patch.object(ContractDeployer, 'deploy_raiden_contracts')
@@ -732,7 +732,7 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
                 deploy_raiden_arguments(
                     privkey=privkey_file.name,
                     save_info=None,
-                )
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -760,7 +760,7 @@ def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, g
                 deploy_raiden_arguments(
                     privkey=privkey_file.name,
                     save_info=False,
-                )
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
