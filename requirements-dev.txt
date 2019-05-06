@@ -1,4 +1,5 @@
 -r requirements.txt
+black
 eth-tester[py-evm]<=0.1.0b33
 pytest
 pytest-cov

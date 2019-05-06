@@ -14,17 +14,17 @@ class Transfer:
     cmdid = 5  # DirectTransfer
 
     def __init__(
-            self,
-            message_identifier,
-            payment_identifier,
-            nonce,
-            registry_address,
-            token,
-            channel,
-            transferred_amount,
-            locked_amount,
-            recipient,
-            locksroot,
+        self,
+        message_identifier,
+        payment_identifier,
+        nonce,
+        registry_address,
+        token,
+        channel,
+        transferred_amount,
+        locked_amount,
+        recipient,
+        locksroot,
     ):
         self.message_identifier = message_identifier
         self.payment_identifier = payment_identifier
@@ -39,12 +39,9 @@ class Transfer:
 
     def sign(self, private_key, node_address):
         """ Sign message using `private_key`. """
-        signature = private_key.sign_recoverable(
-            self.to_bytes(),
-            hasher=keccak,
-        )
+        signature = private_key.sign_recoverable(self.to_bytes(), hasher=keccak)
         if len(signature) != 65:
-            raise ValueError('invalid signature')
+            raise ValueError("invalid signature")
 
         signature = signature[:-1] + chr(signature[-1] + 27).encode()
 
@@ -57,25 +54,23 @@ class Transfer:
 
     def to_bytes(self):
         arr = bytearray()
-        arr.extend(self.message_identifier.to_bytes(8, byteorder='big'))
-        arr.extend(self.payment_identifier.to_bytes(8, byteorder='big'))
-        arr.extend(self.nonce.to_bytes(8, byteorder='big'))
+        arr.extend(self.message_identifier.to_bytes(8, byteorder="big"))
+        arr.extend(self.payment_identifier.to_bytes(8, byteorder="big"))
+        arr.extend(self.nonce.to_bytes(8, byteorder="big"))
         arr.extend(self.token.encode())
         arr.extend(self.registry_address.encode())
         arr.extend(self.channel)
-        arr.extend(self.transferred_amount.to_bytes(32, byteorder='big'))
-        arr.extend(self.locked_amount.to_bytes(32, byteorder='big'))
+        arr.extend(self.transferred_amount.to_bytes(32, byteorder="big"))
+        arr.extend(self.locked_amount.to_bytes(32, byteorder="big"))
         arr.extend(self.recipient.encode())
         arr.extend(self.locksroot)
         return arr
 
     def balance_hash(self):
         # balance_hash Hash of (transferred_amount, locked_amount, locksroot).
-        return keccak(text='{0}{1}{2}'.format(
-            self.transferred_amount,
-            self.locked_amount,
-            self.locksroot,
-        ))
+        return keccak(
+            text="{0}{1}{2}".format(self.transferred_amount, self.locked_amount, self.locksroot)
+        )
 
 
 @composite

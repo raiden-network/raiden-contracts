@@ -8,7 +8,7 @@ from web3.utils.filters import construct_event_filter_params
 from web3.utils.threads import Timeout
 
 # A concrete event added in a transaction.
-LogRecorded = namedtuple('LogRecorded', 'message callback count')
+LogRecorded = namedtuple("LogRecorded", "message callback count")
 
 
 class LogHandler:
@@ -23,7 +23,7 @@ class LogHandler:
 
     def add(self, txn_hash, event_name, callback=None, count=1):
         caller = getframeinfo(stack()[1][0])
-        message = '%s:%d' % (caller.filename, caller.lineno)
+        message = "%s:%d" % (caller.filename, caller.lineno)
 
         if event_name not in self.event_waiting:
             self.event_waiting[event_name] = {}
@@ -36,9 +36,7 @@ class LogHandler:
             )
 
         self.event_waiting[event_name][txn_hash] = LogRecorded(
-            message=message,
-            callback=callback,
-            count=count,
+            message=message, callback=callback, count=count
         )
 
     def check(self, timeout=5):
@@ -51,8 +49,8 @@ class LogHandler:
         """ A subroutine of handle_log
         Increment self.event_count, forget about waiting, and call the callback if any.
         """
-        txn_hash = event['transactionHash']
-        event_name = event['event']
+        txn_hash = event["transactionHash"]
+        event_name = event["event"]
         assert event_name in self.event_waiting
         assert txn_hash in self.event_waiting[event_name]
 
@@ -67,8 +65,8 @@ class LogHandler:
             event_entry.callback(event)
 
     def handle_log(self, event: dict):
-        txn_hash = event['transactionHash']
-        event_name = event['event']
+        txn_hash = event["transactionHash"]
+        event_name = event["event"]
 
         if event_name in self.event_waiting:
             if txn_hash in self.event_waiting[event_name]:
@@ -86,9 +84,9 @@ class LogHandler:
                     timeout.sleep(2)
         except Exception as e:
             print(e)
-            message = 'NO EVENTS WERE TRIGGERED FOR: ' + str(self.event_waiting)
+            message = "NO EVENTS WERE TRIGGERED FOR: " + str(self.event_waiting)
             if len(self.event_unknown) > 0:
-                message += '\n UNKOWN EVENTS: ' + str(self.event_unknown)
+                message += "\n UNKOWN EVENTS: " + str(self.event_unknown)
 
             # FIXME Events triggered in an internal transaction
             # don't have the transactionHash we are looking for here
@@ -99,51 +97,53 @@ class LogHandler:
             if waiting_events == len(self.event_unknown):
                 sandwitch_print(message)
             else:
-                raise Exception(message + ' waiting_events ' + str(waiting_events),
-                                ' len(self.event_unknown) ' + str(len(self.event_unknown)))
+                raise Exception(
+                    message + " waiting_events " + str(waiting_events),
+                    " len(self.event_unknown) " + str(len(self.event_unknown)),
+                )
 
     def assert_event(self, txn_hash, event_name, args, timeout=5):
         """ Assert that `event_name` is emitted with the `args`
 
         For use in tests only.
         """
+
         def assert_args(event):
-            assert event['args'] == args, f'{event["args"]} == {args}'
+            assert event["args"] == args, f'{event["args"]} == {args}'
+
         self.add(txn_hash=txn_hash, event_name=event_name, callback=assert_args)
         self.check(timeout=timeout)
 
 
 def sandwitch_print(msg):
-    print('----------------------------------')
+    print("----------------------------------")
     print(msg)
-    print('----------------------------------')
+    print("----------------------------------")
 
 
 class LogFilter:
-    def __init__(self,
-                 web3,
-                 abi,
-                 address,
-                 event_name,
-                 from_block=0,
-                 to_block='latest',
-                 filters=None,
-                 callback=None):
+    def __init__(
+        self,
+        web3,
+        abi,
+        address,
+        event_name,
+        from_block=0,
+        to_block="latest",
+        filters=None,
+        callback=None,
+    ):
         self.web3 = web3
         self.event_name = event_name
 
         # Callback for every registered log
         self.callback = callback
 
-        filter_kwargs = {
-            'fromBlock': from_block,
-            'toBlock': to_block,
-            'address': address,
-        }
+        filter_kwargs = {"fromBlock": from_block, "toBlock": to_block, "address": address}
 
-        event_abi = [i for i in abi if i['type'] == 'event' and i['name'] == event_name]
+        event_abi = [i for i in abi if i["type"] == "event" and i["name"] == event_name]
         if len(event_abi) == 0:
-            raise ValueError(f'Event of name {event_name} not found')
+            raise ValueError(f"Event of name {event_name} not found")
 
         self.event_abi = event_abi[0]
         assert self.event_abi
@@ -151,9 +151,7 @@ class LogFilter:
         filters = filters if filters else {}
 
         data_filter_set, filter_params = construct_event_filter_params(
-            event_abi=self.event_abi,
-            argument_filters=filters,
-            **filter_kwargs,
+            event_abi=self.event_abi, argument_filters=filters, **filter_kwargs
         )
         log_data_extract_fn = functools.partial(get_event_data, event_abi)
 
@@ -164,7 +162,7 @@ class LogFilter:
 
     def init(self, post_callback=None):
         for log in self.get_logs():
-            log['event'] = self.event_name
+            log["event"] = self.event_name
             self.callback(log)
         if post_callback:
             post_callback()
@@ -177,8 +175,8 @@ class LogFilter:
         return formatted_logs
 
     def set_log_data(self, log):
-        log['args'] = get_event_data(event_abi=self.event_abi, log_entry=log)['args']
-        log['event'] = self.event_name
+        log["args"] = get_event_data(event_abi=self.event_abi, log_entry=log)["args"]
+        log["event"] = self.event_name
         return log
 
     def uninstall(self):

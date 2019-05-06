@@ -11,8 +11,7 @@ def test_min_uses_usigned(token_network_test_utils):
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
 
     all_invalid = chain(
-        product(VALID_VALUES, INVALID_VALUES),
-        product(INVALID_VALUES, VALID_VALUES),
+        product(VALID_VALUES, INVALID_VALUES), product(INVALID_VALUES, VALID_VALUES)
     )
 
     for a, b in all_invalid:
@@ -27,8 +26,7 @@ def test_max_uses_usigned(token_network_test_utils):
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
 
     all_invalid = chain(
-        product(VALID_VALUES, INVALID_VALUES),
-        product(INVALID_VALUES, VALID_VALUES),
+        product(VALID_VALUES, INVALID_VALUES), product(INVALID_VALUES, VALID_VALUES)
     )
     for a, b in all_invalid:
         with pytest.raises(ValidationError):

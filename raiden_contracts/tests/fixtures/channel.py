@@ -21,7 +21,7 @@ from raiden_contracts.utils.proofs import (
 )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def create_channel(token_network, web3):
     def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
         # Make sure there is no channel existent on chain
@@ -29,9 +29,7 @@ def create_channel(token_network, web3):
 
         # Open the channel and retrieve the channel identifier
         txn_hash = token_network.functions.openChannel(
-            participant1=A,
-            participant2=B,
-            settle_timeout=settle_timeout,
+            participant1=A, participant2=B, settle_timeout=settle_timeout
         ).call_and_transact()
         web3.testing.mine(1)
 
@@ -39,14 +37,14 @@ def create_channel(token_network, web3):
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
         # Test the channel state on chain
-        (
-            channel_settle_timeout,
-            channel_state,
-        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        (channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(
+            channel_identifier, A, B
+        ).call()
         assert channel_settle_timeout == settle_timeout
         assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)
+
     return get
 
 
@@ -60,23 +58,24 @@ def assign_tokens(token_network, custom_token):
         transfer_from_owner = min(amount, owner_balance)
 
         custom_token.functions.transfer(
-            _to=participant,
-            _value=transfer_from_owner,
-        ).call_and_transact({'from': owner})
+            _to=participant, _value=transfer_from_owner
+        ).call_and_transact({"from": owner})
         assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
         if amount > owner_balance:
             minted = amount - owner_balance
-            custom_token.functions.mint(minted).call_and_transact({'from': participant})
+            custom_token.functions.mint(minted).call_and_transact({"from": participant})
         assert custom_token.functions.balanceOf(participant).call() >= deposit
         custom_token.functions.approve(
-            _spender=token_network.address,
-            _value=deposit,
-        ).call_and_transact({'from': participant})
-        assert custom_token.functions.allowance(
-            _owner=participant,
-            _spender=token_network.address,
-        ).call() >= deposit
+            _spender=token_network.address, _value=deposit
+        ).call_and_transact({"from": participant})
+        assert (
+            custom_token.functions.allowance(
+                _owner=participant, _spender=token_network.address
+            ).call()
+            >= deposit
+        )
+
     return get
 
 
@@ -91,19 +90,16 @@ def channel_deposit(token_network, assign_tokens):
             participant=participant,
             total_deposit=deposit,
             partner=partner,
-        ).call_and_transact({'from': tx_from})
+        ).call_and_transact({"from": tx_from})
         return txn_hash
+
     return get
 
 
 @pytest.fixture()
 def create_channel_and_deposit(create_channel, channel_deposit):
     def get(
-            participant1,
-            participant2,
-            deposit1=0,
-            deposit2=0,
-            settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
+        participant1, participant2, deposit1=0, deposit2=0, settle_timeout=TEST_SETTLE_TIMEOUT_MIN
     ):
         channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
 
@@ -112,6 +108,7 @@ def create_channel_and_deposit(create_channel, channel_deposit):
         if deposit2 > 0:
             channel_deposit(channel_identifier, participant2, deposit2, participant1)
         return channel_identifier
+
     return get
 
 
@@ -120,15 +117,11 @@ def withdraw_channel(token_network, create_withdraw_signatures):
     def get(channel_identifier, participant, withdraw_amount, partner, delegate=None):
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(
-            participant,
-            partner,
+            participant, partner
         ).call()
 
         (signature_participant, signature_partner) = create_withdraw_signatures(
-            [participant, partner],
-            channel_identifier,
-            participant,
-            withdraw_amount,
+            [participant, partner], channel_identifier, participant, withdraw_amount
         )
         txn_hash = token_network.functions.setTotalWithdraw(
             channel_identifier,
@@ -136,23 +129,18 @@ def withdraw_channel(token_network, create_withdraw_signatures):
             withdraw_amount,
             signature_participant,
             signature_partner,
-        ).call_and_transact({'from': delegate})
+        ).call_and_transact({"from": delegate})
         return txn_hash
+
     return get
 
 
 @pytest.fixture()
 def close_and_update_channel(
-        token_network,
-        create_balance_proof,
-        create_balance_proof_update_signature,
+    token_network, create_balance_proof, create_balance_proof_update_signature
 ):
     def get(
-            channel_identifier,
-            participant1,
-            participant1_values,
-            participant2,
-            participant2_values,
+        channel_identifier, participant1, participant1_values, participant2, participant2_values
     ):
         nonce1 = 5
         nonce2 = 7
@@ -178,16 +166,12 @@ def close_and_update_channel(
             additional_hash2,
         )
         balance_proof_update_signature_2 = create_balance_proof_update_signature(
-            participant2,
-            channel_identifier,
-            *balance_proof_1,
+            participant2, channel_identifier, *balance_proof_1
         )
 
         token_network.functions.closeChannel(
-            channel_identifier,
-            participant2,
-            *balance_proof_2,
-        ).call_and_transact({'from': participant1})
+            channel_identifier, participant2, *balance_proof_2
+        ).call_and_transact({"from": participant1})
 
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -195,50 +179,40 @@ def close_and_update_channel(
             participant2,
             *balance_proof_1,
             balance_proof_update_signature_2,
-        ).call_and_transact({'from': participant2})
+        ).call_and_transact({"from": participant2})
+
     return get
 
 
 @pytest.fixture()
 def create_settled_channel(
-        web3,
-        token_network,
-        create_channel_and_deposit,
-        close_and_update_channel,
+    web3, token_network, create_channel_and_deposit, close_and_update_channel
 ):
     def get(
-            participant1,
-            locked_amount1,
-            locksroot1,
-            participant2,
-            locked_amount2,
-            locksroot2,
-            settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
+        participant1,
+        locked_amount1,
+        locksroot1,
+        participant2,
+        locked_amount2,
+        locksroot2,
+        settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
     ):
         participant1_values = ChannelValues(
             transferred=5,
-            locked_amounts=LockedAmounts(
-                claimable_locked=locked_amount1,
-            ),
+            locked_amounts=LockedAmounts(claimable_locked=locked_amount1),
             locksroot=locksroot1,
         )
         participant2_values = ChannelValues(
             transferred=40,
-            locked_amounts=LockedAmounts(
-                claimable_locked=locked_amount2,
-            ),
+            locked_amounts=LockedAmounts(claimable_locked=locked_amount2),
             locksroot=locksroot2,
         )
 
         participant1_values.deposit = (
-            participant1_values.locked_amounts.locked +
-            participant1_values.transferred -
-            5
+            participant1_values.locked_amounts.locked + participant1_values.transferred - 5
         )
         participant2_values.deposit = (
-            participant2_values.locked_amounts.locked +
-            participant2_values.transferred +
-            5
+            participant2_values.locked_amounts.locked + participant2_values.transferred + 5
         )
 
         channel_identifier = create_channel_and_deposit(
@@ -278,27 +252,28 @@ def reveal_secrets(web3, secret_registry_contract):
     def get(tx_from, transfers):
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.blockNumber < expiration
-            secret_registry_contract.functions.registerSecret(
-                secret,
-            ).call_and_transact({'from': tx_from})
-            assert secret_registry_contract.functions.getSecretRevealBlockHeight(
-                secrethash,
-            ).call() == web3.eth.blockNumber
+            secret_registry_contract.functions.registerSecret(secret).call_and_transact(
+                {"from": tx_from}
+            )
+            assert (
+                secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
+                == web3.eth.blockNumber
+            )
 
     return get
 
 
 def common_settle_state_tests(
-        custom_token,
-        token_network,
-        channel_identifier,
-        A,
-        balance_A,
-        B,
-        balance_B,
-        pre_account_balance_A,
-        pre_account_balance_B,
-        pre_balance_contract,
+    custom_token,
+    token_network,
+    channel_identifier,
+    A,
+    balance_A,
+    B,
+    balance_B,
+    pre_account_balance_A,
+    pre_account_balance_B,
+    pre_balance_contract,
 ):
     # Make sure the correct amount of tokens has been transferred
     account_balance_A = custom_token.functions.balanceOf(A).call()
@@ -309,9 +284,12 @@ def common_settle_state_tests(
     assert balance_contract == pre_balance_contract - balance_A - balance_B
 
     # Make sure channel data has been removed
-    assert token_network.functions.participants_hash_to_channel_identifier(
-        get_participants_hash(A, B),
-    ).call() == 0
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(
+            get_participants_hash(A, B)
+        ).call()
+        == 0
+    )
 
     # Make sure participant data has been removed
     (
@@ -347,19 +325,10 @@ def common_settle_state_tests(
 
 @pytest.fixture()
 def update_state_tests(token_network, get_block):
-    def get(
-            channel_identifier,
-            A,
-            balance_proof_A,
-            B,
-            balance_proof_B,
-            settle_timeout,
-            txn_hash1,
-    ):
-        (
-            settle_block_number,
-            state,
-        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    def get(channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1):
+        (settle_block_number, state) = token_network.functions.getChannelInfo(
+            channel_identifier, A, B
+        ).call()
 
         assert settle_block_number == settle_timeout + get_block(txn_hash1)
         assert state == ChannelState.CLOSED
@@ -393,20 +362,21 @@ def update_state_tests(token_network, get_block):
         assert B_nonce == 3
         assert B_locksroot == EMPTY_LOCKSROOT
         assert B_locked == 0
+
     return get
 
 
 @pytest.fixture()
 def cooperative_settle_state_tests(token_network, custom_token):
     def get(
-            channel_identifier,
-            A,
-            balance_A,
-            B,
-            balance_B,
-            pre_account_balance_A,
-            pre_account_balance_B,
-            pre_balance_contract,
+        channel_identifier,
+        A,
+        balance_A,
+        B,
+        balance_B,
+        pre_account_balance_A,
+        pre_account_balance_B,
+        pre_balance_contract,
     ):
         common_settle_state_tests(
             custom_token,
@@ -421,26 +391,26 @@ def cooperative_settle_state_tests(token_network, custom_token):
             pre_balance_contract,
         )
 
-        (
-            settle_block_number,
-            state,
-        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        (settle_block_number, state) = token_network.functions.getChannelInfo(
+            channel_identifier, A, B
+        ).call()
         assert settle_block_number == 0
         assert state == ChannelState.REMOVED
+
     return get
 
 
 @pytest.fixture()
 def settle_state_tests(token_network, custom_token):
     def get(
-            channel_identifier,
-            A,
-            values_A,
-            B,
-            values_B,
-            pre_account_balance_A,
-            pre_account_balance_B,
-            pre_balance_contract,
+        channel_identifier,
+        A,
+        values_A,
+        B,
+        values_B,
+        pre_account_balance_A,
+        pre_account_balance_B,
+        pre_balance_contract,
     ):
         # Calculate how much A and B should receive
         settlement = get_settlement_amounts(values_A, values_B)
@@ -486,10 +456,9 @@ def settle_state_tests(token_network, custom_token):
         if locked_amount_B > 0:
             assert locksroot_B == values_B.locksroot
 
-        (
-            settle_block_number,
-            state,
-        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        (settle_block_number, state) = token_network.functions.getChannelInfo(
+            channel_identifier, A, B
+        ).call()
         assert settle_block_number == 0
         if locked_amount_A > 0 or locked_amount_B > 0:
             assert state == ChannelState.SETTLED
@@ -502,14 +471,14 @@ def settle_state_tests(token_network, custom_token):
 @pytest.fixture()
 def unlock_state_tests(custom_token, token_network):
     def get(
-            A,
-            locked_A,
-            locksroot_A,
-            B,
-            locked_B,
-            pre_account_balance_A,
-            pre_account_balance_B,
-            pre_balance_contract,
+        A,
+        locked_A,
+        locksroot_A,
+        B,
+        locked_B,
+        pre_account_balance_A,
+        pre_account_balance_B,
+        pre_balance_contract,
     ):
         account_balance_A = custom_token.functions.balanceOf(A).call()
         account_balance_B = custom_token.functions.balanceOf(B).call()
@@ -518,35 +487,30 @@ def unlock_state_tests(custom_token, token_network):
         assert account_balance_B == pre_account_balance_B + locked_B
         assert balance_contract == pre_balance_contract - locked_A - locked_B
 
-        assert token_network.functions.getParticipantLockedAmount(
-            A,
-            B,
-            locksroot_A,
-        ).call() == 0
+        assert token_network.functions.getParticipantLockedAmount(A, B, locksroot_A).call() == 0
+
     return get
 
 
 @pytest.fixture()
 def withdraw_state_tests(custom_token, token_network):
     def get(
-            channel_identifier,
-            participant,
-            deposit_participant,
-            total_withdrawn_participant,
-            pre_withdrawn_participant,
-            pre_balance_participant,
-            partner,
-            deposit_partner,
-            total_withdrawn_partner,
-            pre_balance_partner,
-            pre_balance_contract,
-            delegate=None,
+        channel_identifier,
+        participant,
+        deposit_participant,
+        total_withdrawn_participant,
+        pre_withdrawn_participant,
+        pre_balance_participant,
+        partner,
+        deposit_partner,
+        total_withdrawn_partner,
+        pre_balance_partner,
+        pre_balance_contract,
+        delegate=None,
     ):
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
         (_, state) = token_network.functions.getChannelInfo(
-            channel_identifier,
-            participant,
-            partner,
+            channel_identifier, participant, partner
         ).call()
         assert state == ChannelState.OPENED
 
@@ -559,9 +523,7 @@ def withdraw_state_tests(custom_token, token_network):
             locksroot,
             locked_amount,
         ) = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            participant,
-            partner,
+            channel_identifier, participant, partner
         ).call()
         assert deposit == deposit_participant
         assert withdrawn_amount == total_withdrawn_participant
@@ -580,9 +542,7 @@ def withdraw_state_tests(custom_token, token_network):
             locksroot,
             locked_amount,
         ) = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            partner,
-            participant,
+            channel_identifier, partner, participant
         ).call()
         assert deposit == deposit_partner
         assert withdrawn_amount == total_withdrawn_partner
@@ -602,27 +562,28 @@ def withdraw_state_tests(custom_token, token_network):
         if delegate is not None:
             balance_delegate = custom_token.functions.balanceOf(delegate).call()
             assert balance_delegate == balance_delegate
+
     return get
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def create_balance_proof(token_network, get_private_key):
     def get(
-            channel_identifier,
-            participant,
-            transferred_amount=0,
-            locked_amount=0,
-            nonce=0,
-            locksroot=None,
-            additional_hash=None,
-            v=27,
-            signer=None,
-            other_token_network=None,
+        channel_identifier,
+        participant,
+        transferred_amount=0,
+        locked_amount=0,
+        nonce=0,
+        locksroot=None,
+        additional_hash=None,
+        v=27,
+        signer=None,
+        other_token_network=None,
     ):
         _token_network = other_token_network or token_network
         private_key = get_private_key(signer or participant)
-        locksroot = locksroot or b'\x00' * 32
-        additional_hash = additional_hash or b'\x00' * 32
+        locksroot = locksroot or b"\x00" * 32
+        additional_hash = additional_hash or b"\x00" * 32
 
         balance_hash = hash_balance_data(transferred_amount, locked_amount, locksroot)
 
@@ -636,26 +597,22 @@ def create_balance_proof(token_network, get_private_key):
             additional_hash,
             v,
         )
-        return (
-            balance_hash,
-            nonce,
-            additional_hash,
-            signature,
-        )
+        return (balance_hash, nonce, additional_hash, signature)
+
     return get
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def create_balance_proof_update_signature(token_network, get_private_key):
     def get(
-            participant,
-            channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            closing_signature,
-            v=27,
-            other_token_network=None,
+        participant,
+        channel_identifier,
+        balance_hash,
+        nonce,
+        additional_hash,
+        closing_signature,
+        v=27,
+        other_token_network=None,
     ):
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
@@ -672,20 +629,21 @@ def create_balance_proof_update_signature(token_network, get_private_key):
             v,
         )
         return non_closing_signature
+
     return get
 
 
 @pytest.fixture()
 def create_cooperative_settle_signatures(token_network, get_private_key):
     def get(
-            participants_to_sign,
-            channel_identifier,
-            participant1_address,
-            participant1_balance,
-            participant2_address,
-            participant2_balance,
-            v=27,
-            other_token_network=None,
+        participants_to_sign,
+        channel_identifier,
+        participant1_address,
+        participant1_balance,
+        participant2_address,
+        participant2_balance,
+        v=27,
+        other_token_network=None,
     ):
         _token_network = other_token_network or token_network
         signatures = []
@@ -704,18 +662,19 @@ def create_cooperative_settle_signatures(token_network, get_private_key):
             )
             signatures.append(signature)
         return signatures
+
     return get
 
 
 @pytest.fixture()
 def create_withdraw_signatures(token_network, get_private_key):
     def get(
-            participants_to_sign,
-            channel_identifier,
-            participant_who_withdraws,
-            amount_to_withdraw,
-            token_network_address=None,
-            v=27,
+        participants_to_sign,
+        channel_identifier,
+        participant_who_withdraws,
+        amount_to_withdraw,
+        token_network_address=None,
+        v=27,
     ):
         if token_network_address is None:
             token_network_address = token_network.address
@@ -734,16 +693,12 @@ def create_withdraw_signatures(token_network, get_private_key):
             )
             signatures.append(signature)
         return signatures
+
     return get
 
 
 def call_settle(
-        token_network,
-        channel_identifier,
-        A,
-        vals_A: ChannelValues,
-        B,
-        vals_B: ChannelValues,
+    token_network, channel_identifier, A, vals_A: ChannelValues, B, vals_B: ChannelValues
 ):
     A_total_transferred = vals_A.transferred + vals_A.locked_amounts.locked
     B_total_transferred = vals_B.transferred + vals_B.locked_amounts.locked
@@ -761,7 +716,7 @@ def call_settle(
                 participant2_transferred_amount=0,
                 participant2_locked_amount=0,
                 participant2_locksroot=vals_A.locksroot,
-            ).call_and_transact({'from': A})
+            ).call_and_transact({"from": A})
 
     contract_function = token_network.functions.settleChannel(
         channel_identifier,
@@ -775,6 +730,6 @@ def call_settle(
         vals_B.locksroot,
     )
     # call() raises TransactionFailed exception
-    contract_function.call({'from': A})
+    contract_function.call({"from": A})
     # transact() changes the chain state
-    contract_function.call_and_transact({'from': A})
+    contract_function.call_and_transact({"from": A})

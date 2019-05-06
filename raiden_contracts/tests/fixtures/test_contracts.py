@@ -5,13 +5,10 @@ from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIME
 
 @pytest.fixture()
 def token_network_test_storage(
-        deploy_tester_contract,
-        web3,
-        custom_token,
-        secret_registry_contract,
+    deploy_tester_contract, web3, custom_token, secret_registry_contract
 ):
     return deploy_tester_contract(
-        'TokenNetworkInternalStorageTest',
+        "TokenNetworkInternalStorageTest",
         [
             custom_token.address,
             secret_registry_contract.address,
@@ -24,13 +21,10 @@ def token_network_test_storage(
 
 @pytest.fixture()
 def token_network_test_signatures(
-        deploy_tester_contract,
-        web3,
-        custom_token,
-        secret_registry_contract,
+    deploy_tester_contract, web3, custom_token, secret_registry_contract
 ):
     return deploy_tester_contract(
-        'TokenNetworkSignatureTest',
+        "TokenNetworkSignatureTest",
         [
             custom_token.address,
             secret_registry_contract.address,
@@ -42,14 +36,9 @@ def token_network_test_signatures(
 
 
 @pytest.fixture()
-def token_network_test_utils(
-        deploy_tester_contract,
-        web3,
-        custom_token,
-        secret_registry_contract,
-):
+def token_network_test_utils(deploy_tester_contract, web3, custom_token, secret_registry_contract):
     return deploy_tester_contract(
-        'TokenNetworkUtilsTest',
+        "TokenNetworkUtilsTest",
         [
             custom_token.address,
             secret_registry_contract.address,
