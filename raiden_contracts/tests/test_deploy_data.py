@@ -142,10 +142,36 @@ def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit,):
 
 
 def test_verify_existent_deployment():
-    """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data. """
+    """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
+
+    but with a fake web3 that returns a wrong block number for deployment.
+    """
     web3_mock = Mock()
     web3_mock.version.network = 42
     web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
+    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.11.1")
+    # The Mock returns a wrong block number, so the comparison fails.
+    with pytest.raises(RuntimeError):
+        verifier.verify_deployed_contracts_in_filesystem()
+    with pytest.raises(RuntimeError):
+        verifier.verify_deployed_service_contracts_in_filesystem(
+            token_address="0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c",
+            user_deposit_whole_balance_limit=2 ** 256 - 1,
+        )
+
+
+def test_verify_existent_deployment_with_wrong_code():
+    """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
+
+    but with a fake web3 that does not return the correct code.
+    """
+    web3_mock = Mock()
+    web3_mock.version.network = 42
+    web3_mock.eth.getTransactionReceipt = lambda _: {
+        "blockNumber": 10711807,
+        "gasUsed": 555366,
+        "contractAddress": "0x8Ff327f7ed03cD6Bd5e611E9e404B47d8c9Db81E",
+    }
     verifier = ContractVerifier(web3=web3_mock, contracts_version="0.11.1")
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):

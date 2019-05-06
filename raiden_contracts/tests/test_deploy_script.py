@@ -608,7 +608,7 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
 
 
 def test_deploy_token_with_balance(get_accounts, get_private_key):
-    """ Call deploy token command with a private key with no balance """
+    """ Call deploy token command with a private key with some balance """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
