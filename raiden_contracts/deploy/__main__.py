@@ -212,7 +212,7 @@ def services(
     user_deposit_whole_limit: int,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
-    deployer = ctx.obj["deployer"]
+    deployer: ContractDeployer = ctx.obj["deployer"]
 
     deployed_contracts_info = deployer.deploy_service_contracts(
         token_address=token_address, user_deposit_whole_balance_limit=user_deposit_whole_limit
@@ -226,13 +226,13 @@ def services(
         deployer.store_and_verify_deployment_info_services(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
-            user_deposit_whole_limit=user_deposit_whole_limit,
+            user_deposit_whole_balance_limit=user_deposit_whole_limit,
         )
     else:
         deployer.verify_service_contracts_deployment_data(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
-            user_deposit_whole_limit=user_deposit_whole_limit,
+            user_deposit_whole_balance_limit=user_deposit_whole_limit,
         )
 
     print(json.dumps(deployed_contracts, indent=4))
