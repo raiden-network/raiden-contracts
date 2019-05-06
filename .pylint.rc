@@ -27,7 +27,7 @@ logging-modules=logging,structlog
 [MESSAGES CONTROL]
 
 disable=all
-enable=no-value-for-parameter,too-many-format-args,no-member,bad-except-order,redefined-builtin,bad-continuation,unused-variable,no-self-use,invalid-docstring-quote,invalid-string-quote,invalidt-triple-quote,import-self,gevent-joinall,useless-object-inheritance,unused-argument,unexpected-keyword-arg,expression-not-assigned,pointless-statement,unused-import,inconsistent-return-statements,reimported,too-many-instance-attributes,duplicate-code
+enable=too-many-format-args,bad-except-order,redefined-builtin,unused-variable,no-self-use,invalid-docstring-quote,import-self,gevent-joinall,useless-object-inheritance,unused-argument,expression-not-assigned,pointless-statement,unused-import,inconsistent-return-statements,reimported,too-many-instance-attributes,duplicate-code
 
 [REPORTS]
 
@@ -57,8 +57,3 @@ ignored-classes=
 
 # List of module names for which member attributes should not be checked
 ignored-modules=
-
-[QUOTES]
-string-quote=single-avoid-escape
-triple-quote=double
-docstring-quote=double
