@@ -1,3 +1,5 @@
+.PHONY: all compile_contracts verify_contracts install lint isort black format mypy clean release
+
 all: verify_contracts install
 
 compile_contracts:
@@ -25,6 +27,8 @@ isort:
 
 black:
 	black $(BLACK_PARAMS)
+
+format: isort black
 
 mypy:
 	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts
