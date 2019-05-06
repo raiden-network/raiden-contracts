@@ -12,13 +12,19 @@ install:
 
 ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contracts/
 
+BLACK_PARAMS = --line-length 99 raiden_contracts/
+
 lint:
+	black --check $(BLACK_PARAMS)
 	flake8 raiden_contracts/
 	pylint --rcfile .pylint.rc --load-plugins pylint_quotes raiden_contracts/
 	isort $(ISORT_PARAMS) --check-only
 
 isort:
 	isort $(ISORT_PARAMS)
+
+black:
+	black $(BLACK_PARAMS)
 
 mypy:
 	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts

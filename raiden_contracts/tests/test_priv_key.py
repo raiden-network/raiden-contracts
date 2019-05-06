@@ -9,7 +9,7 @@ from raiden_contracts.utils.private_key import check_permission_safety, get_priv
 
 def test_permission_safety_different_uid():
     """ check_permission_safety() should fail on a file with a different uid """
-    assert not check_permission_safety('/')
+    assert not check_permission_safety("/")
 
 
 def test_permission_safety_group_writable():
@@ -31,12 +31,12 @@ def test_permission_safety_executable():
 def test_get_private_key_empty_path():
     """ get_private_key() should raise AssertionFailure on an empty key path """
     with pytest.raises(AssertionError):
-        get_private_key('')
+        get_private_key("")
 
 
 def test_get_private_key_nonexistent():
     """ get_private_key() should return None on a nonexistent file path """
-    assert get_private_key('ggg') is None
+    assert get_private_key("ggg") is None
 
 
 def test_get_private_key_writable_keyfile():

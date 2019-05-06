@@ -4,9 +4,9 @@ from typing import Iterable
 
 from eth_utils import keccak
 
-EMPTY_MERKLE_ROOT = b'\x00' * 32
+EMPTY_MERKLE_ROOT = b"\x00" * 32
 
-MerkleTree = namedtuple('MerkleTree', ['layers'])
+MerkleTree = namedtuple("MerkleTree", ["layers"])
 
 
 def _hash_pair(first: bytes, second: bytes) -> bytes:
@@ -27,14 +27,14 @@ def compute_merkle_tree(items: Iterable[bytes]) -> MerkleTree:
     """ Calculates the merkle root for a given list of items """
 
     if not all(isinstance(l, bytes) and len(l) == 32 for l in items):
-        raise ValueError('Not all items are hashes')
+        raise ValueError("Not all items are hashes")
 
     leaves = sorted(items)
     if len(leaves) == 0:
         return MerkleTree(layers=[[EMPTY_MERKLE_ROOT]])
 
     if not len(leaves) == len(set(leaves)):
-        raise ValueError('The leaves items must not contain duplicate items')
+        raise ValueError("The leaves items must not contain duplicate items")
 
     tree = [leaves]
     layer = leaves
@@ -51,7 +51,7 @@ def compute_merkle_tree(items: Iterable[bytes]) -> MerkleTree:
 
 def get_merkle_root(merkle_tree: MerkleTree) -> bytes:
     """ Returns the root element of the merkle tree. """
-    assert merkle_tree.layers, 'the merkle tree layers are empty'
-    assert merkle_tree.layers[-1], 'the root layer is empty'
+    assert merkle_tree.layers, "the merkle tree layers are empty"
+    assert merkle_tree.layers[-1], "the root layer is empty"
 
     return merkle_tree.layers[-1][0]

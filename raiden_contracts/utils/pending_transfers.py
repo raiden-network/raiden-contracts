@@ -9,33 +9,36 @@ from web3 import Web3
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
 
-PendingTransfersTree = namedtuple('PendingTransfersTree', [
-    'transfers',
-    'unlockable',
-    'expired',
-    'packed_transfers',
-    'merkle_tree',
-    'merkle_root',
-    'locked_amount',
-])
+PendingTransfersTree = namedtuple(
+    "PendingTransfersTree",
+    [
+        "transfers",
+        "unlockable",
+        "expired",
+        "packed_transfers",
+        "merkle_tree",
+        "merkle_root",
+        "locked_amount",
+    ],
+)
 
 
 def get_pending_transfers_tree(
-        web3,
-        unlockable_amounts=None,
-        expired_amounts=None,
-        min_expiration_delta=None,
-        max_expiration_delta=None,
-        unlockable_amount=None,
-        expired_amount=None,
+    web3,
+    unlockable_amounts=None,
+    expired_amounts=None,
+    min_expiration_delta=None,
+    max_expiration_delta=None,
+    unlockable_amount=None,
+    expired_amount=None,
 ):
     if isinstance(unlockable_amount, int):
         unlockable_amounts = get_random_values_for_sum(unlockable_amount)
     if isinstance(expired_amount, int):
         expired_amounts = get_random_values_for_sum(expired_amount)
 
-    types = ['uint256', 'uint256', 'bytes32']
-    packed_transfers = b''
+    types = ["uint256", "uint256", "bytes32"]
+    packed_transfers = b""
     (unlockable_locks, expired_locks) = get_pending_transfers(
         web3=web3,
         unlockable_amounts=unlockable_amounts,
@@ -52,15 +55,11 @@ def get_pending_transfers_tree(
     ]
 
     if len(pending_transfers) > 0:
-        hashed_pending_transfers, pending_transfers = zip(*sorted(zip(
-            hashed_pending_transfers,
-            pending_transfers,
-        )))
-        pending_transfers = list(pending_transfers)
-        packed_transfers = get_packed_transfers(
-            pending_transfers=pending_transfers,
-            types=types,
+        hashed_pending_transfers, pending_transfers = zip(
+            *sorted(zip(hashed_pending_transfers, pending_transfers))
         )
+        pending_transfers = list(pending_transfers)
+        packed_transfers = get_packed_transfers(pending_transfers=pending_transfers, types=types)
 
     merkle_tree = compute_merkle_tree(hashed_pending_transfers)
     merkle_root = get_merkle_root(merkle_tree)
@@ -78,11 +77,7 @@ def get_pending_transfers_tree(
 
 
 def get_pending_transfers(
-        web3,
-        unlockable_amounts,
-        expired_amounts,
-        min_expiration_delta,
-        max_expiration_delta,
+    web3, unlockable_amounts, expired_amounts, min_expiration_delta, max_expiration_delta
 ):
     current_block = web3.eth.blockNumber
     if expired_amounts is None:
@@ -97,10 +92,7 @@ def get_pending_transfers(
         ]
         for amount in unlockable_amounts
     ]
-    expired_locks = [
-        [current_block, amount, *random_secret()]
-        for amount in expired_amounts
-    ]
+    expired_locks = [[current_block, amount, *random_secret()] for amount in expired_amounts]
     return (unlockable_locks, expired_locks)
 
 
@@ -115,7 +107,7 @@ def get_locked_amount(pending_transfers):
 
 def random_secret():
     secret = urandom(32)
-    return (Web3.soliditySha3(['bytes32'], [secret]), secret)  # pylint: disable=E1120
+    return (Web3.soliditySha3(["bytes32"], [secret]), secret)  # pylint: disable=E1120
 
 
 def get_random_values_for_sum(values_sum):

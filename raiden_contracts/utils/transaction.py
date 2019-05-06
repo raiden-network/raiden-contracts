@@ -10,14 +10,14 @@ def check_successful_tx(web3: Web3, txid: str, timeout=180) -> Tuple[dict, dict]
     """
     receipt = wait_for_transaction_receipt(web3=web3, txid=txid, timeout=timeout)
     txinfo = web3.eth.getTransaction(txid)
-    if 'status' not in receipt:
+    if "status" not in receipt:
         raise KeyError(
             'A transaction receipt does not contain the "status" field. '
-            'Does your chain have Byzantium rules enabled?',
+            "Does your chain have Byzantium rules enabled?"
         )
-    if receipt['status'] == 0:
-        raise ValueError(f'Status 0 indicates failure')
-    if txinfo['gas'] == receipt['gasUsed']:
+    if receipt["status"] == 0:
+        raise ValueError(f"Status 0 indicates failure")
+    if txinfo["gas"] == receipt["gasUsed"]:
         raise ValueError(f'Gas is completely used ({txinfo["gas"]}). Failure?')
     return (receipt, txinfo)
 
@@ -25,14 +25,14 @@ def check_successful_tx(web3: Web3, txid: str, timeout=180) -> Tuple[dict, dict]
 def wait_for_transaction_receipt(web3, txid, timeout=180):
     receipt = None
     with Timeout(timeout) as time:
-            while not receipt or not receipt['blockNumber']:  # pylint: disable=E1136
-                try:
-                    receipt = web3.eth.getTransactionReceipt(txid)
-                except ValueError as ex:
-                    if str(ex).find('EmptyResponse') != -1:
-                        pass  # Empty response from a Parity light client
-                    else:
-                        raise ex
-                time.sleep(5)
+        while not receipt or not receipt["blockNumber"]:  # pylint: disable=E1136
+            try:
+                receipt = web3.eth.getTransactionReceipt(txid)
+            except ValueError as ex:
+                if str(ex).find("EmptyResponse") != -1:
+                    pass  # Empty response from a Parity light client
+                else:
+                    raise ex
+            time.sleep(5)
 
     return receipt

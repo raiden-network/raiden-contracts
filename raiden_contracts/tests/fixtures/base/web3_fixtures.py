@@ -16,27 +16,27 @@ from raiden_contracts.tests.utils.constants import (
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def ethereum_tester(patch_genesis_gas_limit):  # pylint: disable=W0613
     """Returns an instance of an Ethereum tester"""
     return EthereumTester(PyEVMBackend())
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def patch_genesis_gas_limit():
     """Increases the block gas limit, to make the TokenNetworkRegistry contract deployable"""
 
     tmp_limit = 6 * 10 ** 6
     import eth_tester.backends.pyevm.main as pyevm_main
+
     pyevm_main.GENESIS_GAS_LIMIT = tmp_limit
     import eth.vm.forks.frontier.headers as headers
+
     headers.GENESIS_GAS_LIMIT = tmp_limit
 
 
-@pytest.fixture(scope='session')
-def web3(
-        ethereum_tester,
-):
+@pytest.fixture(scope="session")
+def web3(ethereum_tester,):
     """Returns an initialized Web3 instance"""
     provider = EthereumTesterProvider(ethereum_tester)
     web3 = Web3(provider)
@@ -47,12 +47,14 @@ def web3(
     ethereum_tester.add_account(FAUCET_PRIVATE_KEY)
 
     # make faucet rich
-    ethereum_tester.send_transaction({
-        'from': ethereum_tester.get_accounts()[0],
-        'to': FAUCET_ADDRESS,
-        'gas': 21000,
-        'value': FAUCET_ALLOWANCE,
-    })
+    ethereum_tester.send_transaction(
+        {
+            "from": ethereum_tester.get_accounts()[0],
+            "to": FAUCET_ADDRESS,
+            "gas": 21000,
+            "value": FAUCET_ALLOWANCE,
+        }
+    )
 
     yield web3
 
@@ -73,8 +75,7 @@ def auto_revert_chain(web3: Web3):
 
 
 def _call_and_transact(
-        contract_function: ContractFunction,
-        transaction_params: Optional[Dict] = None,
+    contract_function: ContractFunction, transaction_params: Optional[Dict] = None
 ) -> str:
     """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
     # First 'call' might raise an exception
@@ -82,6 +83,6 @@ def _call_and_transact(
     return contract_function.transact(transaction_params)
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def call_and_transact():
     ContractFunction.call_and_transact = _call_and_transact

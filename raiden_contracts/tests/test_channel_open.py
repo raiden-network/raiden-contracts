@@ -40,7 +40,7 @@ def test_open_channel_call(token_network, get_accounts):
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel('', B, settle_timeout)
+        token_network.functions.openChannel("", B, settle_timeout)
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
@@ -52,7 +52,7 @@ def test_open_channel_call(token_network, get_accounts):
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, '', settle_timeout)
+        token_network.functions.openChannel(A, "", settle_timeout)
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
@@ -121,10 +121,7 @@ def test_counter(token_network, get_accounts, create_channel):
     assert token_network.functions.participants_hash_to_channel_identifier(AB_hash).call() == 0
     assert token_network.functions.participants_hash_to_channel_identifier(BC_hash).call() == 0
     assert token_network.functions.participants_hash_to_channel_identifier(CD_hash).call() == 0
-    assert token_network.functions.getChannelIdentifier(
-        A,
-        B,
-    ).call() == 0
+    assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     # Create channel between A and B, counter increases
     create_channel(A, B)
@@ -133,10 +130,7 @@ def test_counter(token_network, get_accounts, create_channel):
     assert token_network.functions.getChannelIdentifier(A, B).call() == 1
 
     # We still do not have a channel between B and C
-    assert token_network.functions.getChannelIdentifier(
-        B,
-        C,
-    ).call() == 0
+    assert token_network.functions.getChannelIdentifier(B, C).call() == 0
 
     # Create channel between B and C, counter increases
     create_channel(B, C)
@@ -145,10 +139,7 @@ def test_counter(token_network, get_accounts, create_channel):
     assert token_network.functions.getChannelIdentifier(B, C).call() == 2
 
     # We still do not have a channel between C and D
-    assert token_network.functions.getChannelIdentifier(
-        C,
-        D,
-    ).call() == 0
+    assert token_network.functions.getChannelIdentifier(C, D).call() == 0
 
     # Create channel between C and D, counter increases
     create_channel(C, D)
@@ -164,10 +155,9 @@ def test_state_channel_identifier_invalid(token_network, get_accounts, create_ch
 
     pairs = permutations([A, B, C], 2)
     for pair in pairs:
-        (
-            settle_block_number,
-            state,
-        ) = token_network.functions.getChannelInfo(channel_id, *pair).call()
+        (settle_block_number, state) = token_network.functions.getChannelInfo(
+            channel_id, *pair
+        ).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
 
@@ -181,8 +171,7 @@ def test_state_channel_identifier_invalid(token_network, get_accounts, create_ch
 
     for pair in pairs:
         (settle_block_number, state) = token_network.functions.getChannelInfo(
-            current_counter + 1,
-            *pair,
+            current_counter + 1, *pair
         ).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
@@ -196,24 +185,22 @@ def test_open_channel_state(token_network, get_accounts):
     channel_counter = token_network.functions.channel_counter().call()
     participants_hash = token_network.functions.getParticipantsHash(A, B).call()
 
-    assert token_network.functions.participants_hash_to_channel_identifier(
-        participants_hash,
-    ).call() == 0
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(participants_hash).call()
+        == 0
+    )
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
-    assert token_network.functions.participants_hash_to_channel_identifier(
-        participants_hash,
-    ).call() == channel_counter + 1
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(participants_hash).call()
+        == channel_counter + 1
+    )
 
-    channel_info_response = token_network.functions.getChannelInfo(
-        channel_identifier,
-        A,
-        B,
-    ).call()
+    channel_info_response = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     settle_block_number = channel_info_response[ChannelInfoIndex.SETTLE_BLOCK]
     state = channel_info_response[ChannelInfoIndex.STATE]
     assert settle_block_number == settle_timeout
@@ -253,11 +240,7 @@ def test_open_channel_state(token_network, get_accounts):
     assert B_locked_amount == 0
 
 
-def test_reopen_channel(
-        web3,
-        token_network,
-        get_accounts,
-):
+def test_reopen_channel(web3, token_network, get_accounts):
     """ Open a second channel after settling one """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -265,7 +248,7 @@ def test_reopen_channel(
     token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
-        get_participants_hash(A, B),
+        get_participants_hash(A, B)
     ).call()
 
     # Opening twice fails
@@ -274,13 +257,8 @@ def test_reopen_channel(
 
     # Close channel
     token_network.functions.closeChannel(
-        channel_identifier1,
-        B,
-        EMPTY_LOCKSROOT,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-    ).call_and_transact({'from': A})
+        channel_identifier1, B, EMPTY_LOCKSROOT, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+    ).call_and_transact({"from": A})
 
     # Reopen Channel before settlement fails
     with pytest.raises(TransactionFailed):
@@ -291,29 +269,22 @@ def test_reopen_channel(
 
     # Settle channel
     token_network.functions.settleChannel(
-        channel_identifier1,
-        A,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-        B,
-        0,
-        0,
-        EMPTY_LOCKSROOT,
-    ).call_and_transact({'from': A})
+        channel_identifier1, A, 0, 0, EMPTY_LOCKSROOT, B, 0, 0, EMPTY_LOCKSROOT
+    ).call_and_transact({"from": A})
 
     # Reopening the channel should work iff channel is settled
     token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
     channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
     assert channel_identifier2 != channel_identifier1
-    assert token_network.functions.participants_hash_to_channel_identifier(
-        get_participants_hash(A, B),
-    ).call() == channel_counter1 + 1
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(
+            get_participants_hash(A, B)
+        ).call()
+        == channel_counter1 + 1
+    )
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier2,
-        A,
-        B,
+        channel_identifier2, A, B
     ).call()
     assert settle_block_number == settle_timeout
     assert state == ChannelState.OPENED
@@ -359,9 +330,7 @@ def test_open_channel_event(get_accounts, token_network, event_handler):
     (A, B) = get_accounts(2)
 
     txn_hash = token_network.functions.openChannel(
-        A,
-        B,
-        TEST_SETTLE_TIMEOUT_MIN,
+        A, B, TEST_SETTLE_TIMEOUT_MIN
     ).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 

@@ -23,22 +23,17 @@ from raiden_contracts.utils import get_pending_transfers_tree
 
 @pytest.fixture()
 def test_settlement_outcome(
-        web3,
-        secret_registry_contract,
-        custom_token,
-        token_network,
-        create_channel_and_deposit,
-        withdraw_channel,
-        close_and_update_channel,
-        settle_state_tests,
-        reveal_secrets,
+    web3,
+    secret_registry_contract,
+    custom_token,
+    token_network,
+    create_channel_and_deposit,
+    withdraw_channel,
+    close_and_update_channel,
+    settle_state_tests,
+    reveal_secrets,
 ):
-    def f(
-            participants,
-            channel_values,
-            expected_final_balance_A0,
-            expected_final_balance_B0,
-    ):
+    def f(participants, channel_values, expected_final_balance_A0, expected_final_balance_B0):
         (A, B) = participants
         (vals_A, vals_B, balance_proof_type) = channel_values
         assert were_balance_proofs_valid(vals_A, vals_B)
@@ -72,13 +67,7 @@ def test_settlement_outcome(
         # Reveal B's secrets
         reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
-        close_and_update_channel(
-            channel_identifier,
-            A,
-            vals_A,
-            B,
-            vals_B,
-        )
+        close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
         web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
 
@@ -111,94 +100,68 @@ def test_settlement_outcome(
         settlement_onchain_equivalent = get_onchain_settlement_amounts(vals_A, vals_B)
 
         assert (
-            settlement_equivalent.participant1_balance ==
-            settlement_onchain_equivalent.participant1_balance
+            settlement_equivalent.participant1_balance
+            == settlement_onchain_equivalent.participant1_balance
         )
         assert (
-            settlement_equivalent.participant2_balance ==
-            settlement_onchain_equivalent.participant2_balance
+            settlement_equivalent.participant2_balance
+            == settlement_onchain_equivalent.participant2_balance
         )
         assert (
-            settlement_equivalent.participant1_locked ==
-            settlement_onchain_equivalent.participant1_locked
+            settlement_equivalent.participant1_locked
+            == settlement_onchain_equivalent.participant1_locked
         )
         assert (
-            settlement_equivalent.participant2_locked ==
-            settlement_onchain_equivalent.participant2_locked
+            settlement_equivalent.participant2_locked
+            == settlement_onchain_equivalent.participant2_locked
         )
 
-        assert get_unlocked_amount(
-            secret_registry_contract,
-            pending_transfers_tree_B.packed_transfers,
-        ) == vals_B.locked_amounts.claimable_locked
+        assert (
+            get_unlocked_amount(
+                secret_registry_contract, pending_transfers_tree_B.packed_transfers
+            )
+            == vals_B.locked_amounts.claimable_locked
+        )
 
         # A unlocks B's pending transfers
-        info_B = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            B,
-            A,
-        ).call()
-        assert settlement_equivalent.participant2_locked == info_B[
-            ParticipantInfoIndex.LOCKED_AMOUNT
-        ]
+        info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+        assert (
+            settlement_equivalent.participant2_locked == info_B[ParticipantInfoIndex.LOCKED_AMOUNT]
+        )
 
         if info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == 0:
             with pytest.raises(TransactionFailed):
                 token_network.functions.unlock(
-                    channel_identifier,
-                    A,
-                    B,
-                    pending_transfers_tree_B.packed_transfers,
+                    channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
                 ).call()
         else:
             token_network.functions.unlock(
-                channel_identifier,
-                A,
-                B,
-                pending_transfers_tree_B.packed_transfers,
+                channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
             ).call_and_transact()
 
         # The locked amount should have been removed from contract storage
-        info_B = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            B,
-            A,
-        ).call()
+        info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == 0
         assert info_B[ParticipantInfoIndex.LOCKSROOT] == EMPTY_LOCKSROOT
 
         # B unlocks A's pending transfers
-        info_A = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            A,
-            B,
-        ).call()
-        assert settlement_equivalent.participant1_locked == info_A[
-            ParticipantInfoIndex.LOCKED_AMOUNT
-        ]
+        info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+        assert (
+            settlement_equivalent.participant1_locked == info_A[ParticipantInfoIndex.LOCKED_AMOUNT]
+        )
 
         if info_A[ParticipantInfoIndex.LOCKED_AMOUNT] == 0:
             with pytest.raises(TransactionFailed):
                 token_network.functions.unlock(
-                    channel_identifier,
-                    B,
-                    A,
-                    pending_transfers_tree_A.packed_transfers,
+                    channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
                 ).call()
         else:
             token_network.functions.unlock(
-                channel_identifier,
-                B,
-                A,
-                pending_transfers_tree_A.packed_transfers,
+                channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
             ).call_and_transact()
 
         # The locked amount should have been removed from contract storage
-        info_A = token_network.functions.getChannelParticipantInfo(
-            channel_identifier,
-            A,
-            B,
-        ).call()
+        info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert info_A[ParticipantInfoIndex.LOCKED_AMOUNT] == 0
         assert info_A[ParticipantInfoIndex.LOCKSROOT] == EMPTY_LOCKSROOT
 
@@ -207,7 +170,7 @@ def test_settlement_outcome(
         balance_B = custom_token.functions.balanceOf(B).call()
 
         # We MUST ensure balance correctness for valid last balance proofs
-        if balance_proof_type is 'valid':
+        if balance_proof_type is "valid":
             # Calculate how much A and B should receive after the channel is settled and
             # unlock is called by both.
             (
@@ -228,14 +191,14 @@ def test_settlement_outcome(
         # Tests for when B has submitted an old balance proof for A
         # A must not receive less tokens than expected with a valid last balance proof
         # B must not receive more tokens than expected with a valid last balance proof
-        if balance_proof_type is 'old_last':
+        if balance_proof_type is "old_last":
             assert balance_A >= expected_balance_A
             assert balance_B <= expected_balance_B
 
         # Tests for when A has submitted an old balance proof for B
         # A must not receive more tokens than expected with a valid last balance proof
         # B must not receive less tokens than expected with a valid last balance proof
-        if balance_proof_type is 'last_old':
+        if balance_proof_type is "last_old":
             assert balance_A <= expected_balance_A
             assert balance_B >= expected_balance_B
 
@@ -244,32 +207,30 @@ def test_settlement_outcome(
         # the contract after the entire channel cycle is finalized.
         final_contract_balance = custom_token.functions.balanceOf(token_network.address).call()
         assert final_contract_balance == pre_balance_contract - get_total_available_deposit(
-            vals_A,
-            vals_B,
+            vals_A, vals_B
         )
         assert custom_token.functions.balanceOf(token_network.address).call() == (
-            pre_balance_contract -
-            (expected_final_balance_A0 + expected_final_balance_B0)
+            pre_balance_contract - (expected_final_balance_A0 + expected_final_balance_B0)
         )
 
     return f
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('channel_test_values', channel_settle_test_values)
-@pytest.mark.parametrize('tested_range', ('one_old', 'both_old_1', 'both_old_2'))
+@pytest.mark.parametrize("channel_test_values", channel_settle_test_values)
+@pytest.mark.parametrize("tested_range", ("one_old", "both_old_1", "both_old_2"))
 # This test is split in three so it does not time out on travis
 def test_channel_settle_old_balance_proof_values(
-        get_accounts,
-        assign_tokens,
-        channel_test_values,
-        create_channel_and_deposit,
-        test_settlement_outcome,
-        tested_range,
+    get_accounts,
+    assign_tokens,
+    channel_test_values,
+    create_channel_and_deposit,
+    test_settlement_outcome,
+    tested_range,
 ):
     """ Test the settlement implementation when both/one of the balance proofs are outdated """
     (A, B, C, D) = get_accounts(4)
-    (vals_A0, vals_B0) = channel_test_values['valid_last']
+    (vals_A0, vals_B0) = channel_test_values["valid_last"]
     assert are_balance_proofs_valid(vals_A0, vals_B0)
     assert not is_balance_proof_old(vals_A0, vals_B0)
 
@@ -291,40 +252,40 @@ def test_channel_settle_old_balance_proof_values(
         expected_final_balance_B0,
     ) = get_expected_after_settlement_unlock_amounts(vals_A0, vals_B0)
 
-    if tested_range is 'one_old':
+    if tested_range is "one_old":
 
         test_settlement_outcome(
             (A, B),
-            (vals_A0, vals_B0, 'valid'),
+            (vals_A0, vals_B0, "valid"),
             expected_final_balance_A0,
             expected_final_balance_B0,
         )
 
-        if 'old_last' in channel_test_values:
-            for vals_A in channel_test_values['old_last']:
+        if "old_last" in channel_test_values:
+            for vals_A in channel_test_values["old_last"]:
                 vals_B = vals_B0
                 test_settlement_outcome(
                     (A, B),
-                    (vals_A, vals_B, 'old_last'),
+                    (vals_A, vals_B, "old_last"),
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
 
-        if 'last_old' in channel_test_values:
-            for vals_B in channel_test_values['last_old']:
+        if "last_old" in channel_test_values:
+            for vals_B in channel_test_values["last_old"]:
                 vals_A = vals_A0
                 test_settlement_outcome(
                     (A, B),
-                    (vals_A, vals_B, 'last_old'),
+                    (vals_A, vals_B, "last_old"),
                     expected_final_balance_A0,
                     expected_final_balance_B0,
                 )
 
-    elif tested_range is 'both_old_1':
+    elif tested_range is "both_old_1":
 
-        if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
-            for vals_A in channel_test_values['old_last'][:5]:
-                for vals_B in channel_test_values['last_old'][:5]:
+        if "old_last" in channel_test_values and "last_old" in channel_test_values:
+            for vals_A in channel_test_values["old_last"][:5]:
+                for vals_B in channel_test_values["last_old"][:5]:
                     # We only need to test for cases  where the we have the same argument ordering
                     # for settleChannel, keeping the order of balance calculations
                     B_total = vals_B.transferred + vals_B.locked_amounts.locked
@@ -332,16 +293,16 @@ def test_channel_settle_old_balance_proof_values(
                     if B_total >= A_total:
                         test_settlement_outcome(
                             (A, B),
-                            (vals_A, vals_B, 'invalid'),
+                            (vals_A, vals_B, "invalid"),
                             expected_final_balance_A0,
                             expected_final_balance_B0,
                         )
 
     else:
 
-        if 'old_last' in channel_test_values and 'last_old' in channel_test_values:
-            for vals_A in channel_test_values['old_last'][5:]:
-                for vals_B in channel_test_values['last_old'][5:]:
+        if "old_last" in channel_test_values and "last_old" in channel_test_values:
+            for vals_A in channel_test_values["old_last"][5:]:
+                for vals_B in channel_test_values["last_old"][5:]:
                     # We only need to test for cases  where the we have the same argument ordering
                     # for settleChannel, keeping the order of balance calculations
                     B_total = vals_B.transferred + vals_B.locked_amounts.locked
@@ -349,25 +310,25 @@ def test_channel_settle_old_balance_proof_values(
                     if B_total >= A_total:
                         test_settlement_outcome(
                             (A, B),
-                            (vals_A, vals_B, 'invalid'),
+                            (vals_A, vals_B, "invalid"),
                             expected_final_balance_A0,
                             expected_final_balance_B0,
                         )
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('channel_test_values', channel_settle_invalid_test_values)
+@pytest.mark.parametrize("channel_test_values", channel_settle_invalid_test_values)
 def test_channel_settle_invalid_balance_proof_values(
-        web3,
-        get_accounts,
-        custom_token,
-        token_network,
-        create_channel_and_deposit,
-        withdraw_channel,
-        close_and_update_channel,
-        settle_state_tests,
-        reveal_secrets,
-        channel_test_values,
+    web3,
+    get_accounts,
+    custom_token,
+    token_network,
+    create_channel_and_deposit,
+    withdraw_channel,
+    close_and_update_channel,
+    settle_state_tests,
+    reveal_secrets,
+    channel_test_values,
 ):
     """ Check the settlement results with invalid balance proofs """
     (A, B, C, D) = get_accounts(4)
@@ -410,13 +371,7 @@ def test_channel_settle_invalid_balance_proof_values(
     # Reveal B's secrets
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
-    close_and_update_channel(
-        channel_identifier,
-        A,
-        vals_A,
-        B,
-        vals_B,
-    )
+    close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
 

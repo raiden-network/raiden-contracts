@@ -42,7 +42,7 @@ from raiden_contracts.utils.type_aliases import T_Address
 GAS_LIMIT = 5860000
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def deployer(web3):
     return ContractDeployer(
         web3=web3,
@@ -54,7 +54,7 @@ def deployer(web3):
     )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def deployer_0_4_0(web3):
     return ContractDeployer(
         web3=web3,
@@ -62,37 +62,33 @@ def deployer_0_4_0(web3):
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version='0.4.0',
+        contracts_version="0.4.0",
     )
 
 
 @pytest.mark.slow
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def deployed_raiden_info(deployer):
-    return deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=1,
-    )
+    return deployer.deploy_raiden_contracts(max_num_of_token_networks=1)
 
 
 @pytest.mark.slow
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def deployed_raiden_info_0_4_0(deployer_0_4_0):
-    return deployer_0_4_0.deploy_raiden_contracts(
-        max_num_of_token_networks=None,
-    )
+    return deployer_0_4_0.deploy_raiden_contracts(max_num_of_token_networks=None)
 
 
 TOKEN_SUPPLY = 10000000
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def token_address(deployer):
-    token_type = 'CustomToken'
+    token_type = "CustomToken"
     deployed_token = deployer.deploy_token_contract(
         token_supply=TOKEN_SUPPLY,
         token_decimals=18,
-        token_name='TestToken',
-        token_symbol='TTT',
+        token_name="TestToken",
+        token_symbol="TTT",
         token_type=token_type,
     )
     return deployed_token[token_type]
@@ -102,32 +98,30 @@ DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
 
 
 @pytest.mark.slow
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def deployed_service_info(deployer, token_address):
     return deployer.deploy_service_contracts(
-        token_address=token_address,
-        user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        token_address=token_address, user_deposit_whole_balance_limit=DEPOSIT_LIMIT
     )
 
 
-@pytest.mark.parametrize('version,expectation', [
-    ('0.3._', False),
-    ('0.4.0', False),
-    ('0.8.0', False),
-    ('0.9.0', True),
-    ('0.10.0', True),
-    (None, True),
-])
+@pytest.mark.parametrize(
+    "version,expectation",
+    [
+        ("0.3._", False),
+        ("0.4.0", False),
+        ("0.8.0", False),
+        ("0.9.0", True),
+        ("0.10.0", True),
+        (None, True),
+    ],
+)
 def test_contract_version_with_max_token_networks(version: Optional[str], expectation: bool):
     assert contract_version_with_max_token_networks(version) == expectation
 
 
 @pytest.mark.slow
-def test_deploy_script_raiden(
-        web3,
-        deployer,
-        deployed_raiden_info,
-):
+def test_deploy_script_raiden(web3, deployer, deployed_raiden_info):
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
     This checks if deploy_raiden_contracts() works correctly in the happy case,
@@ -138,85 +132,61 @@ def test_deploy_script_raiden(
     """
     deployed_contracts_info = deployed_raiden_info
 
-    deployer.verify_deployment_data(
-        deployment_data=deployed_contracts_info,
-    )
+    deployer.verify_deployment_data(deployment_data=deployed_contracts_info)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts_version'] = '0.0.0'
+    deployed_contracts_info_fail["contracts_version"] = "0.0.0"
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployment_data=deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['chain_id'] = 0
+    deployed_contracts_info_fail["chain_id"] = 0
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployment_data=deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][
-        CONTRACT_ENDPOINT_REGISTRY
-    ]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY][
+        "address"
+    ] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["address"] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ] = EMPTY_ADDRESS
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_ENDPOINT_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY]["block_number"] = 0
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["block_number"] = 0
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]["block_number"] = 0
     with pytest.raises(AssertionError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
-        web3=web3,
-        private_key=get_random_privkey(),
-        gas_limit=GAS_LIMIT,
-        gas_price=1,
-        wait=10,
+        web3=web3, private_key=get_random_privkey(), gas_limit=GAS_LIMIT, gas_price=1, wait=10
     )
     with pytest.raises(ValidationError):
         deployer.deploy_raiden_contracts(1)
 
 
-def test_deploy_script_token(
-        web3,
-):
+def test_deploy_script_token(web3,):
     """ Run test token deployment function used in the deployment script
 
     This checks if deploy_token_contract() works correctly in the happy case,
@@ -224,21 +194,17 @@ def test_deploy_script_token(
     This does not check however that the cli command works correctly.
     """
     # normal deployment
-    token_type = 'CustomToken'
+    token_type = "CustomToken"
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
+        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
     )
 
     deployed_token = deployer.deploy_token_contract(
         token_supply=10000000,
         token_decimals=18,
-        token_name='TestToken',
-        token_symbol='TTT',
+        token_name="TestToken",
+        token_symbol="TTT",
         token_type=token_type,
     )
 
@@ -247,29 +213,25 @@ def test_deploy_script_token(
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
-        web3=web3,
-        private_key=get_random_privkey(),
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
+        web3=web3, private_key=get_random_privkey(), gas_limit=gas_limit, gas_price=1, wait=10
     )
     with pytest.raises(ValidationError):
         deployer.deploy_token_contract(
             token_supply=10000000,
             token_decimals=18,
-            token_name='TestToken',
-            token_symbol='TTT',
-            token_type='CustomToken',
+            token_name="TestToken",
+            token_symbol="TTT",
+            token_type="CustomToken",
         )
 
 
 @pytest.mark.slow
 def test_deploy_script_register(
-        web3,
-        channel_participant_deposit_limit,
-        token_network_deposit_limit,
-        deployed_raiden_info,
-        token_address,
+    web3,
+    channel_participant_deposit_limit,
+    token_network_deposit_limit,
+    deployed_raiden_info,
+    token_address,
 ):
     """ Run token register function used in the deployment script
 
@@ -280,20 +242,16 @@ def test_deploy_script_register(
     # normal deployment
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
+        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
     )
 
     deployed_contracts_raiden = deployed_raiden_info
     token_registry_abi = deployer.contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-    )
-    token_registry_address = deployed_contracts_raiden['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address']
+    )
+    token_registry_address = deployed_contracts_raiden["contracts"][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]["address"]
     token_network_address = deployer.register_token_network(
         token_registry_abi=token_registry_abi,
         token_registry_address=token_registry_address,
@@ -307,9 +265,7 @@ def test_deploy_script_register(
 
 @pytest.mark.slow
 def test_deploy_script_register_without_limit(
-        token_address,
-        deployer_0_4_0,
-        deployed_raiden_info_0_4_0,
+    token_address, deployer_0_4_0, deployed_raiden_info_0_4_0
 ):
     """ Run token register function used in the deployment script
 
@@ -318,11 +274,11 @@ def test_deploy_script_register_without_limit(
     This does not check however that the cli command works correctly.
     """
     token_registry_abi = deployer_0_4_0.contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-    )
-    token_registry_address = deployed_raiden_info_0_4_0['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address']
+    )
+    token_registry_address = deployed_raiden_info_0_4_0["contracts"][
+        CONTRACT_TOKEN_NETWORK_REGISTRY
+    ]["address"]
     token_network_address = deployer_0_4_0.register_token_network(
         token_registry_abi=token_registry_abi,
         token_registry_address=token_registry_address,
@@ -335,22 +291,22 @@ def test_deploy_script_register_without_limit(
 
 
 def test_deploy_script_register_missing_limits(
-        token_network_deposit_limit,
-        channel_participant_deposit_limit,
-        deployed_raiden_info,
-        token_address,
-        deployer,
+    token_network_deposit_limit,
+    channel_participant_deposit_limit,
+    deployed_raiden_info,
+    token_address,
+    deployer,
 ):
     """ Run token register function used in the deployment script
 
     without the expected channel participant deposit limit.
     """
     token_registry_abi = deployer.contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-    )
-    token_registry_address = deployed_raiden_info['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address']
+    )
+    token_registry_address = deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ]
     with pytest.raises(ValueError):
         deployer.register_token_network(
             token_registry_abi=token_registry_abi,
@@ -378,11 +334,11 @@ def test_deploy_script_register_missing_limits(
 
 
 def test_deploy_script_register_unexpected_limits(
-        web3,
-        token_network_deposit_limit,
-        channel_participant_deposit_limit,
-        token_address,
-        deployed_raiden_info,
+    web3,
+    token_network_deposit_limit,
+    channel_participant_deposit_limit,
+    token_address,
+    deployed_raiden_info,
 ):
     """ Run token register function used in the deployment script
 
@@ -394,15 +350,15 @@ def test_deploy_script_register_unexpected_limits(
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version='0.4.0',
+        contracts_version="0.4.0",
     )
 
     token_registry_abi = deployer.contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY,
-    )
-    token_registry_address = deployed_raiden_info['contracts'][
         CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address']
+    )
+    token_registry_address = deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ]
     with pytest.raises(ValueError):
         deployer.register_token_network(
             token_registry_abi=token_registry_abi,
@@ -430,22 +386,14 @@ def test_deploy_script_register_unexpected_limits(
 
 
 @pytest.mark.slow
-def test_deploy_script_service(
-        web3,
-        deployed_service_info,
-        token_address,
-):
+def test_deploy_script_service(web3, deployed_service_info, token_address):
     """ Run deploy_service_contracts() used in the deployment script
 
     This checks if deploy_service_contracts() works correctly in the happy case.
     """
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=gas_limit,
-        gas_price=1,
-        wait=10,
+        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
     )
 
     token_supply = 10000000
@@ -460,7 +408,7 @@ def test_deploy_script_service(
     )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
-    deployed_info_fail['contracts_version'] = '0.0.0'
+    deployed_info_fail["contracts_version"] = "0.0.0"
     with pytest.raises(RuntimeError):
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
@@ -469,7 +417,7 @@ def test_deploy_script_service(
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
-    deployed_info_fail['chain_id'] = deployed_service_contracts['chain_id'] + 1
+    deployed_info_fail["chain_id"] = deployed_service_contracts["chain_id"] + 1
     with pytest.raises(RuntimeError):
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
@@ -479,9 +427,7 @@ def test_deploy_script_service(
 
     def test_missing_deployment(contract_name):
         deployed_info_fail = deepcopy(deployed_service_contracts)
-        deployed_info_fail['contracts'][
-            contract_name
-        ]['address'] = EMPTY_ADDRESS
+        deployed_info_fail["contracts"][contract_name]["address"] = EMPTY_ADDRESS
         with pytest.raises(AssertionError):
             deployer.verify_service_contracts_deployment_data(
                 token_address=token_address,
@@ -490,10 +436,10 @@ def test_deploy_script_service(
             )
 
     for contract_name in [
-            CONTRACT_SERVICE_REGISTRY,
-            CONTRACT_MONITORING_SERVICE,
-            CONTRACT_ONE_TO_N,
-            CONTRACT_USER_DEPOSIT,
+        CONTRACT_SERVICE_REGISTRY,
+        CONTRACT_MONITORING_SERVICE,
+        CONTRACT_ONE_TO_N,
+        CONTRACT_USER_DEPOSIT,
     ]:
         test_missing_deployment(contract_name)
 
@@ -505,13 +451,13 @@ def test_validate_address_on_none():
 
 def test_validate_address_empty_string():
     """ validate_address(x, y, '') should return None """
-    assert validate_address(None, None, '') is None
+    assert validate_address(None, None, "") is None
 
 
 def test_validate_address_not_an_address():
     """ validate_address(x, y, 'not an address') should raise click.BadParameter """
     with pytest.raises(BadParameter):
-        validate_address(None, None, 'not an address')
+        validate_address(None, None, "not an address")
 
 
 def test_validate_address_happy_path():
@@ -522,10 +468,9 @@ def test_validate_address_happy_path():
 
 @pytest.fixture
 def fs_reload_deployer():
-    patcher = Patcher(modules_to_reload=[
-        raiden_contracts.contract_manager,
-        raiden_contracts.deploy.__main__,
-    ])
+    patcher = Patcher(
+        modules_to_reload=[raiden_contracts.contract_manager, raiden_contracts.deploy.__main__]
+    )
     patcher.setUp()
     yield patcher.fs
     patcher.tearDown()
@@ -534,29 +479,22 @@ def fs_reload_deployer():
 @pytest.mark.slow
 def test_store_and_verify_raiden(fs_reload_deployer, deployed_raiden_info, deployer):
     """ Store some raiden contract deployment information and verify them """
-    fs_reload_deployer.add_real_directory(contracts_precompiled_path(
-        version=None,
-    ).parent)
+    fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
     deployed_contracts_info = deployed_raiden_info
     deployer.store_and_verify_deployment_info_raiden(
-        deployed_contracts_info=deployed_contracts_info,
+        deployed_contracts_info=deployed_contracts_info
     )
     deployer.store_and_verify_deployment_info_raiden(
-        deployed_contracts_info=deployed_contracts_info,
+        deployed_contracts_info=deployed_contracts_info
     )
 
 
 @pytest.mark.slow
 def test_store_and_verify_services(
-        fs_reload_deployer,
-        deployer,
-        deployed_service_info,
-        token_address,
+    fs_reload_deployer, deployer, deployed_service_info, token_address
 ):
     """ Store some service contract deployment information and verify them """
-    fs_reload_deployer.add_real_directory(contracts_precompiled_path(
-        version=None,
-    ).parent)
+    fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
     deployed_contracts_info = deployed_service_info
     deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
@@ -579,64 +517,57 @@ def test_red_eyes_deployer(web3):
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version='0.4.0',
+        contracts_version="0.4.0",
     )
-    deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=None,
-    )
+    deployer.deploy_raiden_contracts(max_num_of_token_networks=None)
 
 
 def test_error_removed_option_raises():
     with pytest.raises(NoSuchOption):
         mock = MagicMock()
-        error_removed_option('msg')(None, mock, '0xaabbcc')
+        error_removed_option("msg")(None, mock, "0xaabbcc")
 
 
 def test_contracts_version_expects_deposit_limits():
-    assert not contracts_version_expects_deposit_limits('0.3._')
-    assert not contracts_version_expects_deposit_limits('0.4.0')
-    assert contracts_version_expects_deposit_limits('0.9.0')
-    assert contracts_version_expects_deposit_limits('0.10.0')
-    assert contracts_version_expects_deposit_limits('0.10.1')
+    assert not contracts_version_expects_deposit_limits("0.3._")
+    assert not contracts_version_expects_deposit_limits("0.4.0")
+    assert contracts_version_expects_deposit_limits("0.9.0")
+    assert contracts_version_expects_deposit_limits("0.10.0")
+    assert contracts_version_expects_deposit_limits("0.10.1")
     assert contracts_version_expects_deposit_limits(None)
     with pytest.raises(ValueError):
-        contracts_version_expects_deposit_limits('not a semver string')
+        contracts_version_expects_deposit_limits("not a semver string")
 
 
 def deploy_token_arguments(privkey: str):
     return [
-        '--rpc-provider',
-        'rpc_provider',
-        '--private-key',
+        "--rpc-provider",
+        "rpc_provider",
+        "--private-key",
         privkey,
-        '--gas-price',
-        '12',
-        '--token-supply',
-        '20000000',
-        '--token-name',
-        'ServiceToken',
-        '--token-decimals',
-        '18',
-        '--token-symbol',
-        'SVT',
+        "--gas-price",
+        "12",
+        "--token-supply",
+        "20000000",
+        "--token-name",
+        "ServiceToken",
+        "--token-decimals",
+        "18",
+        "--token-symbol",
+        "SVT",
     ]
 
 
 def test_deploy_token_invalid_privkey():
     """ Call deploy token command with invalid private key """
     with patch.object(
-            ContractDeployer,
-            'deploy_token_contract',
-            spec=ContractDeployer,
+        ContractDeployer, "deploy_token_contract", spec=ContractDeployer
     ) as mock_deployer:
         runner = CliRunner()
-        result = runner.invoke(
-            token,
-            deploy_token_arguments(privkey='wrong_priv_key'),
-        )
+        result = runner.invoke(token, deploy_token_arguments(privkey="wrong_priv_key"))
         assert result.exit_code != 0
         assert type(result.exception) == RuntimeError
-        assert result.exception.args == ('Could not access the private key.',)
+        assert result.exception.args == ("Could not access the private key.",)
         mock_deployer.assert_not_called()
 
 
@@ -645,26 +576,17 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
         with patch.object(
-                ContractDeployer,
-                'deploy_token_contract',
-                spec=ContractDeployer,
+            ContractDeployer, "deploy_token_contract", spec=ContractDeployer
         ) as mock_deployer:
-            with patch.object(
-                    Eth,
-                    'getBalance',
-                    return_value=0,
-            ):
+            with patch.object(Eth, "getBalance", return_value=0):
                 runner = CliRunner()
-                result = runner.invoke(
-                    token,
-                    deploy_token_arguments(privkey=privkey_file.name),
-                )
+                result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
                 assert result.exit_code != 0
                 assert type(result.exception) == RuntimeError
-                assert result.exception.args == ('Account with insufficient funds.',)
+                assert result.exception.args == ("Account with insufficient funds.",)
                 mock_deployer.assert_not_called()
 
 
@@ -673,24 +595,14 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
         with patch.object(
-                ContractDeployer,
-                'deploy_token_contract',
-                spec=ContractDeployer,
-                return_value={},
+            ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
         ) as mock_deployer:
-            with patch.object(
-                    Eth,
-                    'getBalance',
-                    return_value=100,
-            ):
+            with patch.object(Eth, "getBalance", return_value=100):
                 runner = CliRunner()
-                result = runner.invoke(
-                    token,
-                    deploy_token_arguments(privkey=privkey_file.name),
-                )
+                result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
                 assert result.exit_code == 0
                 mock_deployer.assert_called_once()
 
@@ -699,41 +611,33 @@ def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]) -> List:
     if save_info is None:
         save_info_arguments: List = []
     elif save_info is True:
-        save_info_arguments = ['--save-info']
+        save_info_arguments = ["--save-info"]
     else:
-        save_info_arguments = ['--no-save-info']
+        save_info_arguments = ["--no-save-info"]
     common_arguments: List = [
-        '--private-key',
+        "--private-key",
         privkey,
-        '--max-token-networks',
+        "--max-token-networks",
         1,
-        '--rpc-provider',
-        'rpc_provider',
+        "--rpc-provider",
+        "rpc_provider",
     ]
     return common_arguments + save_info_arguments
 
 
-@patch.object(ContractDeployer, 'deploy_raiden_contracts')
-@patch.object(ContractDeployer, 'store_and_verify_deployment_info_raiden')
+@patch.object(ContractDeployer, "deploy_raiden_contracts")
+@patch.object(ContractDeployer, "store_and_verify_deployment_info_raiden")
 def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
-        with patch.object(
-                Eth,
-                'getBalance',
-                return_value=1,
-        ):
+        with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden,
-                deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                ),
+                raiden, deploy_raiden_arguments(privkey=privkey_file.name, save_info=None)
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -741,27 +645,19 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
             mock_verify.assert_called_once()
 
 
-@patch.object(ContractDeployer, 'deploy_raiden_contracts')
-@patch.object(ContractDeployer, 'verify_deployment_data')
+@patch.object(ContractDeployer, "deploy_raiden_contracts")
+@patch.object(ContractDeployer, "verify_deployment_data")
 def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
-        with patch.object(
-                Eth,
-                'getBalance',
-                return_value=1,
-        ):
+        with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden,
-                deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=False,
-                ),
+                raiden, deploy_raiden_arguments(privkey=privkey_file.name, save_info=False)
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -773,41 +669,33 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
     if save_info is None:
         save_info_arguments: List = []
     elif save_info is True:
-        save_info_arguments = ['--save-info']
+        save_info_arguments = ["--save-info"]
     else:
-        save_info_arguments = ['--no-save-info']
+        save_info_arguments = ["--no-save-info"]
     common_arguments: List = [
-        '--private-key',
+        "--private-key",
         privkey,
-        '--rpc-provider',
-        'rpc_provider',
-        '--user-deposit-whole-limit',
+        "--rpc-provider",
+        "rpc_provider",
+        "--user-deposit-whole-limit",
         100,
     ]
     return common_arguments + save_info_arguments
 
 
-@patch.object(ContractDeployer, 'deploy_service_contracts')
-@patch.object(ContractDeployer, 'store_and_verify_deployment_info_services')
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractDeployer, "store_and_verify_deployment_info_services")
 def test_deploy_services(mock_deploy, mock_verify, get_accounts, get_private_key):
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
-        with patch.object(
-                Eth,
-                'getBalance',
-                return_value=1,
-        ):
+        with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                ),
+                services, deploy_services_arguments(privkey=privkey_file.name, save_info=None)
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -815,27 +703,19 @@ def test_deploy_services(mock_deploy, mock_verify, get_accounts, get_private_key
             mock_verify.assert_called_once()
 
 
-@patch.object(ContractDeployer, 'deploy_service_contracts')
-@patch.object(ContractDeployer, 'verify_service_contracts_deployment_data')
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractDeployer, "verify_service_contracts_deployment_data")
 def test_deploy_services_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
     with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, 'ascii'))
+        privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
-        with patch.object(
-                Eth,
-                'getBalance',
-                return_value=1,
-        ):
+        with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=False,
-                ),
+                services, deploy_services_arguments(privkey=privkey_file.name, save_info=False)
             )
             assert result.exception is None
             assert result.exit_code == 0
