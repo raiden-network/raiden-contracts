@@ -145,8 +145,9 @@ def test_verify_existent_deployment():
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data. """
     web3_mock = Mock()
     web3_mock.version.network = 42
+    web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
     verifier = ContractVerifier(web3=web3_mock, contracts_version="0.11.1")
-    # The Mock doesn't return the runtime code, so the code comparison fails.
+    # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):

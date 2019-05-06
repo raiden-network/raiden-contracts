@@ -145,73 +145,55 @@ def test_deploy_script_raiden(web3, deployer, deployed_raiden_info):
         deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][
-        CONTRACT_ENDPOINT_REGISTRY
-    ]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY][
+        "address"
+    ] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["address"] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_ENDPOINT_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY]["block_number"] = 0
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_SECRET_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["block_number"] = 0
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['block_number'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]["block_number"] = 0
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]['gas_cost'] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]["gas_cost"] = 0
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts'][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]['address'] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail['contracts_version'] = '0.4.0'
+    deployed_contracts_info_fail["contracts_version"] = "0.4.0"
     with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(
-            deployed_contracts_info_fail,
-        )
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
@@ -462,9 +444,7 @@ def test_deploy_script_service(web3, deployed_service_info, token_address):
 
     def test_missing_deployment(contract_name):
         deployed_info_fail = deepcopy(deployed_service_contracts)
-        deployed_info_fail['contracts'][
-            contract_name
-        ]['address'] = EMPTY_ADDRESS
+        deployed_info_fail["contracts"][contract_name]["address"] = EMPTY_ADDRESS
         with pytest.raises(RuntimeError):
             deployer.verify_service_contracts_deployment_data(
                 token_address=token_address,
