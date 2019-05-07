@@ -38,7 +38,9 @@ Then, the `check()` still sees an old value.
 
 #### assert() and require()
 
-``assert(cond)`` and ``require(cond)`` both cause a failure in the EVM execution when ``cond`` evaluates to 0.  They use different EVM opcodes that cause different gas consumptions.  More importantly, a convention dictates when to use which.  Whenever ``assert()`` fires, that's the Solidity programmer's fault.  For detecting invalid user inputs or invalid return values from other contracts, use ``require()``.
+When you write Solidity code, be aware of the distinction between ``assert(cond)`` and ``require(cond)``.
+
+``assert(cond)`` and ``require(cond)`` both cause a failure in the EVM execution when ``cond`` evaluates to 0.  They use different EVM opcodes that cause different gas consumptions.  More importantly, a convention dictates when to use which.  Use ``assert(cond)`` only when you are confident that ``cond`` is always true.  When an ``assert`` fires, that's considered as a bug in the Solidity program (or the Solidity compiler).  For detecting invalid user inputs or invalid return values from other contracts, use ``require()``.
 
 #### Resources
 
