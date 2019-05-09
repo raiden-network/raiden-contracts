@@ -7,9 +7,14 @@ Documents changes that result in:
 
 ## Unreleased
 
-- get_contracts_deployment_info() returns None instead of raising a ValueError when no deployment file is found.
-- Deploy 0.4.0 version on Goerli
-- [#853](https://github.com/raiden-network/raiden-contracts/pull/853) add chain_id in the IOU claims
+## [0.19.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.19.0) - 2019-05-09
+
+- [#909](https://github.com/raiden-network/raiden-contracts/pull/909) MonitoringService prioritizes services
+- [#853](https://github.com/raiden-network/raiden-contracts/pull/853) add chain_id in the IOU claims for OneToN
+- [#928](https://github.com/raiden-network/raiden-contracts/pull/928) [#956](https://github.com/raiden-network/raiden-contracts/pull/956) black formatter is enabled
+- [#896](https://github.com/raiden-network/raiden-contracts/pull/896) [#941](https://github.com/raiden-network/raiden-contracts/pull/941) Some Python code cleanup
+- [#867](https://github.com/raiden-network/raiden-contracts/pull/867) get_contracts_deployment_info() returns None instead of raising a ValueError when no deployment file is found.
+- [#863](https://github.com/raiden-network/raiden-contracts/pull/863) Deploy 0.4.0 version on Goerli
 
 ## [0.18.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.18.0) - 2019-04-12
 
