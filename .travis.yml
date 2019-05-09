@@ -30,8 +30,7 @@ install:
   - make verify_contracts
 
 before_script:
-  - flake8 raiden_contracts/
-  - make mypy
+  - make lint mypy
 
 script:
   - travis_wait 50 pytest --cov=./ raiden_contracts/tests/ -n 2 --cov-config setup.cfg
