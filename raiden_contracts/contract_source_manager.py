@@ -108,8 +108,11 @@ class ContractSourceManager:
         # We get the precompiled file data
         contracts_precompiled = ContractManager(precompiled_path)
 
-        # Silence mypy
-        assert self.contracts_checksums is not None
+        if self.contracts_checksums is None:
+            raise RuntimeError(
+                "Before calling ContractSourceManager.verify_precompiled_checksums(), "
+                "call checksum_contracts()."
+            )
 
         # Compare each contract source code checksum with the one from the precompiled file
         for contract, checksum in self.contracts_checksums.items():
