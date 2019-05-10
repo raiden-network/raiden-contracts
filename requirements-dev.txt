@@ -1,13 +1,15 @@
 -r requirements.txt
+autopep8>=1.4.3
 black
 eth-tester[py-evm]<=0.1.0b33
 pytest
 pytest-cov
 pyfakefs
-flake8==3.5.0
+flake8>=3.7.5
 flake8-commas>=2.0.0
 flake8-tuple>=0.2.13
 flake8-bugbear>=18.2.0
+flake8-tuple>=0.2.13
 bump2version
 hypothesis==3.44.14
 requests
