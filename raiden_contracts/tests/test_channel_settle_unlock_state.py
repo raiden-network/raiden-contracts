@@ -170,7 +170,7 @@ def test_settlement_outcome(
         balance_B = custom_token.functions.balanceOf(B).call()
 
         # We MUST ensure balance correctness for valid last balance proofs
-        if balance_proof_type is "valid":
+        if balance_proof_type == "valid":
             # Calculate how much A and B should receive after the channel is settled and
             # unlock is called by both.
             (
@@ -191,14 +191,14 @@ def test_settlement_outcome(
         # Tests for when B has submitted an old balance proof for A
         # A must not receive less tokens than expected with a valid last balance proof
         # B must not receive more tokens than expected with a valid last balance proof
-        if balance_proof_type is "old_last":
+        if balance_proof_type == "old_last":
             assert balance_A >= expected_balance_A
             assert balance_B <= expected_balance_B
 
         # Tests for when A has submitted an old balance proof for B
         # A must not receive more tokens than expected with a valid last balance proof
         # B must not receive less tokens than expected with a valid last balance proof
-        if balance_proof_type is "last_old":
+        if balance_proof_type == "last_old":
             assert balance_A <= expected_balance_A
             assert balance_B >= expected_balance_B
 
@@ -252,7 +252,7 @@ def test_channel_settle_old_balance_proof_values(
         expected_final_balance_B0,
     ) = get_expected_after_settlement_unlock_amounts(vals_A0, vals_B0)
 
-    if tested_range is "one_old":
+    if tested_range == "one_old":
 
         test_settlement_outcome(
             (A, B),
@@ -281,7 +281,7 @@ def test_channel_settle_old_balance_proof_values(
                     expected_final_balance_B0,
                 )
 
-    elif tested_range is "both_old_1":
+    elif tested_range == "both_old_1":
 
         if "old_last" in channel_test_values and "last_old" in channel_test_values:
             for vals_A in channel_test_values["old_last"][:5]:
