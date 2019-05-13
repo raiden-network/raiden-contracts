@@ -624,27 +624,41 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
                 mock_deployer.assert_called_once()
 
 
-def deploy_raiden_arguments(privkey: str, save_info: Optional[bool]) -> List:
+def deploy_raiden_arguments(
+        privkey: str,
+        save_info: Optional[bool],
+        contracts_version: Optional[str],
+) -> List:
     if save_info is None:
         save_info_arguments: List = []
     elif save_info is True:
         save_info_arguments = ["--save-info"]
     else:
         save_info_arguments = ["--no-save-info"]
+
+    if contract_version_with_max_token_networks(contracts_version):
+        max_arguments: List = ["--max-token-networks", 1]
+    else:
+        max_arguments = []
+
+    if contracts_version is None:
+        contracts_version_arguments: List = []
+    else:
+        contracts_version_arguments = ["--contracts-version", contracts_version]
+
     common_arguments: List = [
         "--private-key",
         privkey,
-        "--max-token-networks",
-        1,
         "--rpc-provider",
         "rpc_provider",
     ]
-    return common_arguments + save_info_arguments
+    return common_arguments + save_info_arguments + contracts_version_arguments + max_arguments
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractDeployer, "store_and_verify_deployment_info_raiden")
-def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
+@pytest.mark.parametrize("contracts_version", [None, "0.4.0"])
+def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key, contracts_version):
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -654,7 +668,11 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key):
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden, deploy_raiden_arguments(privkey=privkey_file.name, save_info=None)
+                raiden, deploy_raiden_arguments(
+                    privkey=privkey_file.name,
+                    save_info=None,
+                    contracts_version=contracts_version,
+                )
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -674,7 +692,11 @@ def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, g
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden, deploy_raiden_arguments(privkey=privkey_file.name, save_info=False)
+                raiden, deploy_raiden_arguments(
+                    privkey=privkey_file.name,
+                    save_info=False,
+                    contracts_version=None,
+                )
             )
             assert result.exception is None
             assert result.exit_code == 0
