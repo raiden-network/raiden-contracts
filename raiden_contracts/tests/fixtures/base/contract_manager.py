@@ -13,5 +13,5 @@ def contract_source_manager():
 
 @pytest.fixture(scope="session")
 def contracts_manager(contract_source_manager):
-    target_path = NamedTemporaryFile()
-    return contract_source_manager.compile_contracts(Path(target_path.name))
+    with NamedTemporaryFile() as target_path:
+        yield contract_source_manager.compile_contracts(Path(target_path.name))
