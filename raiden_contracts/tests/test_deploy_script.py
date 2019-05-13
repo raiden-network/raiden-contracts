@@ -625,9 +625,7 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
 
 
 def deploy_raiden_arguments(
-        privkey: str,
-        save_info: Optional[bool],
-        contracts_version: Optional[str],
+    privkey: str, save_info: Optional[bool], contracts_version: Optional[str]
 ) -> List:
     if save_info is None:
         save_info_arguments: List = []
@@ -646,12 +644,7 @@ def deploy_raiden_arguments(
     else:
         contracts_version_arguments = ["--contracts-version", contracts_version]
 
-    common_arguments: List = [
-        "--private-key",
-        privkey,
-        "--rpc-provider",
-        "rpc_provider",
-    ]
+    common_arguments: List = ["--private-key", privkey, "--rpc-provider", "rpc_provider"]
     return common_arguments + save_info_arguments + contracts_version_arguments + max_arguments
 
 
@@ -668,11 +661,10 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key, 
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden, deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                    contracts_version=contracts_version,
-                )
+                raiden,
+                deploy_raiden_arguments(
+                    privkey=privkey_file.name, save_info=None, contracts_version=contracts_version
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -692,11 +684,10 @@ def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, g
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                raiden, deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=False,
-                    contracts_version=None,
-                )
+                raiden,
+                deploy_raiden_arguments(
+                    privkey=privkey_file.name, save_info=False, contracts_version=None
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
