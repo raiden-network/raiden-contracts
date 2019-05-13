@@ -37,7 +37,7 @@ from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAUCET_PRIVATE_KEY,
 )
-from raiden_contracts.utils.type_aliases import T_Address
+from raiden_contracts.utils.type_aliases import Address, T_Address
 
 GAS_LIMIT = 5860000
 
@@ -403,7 +403,7 @@ def test_deploy_script_register_unexpected_limits(
 
 
 @pytest.mark.slow
-def test_deploy_script_service(web3, deployed_service_info, token_address):
+def test_deploy_script_service(web3, deployed_service_info, token_address: Address):
     """ Run deploy_service_contracts() used in the deployment script
 
     This checks if deploy_service_contracts() works correctly in the happy case.

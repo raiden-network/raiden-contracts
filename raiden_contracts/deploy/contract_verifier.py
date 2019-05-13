@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import List, Optional
 
 from eth_utils import to_checksum_address
 from web3 import Web3
@@ -22,6 +22,7 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
+from raiden_contracts.utils.type_aliases import Address
 
 
 class ContractVerifier:
@@ -52,7 +53,7 @@ class ContractVerifier:
             )
 
     def verify_deployed_service_contracts_in_filesystem(
-        self, token_address: str, user_deposit_whole_balance_limit: int
+        self, token_address: Address, user_deposit_whole_balance_limit: int
     ):
         chain_id = int(self.web3.version.network)
 
@@ -84,7 +85,7 @@ class ContractVerifier:
     def store_and_verify_deployment_info_services(
         self,
         deployed_contracts_info: DeployedContracts,
-        token_address: str,
+        token_address: Address,
         user_deposit_whole_balance_limit: int,
     ):
         self._store_deployment_info(services=True, deployment_info=deployed_contracts_info)
@@ -210,7 +211,7 @@ class ContractVerifier:
 
     def verify_service_contracts_deployment_data(
         self,
-        token_address: str,
+        token_address: Address,
         user_deposit_whole_balance_limit: int,
         deployed_contracts_info: DeployedContracts,
     ):
@@ -222,62 +223,112 @@ class ContractVerifier:
         if chain_id != deployed_contracts_info["chain_id"]:
             raise RuntimeError("chain_id mismatch")
 
-        service_bundle, constructor_arguments = self._verify_deployed_contract(
+        service_registry, service_registry_constructor_arguments = self._verify_deployed_contract(
             deployment_data=deployed_contracts_info, contract_name=CONTRACT_SERVICE_REGISTRY
         )
-        assert to_checksum_address(service_bundle.functions.token().call()) == token_address
-        assert token_address == constructor_arguments[0]
-
-        user_deposit, constructor_arguments = self._verify_deployed_contract(
+        user_deposit, user_deposit_constructor_arguments = self._verify_deployed_contract(
             deployment_data=deployed_contracts_info, contract_name=CONTRACT_USER_DEPOSIT
         )
-        assert len(constructor_arguments) == 2
-        assert to_checksum_address(user_deposit.functions.token().call()) == token_address
-        assert token_address == constructor_arguments[0]
-        assert (
-            user_deposit.functions.whole_balance_limit().call() == user_deposit_whole_balance_limit
-        )
-        assert user_deposit_whole_balance_limit == constructor_arguments[1]
-
-        monitoring_service, constructor_arguments = self._verify_deployed_contract(
-            deployed_contracts_info, CONTRACT_MONITORING_SERVICE
-        )
-        assert len(constructor_arguments) == 3
-        assert to_checksum_address(monitoring_service.functions.token().call()) == token_address
-        assert token_address == constructor_arguments[0]
-
-        assert (
-            to_checksum_address(monitoring_service.functions.service_registry().call())
-            == service_bundle.address
-        )
-        assert service_bundle.address == constructor_arguments[1]
-
-        assert (
-            to_checksum_address(monitoring_service.functions.user_deposit().call())
-            == user_deposit.address
-        )
-        assert user_deposit.address == constructor_arguments[2]
-
-        one_to_n, constructor_arguments = self._verify_deployed_contract(
+        one_to_n, one_to_n_constructor_arguments = self._verify_deployed_contract(
             deployment_data=deployed_contracts_info, contract_name=CONTRACT_ONE_TO_N
         )
-        assert (
-            to_checksum_address(one_to_n.functions.deposit_contract().call())
-            == user_deposit.address
+        monitoring_service, ms_constructor_arguments = self._verify_deployed_contract(
+            deployed_contracts_info, CONTRACT_MONITORING_SERVICE
         )
-        assert user_deposit.address == constructor_arguments[0]
-        assert chain_id == constructor_arguments[1]
-        assert len(constructor_arguments) == 2
-
-        # Check that UserDeposit.init() had the right effect
-        onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
-        assert onchain_msc_address == monitoring_service.address, (
-            f"MSC address found onchain: {onchain_msc_address}, "
-            f"expected: {monitoring_service.address}"
+        _verify_service_registry_deployment(
+            service_registry=service_registry,
+            constructor_arguments=service_registry_constructor_arguments,
+            token_address=token_address,
         )
-        assert (
-            to_checksum_address(user_deposit.functions.one_to_n_address().call())
-            == one_to_n.address
+        _verify_user_deposit_deployment(
+            user_deposit=user_deposit,
+            constructor_arguments=user_deposit_constructor_arguments,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            one_to_n_address=one_to_n.address,
+            monitoring_service_address=monitoring_service.address,
         )
-
+        _verify_monitoring_service_deployment(
+            monitoring_service=monitoring_service,
+            constructor_arguments=ms_constructor_arguments,
+            token_address=token_address,
+            service_registry_address=service_registry.address,
+            user_deposit_address=user_deposit.address,
+        )
+        _verify_one_to_n_deployment(
+            one_to_n=one_to_n,
+            constructor_arguments=one_to_n_constructor_arguments,
+            user_deposit_address=user_deposit.address,
+            chain_id=chain_id,
+        )
         return True
+
+
+def _verify_user_deposit_deployment(
+    user_deposit: Contract,
+    constructor_arguments: List,
+    token_address: Address,
+    user_deposit_whole_balance_limit: int,
+    one_to_n_address: Address,
+    monitoring_service_address: Address,
+):
+    """ Check an onchain deployment of UserDeposit and constructor arguments at deployment time """
+    assert len(constructor_arguments) == 2
+    assert to_checksum_address(user_deposit.functions.token().call()) == token_address
+    assert token_address == constructor_arguments[0]
+    assert user_deposit.functions.whole_balance_limit().call() == user_deposit_whole_balance_limit
+    assert user_deposit_whole_balance_limit == constructor_arguments[1]
+    assert (
+        to_checksum_address(user_deposit.functions.one_to_n_address().call()) == one_to_n_address
+    )
+    onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
+    assert onchain_msc_address == monitoring_service_address, (
+        f"MSC address found onchain: {onchain_msc_address}, "
+        f"expected: {monitoring_service_address}"
+    )
+
+
+def _verify_monitoring_service_deployment(
+    monitoring_service: Contract,
+    constructor_arguments: List,
+    token_address: Address,
+    service_registry_address: Address,
+    user_deposit_address: Address,
+) -> None:
+    """ Check an onchain deployment of MonitoringService and constructor arguments """
+    assert len(constructor_arguments) == 3
+    assert to_checksum_address(monitoring_service.functions.token().call()) == token_address
+    assert token_address == constructor_arguments[0]
+
+    assert (
+        to_checksum_address(monitoring_service.functions.service_registry().call())
+        == service_registry_address
+    )
+    assert service_registry_address == constructor_arguments[1]
+
+    assert (
+        to_checksum_address(monitoring_service.functions.user_deposit().call())
+        == user_deposit_address
+    )
+    assert user_deposit_address == constructor_arguments[2]
+
+
+def _verify_one_to_n_deployment(
+    one_to_n: Contract, constructor_arguments: List, user_deposit_address: Address, chain_id: int
+) -> None:
+    """ Check an onchain deployment of OneToN and constructor arguments """
+    assert (
+        to_checksum_address(one_to_n.functions.deposit_contract().call()) == user_deposit_address
+    )
+    assert user_deposit_address == constructor_arguments[0]
+    assert chain_id == constructor_arguments[1]
+    assert len(constructor_arguments) == 2
+
+
+def _verify_service_registry_deployment(
+    service_registry: Contract, constructor_arguments: List, token_address: Address
+) -> None:
+    """ Check an onchain deployment of ServiceRegistry and constructor arguments """
+    assert to_checksum_address(service_registry.functions.token().call()) == token_address
+    assert token_address == constructor_arguments[0]
+    assert len(constructor_arguments) == 1
