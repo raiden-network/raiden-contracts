@@ -198,8 +198,8 @@ def contract_manager_meta(contracts_path, source: bool):
         with pytest.raises(KeyError):
             manager.get_contract("SomeName")
 
-        abi = manager.get_event_abi(CONTRACT_TOKEN_NETWORK, ChannelEvent.CLOSED)
-        assert isinstance(abi, dict)
+        abi2 = manager.get_event_abi(CONTRACT_TOKEN_NETWORK, ChannelEvent.CLOSED)
+        assert isinstance(abi2, dict)
         with pytest.raises(ValueError):
             manager.get_event_abi(CONTRACT_TOKEN_NETWORK, "NonExistant")
 

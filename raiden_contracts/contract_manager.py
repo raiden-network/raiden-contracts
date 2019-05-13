@@ -17,12 +17,20 @@ _BASE = Path(__file__).parent
 # Classes for static type checking of deployed_contracts dictionary.
 
 
-class DeployedContract(TypedDict):
-    address: Address
-    transaction_hash: str
-    block_number: int
-    gas_cost: int
-    constructor_arguments: Any
+DeployedContract = TypedDict(
+    "DeployedContract",
+    {
+        "address": Address,
+        "transaction_hash": str,
+        "block_number": int,
+        "gas_cost": int,
+        "constructor_arguments": List[Any],
+        "abi": List[Dict[str, Any]],
+        "bin-runtime": str,
+        "bin": str,
+        "metadata": str,
+    },
+)
 
 
 class DeployedContracts(TypedDict):
@@ -53,7 +61,7 @@ class ContractManager:
         except (JSONDecodeError, UnicodeDecodeError) as ex:
             raise ContractManagerLoadError(f"Can't load precompiled smart contracts: {ex}") from ex
         try:
-            self.contracts = precompiled_content["contracts"]
+            self.contracts: Dict[str, DeployedContract] = precompiled_content["contracts"]
             self.overall_checksum = precompiled_content["overall_checksum"]
             self.contracts_checksums = precompiled_content["contracts_checksums"]
             self.contracts_version = precompiled_content["contracts_version"]
@@ -62,7 +70,7 @@ class ContractManager:
                 f"Precompiled contracts json has unexpected format: {ex}"
             ) from ex
 
-    def get_contract(self, contract_name: str) -> Dict:
+    def get_contract(self, contract_name: str) -> DeployedContract:
         """ Return ABI, BIN of the given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"
         try:
@@ -72,7 +80,7 @@ class ContractManager:
                 f"contracts_version {self.contracts_version} does not have {contract_name}"
             )
 
-    def get_contract_abi(self, contract_name: str) -> Dict:
+    def get_contract_abi(self, contract_name: str) -> List[Dict[str, Any]]:
         """ Returns the ABI for a given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"
         return self.contracts[contract_name]["abi"]
@@ -105,14 +113,14 @@ class ContractManager:
         return "0x" + self.contracts[contract_name]["bin-runtime"]
 
 
-def contract_version_string(version: Optional[str] = None):
+def contract_version_string(version: Optional[str] = None) -> str:
     """ The version string that should be found in the Solidity source """
     if version is None:
         version = CONTRACTS_VERSION
     return version
 
 
-def contracts_data_path(version: Optional[str] = None):
+def contracts_data_path(version: Optional[str] = None) -> Path:
     """Returns the deployment data directory for a version."""
     if version is None:
         return _BASE.joinpath("data")
@@ -131,7 +139,9 @@ def contracts_gas_path(version: Optional[str] = None) -> Any:
     return data_path.joinpath("gas.json")
 
 
-def contracts_deployed_path(chain_id: int, version: Optional[str] = None, services: bool = False):
+def contracts_deployed_path(
+    chain_id: int, version: Optional[str] = None, services: bool = False
+) -> Path:
     """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else "private_net"
@@ -206,14 +216,26 @@ def get_contracts_deployment_info(
     deployment_data: DeployedContracts = {}  # type: ignore
 
     for f in files:
-        deployment_data = merge_deployment_data(deployment_data, _load_json_from_path(f))
+        j = _load_json_from_path(f)
+        if j is None:
+            continue
+        deployment_data = merge_deployment_data(
+            deployment_data,
+            DeployedContracts(
+                {
+                    "chain_id": j["chain_id"],
+                    "contracts": j["contracts"],
+                    "contracts_version": j["contracts_version"],
+                }
+            ),
+        )
 
     if not deployment_data:
         deployment_data = None
     return deployment_data
 
 
-def _load_json_from_path(f: Path):
+def _load_json_from_path(f: Path) -> Optional[Dict[str, Any]]:
     try:
         with f.open() as deployment_file:
             return json.load(deployment_file)

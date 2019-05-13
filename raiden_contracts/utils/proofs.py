@@ -25,13 +25,13 @@ def eth_sign_hash_message(encoded_message: bytes) -> bytes:
 
 
 def hash_balance_proof(
-    token_network_address,
-    chain_identifier,
-    channel_identifier,
-    balance_hash,
-    nonce,
-    additional_hash,
-):
+    token_network_address: Address,
+    chain_identifier: int,
+    channel_identifier: int,
+    balance_hash: bytes,
+    nonce: int,
+    additional_hash: bytes,
+) -> bytes:
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
@@ -44,14 +44,14 @@ def hash_balance_proof(
 
 
 def hash_balance_proof_update_message(
-    token_network_address,
-    chain_identifier,
-    channel_identifier,
-    balance_hash,
-    nonce,
-    additional_hash,
-    closing_signature,
-):
+    token_network_address: Address,
+    chain_identifier: int,
+    channel_identifier: int,
+    balance_hash: bytes,
+    nonce: int,
+    additional_hash: bytes,
+    closing_signature: bytes,
+) -> bytes:
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
@@ -65,14 +65,14 @@ def hash_balance_proof_update_message(
 
 
 def hash_cooperative_settle_message(
-    token_network_address,
-    chain_identifier,
-    channel_identifier,
-    participant1_address,
-    participant1_balance,
-    participant2_address,
-    participant2_balance,
-):
+    token_network_address: Address,
+    chain_identifier: int,
+    channel_identifier: int,
+    participant1_address: Address,
+    participant1_balance: int,
+    participant2_address: Address,
+    participant2_balance: int,
+) -> bytes:
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
@@ -98,7 +98,13 @@ def hash_withdraw_message(
     )
 
 
-def hash_reward_proof(channel_identifier, reward_amount, token_network_address, chain_id, nonce):
+def hash_reward_proof(
+    channel_identifier: int,
+    reward_amount: int,
+    token_network_address: Address,
+    chain_id: int,
+    nonce: int,
+) -> bytes:
     return eth_sign_hash_message(
         encode_single("uint256", channel_identifier)
         + encode_single("uint256", reward_amount)
@@ -131,15 +137,15 @@ def sign_balance_proof(
 
 
 def sign_balance_proof_update_message(
-    privatekey,
-    token_network_address,
-    chain_identifier,
-    channel_identifier,
-    balance_hash,
-    nonce,
-    additional_hash,
-    closing_signature,
-    v=27,
+    privatekey: str,
+    token_network_address: Address,
+    chain_identifier: int,
+    channel_identifier: int,
+    balance_hash: bytes,
+    nonce: int,
+    additional_hash: bytes,
+    closing_signature: bytes,
+    v: int = 27,
 ):
     message_hash = hash_balance_proof_update_message(
         token_network_address=token_network_address,
