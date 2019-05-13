@@ -5,7 +5,7 @@ from eth_tester.constants import UINT256_MAX, UINT256_MIN
 from web3.exceptions import ValidationError
 
 
-def test_min_uses_usigned(token_network_test_utils):
+def test_min_uses_usigned(token_network_test_utils) -> None:
     """ Min cannot be called with negative values """
     INVALID_VALUES = [-UINT256_MAX, -1]
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]

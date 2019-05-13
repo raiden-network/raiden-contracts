@@ -42,7 +42,7 @@ def test_check_successful_tx_with_gas_completely_used():
     web3_mock.eth.getTransaction.assert_called_with(txid)
 
 
-def test_check_successful_tx_successful_case():
+def test_check_successful_tx_successful_case() -> None:
     web3_mock = Mock()
     gas = 30000
     receipt = {"blockNumber": 300, "status": 1, "gasUsed": gas - 10}

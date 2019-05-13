@@ -2,6 +2,7 @@ from eth_abi import encode_single
 from web3 import Web3
 
 from raiden_contracts.constants import MessageTypeId
+from raiden_contracts.utils.type_aliases import Address
 
 from .signature import sign
 
@@ -14,7 +15,7 @@ def hash_balance_data(transferred_amount, locked_amount, locksroot):
     )
 
 
-def eth_sign_hash_message(encoded_message):
+def eth_sign_hash_message(encoded_message: bytes) -> bytes:
     signature_prefix = "\x19Ethereum Signed Message:\n"
     return Web3.sha3(
         Web3.toBytes(text=signature_prefix)
@@ -212,14 +213,14 @@ def sign_reward_proof(
 
 
 def sign_one_to_n_iou(
-    privatekey,
-    sender,
-    receiver,
-    amount,
-    expiration_block,
+    privatekey: str,
+    sender: Address,
+    receiver: Address,
+    amount: int,
+    expiration_block: int,
     one_to_n_address: str,
     chain_id: int,
-    v=27,
+    v: int = 27,
 ):
     iou_hash = eth_sign_hash_message(
         Web3.toBytes(hexstr=sender)

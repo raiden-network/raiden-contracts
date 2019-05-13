@@ -1,6 +1,7 @@
 import pytest
 
 from raiden_contracts.utils.logs import LogFilter
+from raiden_contracts.utils.type_aliases import Address
 
 
 def test_logfilter_with_nonexistent_event(web3):
@@ -8,7 +9,12 @@ def test_logfilter_with_nonexistent_event(web3):
 
     with pytest.raises(ValueError):
         LogFilter(
-            web3=web3, abi=[], address="fake", event_name="ev0", from_block=0, to_block="latest"
+            web3=web3,
+            abi=[],
+            address=Address("fake"),
+            event_name="ev0",
+            from_block=0,
+            to_block="latest",
         )
 
 

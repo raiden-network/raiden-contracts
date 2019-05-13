@@ -77,7 +77,7 @@ class ContractManager:
         assert self.contracts, "ContractManager should have contracts compiled"
         return self.contracts[contract_name]["abi"]
 
-    def get_event_abi(self, contract_name: str, event_name: str) -> Dict:
+    def get_event_abi(self, contract_name: str, event_name: str) -> Dict[str, Any]:
         """ Returns the ABI for a given event. """
         # Import locally to avoid web3 dependency during installation via `compile_contracts`
         from web3.utils.contracts import find_matching_event_abi
@@ -125,7 +125,7 @@ def contracts_precompiled_path(version: Optional[str] = None) -> Path:
     return data_path.joinpath("contracts.json")
 
 
-def contracts_gas_path(version: Optional[str] = None):
+def contracts_gas_path(version: Optional[str] = None) -> Any:
     """Returns the path of JSON file where the gas usage information can be found."""
     data_path = contracts_data_path(version)
     return data_path.joinpath("gas.json")
