@@ -103,16 +103,12 @@ class ContractSourceManager:
         return ContractManager(target_path)
 
     def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
-        """ Compare source code checksums with those from a precompiled file. """
+        """ Compare source code checksums with those from a precompiled file
+
+        Throws AttributeError if called before checksum_contracts(). """
 
         # We get the precompiled file data
         contracts_precompiled = ContractManager(precompiled_path)
-
-        if self.contracts_checksums is None:
-            raise RuntimeError(
-                "Before calling ContractSourceManager.verify_precompiled_checksums(), "
-                "call checksum_contracts()."
-            )
 
         # Compare each contract source code checksum with the one from the precompiled file
         for contract, checksum in self.contracts_checksums.items():
