@@ -9,11 +9,11 @@ sha3 = keccak
 
 def sign(privkey: str, msg: bytes, v: int = 0) -> bytes:
     if not isinstance(msg, bytes):
-        raise TypeError('sign(): msg is not an instance of bytes')
+        raise TypeError("sign(): msg is not an instance of bytes")
     if len(msg) != 32:
-        raise ValueError('sign(): msg has to be exactly 32 bytes')
+        raise ValueError("sign(): msg has to be exactly 32 bytes")
     if not isinstance(privkey, str):
-        raise TypeError('sign(): privkey is not an instance of str')
+        raise TypeError("sign(): privkey is not an instance of str")
 
     pk = PrivateKey.from_hex(remove_0x_prefix(privkey))
     sig: bytes = pk.sign_recoverable(msg, hasher=None)
