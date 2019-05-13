@@ -156,7 +156,7 @@ def test_verify_existent_deployment():
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address="0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c",
+            token_address=Address("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
         )
 

@@ -37,6 +37,13 @@ def test_nonexistent_precompiled_path():
         ContractManager(contracts_precompiled_path(nonexistent_version))
 
 
+def test_verification_without_checksum():
+    """ Call ContractSourceManager.verify_precompiled_checksums() before computing the checksum """
+    manager = ContractSourceManager(contracts_source_path())
+    with pytest.raises(AttributeError):
+        manager.verify_precompiled_checksums(contracts_precompiled_path())
+
+
 def test_verification_overall_checksum():
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
     manager = ContractSourceManager(contracts_source_path())
