@@ -7,14 +7,14 @@ from eth_utils.typing import ChecksumAddress
 sha3 = keccak
 
 
-def sign(privkey: str, msg: bytes, v=0) -> bytes:
+def sign(privkey: str, msg: bytes, v: int = 0) -> bytes:
     assert isinstance(msg, bytes)
     assert isinstance(privkey, str)
 
     pk = PrivateKey.from_hex(remove_0x_prefix(privkey))
     assert len(msg) == 32
 
-    sig = pk.sign_recoverable(msg, hasher=None)
+    sig: bytes = pk.sign_recoverable(msg, hasher=None)
     assert len(sig) == 65
 
     sig = sig[:-1] + bytes([sig[-1] + v])

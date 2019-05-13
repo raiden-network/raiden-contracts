@@ -1,27 +1,36 @@
 import functools
 from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Optional, Union
 
+from web3 import Web3
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.threads import Timeout
+
+from raiden_contracts.utils.type_aliases import Address
 
 # A concrete event added in a transaction.
 LogRecorded = namedtuple("LogRecorded", "message callback count")
 
 
 class LogHandler:
-    def __init__(self, web3, address, abi):
+    def __init__(self, web3: Web3, address: Address, abi: List[Any]):
         self.web3 = web3
         self.address = address
         self.abi = abi
         self.event_waiting: Dict[str, Dict[str, LogRecorded]] = {}
         self.event_filters: Dict[str, LogFilter] = {}
         self.event_count: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(lambda: 0))
-        self.event_unknown: List[dict] = []
+        self.event_unknown: List[Dict[str, Any]] = []
 
-    def add(self, txn_hash, event_name, callback=None, count=1):
+    def add(
+        self,
+        txn_hash: str,
+        event_name: str,
+        callback: Optional[Callable[..., Any]] = None,
+        count: int = 1,
+    ) -> None:
         caller = getframeinfo(stack()[1][0])
         message = "%s:%d" % (caller.filename, caller.lineno)
 
@@ -39,13 +48,13 @@ class LogHandler:
             message=message, callback=callback, count=count
         )
 
-    def check(self, timeout=5):
+    def check(self, timeout: int = 5) -> None:
         for event in list(self.event_filters.keys()):
             self.event_filters[event].init()
 
         self.wait(timeout)
 
-    def _handle_waited_log(self, event: dict):
+    def _handle_waited_log(self, event: Dict[str, Any]) -> None:
         """ A subroutine of handle_log
         Increment self.event_count, forget about waiting, and call the callback if any.
         """
@@ -64,7 +73,7 @@ class LogHandler:
         if event_entry.callback:
             event_entry.callback(event)
 
-    def handle_log(self, event: dict):
+    def handle_log(self, event: Dict[str, Any]) -> None:
         txn_hash = event["transactionHash"]
         event_name = event["event"]
 
@@ -77,7 +86,7 @@ class LogHandler:
                 self.event_waiting.pop(event_name, None)
                 self.event_filters.pop(event_name, None)
 
-    def wait(self, seconds):
+    def wait(self, seconds: int) -> None:
         try:
             with Timeout(seconds) as timeout:
                 while len(list(self.event_waiting.keys())):
@@ -102,20 +111,22 @@ class LogHandler:
                     " len(self.event_unknown) " + str(len(self.event_unknown)),
                 )
 
-    def assert_event(self, txn_hash, event_name, args, timeout=5):
+    def assert_event(
+        self, txn_hash: str, event_name: str, args: List[Any], timeout: int = 5
+    ) -> None:
         """ Assert that `event_name` is emitted with the `args`
 
         For use in tests only.
         """
 
-        def assert_args(event):
+        def assert_args(event: Dict[str, Any]) -> None:
             assert event["args"] == args, f'{event["args"]} == {args}'
 
         self.add(txn_hash=txn_hash, event_name=event_name, callback=assert_args)
         self.check(timeout=timeout)
 
 
-def sandwitch_print(msg):
+def sandwitch_print(msg: str) -> None:
     print("----------------------------------")
     print(msg)
     print("----------------------------------")
@@ -124,14 +135,14 @@ def sandwitch_print(msg):
 class LogFilter:
     def __init__(
         self,
-        web3,
-        abi,
-        address,
-        event_name,
-        from_block=0,
-        to_block="latest",
-        filters=None,
-        callback=None,
+        web3: Web3,
+        abi: List[Any],
+        address: Address,
+        event_name: str,
+        from_block: int = 0,
+        to_block: Union[int, str] = "latest",
+        filters: Any = None,
+        callback: Optional[Callable[..., Any]] = None,
     ):
         self.web3 = web3
         self.event_name = event_name
@@ -160,26 +171,27 @@ class LogFilter:
         self.filter.log_entry_formatter = log_data_extract_fn
         self.filter.filter_params = filter_params
 
-    def init(self, post_callback=None):
+    def init(self, post_callback: Optional[Callable[[], None]] = None) -> None:
         for log in self.get_logs():
             log["event"] = self.event_name
-            self.callback(log)
+            if self.callback:
+                self.callback(log)
         if post_callback:
             post_callback()
 
-    def get_logs(self):
+    def get_logs(self) -> List[Any]:
         logs = self.web3.eth.getFilterLogs(self.filter.filter_id)
         formatted_logs = []
         for log in [dict(log) for log in logs]:
             formatted_logs.append(self.set_log_data(log))
         return formatted_logs
 
-    def set_log_data(self, log):
+    def set_log_data(self, log: Dict[str, Any]) -> Dict[str, Any]:
         log["args"] = get_event_data(event_abi=self.event_abi, log_entry=log)["args"]
         log["event"] = self.event_name
         return log
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         assert self.web3 is not None
         assert self.filter is not None
         self.web3.eth.uninstallFilter(self.filter.filter_id)

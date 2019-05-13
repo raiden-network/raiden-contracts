@@ -1,12 +1,11 @@
-from collections import namedtuple
 from itertools import zip_longest
-from typing import Iterable
+from typing import Iterable, List, NamedTuple
 
 from eth_utils import keccak
 
 EMPTY_MERKLE_ROOT = b"\x00" * 32
 
-MerkleTree = namedtuple("MerkleTree", ["layers"])
+MerkleTree = NamedTuple("MerkleTree", [("layers", List[List[bytes]])])
 
 
 def _hash_pair(first: bytes, second: bytes) -> bytes:
@@ -18,9 +17,11 @@ def _hash_pair(first: bytes, second: bytes) -> bytes:
         return first
 
     if first > second:
-        return keccak(second + first)
+        ret: bytes = keccak(second + first)
     else:
-        return keccak(first + second)
+        ret = keccak(first + second)
+
+    return ret
 
 
 def compute_merkle_tree(items: Iterable[bytes]) -> MerkleTree:

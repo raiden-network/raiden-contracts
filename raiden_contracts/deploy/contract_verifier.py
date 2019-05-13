@@ -32,7 +32,7 @@ class ContractVerifier:
         self.precompiled_path = contracts_precompiled_path(self.contracts_version)
         self.contract_manager = ContractManager(self.precompiled_path)
 
-    def verify_deployed_contracts_in_filesystem(self):
+    def verify_deployed_contracts_in_filesystem(self) -> None:
         chain_id = int(self.web3.version.network)
 
         deployment_data = get_contracts_deployment_info(
