@@ -627,25 +627,20 @@ def test_deploy_token_with_balance(get_accounts, get_private_key):
 def deploy_raiden_arguments(
     privkey: str, save_info: Optional[bool], contracts_version: Optional[str]
 ) -> List:
-    if save_info is None:
-        save_info_arguments: List = []
-    elif save_info is True:
-        save_info_arguments = ["--save-info"]
-    else:
-        save_info_arguments = ["--no-save-info"]
+    arguments: List = ["--private-key", privkey, "--rpc-provider", "rpc_provider"]
+
+    if save_info is True:
+        arguments.append("--save-info")
+    elif save_info is False:
+        arguments.append("--no-save-info")
 
     if contract_version_with_max_token_networks(contracts_version):
-        max_arguments: List = ["--max-token-networks", 1]
-    else:
-        max_arguments = []
+        arguments.extend(["--max-token-networks", 1])
 
-    if contracts_version is None:
-        contracts_version_arguments: List = []
-    else:
-        contracts_version_arguments = ["--contracts-version", contracts_version]
+    if contracts_version:
+        arguments.extend(["--contracts-version", contracts_version])
 
-    common_arguments: List = ["--private-key", privkey, "--rpc-provider", "rpc_provider"]
-    return common_arguments + save_info_arguments + contracts_version_arguments + max_arguments
+    return arguments
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
