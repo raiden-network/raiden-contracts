@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
@@ -19,7 +19,7 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import contract_version_string
+from raiden_contracts.contract_manager import DeployedContract, contract_version_string
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier, DeployedContracts
 from raiden_contracts.utils.signature import private_key_to_address
@@ -61,7 +61,7 @@ class ContractDeployer(ContractVerifier):
     def deploy(self, contract_name: str, args=None):
         if args is None:
             args = list()
-        contract_interface = self.contract_manager.get_contract(contract_name)
+        contract_interface: DeployedContract = self.contract_manager.get_contract(contract_name)
 
         # Instantiate and deploy contract
         contract = self.web3.eth.contract(
@@ -182,7 +182,7 @@ class ContractDeployer(ContractVerifier):
 
     def register_token_network(
         self,
-        token_registry_abi: Dict,
+        token_registry_abi: List[Dict[str, Any]],
         token_registry_address: str,
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
@@ -209,7 +209,7 @@ class ContractDeployer(ContractVerifier):
 
     def _register_token_network_without_limits(
         self,
-        token_registry_abi: Dict,
+        token_registry_abi: List[Dict[str, Any]],
         token_registry_address: str,
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
@@ -252,7 +252,7 @@ class ContractDeployer(ContractVerifier):
 
     def _register_token_network_with_limits(
         self,
-        token_registry_abi: Dict,
+        token_registry_abi: List[Dict[str, Any]],
         token_registry_address: str,
         token_address: str,
         channel_participant_deposit_limit: Optional[int],

@@ -26,6 +26,7 @@ from raiden_contracts.deploy.etherscan_verify import (
     join_sources,
     post_data_for_etherscan_verification,
 )
+from raiden_contracts.utils.type_aliases import Address
 
 contract_name = "DummyContract"
 
@@ -45,7 +46,15 @@ def test_get_constructor_args_one_arg():
     """ Test get_constructor_args() on one argument """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "abi": abi_with_constructor_input_types(["uint256"])
+        "address": Address("0x00112233445566778899aabbccddeeff00112233"),
+        "abi": abi_with_constructor_input_types(["uint256"]),
+        "transaction_hash": "dummy",
+        "gas_cost": 300,
+        "constructor_arguments": ["dummy"],
+        "bin": "dummy",
+        "bin-runtime": "dummy",
+        "metadata": "dummy",
+        "block_number": 3,
     }
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16]}}
@@ -60,7 +69,15 @@ def test_get_constructor_args_two_args():
     """ Test get_constructor_args() on two arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "abi": abi_with_constructor_input_types(["uint256", "bool"])
+        "address": Address("0x00112233445566778899aabbccddeeff00112233"),
+        "abi": abi_with_constructor_input_types(["uint256", "bool"]),
+        "block_number": 0,
+        "bin-runtime": "dummy",
+        "bin": "dummy",
+        "constructor_arguments": ["dummy"],
+        "metadata": "dummy",
+        "gas_cost": 300,
+        "transaction_hash": "dummy",
     }
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16, True]}}

@@ -29,16 +29,18 @@ def check_token_network_created(
     return get
 
 
-def check_address_registered(eth_address, endpoint) -> Callable[..., Any]:
-    def get(event):
+def check_address_registered(eth_address: Address, endpoint: str) -> Callable[..., Any]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["eth_address"] == eth_address
         assert event["args"]["endpoint"] == endpoint
 
     return get
 
 
-def check_channel_opened(channel_identifier, participant1, participant2, settle_timeout):
-    def get(event):
+def check_channel_opened(
+    channel_identifier: int, participant1: Address, participant2: Address, settle_timeout: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant1"] == participant1
         assert event["args"]["participant2"] == participant2
@@ -48,8 +50,10 @@ def check_channel_opened(channel_identifier, participant1, participant2, settle_
 
 
 # Check TokenNetwork.ChannelNewDeposit events. Not for UDC deposits!
-def check_new_deposit(channel_identifier: int, participant: Address, deposit: int):
-    def get(event):
+def check_new_deposit(
+    channel_identifier: int, participant: Address, deposit: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant"] == participant
         assert event["args"]["total_deposit"] == deposit
@@ -57,8 +61,10 @@ def check_new_deposit(channel_identifier: int, participant: Address, deposit: in
     return get
 
 
-def check_withdraw(channel_identifier, participant, withdrawn_amount):
-    def get(event):
+def check_withdraw(
+    channel_identifier: int, participant: Address, withdrawn_amount: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant"] == participant
         assert event["args"]["total_withdraw"] == withdrawn_amount
@@ -66,8 +72,10 @@ def check_withdraw(channel_identifier, participant, withdrawn_amount):
     return get
 
 
-def check_channel_closed(channel_identifier, closing_participant, nonce):
-    def get(event):
+def check_channel_closed(
+    channel_identifier: int, closing_participant: Address, nonce: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["closing_participant"] == closing_participant
         assert event["args"]["nonce"] == nonce
@@ -76,9 +84,14 @@ def check_channel_closed(channel_identifier, closing_participant, nonce):
 
 
 def check_channel_unlocked(
-    channel_identifier, participant, partner, locksroot, unlocked_amount, returned_tokens
-):
-    def get(event):
+    channel_identifier: int,
+    participant: Address,
+    partner: Address,
+    locksroot: bytes,
+    unlocked_amount: int,
+    returned_tokens: int,
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant"] == participant
         assert event["args"]["partner"] == partner
@@ -89,8 +102,10 @@ def check_channel_unlocked(
     return get
 
 
-def check_transfer_updated(channel_identifier, closing_participant, nonce):
-    def get(event):
+def check_transfer_updated(
+    channel_identifier: int, closing_participant: Address, nonce: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["closing_participant"] == closing_participant
         assert event["args"]["nonce"] == nonce
@@ -98,8 +113,10 @@ def check_transfer_updated(channel_identifier, closing_participant, nonce):
     return get
 
 
-def check_channel_settled(channel_identifier, participant1_amount, participant2_amount):
-    def get(event) -> None:
+def check_channel_settled(
+    channel_identifier: int, participant1_amount: int, participant2_amount: int
+) -> Callable[[Dict[str, Any]], None]:
+    def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant1_amount"] == participant1_amount
         assert event["args"]["participant2_amount"] == participant2_amount

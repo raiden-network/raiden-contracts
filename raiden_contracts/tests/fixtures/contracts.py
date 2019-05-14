@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
@@ -24,7 +25,7 @@ def deploy_tester_contract(web3, contracts_manager, deploy_contract):
 
 
 @pytest.fixture(scope="session")
-def deploy_contract_txhash():
+def deploy_contract_txhash() -> Callable[..., Any]:
     """Returns a function that deploys a compiled contract, returning a txhash"""
 
     def fn(web3, deployer_address, abi, bytecode, args):
