@@ -20,3 +20,4 @@ requests_mock
 isort
 pipdeptree
 eth-typing<2.0.0
+eth-abi<=1.2.2

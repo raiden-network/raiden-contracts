@@ -6,4 +6,3 @@ semver
 mypy-extensions
 web3
 py_ecc<=1.5.0
-eth-abi<=1.2.2
