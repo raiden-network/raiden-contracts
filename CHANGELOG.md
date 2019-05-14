@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.19.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.19.1) - 2019-05-14
+
+- [#973](https://github.com/raiden-network/raiden-contracts/pull/973) Stop forcing a development-time dependency during the usual installation
+
 ## [0.19.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.19.0) - 2019-05-09
 
 - [#909](https://github.com/raiden-network/raiden-contracts/pull/909) MonitoringService prioritizes services
