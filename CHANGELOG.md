@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Start using SHA256 for the hashlock.
+
 ## [0.19.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.19.1) - 2019-05-14
 
 - [#973](https://github.com/raiden-network/raiden-contracts/pull/973) Stop forcing a development-time dependency during the usual installation
