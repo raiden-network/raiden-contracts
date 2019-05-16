@@ -1,4 +1,7 @@
 import pytest
+
+from hashlib import sha256
+
 from web3 import Web3
 from web3.exceptions import ValidationError
 
@@ -26,7 +29,8 @@ def test_register_secret_call(secret_registry_contract):
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret(fake_bytes(33))
 
-    assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is False
+    # For interoperability with other SHA256-based hashlocks, even 0x0000..00 needs to be accepted.
+    assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is True
     assert secret_registry_contract.functions.registerSecret(fake_bytes(10, "02")).call() is True
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32, "02")).call() is True
 
@@ -52,7 +56,7 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
     A = get_accounts(1)[0]
     secret = b"secretsecretsecretsecretsecretse"
     secret2 = b"secretsecretsecretsecretsecretss"
-    secrethash = Web3.sha3(secret)
+    secrethash = sha256(secret).digest()
 
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
 
@@ -72,7 +76,7 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
     """ Register four secrets and see them registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, fill) for fill in ("02", "03", "04", "05")]
-    secret_hashes = [Web3.sha3(secret) for secret in secrets]
+    secret_hashes = [sha256(secret).digest() for secret in secrets]
 
     for h in secret_hashes:
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == 0
@@ -89,9 +93,9 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
 def test_register_secret_batch_return_value(secret_registry_contract, get_accounts):
     """ See registerSecret returns True only when all secrets are registered """
     (A,) = get_accounts(1)
-    secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(11)]
+    secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32)]
 
-    assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is False
+    assert secret_registry_contract.functions.registerSecretBatch(secrets).call()
 
     secrets[2] = fake_bytes(32, "04")
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is True
@@ -103,7 +107,7 @@ def test_register_secret_batch_return_value(secret_registry_contract, get_accoun
 def test_events(secret_registry_contract, event_handler):
     """ A successful registerSecret() call causes an EVENT_SECRET_REVEALED event """
     secret = b"secretsecretsecretsecretsecretse"
-    secrethash = Web3.sha3(secret)
+    secrethash = sha256(secret).digest()
     ev_handler = event_handler(secret_registry_contract)
 
     txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
@@ -115,7 +119,7 @@ def test_events(secret_registry_contract, event_handler):
 def test_register_secret_batch_events(secret_registry_contract, event_handler):
     """ A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events """
     secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32, "04")]
-    secret_hashes = [Web3.sha3(secret) for secret in secrets]
+    secret_hashes = [sha256(secret).digest() for secret in secrets]
 
     ev_handler = event_handler(secret_registry_contract)
 
