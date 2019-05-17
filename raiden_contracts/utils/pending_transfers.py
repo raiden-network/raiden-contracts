@@ -1,5 +1,6 @@
 from collections import namedtuple
 from functools import reduce
+from hashlib import sha256
 from os import urandom
 from random import randint
 
@@ -107,7 +108,8 @@ def get_locked_amount(pending_transfers):
 
 def random_secret():
     secret = urandom(32)
-    return (Web3.soliditySha3(["bytes32"], [secret]), secret)  # pylint: disable=E1120
+    hasher = sha256(secret)
+    return (hasher.digest(), secret)
 
 
 def get_random_values_for_sum(values_sum):
