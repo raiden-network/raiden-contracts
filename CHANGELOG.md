@@ -7,7 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Start using SHA256 for the hashlock.
+## [0.20.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.20.0) - 2019-05-17
+
+- [#979](https://github.com/raiden-network/raiden-contracts/pull/979) Start using SHA256 for the hashlock.
+- [#979](https://github.com/raiden-network/raiden-contracts/pull/979) Start accepting zero as the secret.
 
 ## [0.19.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.19.1) - 2019-05-14
 
