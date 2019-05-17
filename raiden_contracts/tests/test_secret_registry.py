@@ -1,8 +1,6 @@
-import pytest
-
 from hashlib import sha256
 
-from web3 import Web3
+import pytest
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import CONTRACTS_VERSION, EVENT_SECRET_REVEALED

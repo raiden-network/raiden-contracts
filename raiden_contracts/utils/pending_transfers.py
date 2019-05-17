@@ -1,9 +1,8 @@
 from collections import namedtuple
 from functools import reduce
+from hashlib import sha256
 from os import urandom
 from random import randint
-
-from hashlib import sha256
 
 from eth_abi import encode_abi
 from web3 import Web3
