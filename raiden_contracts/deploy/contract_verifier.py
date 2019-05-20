@@ -273,19 +273,25 @@ def _verify_user_deposit_deployment(
     monitoring_service_address: Address,
 ):
     """ Check an onchain deployment of UserDeposit and constructor arguments at deployment time """
-    assert len(constructor_arguments) == 2
-    assert to_checksum_address(user_deposit.functions.token().call()) == token_address
-    assert token_address == constructor_arguments[0]
-    assert user_deposit.functions.whole_balance_limit().call() == user_deposit_whole_balance_limit
+    if len(constructor_arguments) != 2:
+        raise RuntimeError("UserDeposit has a wrong number of constructor arguments.")
+    if token_address != constructor_arguments[0]:
+        raise RuntimeError("UserDeposit received a wrong token address during construction.")
+    if to_checksum_address(user_deposit.functions.token().call()) != token_address:
+        raise RuntimeError("UserDeposit has a wrong token address onchain.")
+    if user_deposit.functions.whole_balance_limit().call() != user_deposit_whole_balance_limit:
+        raise RuntimeError("UserDeposit has a wrong whole_balance_limit onchain")
+    if user_deposit_whole_balance_limit != constructor_arguments[1]:
+        raise RuntimeError("UserDeposit received a wrong whole_balance_limit during construction.")
     assert user_deposit_whole_balance_limit == constructor_arguments[1]
-    assert (
-        to_checksum_address(user_deposit.functions.one_to_n_address().call()) == one_to_n_address
-    )
+    if to_checksum_address(user_deposit.functions.one_to_n_address().call()) != one_to_n_address:
+        raise RuntimeError("UserDeposit has a wrong OneToN address onchain.")
     onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
-    assert onchain_msc_address == monitoring_service_address, (
-        f"MSC address found onchain: {onchain_msc_address}, "
-        f"expected: {monitoring_service_address}"
-    )
+    if onchain_msc_address != monitoring_service_address:
+        raise RuntimeError(
+            f"MSC address found onchain: {onchain_msc_address}, "
+            f"expected: {monitoring_service_address}"
+        )
 
 
 def _verify_monitoring_service_deployment(
@@ -296,39 +302,59 @@ def _verify_monitoring_service_deployment(
     user_deposit_address: Address,
 ) -> None:
     """ Check an onchain deployment of MonitoringService and constructor arguments """
-    assert len(constructor_arguments) == 3
+    if len(constructor_arguments) != 3:
+        raise RuntimeError("MonitoringService has a wrong number of constructor arguments.")
+    if to_checksum_address(monitoring_service.functions.token().call()) != token_address:
+        raise RuntimeError("MonitoringService has a wrong token address onchain.")
     assert to_checksum_address(monitoring_service.functions.token().call()) == token_address
-    assert token_address == constructor_arguments[0]
+    if token_address != constructor_arguments[0]:
+        raise RuntimeError("MonitoringService received a wrong token address during construction")
 
-    assert (
+    if (
         to_checksum_address(monitoring_service.functions.service_registry().call())
-        == service_registry_address
-    )
-    assert service_registry_address == constructor_arguments[1]
-
-    assert (
+        != service_registry_address
+    ):
+        raise RuntimeError("MonitoringService has a wrong ServiceRegistry address onchain.")
+    if service_registry_address != constructor_arguments[1]:
+        raise RuntimeError("MonitoringService received a wrong address during construction.")
+    if (
         to_checksum_address(monitoring_service.functions.user_deposit().call())
-        == user_deposit_address
-    )
-    assert user_deposit_address == constructor_arguments[2]
+        != user_deposit_address
+    ):
+        raise RuntimeError("MonitoringService has a wrong UserDeposit address onchain.")
+    if user_deposit_address != constructor_arguments[2]:
+        raise RuntimeError(
+            "MonitoringService received a wrong UserDeposit address during construction."
+        )
 
 
 def _verify_one_to_n_deployment(
     one_to_n: Contract, constructor_arguments: List, user_deposit_address: Address, chain_id: int
 ) -> None:
     """ Check an onchain deployment of OneToN and constructor arguments """
-    assert (
-        to_checksum_address(one_to_n.functions.deposit_contract().call()) == user_deposit_address
-    )
-    assert user_deposit_address == constructor_arguments[0]
-    assert chain_id == constructor_arguments[1]
-    assert len(constructor_arguments) == 2
+    if to_checksum_address(one_to_n.functions.deposit_contract().call()) != user_deposit_address:
+        raise RuntimeError("OneToN has a wrong UserDeposit address onchain.")
+    if user_deposit_address != constructor_arguments[0]:
+        raise RuntimeError("OneToN received a wrong UserDeposit address during construction.")
+    if chain_id != constructor_arguments[1]:
+        raise RuntimeError("OneToN received a wrong chain ID during construction.")
+    if len(constructor_arguments) != 2:
+        raise RuntimeError("OneToN received a wrong number of constructor arguments.")
 
 
 def _verify_service_registry_deployment(
     service_registry: Contract, constructor_arguments: List, token_address: Address
 ) -> None:
     """ Check an onchain deployment of ServiceRegistry and constructor arguments """
-    assert to_checksum_address(service_registry.functions.token().call()) == token_address
-    assert token_address == constructor_arguments[0]
-    assert len(constructor_arguments) == 1
+    if to_checksum_address(service_registry.functions.token().call()) != token_address:
+        raise RuntimeError("service_registry has a wrong token address")
+    if token_address != constructor_arguments[0]:
+        raise RuntimeError(
+            f"expected token addredd {token_address} "
+            f"but the constructor argument for {CONTRACT_SERVICE_REGISTRY} is "
+            f"{constructor_arguments[0]}"
+        )
+    if len(constructor_arguments) != 1:
+        raise RuntimeError(
+            "service_registry was deployed with a wrong number of constructor arguments"
+        )
