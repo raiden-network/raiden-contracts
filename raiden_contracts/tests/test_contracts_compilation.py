@@ -204,6 +204,15 @@ def contract_manager_meta(contracts_path, source: bool):
             manager.get_event_abi(CONTRACT_TOKEN_NETWORK, "NonExistant")
 
 
+def test_contract_manager_without_contracts():
+    """ ContractManager's constructor fails on a JSON with "contracts": null """
+    with NamedTemporaryFile() as tmpfile:
+        tmpfile.write(b'{"contracts": null}')
+        tmpfile.flush()
+        with pytest.raises(RuntimeError):
+            ContractManager(Path(tmpfile.name))
+
+
 def test_contract_manager_compile():
     """ Check the ABI in the sources """
     contract_manager_meta(contracts_source_path(), source=True)
