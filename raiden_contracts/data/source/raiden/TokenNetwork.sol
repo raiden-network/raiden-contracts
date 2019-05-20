@@ -1147,8 +1147,8 @@ contract TokenNetwork is Utils {
 
     function storeUnlockData(
         uint256 channel_identifier,
-        address participant,
-        address partner,
+        address sender,
+        address receiver,
         uint256 locked_amount,
         bytes32 locksroot
     )
@@ -1160,7 +1160,7 @@ contract TokenNetwork is Utils {
             return;
         }
 
-        bytes32 key = getUnlockIdentifier(channel_identifier, participant, partner);
+        bytes32 key = getUnlockIdentifier(channel_identifier, sender, receiver);
         UnlockData storage unlock_data = unlock_identifier_to_unlock_data[key];
         unlock_data.locksroot = locksroot;
         unlock_data.locked_amount = locked_amount;
