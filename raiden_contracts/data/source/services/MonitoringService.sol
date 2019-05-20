@@ -235,7 +235,7 @@ contract MonitoringService is Utils {
             assumed_settle_timeout,
             closing_participant,
             non_closing_participant,
-            msg.sender
+            monitoring_service_address
         );
     }
 
