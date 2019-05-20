@@ -1,6 +1,8 @@
 import json
+from typing import Callable, List
 
 import pytest
+from web3.contract import Contract
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -98,12 +100,12 @@ def print_gas_token_network_deployment(
 
 @pytest.fixture
 def print_gas_token_network_create(
-    print_gas,
-    custom_token,
-    get_token_network_registry,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-    token_network_registry_constructor_args,
+    print_gas: Callable,
+    custom_token: Contract,
+    get_token_network_registry: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+    token_network_registry_constructor_args: List,
 ):
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     registry = get_token_network_registry(token_network_registry_constructor_args)

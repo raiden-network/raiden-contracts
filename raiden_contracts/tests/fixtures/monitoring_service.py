@@ -1,4 +1,5 @@
 import pytest
+from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_MONITORING_SERVICE
 from raiden_contracts.utils.proofs import sign_reward_proof
@@ -21,7 +22,7 @@ def monitoring_service_external(
 @pytest.fixture()
 def monitoring_service_internals(
     custom_token, service_registry, uninitialized_user_deposit_contract, deploy_tester_contract
-):
+) -> Contract:
     return deploy_tester_contract(
         "MonitoringServiceInternalsTest",
         [

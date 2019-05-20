@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
@@ -19,7 +21,7 @@ def test_verify(
     token_network,
     signature_test_contract,
     get_accounts,
-    create_channel,
+    create_channel: Callable,
     create_balance_proof,
 ):
     """ ECVerify.ecverify returns the correct address

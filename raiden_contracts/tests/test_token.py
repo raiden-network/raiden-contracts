@@ -1,10 +1,15 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_HUMAN_STANDARD_TOKEN
+from raiden_contracts.contract_manager import ContractManager
 
 
-def test_token_mint(web3, custom_token, get_accounts):
+def test_token_mint(web3: Web3, custom_token: Contract, get_accounts: Callable) -> None:
     """ Use the mint() function of the custom token contract """
 
     (A, B) = get_accounts(2)
@@ -28,7 +33,7 @@ def test_token_mint(web3, custom_token, get_accounts):
     assert web3.eth.getBalance(token.address) == token_pre_balance
 
 
-def test_approve_transfer(custom_token, get_accounts):
+def test_approve_transfer(custom_token: Contract, get_accounts: Callable) -> None:
     """ Use the approve() function of the custom token contract """
 
     (A, B) = get_accounts(2)
@@ -48,7 +53,7 @@ def test_approve_transfer(custom_token, get_accounts):
     assert custom_token.functions.allowance(_owner=A, _spender=token.address).call() == 0
 
 
-def test_token_transfer_funds(web3, custom_token, get_accounts):
+def test_token_transfer_funds(web3: Web3, custom_token: Contract, get_accounts: Callable) -> None:
     """ transferFunds() should fail when the ETH balance of the contract is zero """
 
     A = get_accounts(1)[0]
@@ -68,7 +73,7 @@ def test_token_transfer_funds(web3, custom_token, get_accounts):
     assert web3.eth.getBalance(token.address) == 0
 
 
-def test_custom_token(custom_token, web3, contracts_manager):
+def test_custom_token(custom_token: Contract, web3: Web3, contracts_manager: ContractManager):
     """ See custom_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(custom_token.address).hex()
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_CUSTOM_TOKEN)

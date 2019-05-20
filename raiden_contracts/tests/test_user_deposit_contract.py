@@ -1,10 +1,16 @@
+from typing import Callable, Tuple
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACTS_VERSION, UserDepositEvent
 
 
-def test_deposit(user_deposit_contract, custom_token, get_accounts):
+def test_deposit(
+    user_deposit_contract: Contract, custom_token: Contract, get_accounts: Callable[[int], Tuple]
+) -> None:
     (A, B) = get_accounts(2)
     custom_token.functions.mint(100).call_and_transact({"from": A})
     custom_token.functions.approve(user_deposit_contract.address, 30).call_and_transact(
@@ -52,12 +58,12 @@ def test_deposit(user_deposit_contract, custom_token, get_accounts):
 
 
 def test_transfer(
-    uninitialized_user_deposit_contract,
-    udc_transfer_contract,
-    get_accounts,
-    event_handler,
-    custom_token,
-):
+    uninitialized_user_deposit_contract: Contract,
+    udc_transfer_contract: Contract,
+    get_accounts: Callable[[int], Tuple],
+    event_handler: Callable,
+    custom_token: Contract,
+) -> None:
     user_deposit_contract = uninitialized_user_deposit_contract
     ev_handler = event_handler(user_deposit_contract)
     (A, B) = get_accounts(2)
@@ -89,8 +95,11 @@ def test_transfer(
 
 
 def test_deposit_after_transfer(
-    uninitialized_user_deposit_contract, udc_transfer_contract, custom_token, get_accounts
-):
+    uninitialized_user_deposit_contract: Contract,
+    udc_transfer_contract: Contract,
+    custom_token: Contract,
+    get_accounts: Callable[[int], Tuple],
+) -> None:
     """ Make sure that `total_deposit` and `balance` are not mixed up.
 
     When doing a deposit followed by a transfer, both variables start to differ
@@ -122,7 +131,13 @@ def test_deposit_after_transfer(
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 20
 
 
-def test_withdraw(user_deposit_contract, deposit_to_udc, get_accounts, web3, event_handler):
+def test_withdraw(
+    user_deposit_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    web3: Web3,
+    event_handler: Callable,
+) -> None:
     """ Test the interaction between planWithdraw, widthdraw and effectiveBalance
     """
     ev_handler = event_handler(user_deposit_contract)
@@ -156,7 +171,7 @@ def test_withdraw(user_deposit_contract, deposit_to_udc, get_accounts, web3, eve
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
 
 
-def test_version(user_deposit_contract):
+def test_version(user_deposit_contract: Contract) -> None:
     """ Check the result of contract_version() call on the UserDeposit """
     version = user_deposit_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION

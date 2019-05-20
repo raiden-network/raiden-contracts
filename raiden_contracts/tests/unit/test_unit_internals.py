@@ -2,10 +2,11 @@ from itertools import chain, product
 
 import pytest
 from eth_tester.constants import UINT256_MAX, UINT256_MIN
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 
-def test_min_uses_usigned(token_network_test_utils) -> None:
+def test_min_uses_usigned(token_network_test_utils: Contract) -> None:
     """ Min cannot be called with negative values """
     INVALID_VALUES = [-UINT256_MAX, -1]
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
@@ -19,7 +20,7 @@ def test_min_uses_usigned(token_network_test_utils) -> None:
             token_network_test_utils.functions.minPublic(a, b).call()
 
 
-def test_max_uses_usigned(token_network_test_utils):
+def test_max_uses_usigned(token_network_test_utils: Contract) -> None:
     """ Max cannot be called with negative values """
 
     INVALID_VALUES = [-UINT256_MAX, -1]
@@ -33,7 +34,7 @@ def test_max_uses_usigned(token_network_test_utils):
             token_network_test_utils.functions.maxPublic(a, b).call()
 
 
-def test_min(token_network_test_utils):
+def test_min(token_network_test_utils: Contract) -> None:
     """ Min works like Python's min """
 
     VALUES = [UINT256_MIN, 1, UINT256_MAX, UINT256_MAX]
@@ -41,7 +42,7 @@ def test_min(token_network_test_utils):
         assert token_network_test_utils.functions.minPublic(a, b).call() == min(a, b)
 
 
-def test_max(token_network_test_utils):
+def test_max(token_network_test_utils: Contract) -> None:
     """ Max works like Python's max """
 
     VALUES = [UINT256_MIN, 1, UINT256_MAX, UINT256_MAX]
