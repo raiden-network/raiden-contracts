@@ -14,10 +14,16 @@ def sign(privkey: str, msg: bytes, v: int = 0) -> bytes:
         raise ValueError("sign(): msg has to be exactly 32 bytes")
     if not isinstance(privkey, str):
         raise TypeError("sign(): privkey is not an instance of str")
+    if v not in {0, 27}:
+        raise ValueError(f"sign(): got v = {v} expected 0 or 27.")
 
     pk = PrivateKey.from_hex(remove_0x_prefix(privkey))
     sig: bytes = pk.sign_recoverable(msg, hasher=None)
     assert len(sig) == 65
+
+    pub = pk.public_key
+    recovered = PublicKey.from_signature_and_message(sig, msg, hasher=None)
+    assert pub == recovered
 
     sig = sig[:-1] + bytes([sig[-1] + v])
 
