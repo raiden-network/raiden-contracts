@@ -85,16 +85,16 @@ def check_channel_closed(
 
 def check_channel_unlocked(
     channel_identifier: int,
-    participant: Address,
-    partner: Address,
+    receiver: Address,
+    sender: Address,
     locksroot: bytes,
     unlocked_amount: int,
     returned_tokens: int,
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
-        assert event["args"]["participant"] == participant
-        assert event["args"]["partner"] == partner
+        assert event["args"]["receiver"] == receiver
+        assert event["args"]["sender"] == sender
         assert event["args"]["locksroot"] == locksroot
         assert event["args"]["unlocked_amount"] == unlocked_amount
         assert event["args"]["returned_tokens"] == returned_tokens

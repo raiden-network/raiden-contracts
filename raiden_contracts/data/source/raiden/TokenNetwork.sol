@@ -165,8 +165,8 @@ contract TokenNetwork is Utils {
 
     event ChannelUnlocked(
         uint256 indexed channel_identifier,
-        address indexed participant,
-        address indexed partner,
+        address indexed receiver,
+        address indexed sender,
         bytes32 locksroot,
         uint256 unlocked_amount,
         uint256 returned_tokens
@@ -782,30 +782,30 @@ contract TokenNetwork is Utils {
         }
     }
 
-    /// @notice Unlocks all pending off-chain transfers from `partner` to
-    /// `participant` and sends the locked tokens corresponding to locks with
-    /// secrets registered on-chain to the `participant`. Locked tokens
+    /// @notice Unlocks all pending off-chain transfers from `sender` to
+    /// `receiver` and sends the locked tokens corresponding to locks with
+    /// secrets registered on-chain to the `receiver`. Locked tokens
     /// corresponding to locks where the secret was not revealed on-chain will
-    /// return to the `partner`. Anyone can call unlock.
+    /// return to the `sender`. Anyone can call unlock.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place.
-    /// @param participant Address who will receive the claimable unlocked
+    /// @param receiver Address who will receive the claimable unlocked
     /// tokens.
-    /// @param partner Address who sent the pending transfers and will receive
+    /// @param sender Address who sent the pending transfers and will receive
     /// the unclaimable unlocked tokens.
     /// @param merkle_tree_leaves The entire merkle tree of pending transfers
-    /// that `partner` sent to `participant`.
+    /// that `sender` sent to `receiver`.
     function unlock(
         uint256 channel_identifier,
-        address participant,
-        address partner,
+        address receiver,
+        address sender,
         bytes memory merkle_tree_leaves
     )
         public
     {
         // Channel represented by channel_identifier must be settled and
         // channel data deleted
-        require(channel_identifier != getChannelIdentifier(participant, partner));
+        require(channel_identifier != getChannelIdentifier(receiver, sender));
 
         // After the channel is settled the storage is cleared, therefore the
         // value will be NonExistent and not Settled. The value Settled is used
@@ -827,11 +827,11 @@ contract TokenNetwork is Utils {
             merkle_tree_leaves
         );
 
-        // The partner must have a non-empty locksroot on-chain that must be
+        // The sender must have a non-empty locksroot on-chain that must be
         // the same as the computed locksroot.
         // Get the amount of tokens that have been left in the contract, to
-        // account for the pending transfers `partner` -> `participant`.
-        unlock_key = getUnlockIdentifier(channel_identifier, partner, participant);
+        // account for the pending transfers `sender` -> `receiver`.
+        unlock_key = getUnlockIdentifier(channel_identifier, sender, receiver);
         UnlockData storage unlock_data = unlock_identifier_to_unlock_data[unlock_key];
         locked_amount = unlock_data.locked_amount;
 
@@ -846,30 +846,30 @@ contract TokenNetwork is Utils {
         // the smart contract.
         unlocked_amount = min(unlocked_amount, locked_amount);
 
-        // Transfer the rest of the tokens back to the partner
+        // Transfer the rest of the tokens back to the sender
         returned_tokens = locked_amount - unlocked_amount;
 
-        // Remove partner's unlock data
+        // Remove sender's unlock data
         delete unlock_identifier_to_unlock_data[unlock_key];
 
         emit ChannelUnlocked(
             channel_identifier,
-            participant,
-            partner,
+            receiver,
+            sender,
             computed_locksroot,
             unlocked_amount,
             returned_tokens
         );
 
-        // Transfer the unlocked tokens to the participant. unlocked_amount can
+        // Transfer the unlocked tokens to the receiver. unlocked_amount can
         // be 0
         if (unlocked_amount > 0) {
-            require(token.transfer(participant, unlocked_amount));
+            require(token.transfer(receiver, unlocked_amount));
         }
 
-        // Transfer the rest of the tokens back to the partner
+        // Transfer the rest of the tokens back to the sender
         if (returned_tokens > 0) {
-            require(token.transfer(partner, returned_tokens));
+            require(token.transfer(sender, returned_tokens));
         }
 
         // At this point, this should always be true
@@ -1107,24 +1107,24 @@ contract TokenNetwork is Utils {
 
     /// @dev Get the hash of the channel identifier and the participant
     /// addresses (whose ordering matters). The hash might be useful for
-    /// the partner to look up the appropriate UnlockData to claim.
+    /// the receiver to look up the appropriate UnlockData to claim.
     /// @param channel_identifier Identifier for the channel which the
     /// UnlockData is about.
-    /// @param participant Sender of the pending transfers that the UnlockData
+    /// @param sender Sender of the pending transfers that the UnlockData
     /// represents.
-    /// @param partner Receiver of the pending transfers that the UnlockData
+    /// @param receiver Receiver of the pending transfers that the UnlockData
     /// represents.
     function getUnlockIdentifier(
         uint256 channel_identifier,
-        address participant,
-        address partner
+        address sender,
+        address receiver
     )
         pure
         public
         returns (bytes32)
     {
-        require(participant != partner);
-        return keccak256(abi.encodePacked(channel_identifier, participant, partner));
+        require(sender != receiver);
+        return keccak256(abi.encodePacked(channel_identifier, sender, receiver));
     }
 
     function updateBalanceProofData(
@@ -1147,8 +1147,8 @@ contract TokenNetwork is Utils {
 
     function storeUnlockData(
         uint256 channel_identifier,
-        address participant,
-        address partner,
+        address sender,
+        address receiver,
         uint256 locked_amount,
         bytes32 locksroot
     )
@@ -1160,7 +1160,7 @@ contract TokenNetwork is Utils {
             return;
         }
 
-        bytes32 key = getUnlockIdentifier(channel_identifier, participant, partner);
+        bytes32 key = getUnlockIdentifier(channel_identifier, sender, receiver);
         UnlockData storage unlock_data = unlock_identifier_to_unlock_data[key];
         unlock_data.locksroot = locksroot;
         unlock_data.locked_amount = locked_amount;
