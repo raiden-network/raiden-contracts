@@ -23,12 +23,14 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import contracts_precompiled_path
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
+    ContractVerifier,
     contract_version_with_max_token_networks,
     error_removed_option,
     raiden,
     services,
     token,
     validate_address,
+    verify,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
 from raiden_contracts.tests.utils import get_random_privkey
@@ -861,3 +863,14 @@ def test_deploy_services_save_info_false(mock_deploy, mock_verify, get_accounts,
             assert result.exit_code == 0
             mock_deploy.assert_called_once()
             mock_verify.assert_called_once()
+
+
+@patch.object(ContractVerifier, "verify_deployed_contracts_in_filesystem")
+def test_verify_script(mock_verify):
+    """ Calling deploy verify command """
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(verify, ["--rpc-provider", "rpc-provider"])
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_verify.assert_called_once()
