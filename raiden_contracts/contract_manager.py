@@ -62,6 +62,10 @@ class ContractManager:
             raise ContractManagerLoadError(f"Can't load precompiled smart contracts: {ex}") from ex
         try:
             self.contracts: Dict[str, DeployedContract] = precompiled_content["contracts"]
+            if not self.contracts:
+                raise RuntimeError(
+                    f"Cannot find precompiled contracts data in the JSON file {path}."
+                )
             self.overall_checksum = precompiled_content["overall_checksum"]
             self.contracts_checksums = precompiled_content["contracts_checksums"]
             self.contracts_version = precompiled_content["contracts_version"]
