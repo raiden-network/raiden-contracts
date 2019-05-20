@@ -54,15 +54,6 @@ contract MonitoringService is Utils {
     event RewardClaimed(address indexed ms_address, uint amount, bytes32 indexed reward_identifier);
 
     /*
-     *  Modifiers
-     */
-
-    modifier canMonitor(address _ms_address) {
-        /* TODO add a reasonable check on the _ms_address */
-        _;
-    }
-
-    /*
      *  Constructor
      */
 
@@ -172,7 +163,6 @@ contract MonitoringService is Utils {
         address token_network_address,
         bytes memory reward_proof_signature
     )
-        canMonitor(msg.sender)
         public
     {
         // Call updateReward first to avoid reentrancy problems when the
