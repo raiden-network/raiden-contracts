@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Unlock-related functions' and events' arguments are renamed into `sender` and `receiver`
+
 ## [0.20.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.20.0) - 2019-05-17
 
 - [#979](https://github.com/raiden-network/raiden-contracts/pull/979) Start using SHA256 for the hashlock.
