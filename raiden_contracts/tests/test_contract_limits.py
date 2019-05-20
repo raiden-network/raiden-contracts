@@ -1,5 +1,9 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
@@ -11,13 +15,13 @@ from raiden_contracts.constants import (
 
 
 def test_register_three_but_not_four(
-    web3,
-    get_token_network_registry,
-    secret_registry_contract,
-    custom_token_factory,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    web3: Web3,
+    get_token_network_registry: Callable,
+    secret_registry_contract: Contract,
+    custom_token_factory: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Check that TokenNetworkRegistry observes the max number of tokens """
     token_network_registry = get_token_network_registry(
         [
@@ -48,19 +52,24 @@ def test_register_three_but_not_four(
         ).call()
 
 
-def test_channel_participant_deposit_limit_value(token_network):
+def test_channel_participant_deposit_limit_value(token_network: Contract) -> None:
     """ Check the channel participant deposit limit """
     limit = token_network.functions.channel_participant_deposit_limit().call()
     assert limit == MAX_ETH_CHANNEL_PARTICIPANT
 
 
-def test_network_deposit_limit_value(token_network):
+def test_network_deposit_limit_value(token_network: Contract) -> None:
     """ Check the token network deposit limit """
     limit = token_network.functions.token_network_deposit_limit().call()
     assert limit == MAX_ETH_TOKEN_NETWORK
 
 
-def test_participant_deposit_limit(get_accounts, token_network, create_channel, assign_tokens):
+def test_participant_deposit_limit(
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    assign_tokens: Callable,
+) -> None:
     """ Observe failure to deposit a bit more tokens than the participant deposit limit """
     (A, B) = get_accounts(2)
     deposit_A = 100000
@@ -110,22 +119,26 @@ def test_participant_deposit_limit(get_accounts, token_network, create_channel, 
 
 @pytest.mark.skip(reason="Only for local testing, otherwise it takes too much time to run.")
 def test_network_deposit_limit(
-    create_account, custom_token, token_network, create_channel, assign_tokens
-):
+    create_account: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    assign_tokens: Callable,
+) -> None:
     last_deposit = 100
 
     # ! Only for testing, otherwise we need 1300+ channels and test needs a lot of time to complete
     # ! The token_network_deposit_limit also needs to be changed for this to work
     MAX_ETH_TOKEN_NETWORK_TESTING = int(1 * 10 ** 18)
 
-    def remaining():
+    def remaining() -> int:
         return (
             MAX_ETH_TOKEN_NETWORK_TESTING
             - custom_token.functions.balanceOf(token_network.address).call()
             - last_deposit
         )
 
-    def send_remaining(channel_identifier, participant1, participant2):
+    def send_remaining(channel_identifier, participant1, participant2) -> None:
         remaining_to_reach_limit = remaining()
         assign_tokens(participant1, remaining_to_reach_limit)
         token_network.functions.setTotalDeposit(

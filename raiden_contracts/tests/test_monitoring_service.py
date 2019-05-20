@@ -3,6 +3,7 @@ from eth_abi import encode_single
 from eth_tester.exceptions import TransactionFailed
 from eth_utils import to_checksum_address
 from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, MonitoringServiceEvent
 from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
@@ -84,7 +85,7 @@ def monitor_data(
 def test_claimReward_with_settle_call(
     token_network,
     monitoring_service_external,
-    user_deposit_contract,
+    user_deposit_contract: Contract,
     event_handler,
     monitor_data,
     ms_address,

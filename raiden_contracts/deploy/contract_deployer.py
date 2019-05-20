@@ -276,11 +276,11 @@ class ContractDeployer(ContractVerifier):
             abi=token_registry_abi, address=token_registry_address
         )
 
-        version_from_onchain = token_network_registry.functions.contract_version().call()
+        version_from_onchain: str = token_network_registry.functions.contract_version().call()
         if version_from_onchain != self.contract_manager.version_string:
             raise RuntimeError(
                 f"got {version_from_onchain} from the chain, expected "
-                f"{self.contract_manager.version_string()} in the deployment data"
+                f"{self.contract_manager.version_string} in the deployment data"
             )
 
         command = token_network_registry.functions.createERC20TokenNetwork(

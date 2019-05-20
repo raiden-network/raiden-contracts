@@ -104,11 +104,11 @@ class ContractManager:
         return [arg["type"] for arg in constructor["inputs"]]
 
     @property
-    def version_string(self):
+    def version_string(self) -> str:
         """Return a flavored version string."""
         return contract_version_string(self.contracts_version)
 
-    def get_runtime_hexcode(self, contract_name: str):
+    def get_runtime_hexcode(self, contract_name: str) -> str:
         """ Calculate the runtime hexcode with 0x prefix.
 
         Parameters:
@@ -200,7 +200,7 @@ def get_contracts_deployment_info(
     if module not in DeploymentModule:
         raise ValueError(f"Unknown module {module} given to get_contracts_deployment_info()")
 
-    def module_chosen(to_be_added: DeploymentModule):
+    def module_chosen(to_be_added: DeploymentModule) -> bool:
         return module == to_be_added or module == DeploymentModule.ALL
 
     files: List[Path] = []
