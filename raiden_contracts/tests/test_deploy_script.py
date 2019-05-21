@@ -821,6 +821,42 @@ def test_register_script(mock_deploy, get_accounts, get_private_key):
             mock_deploy.assert_called_once()
 
 
+@patch.object(ContractDeployer, "register_token_network")
+def test_register_script_without_token_network(mock_deploy, get_accounts, get_private_key):
+    """ Calling deploy raiden command """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, "ascii"))
+        privkey_file.flush()
+        with patch.object(Eth, "getBalance", return_value=1):
+            runner = CliRunner()
+            result = runner.invoke(
+                register,
+                [
+                    "--rpc-provider",
+                    "rpv_provider",
+                    "--private-key",
+                    privkey_file.name,
+                    "--gas-price",
+                    "12",
+                    "--token-address",
+                    "0x90a16f6aEA062c429c85dc4124ee4b24A00bCc9a",
+                    "--channel-participant-deposit-limit",
+                    "100",
+                    "--token-network-deposit-limit",
+                    "200",
+                ],
+            )
+            assert result.exit_code != 0
+            assert type(result.exception) == RuntimeError
+            assert result.exception.args == (
+                "No TokenNetworkRegistry was specified. "
+                "Add --token-network-registry-address <address>.",
+            )
+            mock_deploy.assert_not_called()
+
+
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractDeployer, "verify_deployment_data")
 def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
