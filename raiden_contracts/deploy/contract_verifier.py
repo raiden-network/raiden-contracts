@@ -1,6 +1,7 @@
 import json
 from typing import List, Optional
 
+from eth_typing.evm import HexAddress
 from eth_utils import to_checksum_address
 from web3 import Web3
 from web3.contract import Contract
@@ -22,7 +23,6 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
-from raiden_contracts.utils.type_aliases import Address
 
 
 class ContractVerifier:
@@ -53,7 +53,7 @@ class ContractVerifier:
             )
 
     def verify_deployed_service_contracts_in_filesystem(
-        self, token_address: Address, user_deposit_whole_balance_limit: int
+        self, token_address: HexAddress, user_deposit_whole_balance_limit: int
     ):
         chain_id = int(self.web3.version.network)
 
@@ -85,7 +85,7 @@ class ContractVerifier:
     def store_and_verify_deployment_info_services(
         self,
         deployed_contracts_info: DeployedContracts,
-        token_address: Address,
+        token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
     ):
         self._store_deployment_info(services=True, deployment_info=deployed_contracts_info)
@@ -211,7 +211,7 @@ class ContractVerifier:
 
     def verify_service_contracts_deployment_data(
         self,
-        token_address: Address,
+        token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
         deployed_contracts_info: DeployedContracts,
     ):
@@ -267,10 +267,10 @@ class ContractVerifier:
 def _verify_user_deposit_deployment(
     user_deposit: Contract,
     constructor_arguments: List,
-    token_address: Address,
+    token_address: HexAddress,
     user_deposit_whole_balance_limit: int,
-    one_to_n_address: Address,
-    monitoring_service_address: Address,
+    one_to_n_address: HexAddress,
+    monitoring_service_address: HexAddress,
 ):
     """ Check an onchain deployment of UserDeposit and constructor arguments at deployment time """
     if len(constructor_arguments) != 2:
@@ -297,9 +297,9 @@ def _verify_user_deposit_deployment(
 def _verify_monitoring_service_deployment(
     monitoring_service: Contract,
     constructor_arguments: List,
-    token_address: Address,
-    service_registry_address: Address,
-    user_deposit_address: Address,
+    token_address: HexAddress,
+    service_registry_address: HexAddress,
+    user_deposit_address: HexAddress,
 ) -> None:
     """ Check an onchain deployment of MonitoringService and constructor arguments """
     if len(constructor_arguments) != 3:
@@ -329,7 +329,10 @@ def _verify_monitoring_service_deployment(
 
 
 def _verify_one_to_n_deployment(
-    one_to_n: Contract, constructor_arguments: List, user_deposit_address: Address, chain_id: int
+    one_to_n: Contract,
+    constructor_arguments: List,
+    user_deposit_address: HexAddress,
+    chain_id: int,
 ) -> None:
     """ Check an onchain deployment of OneToN and constructor arguments """
     if to_checksum_address(one_to_n.functions.deposit_contract().call()) != user_deposit_address:
@@ -343,7 +346,7 @@ def _verify_one_to_n_deployment(
 
 
 def _verify_service_registry_deployment(
-    service_registry: Contract, constructor_arguments: List, token_address: Address
+    service_registry: Contract, constructor_arguments: List, token_address: HexAddress
 ) -> None:
     """ Check an onchain deployment of ServiceRegistry and constructor arguments """
     if to_checksum_address(service_registry.functions.token().call()) != token_address:

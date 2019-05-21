@@ -3,19 +3,18 @@ from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from eth_typing.evm import HexAddress
 from web3 import Web3
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
 from web3.utils.threads import Timeout
-
-from raiden_contracts.utils.type_aliases import Address
 
 # A concrete event added in a transaction.
 LogRecorded = namedtuple("LogRecorded", "message callback count")
 
 
 class LogHandler:
-    def __init__(self, web3: Web3, address: Address, abi: List[Any]):
+    def __init__(self, web3: Web3, address: HexAddress, abi: List[Any]):
         self.web3 = web3
         self.address = address
         self.abi = abi
@@ -137,7 +136,7 @@ class LogFilter:
         self,
         web3: Web3,
         abi: List[Any],
-        address: Address,
+        address: HexAddress,
         event_name: str,
         from_block: int = 0,
         to_block: Union[int, str] = "latest",

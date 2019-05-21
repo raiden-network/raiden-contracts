@@ -1,7 +1,7 @@
 import pytest
+from eth_typing.evm import HexAddress
 
 from raiden_contracts.utils.logs import LogFilter
-from raiden_contracts.utils.type_aliases import Address
 
 
 def test_logfilter_with_nonexistent_event(web3):
@@ -11,7 +11,7 @@ def test_logfilter_with_nonexistent_event(web3):
         LogFilter(
             web3=web3,
             abi=[],
-            address=Address("fake"),
+            address=HexAddress("0xfake"),
             event_name="ev0",
             from_block=0,
             to_block="latest",

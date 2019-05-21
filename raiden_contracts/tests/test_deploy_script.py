@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click import BadParameter, NoSuchOption
 from click.testing import CliRunner
+from eth_typing.evm import HexAddress
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem_unittest import Patcher
 from web3.eth import Eth
@@ -39,7 +40,6 @@ from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDRESS,
     FAUCET_PRIVATE_KEY,
 )
-from raiden_contracts.utils.type_aliases import Address, T_Address
 
 GAS_LIMIT = 5860000
 
@@ -228,7 +228,7 @@ def test_deploy_script_token(web3,):
     )
 
     assert deployed_token[token_type] is not None
-    assert isinstance(deployed_token[token_type], T_Address)
+    assert isinstance(deployed_token[token_type], str)
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
@@ -279,7 +279,7 @@ def test_deploy_script_register(
         token_network_deposit_limit=token_network_deposit_limit,
     )
     assert token_network_address is not None
-    assert isinstance(token_network_address, T_Address)
+    assert isinstance(token_network_address, str)
 
 
 @pytest.mark.slow
@@ -306,7 +306,7 @@ def test_deploy_script_register_without_limit(
         token_network_deposit_limit=None,
     )
     assert token_network_address is not None
-    assert isinstance(token_network_address, T_Address)
+    assert isinstance(token_network_address, str)
 
 
 def test_deploy_script_register_missing_limits(
@@ -405,7 +405,7 @@ def test_deploy_script_register_unexpected_limits(
 
 
 @pytest.mark.slow
-def test_deploy_script_service(web3, deployed_service_info, token_address: Address):
+def test_deploy_script_service(web3, deployed_service_info, token_address: HexAddress):
     """ Run deploy_service_contracts() used in the deployment script
 
     This checks if deploy_service_contracts() works correctly in the happy case.
@@ -416,7 +416,7 @@ def test_deploy_script_service(web3, deployed_service_info, token_address: Addre
     )
 
     token_supply = 10000000
-    assert isinstance(token_address, T_Address)
+    assert isinstance(token_address, str)
     deposit_limit = token_supply // 2
 
     deployed_service_contracts = deployed_service_info
