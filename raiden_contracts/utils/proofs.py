@@ -1,8 +1,8 @@
 from eth_abi import encode_single
+from eth_typing.evm import HexAddress
 from web3 import Web3
 
 from raiden_contracts.constants import MessageTypeId
-from raiden_contracts.utils.type_aliases import Address
 
 from .signature import sign
 
@@ -25,7 +25,7 @@ def eth_sign_hash_message(encoded_message: bytes) -> bytes:
 
 
 def hash_balance_proof(
-    token_network_address: Address,
+    token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
     balance_hash: bytes,
@@ -44,7 +44,7 @@ def hash_balance_proof(
 
 
 def hash_balance_proof_update_message(
-    token_network_address: Address,
+    token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
     balance_hash: bytes,
@@ -65,12 +65,12 @@ def hash_balance_proof_update_message(
 
 
 def hash_cooperative_settle_message(
-    token_network_address: Address,
+    token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
-    participant1_address: Address,
+    participant1_address: HexAddress,
     participant1_balance: int,
-    participant2_address: Address,
+    participant2_address: HexAddress,
     participant2_balance: int,
 ) -> bytes:
     return eth_sign_hash_message(
@@ -101,7 +101,7 @@ def hash_withdraw_message(
 def hash_reward_proof(
     channel_identifier: int,
     reward_amount: int,
-    token_network_address: Address,
+    token_network_address: HexAddress,
     chain_id: int,
     nonce: int,
 ) -> bytes:
@@ -138,7 +138,7 @@ def sign_balance_proof(
 
 def sign_balance_proof_update_message(
     privatekey: str,
-    token_network_address: Address,
+    token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
     balance_hash: bytes,
@@ -220,8 +220,8 @@ def sign_reward_proof(
 
 def sign_one_to_n_iou(
     privatekey: str,
-    sender: Address,
-    receiver: Address,
+    sender: HexAddress,
+    receiver: HexAddress,
     amount: int,
     expiration_block: int,
     one_to_n_address: str,

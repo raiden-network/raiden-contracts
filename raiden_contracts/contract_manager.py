@@ -5,11 +5,11 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
 from semver import compare
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, DeploymentModule
-from raiden_contracts.utils.type_aliases import Address
 
 _BASE = Path(__file__).parent
 
@@ -20,7 +20,7 @@ _BASE = Path(__file__).parent
 DeployedContract = TypedDict(
     "DeployedContract",
     {
-        "address": Address,
+        "address": HexAddress,
         "transaction_hash": str,
         "block_number": int,
         "gas_cost": int,

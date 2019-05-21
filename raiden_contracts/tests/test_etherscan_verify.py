@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import requests_mock
 from click.testing import CliRunner
+from eth_typing.evm import HexAddress
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -26,7 +27,6 @@ from raiden_contracts.deploy.etherscan_verify import (
     join_sources,
     post_data_for_etherscan_verification,
 )
-from raiden_contracts.utils.type_aliases import Address
 
 contract_name = "DummyContract"
 
@@ -46,7 +46,7 @@ def test_get_constructor_args_one_arg():
     """ Test get_constructor_args() on one argument """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "address": Address("0x00112233445566778899aabbccddeeff00112233"),
+        "address": HexAddress("0x00112233445566778899aabbccddeeff00112233"),
         "abi": abi_with_constructor_input_types(["uint256"]),
         "transaction_hash": "dummy",
         "gas_cost": 300,
@@ -69,7 +69,7 @@ def test_get_constructor_args_two_args():
     """ Test get_constructor_args() on two arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "address": Address("0x00112233445566778899aabbccddeeff00112233"),
+        "address": HexAddress("0x00112233445566778899aabbccddeeff00112233"),
         "abi": abi_with_constructor_input_types(["uint256", "bool"]),
         "block_number": 0,
         "bin-runtime": "dummy",

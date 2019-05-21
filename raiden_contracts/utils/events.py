@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, List
 
-from raiden_contracts.utils.type_aliases import Address
+from eth_typing.evm import HexAddress
 
 
 def check_secret_revealed(secrethash: bytes, secret: bytes) -> Callable[..., Any]:
@@ -20,7 +20,7 @@ def check_secrets_revealed(secrethashes: List[bytes], secrets: List[bytes]) -> C
 
 
 def check_token_network_created(
-    token_address: Address, token_network_address: Address
+    token_address: HexAddress, token_network_address: HexAddress
 ) -> Callable[..., None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["token_address"] == token_address
@@ -29,7 +29,7 @@ def check_token_network_created(
     return get
 
 
-def check_address_registered(eth_address: Address, endpoint: str) -> Callable[..., Any]:
+def check_address_registered(eth_address: HexAddress, endpoint: str) -> Callable[..., Any]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["eth_address"] == eth_address
         assert event["args"]["endpoint"] == endpoint
@@ -38,7 +38,10 @@ def check_address_registered(eth_address: Address, endpoint: str) -> Callable[..
 
 
 def check_channel_opened(
-    channel_identifier: int, participant1: Address, participant2: Address, settle_timeout: int
+    channel_identifier: int,
+    participant1: HexAddress,
+    participant2: HexAddress,
+    settle_timeout: int,
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
@@ -51,7 +54,7 @@ def check_channel_opened(
 
 # Check TokenNetwork.ChannelNewDeposit events. Not for UDC deposits!
 def check_new_deposit(
-    channel_identifier: int, participant: Address, deposit: int
+    channel_identifier: int, participant: HexAddress, deposit: int
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
@@ -62,7 +65,7 @@ def check_new_deposit(
 
 
 def check_withdraw(
-    channel_identifier: int, participant: Address, withdrawn_amount: int
+    channel_identifier: int, participant: HexAddress, withdrawn_amount: int
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
@@ -73,7 +76,7 @@ def check_withdraw(
 
 
 def check_channel_closed(
-    channel_identifier: int, closing_participant: Address, nonce: int
+    channel_identifier: int, closing_participant: HexAddress, nonce: int
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
@@ -85,8 +88,8 @@ def check_channel_closed(
 
 def check_channel_unlocked(
     channel_identifier: int,
-    receiver: Address,
-    sender: Address,
+    receiver: HexAddress,
+    sender: HexAddress,
     locksroot: bytes,
     unlocked_amount: int,
     returned_tokens: int,
@@ -103,7 +106,7 @@ def check_channel_unlocked(
 
 
 def check_transfer_updated(
-    channel_identifier: int, closing_participant: Address, nonce: int
+    channel_identifier: int, closing_participant: HexAddress, nonce: int
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
