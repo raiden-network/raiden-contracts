@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
@@ -16,7 +17,7 @@ from raiden_contracts.tests.utils.constants import (
 from raiden_contracts.utils.events import check_token_network_created
 
 
-def test_version(token_network_registry_contract):
+def test_version(token_network_registry_contract: Contract) -> None:
     """ Check the result of contract_version() call on the TokenNetworkRegistry """
     version = token_network_registry_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION
@@ -282,11 +283,11 @@ def test_create_erc20_token_network(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_create_erc20_token_network_twice_fails(
-    token_network_registry_contract,
-    custom_token,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
     token_network_registry_contract.functions.createERC20TokenNetwork(

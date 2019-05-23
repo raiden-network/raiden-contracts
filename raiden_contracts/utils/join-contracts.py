@@ -3,7 +3,7 @@ import json
 import os
 import re
 import sys
-from typing import List, Set
+from typing import Dict, List, Set, TextIO
 
 import click
 from click.types import File
@@ -23,12 +23,12 @@ $ python ./utils/join-contracts.py ./contracts/TokenNetwork.sol joined.sol
 
 
 class ContractJoiner:
-    def __init__(self, import_map=None):
+    def __init__(self, import_map: Dict = None):
         self.have_pragma = False
         self.seen: Set[str] = set()
         self.import_map = import_map if import_map else {}
 
-    def join(self, contract_file):
+    def join(self, contract_file: TextIO) -> List[str]:
         out: List[str] = []
         if contract_file.name in self.seen:
             print("Skipping duplicate {}".format(contract_file.name), file=sys.stderr)
@@ -48,12 +48,12 @@ class ContractJoiner:
                 out.append(line)
         return out
 
-    def _on_pragma_line(self, line: str, out: List[str]):
+    def _on_pragma_line(self, line: str, out: List[str]) -> None:
         if not self.have_pragma:
             self.have_pragma = True
             out.append(line)
 
-    def _on_import_line(self, stripped_line: str, out: List[str]):
+    def _on_import_line(self, stripped_line: str, out: List[str]) -> None:
         match = IMPORT_RE.match(stripped_line)
         if match:
             next_file = match.groupdict().get("contract")
@@ -72,9 +72,9 @@ class ContractJoiner:
 )
 @click.argument("contract", type=File())
 @click.argument("output", type=File("w"))
-def main(contract, output, import_map):
-    import_map = json.loads(import_map)
-    output.write("\n".join(ContractJoiner(import_map).join(contract)))
+def main(contract: TextIO, output: TextIO, import_map: str) -> None:
+    import_map_json = json.loads(import_map)
+    output.write("\n".join(ContractJoiner(import_map_json).join(contract)))
 
 
 if __name__ == "__main__":

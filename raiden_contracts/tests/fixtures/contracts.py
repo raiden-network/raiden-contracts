@@ -72,6 +72,6 @@ def deploy_tester_contract_txhash(web3, contracts_manager, deploy_contract_txhas
 
 
 @pytest.fixture
-def utils_contract(deploy_tester_contract):
+def utils_contract(deploy_tester_contract: Callable):
     """Deployed Utils contract"""
     return deploy_tester_contract("Utils")

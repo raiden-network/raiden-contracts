@@ -1,8 +1,7 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import requests_mock
 from click.testing import CliRunner
-from eth_typing.evm import HexAddress
 
 from raiden_contracts.constants import (
     CONTRACT_ENDPOINT_REGISTRY,
@@ -31,30 +30,25 @@ from raiden_contracts.deploy.etherscan_verify import (
 contract_name = "DummyContract"
 
 
-def test_get_constructor_args_no_args():
+def test_get_constructor_args_no_args() -> None:
     """ Test get_constructor_args() on no arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
     deploy_info: Dict = {"contracts": {contract_name: {"constructor_arguments": []}}}
     assert get_constructor_args(deploy_info, contract_name, contract_manager) == ""  # type: ignore
 
 
-def abi_with_constructor_input_types(types: List[str]):
+def abi_with_constructor_input_types(types: List[str]) -> List[Dict]:
     return [{"type": "constructor", "inputs": [{"type": ty} for ty in types]}]
 
 
-def test_get_constructor_args_one_arg():
+def test_get_constructor_args_one_arg() -> None:
     """ Test get_constructor_args() on one argument """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "address": HexAddress("0x00112233445566778899aabbccddeeff00112233"),
         "abi": abi_with_constructor_input_types(["uint256"]),
-        "transaction_hash": "dummy",
-        "gas_cost": 300,
-        "constructor_arguments": ["dummy"],
         "bin": "dummy",
         "bin-runtime": "dummy",
         "metadata": "dummy",
-        "block_number": 3,
     }
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16]}}
@@ -65,19 +59,14 @@ def test_get_constructor_args_one_arg():
     )
 
 
-def test_get_constructor_args_two_args():
+def test_get_constructor_args_two_args() -> None:
     """ Test get_constructor_args() on two arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = {
-        "address": HexAddress("0x00112233445566778899aabbccddeeff00112233"),
         "abi": abi_with_constructor_input_types(["uint256", "bool"]),
-        "block_number": 0,
         "bin-runtime": "dummy",
         "bin": "dummy",
-        "constructor_arguments": ["dummy"],
         "metadata": "dummy",
-        "gas_cost": 300,
-        "transaction_hash": "dummy",
     }
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16, True]}}
@@ -89,7 +78,7 @@ def test_get_constructor_args_two_args():
     )
 
 
-def test_post_data_for_etherscan_verification():
+def test_post_data_for_etherscan_verification() -> None:
     output = post_data_for_etherscan_verification(
         apikey="jkl;jkl;jkl;",
         deployment_info={"address": "dummy_address"},  # type: ignore
@@ -115,7 +104,7 @@ def test_post_data_for_etherscan_verification():
     }
 
 
-def test_run_join_contracts():
+def test_run_join_contracts() -> None:
     """ Just running join_sources() """
     join_sources(DeploymentModule.RAIDEN, CONTRACT_TOKEN_NETWORK_REGISTRY)
     join_sources(DeploymentModule.RAIDEN, CONTRACT_SECRET_REGISTRY)
@@ -126,14 +115,14 @@ def test_run_join_contracts():
     join_sources(DeploymentModule.SERVICES, CONTRACT_USER_DEPOSIT)
 
 
-def test_guid_status():
+def test_guid_status() -> None:
     with requests_mock.Mocker() as m:
         etherscan_api = api_of_chain_id[3]
         m.get(etherscan_api, text='{ "content": 1 }')
         assert guid_status(etherscan_api, "something") == {"content": 1}
 
 
-def test_etherscan_verify_with_guid():
+def test_etherscan_verify_with_guid() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
@@ -146,7 +135,7 @@ def test_etherscan_verify_with_guid():
         assert result.exit_code == 0
 
 
-def test_etherscan_verify_already_verified():
+def test_etherscan_verify_already_verified() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
@@ -175,7 +164,7 @@ def test_etherscan_verify_already_verified():
         assert result.exit_code == 0
 
 
-def test_etherscan_verify_unknown_error():
+def test_etherscan_verify_unknown_error() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
@@ -204,7 +193,7 @@ def test_etherscan_verify_unknown_error():
         assert result.exit_code != 0
 
 
-def test_etherscan_verify_unable_to_verify():
+def test_etherscan_verify_unable_to_verify() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
@@ -243,7 +232,7 @@ def test_etherscan_verify_unable_to_verify():
         assert result.exit_code != 0
 
 
-def test_etherscan_verify_success():
+def test_etherscan_verify_success() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]
@@ -273,7 +262,7 @@ def test_etherscan_verify_success():
         assert result.exit_code == 0
 
 
-def first_fail_second_succeed(_, context):
+def first_fail_second_succeed(_: Any, context: Any) -> str:
     """ Simulate Etherscan saying for the first time 'wait', but for the second time 'success'. """
     context.status_code = 200
     try:
@@ -285,7 +274,7 @@ def first_fail_second_succeed(_, context):
     return '{ "status": "0", "result" : "wait for a moment", "message" : "" }'
 
 
-def test_etherscan_verify_success_after_a_loop():
+def test_etherscan_verify_success_after_a_loop() -> None:
     with requests_mock.Mocker() as m:
         chain_id = 3
         etherscan_api = api_of_chain_id[chain_id]

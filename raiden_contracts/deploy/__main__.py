@@ -5,10 +5,12 @@ import functools
 import json
 import logging
 from logging import getLogger
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional, Union
 
 import click
-from click import BadParameter
+from click import BadParameter, Context, Option, Parameter
+from eth_typing.evm import ChecksumAddress, HexAddress
 from eth_utils import is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
@@ -23,7 +25,9 @@ from raiden_contracts.utils.versions import contract_version_with_max_token_netw
 LOG = getLogger(__name__)
 
 
-def validate_address(_, _param, value):
+def validate_address(
+    _: Context, _param: Union[Option, Parameter], value: Optional[str]
+) -> Optional[ChecksumAddress]:
     if not value:
         return None
     try:
@@ -38,7 +42,7 @@ def error_removed_option(message: str):
 
     if the value is not None. The message is used as an argument to NoSuchOption. """
 
-    def f(_, param, value):
+    def f(_, param: Parameter, value: Optional[Any]):
         if value is not None:
             raise click.NoSuchOption(
                 f'--{param.name.replace("_", "-")} is no longer a valid option. ' + message
@@ -74,12 +78,12 @@ def common_options(func):
 # pylint: disable=R0913
 def setup_ctx(
     ctx: click.Context,
-    private_key: str,
+    private_key: Optional[str],
     rpc_provider: str,
     wait: int,
     gas_price: int,
     gas_limit: int,
-    contracts_version: None = None,
+    contracts_version: Optional[str] = None,
 ):
     """Set up deployment context according to common options (shared among all
     subcommands).
@@ -94,16 +98,16 @@ def setup_ctx(
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print("Web3 provider is", web3.providers[0])
-    private_key = get_private_key(private_key)
-    if not private_key:
+    private_key_string = get_private_key(Path(private_key))
+    if not private_key_string:
         raise RuntimeError("Could not access the private key.")
-    owner = private_key_to_address(private_key)
+    owner = private_key_to_address(private_key_string)
     # pylint: disable=E1101
     if web3.eth.getBalance(owner) == 0:
         raise RuntimeError("Account with insufficient funds.")
     deployer = ContractDeployer(
         web3=web3,
-        private_key=private_key,
+        private_key=private_key_string,
         gas_limit=gas_limit,
         gas_price=gas_price,
         wait=wait,
@@ -117,7 +121,7 @@ def setup_ctx(
 
 
 @click.group(chain=True)
-def main():
+def main() -> int:
     pass
 
 
@@ -200,15 +204,15 @@ def raiden(
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.pass_context
 def services(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    token_address,
-    save_info,
-    contracts_version,
+    ctx: Context,
+    private_key: Optional[str],
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+    token_address: HexAddress,
+    save_info: bool,
+    contracts_version: Optional[str],
     user_deposit_whole_limit: int,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
@@ -308,19 +312,19 @@ def token(
 )
 @click.pass_context
 def register(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    contracts_version,
-    token_address,
-    token_network_registry_address,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-    registry_address,
-):
+    ctx: Context,
+    private_key: str,
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+    contracts_version: str,
+    token_address: HexAddress,
+    token_network_registry_address: HexAddress,
+    channel_participant_deposit_limit: Optional[int],
+    token_network_deposit_limit: Optional[int],
+    registry_address: Optional[HexAddress],
+) -> None:
     assert registry_address is None  # No longer used option
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     token_type = ctx.obj["token_type"]
@@ -354,7 +358,7 @@ def register(
     help="Contracts version to verify. Current version will be used by default.",
 )
 @click.pass_context
-def verify(_, rpc_provider, contracts_version):
+def verify(_: Any, rpc_provider: str, contracts_version: Optional[str]) -> None:
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
     web3.middleware_stack.inject(geth_poa_middleware, layer=0)
     print("Web3 provider is", web3.providers[0])

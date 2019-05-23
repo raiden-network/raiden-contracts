@@ -54,7 +54,7 @@ class ContractVerifier:
 
     def verify_deployed_service_contracts_in_filesystem(
         self, token_address: HexAddress, user_deposit_whole_balance_limit: int
-    ):
+    ) -> None:
         chain_id = int(self.web3.version.network)
 
         deployment_data = get_contracts_deployment_info(
@@ -78,7 +78,9 @@ class ContractVerifier:
                 "and it is CORRECT."
             )
 
-    def store_and_verify_deployment_info_raiden(self, deployed_contracts_info: DeployedContracts):
+    def store_and_verify_deployment_info_raiden(
+        self, deployed_contracts_info: DeployedContracts
+    ) -> None:
         self._store_deployment_info(deployment_info=deployed_contracts_info, services=False)
         self.verify_deployed_contracts_in_filesystem()
 
@@ -87,14 +89,14 @@ class ContractVerifier:
         deployed_contracts_info: DeployedContracts,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
-    ):
+    ) -> None:
         self._store_deployment_info(services=True, deployment_info=deployed_contracts_info)
         self.verify_deployed_service_contracts_in_filesystem(
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
         )
 
-    def _store_deployment_info(self, services: bool, deployment_info: DeployedContracts):
+    def _store_deployment_info(self, services: bool, deployment_info: DeployedContracts) -> None:
         deployment_file_path = contracts_deployed_path(
             chain_id=int(self.web3.version.network),
             version=self.contracts_version,
@@ -108,7 +110,7 @@ class ContractVerifier:
             f" has been updated at {deployment_file_path}."
         )
 
-    def verify_deployment_data(self, deployment_data: DeployedContracts):
+    def verify_deployment_data(self, deployment_data: DeployedContracts) -> bool:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
@@ -214,7 +216,7 @@ class ContractVerifier:
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
         deployed_contracts_info: DeployedContracts,
-    ):
+    ) -> bool:
         chain_id = int(self.web3.version.network)
         assert deployed_contracts_info is not None
 
@@ -271,7 +273,7 @@ def _verify_user_deposit_deployment(
     user_deposit_whole_balance_limit: int,
     one_to_n_address: HexAddress,
     monitoring_service_address: HexAddress,
-):
+) -> None:
     """ Check an onchain deployment of UserDeposit and constructor arguments at deployment time """
     if len(constructor_arguments) != 2:
         raise RuntimeError("UserDeposit has a wrong number of constructor arguments.")

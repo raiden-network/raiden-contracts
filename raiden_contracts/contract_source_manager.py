@@ -41,7 +41,7 @@ class ContractSourceManager:
         old_working_dir = Path.cwd()
         chdir(_BASE)
 
-        def relativise(path):
+        def relativise(path: Path) -> Path:
             return path.relative_to(_BASE)
 
         import_dir_map = [
@@ -144,11 +144,11 @@ class ContractSourceManager:
         self.contracts_checksums = checksums
 
 
-def contracts_source_path():
-    return contracts_source_path_with_stem("data/source")
+def contracts_source_path() -> Dict[str, Path]:
+    return contracts_source_path_with_stem(Path("data/source"))
 
 
-def contracts_source_path_of_deployment_module(module: DeploymentModule):
+def contracts_source_path_of_deployment_module(module: DeploymentModule) -> Path:
     if module == DeploymentModule.RAIDEN:
         return contracts_source_path()["raiden"]
     elif module == DeploymentModule.SERVICES:
@@ -157,7 +157,7 @@ def contracts_source_path_of_deployment_module(module: DeploymentModule):
         raise ValueError(f"No source known for module {module}")
 
 
-def contracts_source_path_with_stem(stem):
+def contracts_source_path_with_stem(stem: Path) -> Dict[str, Path]:
     """The directory remapping given to the Solidity compiler."""
     return {
         "lib": _BASE.joinpath(stem, "lib"),

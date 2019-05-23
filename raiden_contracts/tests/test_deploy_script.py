@@ -580,24 +580,26 @@ def test_deploy_script_service(web3, deployed_service_info, token_address: HexAd
 
 def test_validate_address_on_none():
     """ validate_address(x, y, None) should return None """
-    assert validate_address(None, None, None) is None
+    mock_command = MagicMock()
+    mock_parameter = MagicMock()
+    assert validate_address(mock_command, mock_parameter, None) is None
 
 
 def test_validate_address_empty_string():
     """ validate_address(x, y, '') should return None """
-    assert validate_address(None, None, "") is None
+    assert validate_address(MagicMock(), MagicMock(), "") is None
 
 
 def test_validate_address_not_an_address():
     """ validate_address(x, y, 'not an address') should raise click.BadParameter """
     with pytest.raises(BadParameter):
-        validate_address(None, None, "not an address")
+        validate_address(MagicMock(), MagicMock(), "not an address")
 
 
 def test_validate_address_happy_path():
     """ validate_address(x, y, address) should return the same address checksumed """
     address = CONTRACT_DEPLOYER_ADDRESS
-    assert validate_address(None, None, address) == to_checksum_address(address)
+    assert validate_address(MagicMock(), MagicMock(), address) == to_checksum_address(address)
 
 
 @pytest.fixture

@@ -1,10 +1,12 @@
 import pytest
 from eth_typing.evm import HexAddress
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.utils.logs import LogFilter
 
 
-def test_logfilter_with_nonexistent_event(web3):
+def test_logfilter_with_nonexistent_event(web3: Web3) -> None:
     """ Try to create a LogFilter with a nonexistent event """
 
     with pytest.raises(ValueError):
@@ -18,7 +20,7 @@ def test_logfilter_with_nonexistent_event(web3):
         )
 
 
-def test_call_and_transact_does_not_mine(web3, custom_token):
+def test_call_and_transact_does_not_mine(web3: Web3, custom_token: Contract) -> None:
     """ See call_and_transact() does not mine a block """
 
     before = web3.eth.blockNumber

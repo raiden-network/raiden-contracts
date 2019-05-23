@@ -73,14 +73,18 @@ def test_token_transfer_funds(web3: Web3, custom_token: Contract, get_accounts: 
     assert web3.eth.getBalance(token.address) == 0
 
 
-def test_custom_token(custom_token: Contract, web3: Web3, contracts_manager: ContractManager):
+def test_custom_token(
+    custom_token: Contract, web3: Web3, contracts_manager: ContractManager
+) -> None:
     """ See custom_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(custom_token.address).hex()
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_CUSTOM_TOKEN)
     assert blockchain_bytecode == compiled_bytecode
 
 
-def test_human_standard_token(human_standard_token, web3, contracts_manager):
+def test_human_standard_token(
+    human_standard_token: Contract, web3: Web3, contracts_manager: ContractManager
+) -> None:
     """ See human_standard_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(human_standard_token.address).hex()
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_HUMAN_STANDARD_TOKEN)

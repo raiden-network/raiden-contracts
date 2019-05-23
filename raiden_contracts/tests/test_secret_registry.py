@@ -1,6 +1,8 @@
 from hashlib import sha256
+from typing import Callable
 
 import pytest
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import CONTRACTS_VERSION, EVENT_SECRET_REVEALED
@@ -8,13 +10,13 @@ from raiden_contracts.tests.utils.mock import fake_bytes
 from raiden_contracts.utils.events import check_secret_revealed, check_secrets_revealed
 
 
-def test_version(secret_registry_contract):
+def test_version(secret_registry_contract: Contract) -> None:
     """ Test the return value of contract_version() """
     version = secret_registry_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION
 
 
-def test_register_secret_call(secret_registry_contract):
+def test_register_secret_call(secret_registry_contract: Contract) -> None:
     """ Test the registrable and not registrable secrets """
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret()
@@ -33,7 +35,9 @@ def test_register_secret_call(secret_registry_contract):
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32, "02")).call() is True
 
 
-def test_register_secret_return_value(secret_registry_contract, get_accounts):
+def test_register_secret_return_value(
+    secret_registry_contract: Contract, get_accounts: Callable
+) -> None:
     """ The same secret cannot be registered twice """
     (A, B) = get_accounts(2)
     secret = b"secretsecretsecretsecretsecretse"
@@ -49,7 +53,9 @@ def test_register_secret_return_value(secret_registry_contract, get_accounts):
     assert secret_registry_contract.functions.registerSecret(secret).call({"from": B}) is False
 
 
-def test_register_secret(secret_registry_contract, get_accounts, get_block):
+def test_register_secret(
+    secret_registry_contract: Contract, get_accounts: Callable, get_block: Callable
+) -> None:
     """ Register a secret and see it's registered """
     A = get_accounts(1)[0]
     secret = b"secretsecretsecretsecretsecretse"
@@ -70,7 +76,9 @@ def test_register_secret(secret_registry_contract, get_accounts, get_block):
     secret_registry_contract.functions.registerSecret(secret2).call_and_transact({"from": A})
 
 
-def test_register_secret_batch(secret_registry_contract, get_accounts, get_block):
+def test_register_secret_batch(
+    secret_registry_contract: Contract, get_accounts: Callable, get_block: Callable
+) -> None:
     """ Register four secrets and see them registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, fill) for fill in ("02", "03", "04", "05")]
@@ -88,7 +96,9 @@ def test_register_secret_batch(secret_registry_contract, get_accounts, get_block
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == block
 
 
-def test_register_secret_batch_return_value(secret_registry_contract, get_accounts):
+def test_register_secret_batch_return_value(
+    secret_registry_contract: Contract, get_accounts: Callable
+) -> None:
     """ See registerSecret returns True only when all secrets are registered """
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32)]
@@ -102,7 +112,7 @@ def test_register_secret_batch_return_value(secret_registry_contract, get_accoun
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is False
 
 
-def test_events(secret_registry_contract, event_handler):
+def test_events(secret_registry_contract: Contract, event_handler: Callable) -> None:
     """ A successful registerSecret() call causes an EVENT_SECRET_REVEALED event """
     secret = b"secretsecretsecretsecretsecretse"
     secrethash = sha256(secret).digest()
@@ -114,7 +124,9 @@ def test_events(secret_registry_contract, event_handler):
     ev_handler.check()
 
 
-def test_register_secret_batch_events(secret_registry_contract, event_handler):
+def test_register_secret_batch_events(
+    secret_registry_contract: Contract, event_handler: Callable
+) -> None:
     """ A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events """
     secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32, "04")]
     secret_hashes = [sha256(secret).digest() for secret in secrets]

@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Any, Dict, List, Optional
 
+from eth_typing import HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
 from web3 import Web3
@@ -19,9 +20,14 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import DeployedContract, contract_version_string
+from raiden_contracts.contract_manager import (
+    CompiledContract,
+    DeployedContract,
+    DeployedContracts,
+    contract_version_string,
+)
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
-from raiden_contracts.deploy.contract_verifier import ContractVerifier, DeployedContracts
+from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
@@ -58,10 +64,10 @@ class ContractDeployer(ContractVerifier):
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
 
-    def deploy(self, contract_name: str, args=None):
+    def deploy(self, contract_name: str, args: Optional[List] = None) -> Dict:
         if args is None:
             args = list()
-        contract_interface: DeployedContract = self.contract_manager.get_contract(contract_name)
+        contract_interface: CompiledContract = self.contract_manager.get_contract(contract_name)
 
         # Instantiate and deploy contract
         contract = self.web3.eth.contract(
@@ -87,14 +93,14 @@ class ContractDeployer(ContractVerifier):
         )
         return receipt
 
-    def transact(self, contract_method: ContractFunction):
+    def transact(self, contract_method: ContractFunction) -> Dict:
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
         LOG.debug(f"Sending txHash={encode_hex(txhash)}")
         (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def send_deployment_transaction(self, contract, args):
+    def send_deployment_transaction(self, contract: Contract, args: List) -> str:
         txhash = None
         while txhash is None:
             try:
@@ -108,7 +114,7 @@ class ContractDeployer(ContractVerifier):
 
         return txhash
 
-    def contract_version_string(self):
+    def contract_version_string(self) -> str:
         return contract_version_string(self.contracts_version)
 
     def deploy_token_contract(
@@ -118,7 +124,7 @@ class ContractDeployer(ContractVerifier):
         token_name: str,
         token_symbol: str,
         token_type: str = "CustomToken",
-    ):
+    ) -> Dict[str, HexAddress]:
         """Deploy a token contract."""
         receipt = self.deploy(
             contract_name=token_type, args=[token_supply, token_decimals, token_name, token_symbol]
@@ -168,7 +174,7 @@ class ContractDeployer(ContractVerifier):
         return deployed_contracts
 
     def _deploy_and_remember(
-        self, contract_name: str, arguments: List, deployed_contracts: "DeployedContracts"
+        self, contract_name: str, arguments: List, deployed_contracts: DeployedContracts
     ) -> Contract:
         """ Deploys contract_name with arguments and store the result in deployed_contracts. """
         receipt = self.deploy(contract_name, arguments)
@@ -187,7 +193,7 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-    ):
+    ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract."""
         with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
         if with_limits:
@@ -214,7 +220,7 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-    ):
+    ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract
 
         with a contracts-version that doesn't require deposit limits in the TokenNetwork
@@ -257,7 +263,7 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-    ):
+    ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract
 
         with a contracts-version that requires deposit limits in the TokenNetwork
@@ -297,7 +303,9 @@ class ContractDeployer(ContractVerifier):
         LOG.debug(f"TokenNetwork address: {token_network_address}")
         return token_network_address
 
-    def deploy_service_contracts(self, token_address: str, user_deposit_whole_balance_limit: int):
+    def deploy_service_contracts(
+        self, token_address: HexAddress, user_deposit_whole_balance_limit: int
+    ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         chain_id = int(self.web3.version.network)
         deployed_contracts: DeployedContracts = {
@@ -345,7 +353,7 @@ class ContractDeployer(ContractVerifier):
         return deployed_contracts
 
 
-def _deployed_data_from_receipt(receipt, constructor_arguments):
+def _deployed_data_from_receipt(receipt: Dict, constructor_arguments: List) -> DeployedContract:
     return {
         "address": to_checksum_address(receipt["contractAddress"]),
         "transaction_hash": encode_hex(receipt["transactionHash"]),
