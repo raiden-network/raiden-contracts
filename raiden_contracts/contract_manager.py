@@ -86,6 +86,9 @@ class ContractManager:
                 f"contracts_version {self.contracts_version} does not have {contract_name}"
             )
 
+    def has_contract(self, contract_name: str) -> bool:
+        return contract_name in self.contracts
+
     def get_contract_abi(self, contract_name: str) -> List[Dict[str, Any]]:
         """ Returns the ABI for a given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"

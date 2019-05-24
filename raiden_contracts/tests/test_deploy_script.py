@@ -15,7 +15,6 @@ from web3.eth import Eth
 
 import raiden_contracts
 from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -161,9 +160,7 @@ def test_deploy_script_raiden(
         deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY][
-        "address"
-    ] = EMPTY_ADDRESS
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["address"] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
@@ -180,7 +177,7 @@ def test_deploy_script_raiden(
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail["contracts"][CONTRACT_ENDPOINT_REGISTRY]["block_number"] = 0
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["block_number"] = 0
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 

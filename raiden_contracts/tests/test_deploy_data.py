@@ -53,7 +53,7 @@ def reasonable_deployment_of_a_contract(deployed: DeployedContract) -> None:
     assert isinstance(deployed["constructor_arguments"], list)
 
 
-RAIDEN_CONTRACT_NAMES = ("EndpointRegistry", "TokenNetworkRegistry", "SecretRegistry")
+RAIDEN_CONTRACT_NAMES = ("TokenNetworkRegistry", "SecretRegistry")
 
 
 @pytest.mark.parametrize("version", [None])

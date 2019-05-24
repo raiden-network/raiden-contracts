@@ -151,7 +151,8 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        self._deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployed_contracts)
+        if self.contract_manager.has_contract(CONTRACT_ENDPOINT_REGISTRY):
+            self._deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployed_contracts)
         secret_registry = self._deploy_and_remember(
             contract_name=CONTRACT_SECRET_REGISTRY,
             arguments=[],
