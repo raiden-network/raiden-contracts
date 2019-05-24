@@ -7,9 +7,9 @@ from typing import Any, Dict, List, Optional
 
 from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
-from semver import compare
 
 from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, DeploymentModule
+from raiden_contracts.utils.versions import contracts_version_provides_services
 
 _BASE = Path(__file__).parent
 
@@ -188,16 +188,6 @@ def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) ->
     }
 
 
-def version_provides_services(version: Optional[str]) -> bool:
-    if version is None:
-        return True
-    if version == "0.3._":
-        return False
-    if version == "0.8.0_unlimited":
-        return True
-    return compare(version, "0.8.0") >= 0
-
-
 def get_contracts_deployment_info(
     chain_id: int, version: Optional[str] = None, module: DeploymentModule = DeploymentModule.ALL
 ) -> Optional[DeployedContracts]:
@@ -218,13 +208,13 @@ def get_contracts_deployment_info(
     if module_chosen(DeploymentModule.RAIDEN):
         files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=False))
 
-    if module == DeploymentModule.SERVICES and not version_provides_services(version):
+    if module == DeploymentModule.SERVICES and not contracts_version_provides_services(version):
         raise ValueError(
             f"SERVICES module queried for version {version}, but {version} "
             "does not provide service contracts."
         )
 
-    if module_chosen(DeploymentModule.SERVICES) and version_provides_services(version):
+    if module_chosen(DeploymentModule.SERVICES) and contracts_version_provides_services(version):
         files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=True))
 
     deployment_data: DeployedContracts = {}  # type: ignore
