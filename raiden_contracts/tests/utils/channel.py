@@ -1,7 +1,10 @@
 from collections import namedtuple
 from copy import deepcopy
+from typing import Tuple
 
+from eth_typing import HexAddress
 from eth_utils import keccak, to_canonical_address
+from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDITIONAL_HASH,
@@ -16,12 +19,12 @@ SettlementValues = namedtuple(
 
 
 class LockedAmounts:
-    def __init__(self, claimable_locked=0, unclaimable_locked=0):
+    def __init__(self, claimable_locked: int = 0, unclaimable_locked: int = 0):
         self.claimable_locked = claimable_locked
         self.unclaimable_locked = unclaimable_locked
 
     @property
-    def locked(self):
+    def locked(self) -> int:
         return self.claimable_locked + self.unclaimable_locked
 
 
@@ -31,13 +34,13 @@ ZERO_LOCKED_VALUES = LockedAmounts()
 class ChannelValues:
     def __init__(
         self,
-        deposit=0,
-        withdrawn=0,
-        nonce=0,
-        transferred=0,
-        locked_amounts=ZERO_LOCKED_VALUES,
-        locksroot=EMPTY_LOCKSROOT,
-        additional_hash=EMPTY_ADDITIONAL_HASH,
+        deposit: int = 0,
+        withdrawn: int = 0,
+        nonce: int = 0,
+        transferred: int = 0,
+        locked_amounts: LockedAmounts = ZERO_LOCKED_VALUES,
+        locksroot: bytes = EMPTY_LOCKSROOT,
+        additional_hash: bytes = EMPTY_ADDITIONAL_HASH,
     ):
         self.deposit = deposit
         self.withdrawn = withdrawn
@@ -58,7 +61,9 @@ class ChannelValues:
         )
 
 
-def get_participant_available_balance(participant1, participant2):
+def get_participant_available_balance(
+    participant1: ChannelValues, participant2: ChannelValues
+) -> int:
     """ Returns the available balance for participant1
 
     The available balance is used in the Raiden client, in order to check if a
@@ -73,7 +78,7 @@ def get_participant_available_balance(participant1, participant2):
     )
 
 
-def are_balance_proofs_valid(participant1, participant2):
+def are_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelValues) -> bool:
     """ Checks if balance proofs are valid or could have been valid at a certain point in time
 
     Balance proof constraints are detailed in
@@ -96,7 +101,7 @@ def are_balance_proofs_valid(participant1, participant2):
     )
 
 
-def were_balance_proofs_valid(participant1, participant2):
+def were_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelValues) -> bool:
     """ Checks if balance proofs were ever valid. """
     deposit = participant1.deposit + participant2.deposit
 
@@ -108,7 +113,7 @@ def were_balance_proofs_valid(participant1, participant2):
     )
 
 
-def is_balance_proof_old(participant1, participant2):
+def is_balance_proof_old(participant1: ChannelValues, participant2: ChannelValues) -> bool:
     """ Checks if balance proofs are valid, with at least one old. """
     assert were_balance_proofs_valid(participant1, participant2)
 
@@ -125,7 +130,9 @@ def is_balance_proof_old(participant1, participant2):
     return True
 
 
-def get_settlement_amounts(participant1, participant2):
+def get_settlement_amounts(
+    participant1: ChannelValues, participant2: ChannelValues
+) -> SettlementValues:
     """ Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
@@ -177,7 +184,9 @@ def get_settlement_amounts(participant1, participant2):
     )
 
 
-def get_expected_after_settlement_unlock_amounts(participant1, participant2):
+def get_expected_after_settlement_unlock_amounts(
+    participant1: ChannelValues, participant2: ChannelValues
+) -> Tuple[int, int]:
     """ Get expected balances after the channel is settled and all locks are unlocked
 
     We make the assumption that both balance proofs provided are valid, meaning that both
@@ -202,7 +211,7 @@ def get_expected_after_settlement_unlock_amounts(participant1, participant2):
     return (participant1_balance, participant2_balance)
 
 
-def failsafe_add(a, b):
+def failsafe_add(a: int, b: int) -> int:
     """
     Function to compute the settlement amounts w.r.t. MAX_UINT, as it happens in the contract
     :param a: Addend
@@ -218,7 +227,7 @@ def failsafe_add(a, b):
         return MAX_UINT256
 
 
-def failsafe_sub(a, b):
+def failsafe_sub(a: int, b: int) -> Tuple[int, int]:
     """
     Function to compute the settlement amounts w.r.t. MAX_UINT, as it happens in the contract
     :param a: Minuend
@@ -231,7 +240,9 @@ def failsafe_sub(a, b):
     return (a - b, b) if a > b else (0, a)
 
 
-def get_onchain_settlement_amounts(participant1: ChannelValues, participant2: ChannelValues):
+def get_onchain_settlement_amounts(
+    participant1: ChannelValues, participant2: ChannelValues
+) -> SettlementValues:
     """ Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
@@ -292,7 +303,7 @@ def get_onchain_settlement_amounts(participant1: ChannelValues, participant2: Ch
     )
 
 
-def get_total_available_deposit(participant1, participant2):
+def get_total_available_deposit(participant1: ChannelValues, participant2: ChannelValues) -> int:
     total_available_deposit = (
         participant1.deposit
         + participant2.deposit
@@ -302,7 +313,7 @@ def get_total_available_deposit(participant1, participant2):
     return total_available_deposit
 
 
-def get_unlocked_amount(secret_registry, merkle_tree_leaves):
+def get_unlocked_amount(secret_registry: Contract, merkle_tree_leaves: bytes) -> int:
     unlocked_amount = 0
 
     for i in range(0, len(merkle_tree_leaves), 96):
@@ -317,7 +328,7 @@ def get_unlocked_amount(secret_registry, merkle_tree_leaves):
     return unlocked_amount
 
 
-def get_participants_hash(A, B):
+def get_participants_hash(A: HexAddress, B: HexAddress) -> bytes:
     A = to_canonical_address(A)
     B = to_canonical_address(B)
     if A == B:

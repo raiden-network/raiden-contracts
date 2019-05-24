@@ -1,5 +1,8 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
@@ -25,8 +28,11 @@ def test_version(token_network_registry_contract: Contract) -> None:
 
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_call(
-    web3, get_token_network_registry, secret_registry_contract, get_accounts
-):
+    web3: Web3,
+    get_token_network_registry: Contract,
+    secret_registry_contract: Contract,
+    get_accounts: Callable,
+) -> None:
     """ Try to create a TokenNetworkRegistry with various wrong arguments. """
     A = get_accounts(1)[0]
     chain_id = int(web3.version.network)
@@ -141,7 +147,9 @@ def test_constructor_call(
 
 
 @pytest.mark.usefixtures("no_token_network")
-def test_constructor_call_state(web3, get_token_network_registry, secret_registry_contract):
+def test_constructor_call_state(
+    web3: Web3, get_token_network_registry: Contract, secret_registry_contract: Contract
+) -> None:
     """ The constructor should set the parameters into the storage of the contract """
 
     chain_id = int(web3.version.network)
@@ -164,12 +172,12 @@ def test_constructor_call_state(web3, get_token_network_registry, secret_registr
 
 @pytest.mark.usefixtures("no_token_network")
 def test_create_erc20_token_network_call(
-    token_network_registry_contract,
-    custom_token,
-    get_accounts,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    get_accounts: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Calling createERC20TokenNetwork() with various wrong arguments """
 
     A = get_accounts(1)[0]
@@ -239,12 +247,12 @@ def test_create_erc20_token_network_call(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_create_erc20_token_network(
-    register_token_network,
-    token_network_registry_contract,
-    custom_token,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    register_token_network: Contract,
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Create a TokenNetwork through a TokenNetworkRegistry """
 
     assert (
@@ -302,13 +310,13 @@ def test_create_erc20_token_network_twice_fails(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_events(
-    register_token_network,
-    token_network_registry_contract,
-    custom_token,
-    event_handler,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    register_token_network: Contract,
+    token_network_registry_contract: Contract,
+    custom_token: Contract,
+    event_handler: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ TokenNetwokRegistry should raise an event when deploying a new TokenNetwork """
 
     ev_handler = event_handler(token_network_registry_contract)

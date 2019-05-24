@@ -759,7 +759,7 @@ def test_channel_unlock_unregistered_locks(
         ChannelValues(deposit=40, withdrawn=10, transferred=20),
     )
 
-    vals_A.locksroot = "0x" + get_merkle_root(pending_transfers_tree.merkle_tree).hex()
+    vals_A.locksroot = get_merkle_root(pending_transfers_tree.merkle_tree)
     vals_B.locksroot = fake_bytes(32, "03")
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
     withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)

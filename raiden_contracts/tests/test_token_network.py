@@ -1,5 +1,8 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
@@ -10,20 +13,20 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAKE_ADDRESS, MAX_UINT256
 
 
-def test_version(token_network):
+def test_version(token_network: Contract) -> None:
     """ Check the output of contract_version() of the TokenNetwork contract """
     assert token_network.functions.contract_version().call() == CONTRACTS_VERSION
 
 
 def test_constructor_call(
-    web3,
-    get_token_network,
-    custom_token,
-    secret_registry_contract,
-    get_accounts,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    web3: Web3,
+    get_token_network: Contract,
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    get_accounts: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Try to deploy TokenNetwork with various wrong arguments """
 
     (A, deprecation_executor) = get_accounts(2)
@@ -421,7 +424,9 @@ def test_constructor_call(
     )
 
 
-def test_token_network_variables(token_network, token_network_test_utils):
+def test_token_network_variables(
+    token_network: Contract, token_network_test_utils: Contract
+) -> None:
     """ Check values of storage variables of the TokenNetwork contract """
     max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
 

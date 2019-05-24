@@ -1,7 +1,8 @@
-from typing import Callable
+from typing import Any, Callable, Collection, List
 
 import pytest
 from eth_utils import is_address
+from web3 import Web3
 from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import (
@@ -17,14 +18,16 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 @pytest.fixture()
 def get_token_network_registry(deploy_tester_contract: Contract) -> Callable:
-    def get(arguments):
+    def get(arguments: Collection[Any]) -> Contract:
         return deploy_tester_contract(CONTRACT_TOKEN_NETWORK_REGISTRY, arguments)
 
     return get
 
 
 @pytest.fixture(scope="session")
-def token_network_registry_constructor_args(web3, secret_registry_contract):
+def token_network_registry_constructor_args(
+    web3: Web3, secret_registry_contract: Contract
+) -> List:
     return [
         secret_registry_contract.address,
         int(web3.version.network),

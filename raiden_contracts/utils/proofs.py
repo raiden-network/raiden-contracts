@@ -170,9 +170,9 @@ def sign_cooperative_settle_message(
     chain_identifier: int,
     channel_identifier: int,
     participant1_address: HexAddress,
-    participant1_balance: HexAddress,
+    participant1_balance: int,
     participant2_address: HexAddress,
-    participant2_balance: HexAddress,
+    participant2_balance: int,
     v: int = 27,
 ) -> bytes:
     message_hash = hash_cooperative_settle_message(

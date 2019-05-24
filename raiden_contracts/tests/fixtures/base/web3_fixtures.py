@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def ethereum_tester(patch_genesis_gas_limit):  # pylint: disable=W0613
+def ethereum_tester(patch_genesis_gas_limit) -> EthereumTester:  # pylint: disable=W0613
     """Returns an instance of an Ethereum tester"""
     return EthereumTester(PyEVMBackend())
 

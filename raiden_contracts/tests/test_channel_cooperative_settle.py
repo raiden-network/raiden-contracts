@@ -1,5 +1,8 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import ChannelEvent
@@ -9,8 +12,11 @@ from raiden_contracts.utils.events import check_channel_settled
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_call(
-    token_network, create_channel_and_deposit, get_accounts, create_cooperative_settle_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -64,8 +70,11 @@ def test_cooperative_settle_channel_call(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_signatures(
-    token_network, create_channel_and_deposit, get_accounts, create_cooperative_settle_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -98,13 +107,13 @@ def test_cooperative_settle_channel_signatures(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_0(
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    get_accounts,
-    create_cooperative_settle_signatures,
-    cooperative_settle_state_tests,
-):
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+    cooperative_settle_state_tests: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -139,13 +148,13 @@ def test_cooperative_settle_channel_0(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_00(
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    get_accounts,
-    create_cooperative_settle_signatures,
-    cooperative_settle_state_tests,
-):
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+    cooperative_settle_state_tests: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 0
     deposit_B = 0
@@ -180,13 +189,13 @@ def test_cooperative_settle_channel_00(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_state(
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    get_accounts,
-    create_cooperative_settle_signatures,
-    cooperative_settle_state_tests,
-):
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+    cooperative_settle_state_tests: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -222,14 +231,14 @@ def test_cooperative_settle_channel_state(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_state_withdraw(
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    withdraw_channel,
-    get_accounts,
-    create_cooperative_settle_signatures,
-    cooperative_settle_state_tests,
-):
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+    cooperative_settle_state_tests: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -269,12 +278,12 @@ def test_cooperative_settle_channel_state_withdraw(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_bigger_withdraw(
-    token_network,
-    create_channel_and_deposit,
-    withdraw_channel,
-    get_accounts,
-    create_cooperative_settle_signatures,
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -300,8 +309,11 @@ def test_cooperative_settle_channel_bigger_withdraw(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_wrong_balances(
-    token_network, create_channel_and_deposit, get_accounts, create_cooperative_settle_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_cooperative_settle_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -353,12 +365,12 @@ def test_cooperative_settle_channel_wrong_balances(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_close_replay_reopened_channel(
-    get_accounts,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_cooperative_settle_signatures,
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_cooperative_settle_signatures: Callable,
+) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 15
     deposit_B = 10
@@ -399,13 +411,13 @@ def test_cooperative_close_replay_reopened_channel(
 
 @pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_event(
-    get_accounts,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_cooperative_settle_signatures,
-    event_handler,
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_cooperative_settle_signatures: Callable,
+    event_handler: Callable,
+) -> None:
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
