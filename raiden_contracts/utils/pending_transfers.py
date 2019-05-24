@@ -1,26 +1,25 @@
-from collections import namedtuple
 from functools import reduce
 from hashlib import sha256
 from os import urandom
 from random import randint
-from typing import Collection, Iterable, List, Optional, Tuple
+from typing import Collection, Iterable, List, NamedTuple, Optional, Tuple
 
 from eth_abi import encode_abi
 from web3 import Web3
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.merkle import compute_merkle_tree, get_merkle_root
+from raiden_contracts.utils.merkle import MerkleTree, compute_merkle_tree, get_merkle_root
 
-PendingTransfersTree = namedtuple(
+PendingTransfersTree = NamedTuple(
     "PendingTransfersTree",
     [
-        "transfers",
-        "unlockable",
-        "expired",
-        "packed_transfers",
-        "merkle_tree",
-        "merkle_root",
-        "locked_amount",
+        ("transfers", List[List]),
+        ("unlockable", List[List]),
+        ("expired", List[List]),
+        ("packed_transfers", bytes),
+        ("merkle_tree", MerkleTree),
+        ("merkle_root", bytes),
+        ("locked_amount", int),
     ],
 )
 
