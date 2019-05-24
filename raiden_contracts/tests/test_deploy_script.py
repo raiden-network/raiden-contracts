@@ -28,6 +28,7 @@ from raiden_contracts.deploy.__main__ import (
     contract_version_with_max_token_networks,
     error_removed_option,
     raiden,
+    register,
     services,
     token,
     validate_address,
@@ -784,6 +785,40 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key, 
             assert result.exit_code == 0
             mock_deploy.assert_called_once()
             mock_verify.assert_called_once()
+
+
+@patch.object(ContractDeployer, "register_token_network")
+def test_register_script(mock_deploy, get_accounts, get_private_key):
+    """ Calling deploy raiden command """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, "ascii"))
+        privkey_file.flush()
+        with patch.object(Eth, "getBalance", return_value=1):
+            runner = CliRunner()
+            result = runner.invoke(
+                register,
+                [
+                    "--rpc-provider",
+                    "rpv_provider",
+                    "--private-key",
+                    privkey_file.name,
+                    "--gas-price",
+                    "12",
+                    "--token-network-registry-address",
+                    "0x90a16f6aEA062c429c85dc4124ee4b24A00bCc9a",
+                    "--token-address",
+                    "0x90a16f6aEA062c429c85dc4124ee4b24A00bCc9a",
+                    "--channel-participant-deposit-limit",
+                    "100",
+                    "--token-network-deposit-limit",
+                    "200",
+                ],
+            )
+            assert result.exception is None
+            assert result.exit_code == 0
+            mock_deploy.assert_called_once()
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
