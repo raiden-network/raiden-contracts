@@ -11,7 +11,9 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import ChannelValues, LockedAmounts
-from raiden_contracts.utils.pending_transfers import get_pending_transfers_tree
+from raiden_contracts.utils.pending_transfers import (
+    get_pending_transfers_tree_with_generated_lists,
+)
 
 
 def test_deprecation_executor(
@@ -167,7 +169,7 @@ def test_deprecation_switch_settle(
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Mock pending transfers data for A -> B
-    pending_transfers_tree_A = get_pending_transfers_tree(
+    pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
@@ -177,7 +179,7 @@ def test_deprecation_switch_settle(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     # Mock pending transfers data for B -> A
-    pending_transfers_tree_B = get_pending_transfers_tree(
+    pending_transfers_tree_B = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,

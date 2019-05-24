@@ -18,7 +18,7 @@ from raiden_contracts.tests.utils import (
     is_balance_proof_old,
     were_balance_proofs_valid,
 )
-from raiden_contracts.utils import get_pending_transfers_tree
+from raiden_contracts.utils import get_pending_transfers_tree_with_generated_lists
 
 
 @pytest.fixture()
@@ -48,7 +48,7 @@ def test_settlement_outcome(
         # are revealed before their expiration.
 
         # Mock pending transfers data for A -> B
-        pending_transfers_tree_A = get_pending_transfers_tree(
+        pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
             web3,
             unlockable_amount=vals_A.locked_amounts.claimable_locked,
             expired_amount=vals_A.locked_amounts.unclaimable_locked,
@@ -58,7 +58,7 @@ def test_settlement_outcome(
         reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
         # Mock pending transfers data for B -> A
-        pending_transfers_tree_B = get_pending_transfers_tree(
+        pending_transfers_tree_B = get_pending_transfers_tree_with_generated_lists(
             web3,
             unlockable_amount=vals_B.locked_amounts.claimable_locked,
             expired_amount=vals_B.locked_amounts.unclaimable_locked,
@@ -352,8 +352,8 @@ def test_channel_settle_invalid_balance_proof_values(
     # are revealed before their expiration.
 
     # Mock pending transfers data for A -> B
-    pending_transfers_tree_A = get_pending_transfers_tree(
-        web3,
+    pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
+        web3=web3,
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
@@ -362,7 +362,7 @@ def test_channel_settle_invalid_balance_proof_values(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     # Mock pending transfers data for B -> A
-    pending_transfers_tree_B = get_pending_transfers_tree(
+    pending_transfers_tree_B = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,

@@ -39,7 +39,9 @@ def test_merkle_root_1_item_unlockable(
 ):
     """ Test getMerkleRootAndUnlockedAmount() on a single item whose secret has been registered """
     A = get_accounts(1)[0]
-    pending_transfers_tree = get_pending_transfers_tree(web3, [6])
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3=web3, unlockable_amounts=[6], expired_amounts=[]
+    )
 
     secret_registry_contract.functions.registerSecret(
         pending_transfers_tree.unlockable[0][TestLockIndex.SECRET]
