@@ -2,6 +2,7 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from eth_typing.evm import HexAddress
 from web3 import Web3
 from web3.contract import Contract
 
@@ -138,7 +139,9 @@ def test_network_deposit_limit(
             - last_deposit
         )
 
-    def send_remaining(channel_identifier, participant1, participant2) -> None:
+    def send_remaining(
+        channel_identifier: int, participant1: HexAddress, participant2: HexAddress
+    ) -> None:
         remaining_to_reach_limit = remaining()
         assign_tokens(participant1, remaining_to_reach_limit)
         token_network.functions.setTotalDeposit(

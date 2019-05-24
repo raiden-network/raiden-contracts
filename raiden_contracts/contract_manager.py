@@ -17,6 +17,12 @@ _BASE = Path(__file__).parent
 # Classes for static type checking of deployed_contracts dictionary.
 
 
+CompiledContract = TypedDict(
+    "CompiledContract",
+    {"abi": List[Dict[str, Any]], "bin-runtime": str, "bin": str, "metadata": str},
+)
+
+
 DeployedContract = TypedDict(
     "DeployedContract",
     {
@@ -25,10 +31,6 @@ DeployedContract = TypedDict(
         "block_number": int,
         "gas_cost": int,
         "constructor_arguments": List[Any],
-        "abi": List[Dict[str, Any]],
-        "bin-runtime": str,
-        "bin": str,
-        "metadata": str,
     },
 )
 
@@ -61,7 +63,7 @@ class ContractManager:
         except (JSONDecodeError, UnicodeDecodeError) as ex:
             raise ContractManagerLoadError(f"Can't load precompiled smart contracts: {ex}") from ex
         try:
-            self.contracts: Dict[str, DeployedContract] = precompiled_content["contracts"]
+            self.contracts: Dict[str, CompiledContract] = precompiled_content["contracts"]
             if not self.contracts:
                 raise RuntimeError(
                     f"Cannot find precompiled contracts data in the JSON file {path}."
@@ -74,7 +76,7 @@ class ContractManager:
                 f"Precompiled contracts json has unexpected format: {ex}"
             ) from ex
 
-    def get_contract(self, contract_name: str) -> DeployedContract:
+    def get_contract(self, contract_name: str) -> CompiledContract:
         """ Return ABI, BIN of the given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"
         try:

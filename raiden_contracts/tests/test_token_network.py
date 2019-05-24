@@ -1,5 +1,6 @@
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.contract import Contract
 
 from raiden_contracts.constants import (
     CONTRACTS_VERSION,
@@ -433,8 +434,11 @@ def test_token_network_variables(token_network, token_network_test_utils):
 
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_not_registered(
-    custom_token, secret_registry_contract, token_network_registry_contract, token_network_external
-):
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    token_network_registry_contract: Contract,
+    token_network_external: Contract,
+) -> None:
     """ Check that the TokenNetwork refers to the right Token address and chain_id """
 
     token_network = token_network_external

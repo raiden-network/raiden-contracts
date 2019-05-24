@@ -62,7 +62,7 @@ CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 )
 def etherscan_verify(
     chain_id: int, apikey: str, guid: Optional[str], contract_name: Optional[str]
-):
+) -> None:
     if guid:
         guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid)
         return
@@ -86,7 +86,7 @@ api_of_chain_id = {
 }
 
 
-def join_sources(source_module: DeploymentModule, contract_name: str):
+def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
     """ Use join-contracts.py to concatenate all imported Solidity files.
 
     Args:
@@ -118,7 +118,7 @@ def join_sources(source_module: DeploymentModule, contract_name: str):
 
 def get_constructor_args(
     deployment_info: DeployedContracts, contract_name: str, contract_manager: ContractManager
-):
+) -> str:
     constructor_arguments = deployment_info["contracts"][contract_name]["constructor_arguments"]
     if constructor_arguments != []:
         constructor_types = contract_manager.get_constructor_argument_types(contract_name)
@@ -137,7 +137,7 @@ def post_data_for_etherscan_verification(
     contract_name: str,
     metadata: Dict,
     constructor_args: str,
-):
+) -> Dict:
     data = {
         # A valid API-Key is required
         "apikey": apikey,
@@ -161,7 +161,7 @@ def post_data_for_etherscan_verification(
 
 def etherscan_verify_contract(
     chain_id: int, apikey: str, source_module: DeploymentModule, contract_name: str
-):
+) -> None:
     """ Calls Etherscan API for verifying the Solidity source of a contract.
 
     Args:
@@ -226,7 +226,7 @@ def etherscan_verify_contract(
     raise TimeoutError(manual_submission_guide)
 
 
-def guid_status(etherscan_api: str, guid: str):
+def guid_status(etherscan_api: str, guid: str) -> Dict:
     data = {"guid": guid, "module": "contract", "action": "checkverifystatus"}
     r = requests.get(etherscan_api, data)
     status_content = json.loads(r.content.decode())

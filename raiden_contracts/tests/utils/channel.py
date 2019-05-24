@@ -48,7 +48,7 @@ class ChannelValues:
         self.locksroot = locksroot
         self.additional_hash = additional_hash
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"ChannelValues deposit:{self.deposit} withdrawn:{self.withdrawn} "
             f"transferred:{self.transferred} claimable_"

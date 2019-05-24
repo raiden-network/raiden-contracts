@@ -91,7 +91,7 @@ def test_claimReward_with_settle_call(
     ms_address,
     web3,
     with_settle,
-):
+) -> None:
     A, B = monitor_data["participants"]
     channel_identifier = monitor_data["channel_identifier"]
 
