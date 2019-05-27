@@ -247,6 +247,7 @@ def test_updateReward(
             REWARD_AMOUNT,
             token_network.address,
             nonce=nonce,
+            monitoring_service_address=monitoring_service_internals.address,
         )
         reward_proof_signature = reward_proof[5]
         monitoring_service_internals.functions.updateRewardPublic(
