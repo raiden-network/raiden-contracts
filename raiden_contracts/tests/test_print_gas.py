@@ -1,4 +1,3 @@
-import json
 from typing import Callable, List
 
 import pytest
