@@ -106,14 +106,17 @@ def hash_reward_proof(
     channel_identifier: int,
     reward_amount: int,
     token_network_address: HexAddress,
+    monitoring_service_address: HexAddress,
     chain_id: int,
     nonce: int,
 ) -> bytes:
     return eth_sign_hash_message(
-        encode_single("uint256", channel_identifier)
+        Web3.toBytes(hexstr=monitoring_service_address)
+        + encode_single("uint256", chain_id)
+        + encode_single("uint256", MessageTypeId.MSReward)
+        + encode_single("uint256", channel_identifier)
         + encode_single("uint256", reward_amount)
         + Web3.toBytes(hexstr=token_network_address)
-        + encode_single("uint256", chain_id)
         + encode_single("uint256", nonce)
     )
 
@@ -211,6 +214,7 @@ def sign_withdraw_message(
 def sign_reward_proof(
     privatekey: str,
     channel_identifier: int,
+    monitoring_service_address: HexAddress,
     reward_amount: int,
     token_network_address: HexAddress,
     chain_id: int,
@@ -220,6 +224,7 @@ def sign_reward_proof(
     message_hash = hash_reward_proof(
         channel_identifier=channel_identifier,
         reward_amount=reward_amount,
+        monitoring_service_address=monitoring_service_address,
         token_network_address=token_network_address,
         chain_id=chain_id,
         nonce=nonce,

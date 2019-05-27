@@ -99,14 +99,6 @@ contract TokenNetwork is Utils {
         Removed      // 4; Note: Channel data is removed, there are no pending unlocks
     }
 
-    enum MessageTypeId {
-        None,
-        BalanceProof,
-        BalanceProofUpdate,
-        Withdraw,
-        CooperativeSettle
-    }
-
     struct Channel {
         // After opening the channel this value represents the settlement
         // window. This is the number of blocks that need to be mined between

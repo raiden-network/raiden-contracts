@@ -35,12 +35,21 @@ def monitoring_service_internals(
 
 @pytest.fixture()
 def create_reward_proof(token_network, get_private_key):
-    def get(signer, channel_identifier, reward_amount, token_network_address, nonce=0, v=27):
+    def get(
+        signer,
+        channel_identifier,
+        reward_amount,
+        token_network_address,
+        monitoring_service_address,
+        nonce=0,
+        v=27,
+    ):
         private_key = get_private_key(signer)
 
         signature = sign_reward_proof(
             private_key,
             channel_identifier,
+            monitoring_service_address,
             reward_amount,
             token_network_address,
             int(token_network.functions.chain_id().call()),

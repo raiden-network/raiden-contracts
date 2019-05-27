@@ -49,7 +49,12 @@ def monitor_data(
         B, channel_identifier, *balance_proof_B
     )
     reward_proof = create_reward_proof(
-        B, channel_identifier, REWARD_AMOUNT, token_network.address, nonce=balance_proof_B[1]
+        signer=B,
+        channel_identifier=channel_identifier,
+        reward_amount=REWARD_AMOUNT,
+        token_network_address=token_network.address,
+        monitoring_service_address=monitoring_service_external.address,
+        nonce=balance_proof_B[1],
     )
 
     # close channel

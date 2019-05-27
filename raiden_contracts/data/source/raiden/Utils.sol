@@ -6,6 +6,16 @@ pragma solidity 0.5.4;
 contract Utils {
     string constant public contract_version = "0.13.0";
 
+    enum MessageTypeId {
+        None,
+        BalanceProof,
+        BalanceProofUpdate,
+        Withdraw,
+        CooperativeSettle,
+        IOU,
+        MSReward
+    }
+
     /// @notice Check if a contract exists
     /// @param contract_address The address to check whether a contract is
     /// deployed or not
