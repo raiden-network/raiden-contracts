@@ -963,3 +963,18 @@ def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg()
             service_registry_address=FAKE_ADDRESS,
             user_deposit_address=FAKE_ADDRESS,
         )
+
+
+def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address():
+    mock_token = MagicMock()
+    mock_token.call.return_value = EMPTY_ADDRESS
+    mock_monitoring_service = MagicMock()
+    mock_monitoring_service.functions.token.return_value = mock_token
+    with pytest.raises(RuntimeError):
+        _verify_monitoring_service_deployment(
+            monitoring_service=mock_monitoring_service,
+            constructor_arguments=[FAKE_ADDRESS, 0, 1],
+            token_address=FAKE_ADDRESS,
+            service_registry_address=EMPTY_ADDRESS,
+            user_deposit_address=FAKE_ADDRESS,
+        )
