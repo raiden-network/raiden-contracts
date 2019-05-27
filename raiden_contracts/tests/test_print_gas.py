@@ -22,7 +22,7 @@ from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pend
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
-@pytest.mark.parametrize("version", [None, "0.9.0"])
+@pytest.mark.parametrize("version", [None])
 def test_gas_json_has_enough_fields(version):
     """ Check is gas.json contains enough fields """
     with contracts_gas_path(version).open(mode="r") as gas_file:
@@ -37,6 +37,7 @@ def test_gas_json_has_enough_fields(version):
             "TokenNetwork.closeChannel",
             "TokenNetwork.openChannel",
             "TokenNetwork.setTotalDeposit",
+            "TokenNetwork.setTotalWithdraw",
             "TokenNetwork.settleChannel",
             "TokenNetwork.unlock 1 locks",
             "TokenNetwork.unlock 6 locks",
@@ -130,6 +131,7 @@ def print_gas_channel_cycle(
     token_network,
     create_channel,
     channel_deposit,
+    withdraw_channel,
     secret_registry_contract,
     get_accounts,
     print_gas,
@@ -151,6 +153,9 @@ def print_gas_channel_cycle(
 
     txn_hash = channel_deposit(channel_identifier, B, 10, A)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".setTotalDeposit")
+
+    txn_hash = withdraw_channel(channel_identifier, A, 5, B)
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".setTotalWithdraw")
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
     locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)
