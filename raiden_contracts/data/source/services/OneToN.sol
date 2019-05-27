@@ -122,13 +122,14 @@ contract OneToN is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n156",
+            "\x19Ethereum Signed Message:\n188",
+            one_to_n_address,
+            chain_id,
+            uint256(MessageTypeId.IOU),
             sender,
             receiver,
             amount,
-            expiration_block,
-            one_to_n_address,
-            chain_id
+            expiration_block
         ));
         return ECVerify.ecverify(message_hash, signature);
     }

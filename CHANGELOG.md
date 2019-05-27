@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- When OneToN checks the signature of an IOU, it considers MessageTypeId.IOU
+
 ## [0.22.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.22.0) - 2019-06-03
 
 - [#1034](https://github.com/raiden-network/raiden-contracts/pull/1034) Add gas.json in the package so `gas_measurements(contracts_version)` works.
