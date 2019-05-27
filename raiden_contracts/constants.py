@@ -107,6 +107,7 @@ class MessageTypeId(IntEnum):
     BALANCE_PROOF_UPDATE = 2
     WITHDRAW = 3
     COOPERATIVE_SETTLE = 4
+    MSReward = 6
 
 
 class MonitoringServiceEvent(str, Enum):
