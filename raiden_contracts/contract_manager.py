@@ -145,6 +145,13 @@ def contracts_gas_path(version: Optional[str] = None) -> Any:
     return data_path.joinpath("gas.json")
 
 
+def gas_measurements(version: Optional[str] = None) -> Dict[str, int]:
+    """Returns gas usage measurement."""
+    json_path = contracts_gas_path(version)
+    with json_path.open() as gas_file:
+        return json.load(gas_file)
+
+
 def contracts_deployed_path(
     chain_id: int, version: Optional[str] = None, services: bool = False
 ) -> Path:

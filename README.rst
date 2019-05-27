@@ -85,6 +85,17 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
     deployed_services = get_contracts_deployed(int(web3.version.network), services=True)
     MONITORING_SERVICE_ADDRESS = deployment_data['contracts'][CONTRACT_MONITORING_SERVICE].address
 
+Looking Up Gas Consumption
+--------------------------
+
+Each ``contracts_version`` (at least ``0.8.0``) comes with gas consumption measurements::
+
+    gas = gas_measurements(contracts_version)
+    gas["TokenNetwork.setTotalDeposit"]
+
+evaluates to something like 45000.
+
+
 Test-only Contracts
 -------------------
 
