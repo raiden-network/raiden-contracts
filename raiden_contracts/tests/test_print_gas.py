@@ -15,7 +15,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import contracts_gas_path
+from raiden_contracts.contract_manager import gas_measurements
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.merkle import get_merkle_root
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
@@ -25,31 +25,30 @@ from raiden_contracts.utils.proofs import sign_one_to_n_iou
 @pytest.mark.parametrize("version", [None])
 def test_gas_json_has_enough_fields(version):
     """ Check is gas.json contains enough fields """
-    with contracts_gas_path(version).open(mode="r") as gas_file:
-        doc = json.load(gas_file)
-        keys = {
-            "EndpointRegistry.registerEndpoint",
-            "MonitoringService.claimReward",
-            "MonitoringService.monitor",
-            "OneToN.claim",
-            "SecretRegistry.registerSecret",
-            "TokenNetwork DEPLOYMENT",
-            "TokenNetwork.closeChannel",
-            "TokenNetwork.openChannel",
-            "TokenNetwork.setTotalDeposit",
-            "TokenNetwork.setTotalWithdraw",
-            "TokenNetwork.settleChannel",
-            "TokenNetwork.unlock 1 locks",
-            "TokenNetwork.unlock 6 locks",
-            "TokenNetwork.updateNonClosingBalanceProof",
-            "TokenNetworkRegistry DEPLOYMENT",
-            "TokenNetworkRegistry createERC20TokenNetwork",
-            "UserDeposit.deposit",
-            "UserDeposit.deposit (increase balance)",
-            "UserDeposit.planWithdraw",
-            "UserDeposit.withdraw",
-        }
-        assert set(doc.keys()) == keys
+    doc = gas_measurements(version)
+    keys = {
+        "EndpointRegistry.registerEndpoint",
+        "MonitoringService.claimReward",
+        "MonitoringService.monitor",
+        "OneToN.claim",
+        "SecretRegistry.registerSecret",
+        "TokenNetwork DEPLOYMENT",
+        "TokenNetwork.closeChannel",
+        "TokenNetwork.openChannel",
+        "TokenNetwork.setTotalDeposit",
+        "TokenNetwork.setTotalWithdraw",
+        "TokenNetwork.settleChannel",
+        "TokenNetwork.unlock 1 locks",
+        "TokenNetwork.unlock 6 locks",
+        "TokenNetwork.updateNonClosingBalanceProof",
+        "TokenNetworkRegistry DEPLOYMENT",
+        "TokenNetworkRegistry createERC20TokenNetwork",
+        "UserDeposit.deposit",
+        "UserDeposit.deposit (increase balance)",
+        "UserDeposit.planWithdraw",
+        "UserDeposit.withdraw",
+    }
+    assert set(doc.keys()) == keys
 
 
 @pytest.fixture
