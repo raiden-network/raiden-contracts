@@ -308,7 +308,6 @@ def _verify_monitoring_service_deployment(
         raise RuntimeError("MonitoringService has a wrong number of constructor arguments.")
     if to_checksum_address(monitoring_service.functions.token().call()) != token_address:
         raise RuntimeError("MonitoringService has a wrong token address onchain.")
-    assert to_checksum_address(monitoring_service.functions.token().call()) == token_address
     if token_address != constructor_arguments[0]:
         raise RuntimeError("MonitoringService received a wrong token address during construction")
 
