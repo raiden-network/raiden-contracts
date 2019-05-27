@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import CONTRACTS_VERSION, OneToNEvent
+from raiden_contracts.constants import OneToNEvent
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
@@ -184,9 +184,3 @@ def test_claim_with_insufficient_deposit(
         OneToNEvent.CLAIMED,
         dict(sender=A, receiver=B, expiration_block=expiration, transferred=4),
     )
-
-
-def test_version(one_to_n_contract: Contract) -> None:
-    """ Check the result of contract_version() call on the UserDeposit """
-    version = one_to_n_contract.functions.contract_version().call()
-    assert version == CONTRACTS_VERSION

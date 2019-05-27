@@ -7,7 +7,6 @@ from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
-    CONTRACTS_VERSION,
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -18,12 +17,6 @@ from raiden_contracts.tests.utils.constants import (
     FAKE_ADDRESS,
 )
 from raiden_contracts.utils.events import check_token_network_created
-
-
-def test_version(token_network_registry_contract: Contract) -> None:
-    """ Check the result of contract_version() call on the TokenNetworkRegistry """
-    version = token_network_registry_contract.functions.contract_version().call()
-    assert version == CONTRACTS_VERSION
 
 
 @pytest.mark.usefixtures("no_token_network")

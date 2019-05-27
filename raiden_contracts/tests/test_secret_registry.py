@@ -5,15 +5,9 @@ import pytest
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
-from raiden_contracts.constants import CONTRACTS_VERSION, EVENT_SECRET_REVEALED
+from raiden_contracts.constants import EVENT_SECRET_REVEALED
 from raiden_contracts.tests.utils.mock import fake_bytes
 from raiden_contracts.utils.events import check_secret_revealed, check_secrets_revealed
-
-
-def test_version(secret_registry_contract: Contract) -> None:
-    """ Test the return value of contract_version() """
-    version = secret_registry_contract.functions.contract_version().call()
-    assert version == CONTRACTS_VERSION
 
 
 def test_register_secret_call(secret_registry_contract: Contract) -> None:

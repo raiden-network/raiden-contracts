@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
 
-from raiden_contracts.constants import CONTRACTS_VERSION, ID_TO_NETWORKNAME, DeploymentModule
+from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
 from raiden_contracts.utils.versions import contracts_version_provides_services
 
 _BASE = Path(__file__).parent
@@ -108,11 +108,6 @@ class ContractManager:
         constructor = [f for f in abi if f["type"] == "constructor"][0]
         return [arg["type"] for arg in constructor["inputs"]]
 
-    @property
-    def version_string(self) -> str:
-        """Return a flavored version string."""
-        return contract_version_string(self.contracts_version)
-
     def get_runtime_hexcode(self, contract_name: str) -> str:
         """ Calculate the runtime hexcode with 0x prefix.
 
@@ -120,13 +115,6 @@ class ContractManager:
             contract_name: name of the contract such as CONTRACT_TOKEN_NETWORK
         """
         return "0x" + self.contracts[contract_name]["bin-runtime"]
-
-
-def contract_version_string(version: Optional[str] = None) -> str:
-    """ The version string that should be found in the Solidity source """
-    if version is None:
-        version = CONTRACTS_VERSION
-    return version
 
 
 def contracts_data_path(version: Optional[str] = None) -> Path:
