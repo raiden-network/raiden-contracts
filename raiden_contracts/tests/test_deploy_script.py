@@ -35,7 +35,8 @@ from raiden_contracts.deploy.__main__ import (
     verify,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
-from raiden_contracts.tests.utils import get_random_privkey
+from raiden_contracts.deploy.contract_verifier import _verify_monitoring_service_deployment
+from raiden_contracts.tests.utils import FAKE_ADDRESS, get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
     EMPTY_ADDRESS,
@@ -947,3 +948,18 @@ def test_verify_script(mock_verify):
         assert result.exception is None
         assert result.exit_code == 0
         mock_verify.assert_called_once()
+
+
+def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg():
+    mock_token = MagicMock()
+    mock_token.call.return_value = EMPTY_ADDRESS
+    mock_monitoring_service = MagicMock()
+    mock_monitoring_service.functions.token.return_value = mock_token
+    with pytest.raises(RuntimeError):
+        _verify_monitoring_service_deployment(
+            monitoring_service=mock_monitoring_service,
+            constructor_arguments=[FAKE_ADDRESS, 0, 1],
+            token_address=EMPTY_ADDRESS,
+            service_registry_address=FAKE_ADDRESS,
+            user_deposit_address=FAKE_ADDRESS,
+        )
