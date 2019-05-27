@@ -337,7 +337,11 @@ def register(
             CONTRACT_TOKEN_NETWORK_REGISTRY
         ] = token_network_registry_address
 
-    assert CONTRACT_TOKEN_NETWORK_REGISTRY in ctx.obj["deployed_contracts"]
+    if CONTRACT_TOKEN_NETWORK_REGISTRY not in ctx.obj["deployed_contracts"]:
+        raise RuntimeError(
+            "No TokenNetworkRegistry was specified. "
+            "Add --token-network-registry-address <address>."
+        )
     assert token_type in ctx.obj["deployed_contracts"]
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
     deployer.register_token_network(
