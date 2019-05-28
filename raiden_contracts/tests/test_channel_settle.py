@@ -17,7 +17,7 @@ from raiden_contracts.tests.utils import (
     get_onchain_settlement_amounts,
     get_settlement_amounts,
 )
-from raiden_contracts.utils import get_pending_transfers_tree
+from raiden_contracts.utils import get_pending_transfers_tree_with_generated_lists
 from raiden_contracts.utils.events import check_channel_settled
 
 
@@ -83,12 +83,12 @@ def test_settle_channel_state(
         locked_amounts=LockedAmounts(claimable_locked=2, unclaimable_locked=3),
     )
 
-    pending_transfers_tree_A = get_pending_transfers_tree(
+    pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
-    pending_transfers_tree_B = get_pending_transfers_tree(
+    pending_transfers_tree_B = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,
@@ -408,7 +408,7 @@ def test_settle_wrong_balance_hash(
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
 
     # Mock pending transfers data for A -> B
-    pending_transfers_tree_A = get_pending_transfers_tree(
+    pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
@@ -418,7 +418,7 @@ def test_settle_wrong_balance_hash(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     # Mock pending transfers data for B -> A
-    pending_transfers_tree_B = get_pending_transfers_tree(
+    pending_transfers_tree_B = get_pending_transfers_tree_with_generated_lists(
         web3,
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,

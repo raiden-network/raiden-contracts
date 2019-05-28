@@ -25,24 +25,29 @@ PendingTransfersTree = namedtuple(
 )
 
 
-def get_pending_transfers_tree(
+def get_pending_transfers_tree_with_generated_lists(
     web3: Web3,
-    unlockable_amounts: Optional[Collection[int]] = None,
-    expired_amounts: Optional[Iterable] = None,
+    unlockable_amount: int,
+    expired_amount: int,
     min_expiration_delta: Optional[int] = None,
     max_expiration_delta: Optional[int] = None,
-    unlockable_amount: Optional[int] = None,
-    expired_amount: Optional[int] = None,
 ) -> PendingTransfersTree:
-    if isinstance(unlockable_amount, int):
-        unlockable_amounts = get_random_values_for_sum(unlockable_amount)
-    elif unlockable_amounts is None:
-        unlockable_amounts = []
-    if isinstance(expired_amount, int):
-        expired_amounts = get_random_values_for_sum(expired_amount)
-    elif expired_amounts is None:
-        expired_amounts = []
+    return get_pending_transfers_tree(
+        web3=web3,
+        unlockable_amounts=get_random_values_for_sum(unlockable_amount),
+        expired_amounts=get_random_values_for_sum(expired_amount),
+        min_expiration_delta=min_expiration_delta,
+        max_expiration_delta=max_expiration_delta,
+    )
 
+
+def get_pending_transfers_tree(
+    web3: Web3,
+    unlockable_amounts: Collection[int],
+    expired_amounts: Collection[int],
+    min_expiration_delta: Optional[int] = None,
+    max_expiration_delta: Optional[int] = None,
+) -> PendingTransfersTree:
     types = ["uint256", "uint256", "bytes32"]
     packed_transfers = b""
     (unlockable_locks, expired_locks) = get_pending_transfers(
