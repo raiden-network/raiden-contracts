@@ -115,7 +115,6 @@ contract MonitoringService is Utils {
             reward_amount,
             token_network_address,
             token_network.chain_id(),
-            address(this),
             nonce,
             reward_proof_signature
         );
@@ -335,7 +334,6 @@ contract MonitoringService is Utils {
         uint256 reward_amount,
         address token_network_address,
         uint256 chain_id,
-        address monitoring_service_contract_address,
         uint256 nonce,
         bytes memory signature
     )
@@ -344,13 +342,11 @@ contract MonitoringService is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n200",
-            monitoring_service_contract_address,
-            chain_id,
-            uint256(MessageTypeId.MSReward),
+            "\x19Ethereum Signed Message:\n148",
             channel_identifier,
             reward_amount,
             token_network_address,
+            chain_id,
             nonce
         ));
 
