@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- MonitoringService.monitor() takes a signature that takes in the message ID.
 - Add `gas_measurements(contracts_version)` that shows the gas measurements as a dictionary.
 - Unlock-related functions' and events' arguments are renamed into `sender` and `receiver`
 
