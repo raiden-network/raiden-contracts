@@ -4,7 +4,7 @@ pragma solidity 0.5.4;
 /// @notice Utils contract for various helpers used by the Raiden Network smart
 /// contracts.
 contract Utils {
-    string constant public contract_version = "0.13.0";
+    string constant public contract_version = "0.14.0";
 
     enum MessageTypeId {
         None,
