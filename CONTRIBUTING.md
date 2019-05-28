@@ -42,6 +42,16 @@ When you write Solidity code, be aware of the distinction between ``assert(cond)
 
 ``assert(cond)`` and ``require(cond)`` both cause a failure in the EVM execution when ``cond`` evaluates to 0.  They use different EVM opcodes that cause different gas consumptions.  More importantly, a convention dictates when to use which.  Use ``assert(cond)`` only when you are confident that ``cond`` is always true.  When an ``assert`` fires, that's considered as a bug in the Solidity program (or the Solidity compiler).  For detecting invalid user inputs or invalid return values from other contracts, use ``require()``.
 
+#### Signature Convention
+
+A signature should be useful only in one context. For this purpose, we follow a convention dictating the format of signed messages. The first fields of a signed message must look like::
+
+  address destination_of_the_message,
+  uint256 chain_id_of_the_destination,
+  uint256 message_type
+
+following the usual prefix of Ethereum signatures ``\x19Ethereum Signed Message:\n<message_length>``.
+
 #### Resources
 
 * [Solidity documentation](https://solidity.readthedocs.io/) usually has an answer somewhere.
