@@ -6,7 +6,7 @@ import json
 import logging
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import click
 from click import BadParameter, Context, Option, Parameter
@@ -37,12 +37,12 @@ def validate_address(
         raise click.BadParameter("must be a valid ethereum address")
 
 
-def error_removed_option(message: str):
+def error_removed_option(message: str) -> Callable:
     """ Takes a message and returns a callback that raises NoSuchOption
 
     if the value is not None. The message is used as an argument to NoSuchOption. """
 
-    def f(_, param: Parameter, value: Optional[Any]):
+    def f(_: Any, param: Parameter, value: Any) -> None:
         if value is not None:
             raise click.NoSuchOption(
                 f'--{param.name.replace("_", "-")} is no longer a valid option. ' + message
@@ -51,7 +51,7 @@ def error_removed_option(message: str):
     return f
 
 
-def common_options(func):
+def common_options(func: Callable) -> Callable:
     """A decorator that combines commonly appearing @click.option decorators."""
 
     @click.option("--private-key", required=True, help="Path to a private key store.")
@@ -69,7 +69,7 @@ def common_options(func):
         help="Contracts version to verify. Current version will be used by default.",
     )
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: List, **kwargs: Dict) -> Any:
         return func(*args, **kwargs)
 
     return wrapper
@@ -84,7 +84,7 @@ def setup_ctx(
     gas_price: int,
     gas_limit: int,
     contracts_version: Optional[str] = None,
-):
+) -> None:
     """Set up deployment context according to common options (shared among all
     subcommands).
     """
@@ -255,17 +255,17 @@ def services(
 @click.option("--token-symbol", default="TKN", help="Token contract symbol.")
 @click.pass_context
 def token(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    contracts_version,
-    token_supply,
-    token_name,
-    token_decimals,
-    token_symbol,
+    ctx: click.Context,
+    private_key: Optional[str],
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+    contracts_version: Optional[str],
+    token_supply: int,
+    token_name: str,
+    token_decimals: int,
+    token_symbol: str,
 ):
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj["deployer"]

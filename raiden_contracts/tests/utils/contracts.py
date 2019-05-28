@@ -1,12 +1,19 @@
+from typing import List, Optional
+
+from coincurve import PrivateKey
+from eth_tester import EthereumTester
+from eth_typing.evm import HexAddress
 from web3 import Web3
+from web3.contract import Contract
 from web3.providers.eth_tester import EthereumTesterProvider
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK
+from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils.constants import FAUCET_ALLOWANCE
 from raiden_contracts.utils.signature import private_key_to_address
 
 
-def get_web3(eth_tester, deployer_key):
+def get_web3(eth_tester: EthereumTester, deployer_key: PrivateKey) -> Web3:
     """Returns an initialized Web3 instance"""
     provider = EthereumTesterProvider(eth_tester)
     web3 = Web3(provider)
@@ -27,7 +34,13 @@ def get_web3(eth_tester, deployer_key):
     return web3
 
 
-def deploy_contract(web3, contracts_manager, contract_name, deployer_key, args=None):
+def deploy_contract(
+    web3: Web3,
+    contracts_manager: ContractManager,
+    contract_name: str,
+    deployer_key: PrivateKey,
+    args: Optional[List] = None,
+) -> Contract:
     deployer_address = private_key_to_address(deployer_key.to_hex())
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(abi=json_contract["abi"], bytecode=json_contract["bin"])
@@ -37,13 +50,21 @@ def deploy_contract(web3, contracts_manager, contract_name, deployer_key, args=N
     return contract(contract_address)
 
 
-def deploy_custom_token(web3, deployer_key):
+def deploy_custom_token(
+    web3: Web3, deployer_key: PrivateKey, contract_manager: ContractManager
+) -> Contract:
     return deploy_contract(
-        web3, CONTRACT_CUSTOM_TOKEN, deployer_key, [], (10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, "TKN")
+        web3=web3,
+        contracts_manager=contract_manager,
+        contract_name=CONTRACT_CUSTOM_TOKEN,
+        deployer_key=deployer_key,
+        args=[10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, "TKN"],
     )
 
 
-def get_token_network(web3, address, contracts_manager):
+def get_token_network(
+    web3: Web3, address: HexAddress, contracts_manager: ContractManager
+) -> Contract:
     json_contract = contracts_manager.get_contract(CONTRACT_TOKEN_NETWORK)
 
     return web3.eth.contract(abi=json_contract["abi"], address=address)
