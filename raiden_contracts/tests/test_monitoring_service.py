@@ -53,7 +53,7 @@ def monitor_data(
         channel_identifier=channel_identifier,
         reward_amount=REWARD_AMOUNT,
         token_network_address=token_network.address,
-        monitoring_service_address=monitoring_service_external.address,
+        monitoring_service_contract_address=monitoring_service_external.address,
         nonce=balance_proof_B[1],
     )
 
@@ -247,7 +247,7 @@ def test_updateReward(
             REWARD_AMOUNT,
             token_network.address,
             nonce=nonce,
-            monitoring_service_address=monitoring_service_internals.address,
+            monitoring_service_contract_address=monitoring_service_internals.address,
         )
         reward_proof_signature = reward_proof[5]
         monitoring_service_internals.functions.updateRewardPublic(

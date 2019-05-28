@@ -271,7 +271,7 @@ def print_gas_monitoring_service(
         reward_amount=reward_amount,
         token_network_address=token_network.address,
         nonce=balance_proof_B[1],
-        monitoring_service_address=monitoring_service_external.address,
+        monitoring_service_contract_address=monitoring_service_external.address,
     )
 
     # c1 closes channel
