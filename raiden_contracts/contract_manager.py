@@ -174,7 +174,11 @@ def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) ->
     if not dict2:
         return dict1
     common_contracts: Dict[str, DeployedContract] = deepcopy(dict1["contracts"])
-    assert not common_contracts.keys() & dict2["contracts"].keys()
+    if common_contracts.keys() & dict2["contracts"].keys():
+        raise ValueError(
+            "dict1 and dict2 contain contracts of the same name. "
+            "Now failing instead of overwriting any of these."
+        )
     common_contracts.update(dict2["contracts"])
 
     if dict2["chain_id"] != dict1["chain_id"]:
