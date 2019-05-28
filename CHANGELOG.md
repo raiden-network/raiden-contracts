@@ -8,8 +8,11 @@ Documents changes that result in:
 ## Unreleased
 
 - MonitoringService.monitor() takes a signature that takes in the message ID.
-- Add `gas_measurements(contracts_version)` that shows the gas measurements as a dictionary.
-- Unlock-related functions' and events' arguments are renamed into `sender` and `receiver`
+
+## [0.21.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.21.0) - 2019-05-28
+
+- [#1027](https://github.com/raiden-network/raiden-contracts/pull/1027) Add `gas_measurements(contracts_version)` that shows the gas measurements as a dictionary.
+- [#988](https://github.com/raiden-network/raiden-contracts/pull/988) Unlock-related functions' and events' arguments are renamed into `sender` and `receiver`
 
 ## [0.20.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.20.0) - 2019-05-17
 
