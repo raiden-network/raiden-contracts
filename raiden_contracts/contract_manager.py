@@ -177,7 +177,8 @@ def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) ->
     assert not common_contracts.keys() & dict2["contracts"].keys()
     common_contracts.update(dict2["contracts"])
 
-    assert dict2["chain_id"] == dict1["chain_id"]
+    if dict2["chain_id"] != dict1["chain_id"]:
+        raise ValueError("Got dictionaries with different chain_id's.")
     assert dict2["contracts_version"] == dict1["contracts_version"]
 
     return {
