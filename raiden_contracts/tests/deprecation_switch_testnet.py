@@ -1,7 +1,10 @@
 from logging import getLogger
+from typing import Optional, Tuple
 
 import click
+from eth_typing import HexAddress
 from eth_utils import encode_hex
+from web3.contract import Contract
 
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
@@ -12,6 +15,7 @@ from raiden_contracts.constants import (
     MAX_ETH_TOKEN_NETWORK,
 )
 from raiden_contracts.deploy.__main__ import setup_ctx
+from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.utils.transaction import check_successful_tx
 
 log = getLogger(__name__)
@@ -26,7 +30,14 @@ log = getLogger(__name__)
 @click.option("--gas-price", default=5, type=int, help="Gas price to use in gwei")
 @click.option("--gas-limit", default=5_500_000)
 @click.pass_context
-def deprecation_test(ctx, private_key, rpc_provider, wait, gas_price, gas_limit):
+def deprecation_test(
+    ctx: click.Context,
+    private_key: str,
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+) -> None:
     """ Turn on the deprecation switch and see channel opening fails """
     setup_ctx(
         ctx=ctx,
@@ -82,11 +93,11 @@ def deprecation_test(ctx, private_key, rpc_provider, wait, gas_price, gas_limit)
 
 
 def deprecation_test_setup(
-    deployer,
-    token_amount,
+    deployer: ContractDeployer,
+    token_amount: int,
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
-):
+) -> Tuple:
     deployed_contracts = deployer.deploy_raiden_contracts(max_num_of_token_networks=1)["contracts"]
 
     token_network_registry_abi = deployer.contract_manager.get_contract_abi(
@@ -152,8 +163,13 @@ def deprecation_test_setup(
 
 
 def open_and_deposit(
-    A, B, token_network, deployer, channel_identifier=None, txn_success_status=True
-):
+    A: HexAddress,
+    B: HexAddress,
+    token_network: Contract,
+    deployer: ContractDeployer,
+    channel_identifier: Optional[int] = None,
+    txn_success_status: bool = True,
+) -> int:
     try:
         txhash = token_network.functions.openChannel(
             participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT_MIN

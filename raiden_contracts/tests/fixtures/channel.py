@@ -1,5 +1,10 @@
+from typing import Callable, Tuple
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from eth_typing import HexAddress
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
@@ -22,8 +27,8 @@ from raiden_contracts.utils.proofs import (
 
 
 @pytest.fixture(scope="session")
-def create_channel(token_network, web3):
-    def get(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN):
+def create_channel(token_network: Contract, web3: Web3) -> Callable:
+    def get(A: HexAddress, B: HexAddress, settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN) -> Tuple:
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
@@ -49,7 +54,7 @@ def create_channel(token_network, web3):
 
 
 @pytest.fixture()
-def assign_tokens(token_network, custom_token):
+def assign_tokens(token_network: Contract, custom_token: Contract) -> Callable:
     def get(participant, deposit):
         owner = CONTRACT_DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()

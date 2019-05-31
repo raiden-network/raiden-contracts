@@ -1,5 +1,9 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
@@ -15,8 +19,11 @@ from raiden_contracts.utils.events import check_withdraw
 
 
 def test_withdraw_call(
-    token_network, create_channel_and_deposit, get_accounts, create_withdraw_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+) -> None:
     """ setTotalWithdraw() fails with various wrong arguments """
     (A, B) = get_accounts(2)
     withdraw_A = 3
@@ -116,8 +123,12 @@ def test_withdraw_call(
 
 
 def test_withdraw_wrong_state(
-    web3, token_network, create_channel_and_deposit, get_accounts, withdraw_channel
-):
+    web3: Web3,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    withdraw_channel: Callable,
+) -> None:
     """ setTotalWithdraw() should fail on a closed or settled channel """
     (A, B) = get_accounts(2)
     withdraw_A = 1
@@ -151,7 +162,9 @@ def test_withdraw_wrong_state(
         withdraw_channel(channel_identifier, A, withdraw_A, B)
 
 
-def test_withdraw_bigger(create_channel_and_deposit, get_accounts, withdraw_channel):
+def test_withdraw_bigger(
+    create_channel_and_deposit: Callable, get_accounts: Callable, withdraw_channel: Callable
+) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 15
     deposit_B = 13
@@ -174,8 +187,11 @@ def test_withdraw_bigger(create_channel_and_deposit, get_accounts, withdraw_chan
 
 
 def test_withdraw_wrong_signers(
-    token_network, create_channel_and_deposit, get_accounts, create_withdraw_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 15
     deposit_B = 13
@@ -200,8 +216,11 @@ def test_withdraw_wrong_signers(
 
 
 def test_withdraw_wrong_signature_content(
-    token_network, create_channel_and_deposit, get_accounts, create_withdraw_signatures
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 15
     deposit_B = 13
@@ -253,13 +272,13 @@ def test_withdraw_wrong_signature_content(
 
 
 def test_withdraw_channel_state(
-    get_accounts,
-    token_network,
-    custom_token,
-    create_channel_and_deposit,
-    withdraw_channel,
-    withdraw_state_tests,
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    custom_token: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    withdraw_state_tests: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
@@ -336,8 +355,13 @@ def test_withdraw_channel_state(
 
 
 def test_withdraw_replay_reopened_channel(
-    web3, token_network, create_channel, channel_deposit, get_accounts, create_withdraw_signatures
-):
+    web3: Web3,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 20
     withdraw_A = 5
@@ -379,8 +403,12 @@ def test_withdraw_replay_reopened_channel(
 
 
 def test_withdraw_event(
-    token_network, create_channel_and_deposit, get_accounts, withdraw_channel, event_handler
-):
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    withdraw_channel: Callable,
+    event_handler: Callable,
+) -> None:
     (A, B, C) = get_accounts(3)
     ev_handler = event_handler(token_network)
 

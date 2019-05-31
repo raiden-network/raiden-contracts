@@ -1,6 +1,9 @@
+from typing import Callable, Dict, List
+
 import pytest
 from eth_abi import encode_single
 from eth_tester.exceptions import TransactionFailed
+from eth_typing import HexAddress
 from eth_utils import to_checksum_address
 from web3 import Web3
 from web3.contract import Contract
@@ -12,7 +15,9 @@ REWARD_AMOUNT = 10
 
 
 @pytest.fixture
-def ms_address(get_accounts, custom_token, service_registry):
+def ms_address(
+    get_accounts: Callable, custom_token: Contract, service_registry: Contract
+) -> HexAddress:
     (ms,) = get_accounts(1)
 
     # register MS in the ServiceRegistry contract
@@ -25,16 +30,16 @@ def ms_address(get_accounts, custom_token, service_registry):
 
 @pytest.fixture
 def monitor_data(
-    get_accounts,
-    deposit_to_udc,
-    create_channel,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    create_reward_proof,
-    token_network,
-    ms_address,
-    monitoring_service_external,
-):
+    get_accounts: Callable,
+    deposit_to_udc: Callable,
+    create_channel: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+    create_reward_proof: Callable,
+    token_network: Contract,
+    ms_address: HexAddress,
+    monitoring_service_external: Contract,
+) -> Dict:
     # Create two parties and a channel between them
     (A, B) = get_accounts(2, privkeys=["0x" + "1" * 64, "0x" + "2" * 64])
     deposit_to_udc(B, REWARD_AMOUNT)
@@ -88,14 +93,14 @@ def monitor_data(
 
 @pytest.mark.parametrize("with_settle", [True, False])
 def test_claimReward_with_settle_call(
-    token_network,
-    monitoring_service_external,
+    token_network: Contract,
+    monitoring_service_external: Contract,
     user_deposit_contract: Contract,
-    event_handler,
-    monitor_data,
-    ms_address,
-    web3,
-    with_settle,
+    event_handler: Callable,
+    monitor_data: Dict,
+    ms_address: HexAddress,
+    web3: Web3,
+    with_settle: bool,
 ) -> None:
     A, B = monitor_data["participants"]
     channel_identifier = monitor_data["channel_identifier"]
@@ -157,8 +162,13 @@ def test_claimReward_with_settle_call(
 
 
 def test_monitor(
-    token_network, monitoring_service_external, monitor_data, ms_address, event_handler, web3
-):
+    token_network: Contract,
+    monitoring_service_external: Contract,
+    monitor_data: Dict,
+    ms_address: HexAddress,
+    event_handler: Callable,
+    web3: Web3,
+) -> None:
     A, B = monitor_data["participants"]
 
     # UpdateNonClosingBalanceProof is tested speparately, so we assume that all
@@ -232,15 +242,19 @@ def test_monitor(
 
 
 def test_updateReward(
-    monitoring_service_internals, ms_address, token_network, create_reward_proof, monitor_data
-):
+    monitoring_service_internals: Contract,
+    ms_address: HexAddress,
+    token_network: Contract,
+    create_reward_proof: Callable,
+    monitor_data: Dict,
+) -> None:
     A, B = monitor_data["participants"]
     reward_identifier = Web3.sha3(
         encode_single("uint256", monitor_data["channel_identifier"])
         + Web3.toBytes(hexstr=token_network.address)
     )
 
-    def update_with_nonce(nonce):
+    def update_with_nonce(nonce: int) -> None:
         reward_proof = create_reward_proof(
             B,
             monitor_data["channel_identifier"],
@@ -267,8 +281,10 @@ def test_updateReward(
     assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 3
 
 
-def test_firstAllowedBlock(monitoring_service_external):
-    def call(addresses, closed_at_block=1000, settle_timeout=100):
+def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
+    def call(
+        addresses: List[HexAddress], closed_at_block: int = 1000, settle_timeout: int = 100
+    ) -> int:
         first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
             closed_at_block=closed_at_block,
             settle_timeout=settle_timeout,

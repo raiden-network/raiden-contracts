@@ -1,7 +1,10 @@
 from itertools import permutations
+from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
@@ -25,7 +28,7 @@ from raiden_contracts.utils.events import check_channel_opened
 from .utils import get_participants_hash
 
 
-def test_open_channel_call(token_network, get_accounts):
+def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> None:
     """ Calling openChannel() with various wrong arguments """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
@@ -79,7 +82,9 @@ def test_open_channel_call(token_network, get_accounts):
         token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).call()
 
 
-def test_max_1_channel(token_network, get_accounts, create_channel):
+def test_max_1_channel(
+    token_network: Contract, get_accounts: Callable, create_channel: Callable
+) -> None:
     """ For two participants, at most one channel can be opened """
     (A, B) = get_accounts(2)
     create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
@@ -90,7 +95,7 @@ def test_max_1_channel(token_network, get_accounts, create_channel):
         token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).call()
 
 
-def test_participants_hash(token_network, get_accounts):
+def test_participants_hash(token_network: Contract, get_accounts: Callable) -> None:
     """ getParticipantsHash() behaves as get_participants_hash """
     (A, B) = get_accounts(2)
 
@@ -99,7 +104,7 @@ def test_participants_hash(token_network, get_accounts):
     assert token_network.functions.getParticipantsHash(B, A).call() == AB_hash
 
 
-def test_participants_hash_equal(token_network, get_accounts):
+def test_participants_hash_equal(token_network: Contract, get_accounts: Callable) -> None:
     """ getParticipantsHash() behaves as get_participants_hash on equal addresses """
     (A,) = get_accounts(1)
 
@@ -109,7 +114,9 @@ def test_participants_hash_equal(token_network, get_accounts):
         token_network.functions.getParticipantsHash(A, A).call()
 
 
-def test_counter(token_network, get_accounts, create_channel):
+def test_counter(
+    token_network: Contract, get_accounts: Callable, create_channel: Callable
+) -> None:
     """ Open three channels and observe states """
     (A, B, C, D) = get_accounts(4)
 
@@ -148,7 +155,9 @@ def test_counter(token_network, get_accounts, create_channel):
     assert token_network.functions.getChannelIdentifier(C, D).call() == 3
 
 
-def test_state_channel_identifier_invalid(token_network, get_accounts, create_channel):
+def test_state_channel_identifier_invalid(
+    token_network: Contract, get_accounts: Callable, create_channel: Callable
+) -> None:
     """ getChannelInfo() returns the empty channel state for ont-too-big channelID """
     (A, B, C) = get_accounts(3)
     channel_id = 0
@@ -177,7 +186,7 @@ def test_state_channel_identifier_invalid(token_network, get_accounts, create_ch
         assert state == ChannelState.NONEXISTENT
 
 
-def test_open_channel_state(token_network, get_accounts):
+def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> None:
     """ Observe the state of the channel after a openChannel() call """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
@@ -240,7 +249,7 @@ def test_open_channel_state(token_network, get_accounts):
     assert B_locked_amount == 0
 
 
-def test_reopen_channel(web3, token_network, get_accounts):
+def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Callable) -> None:
     """ Open a second channel after settling one """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -324,7 +333,9 @@ def test_reopen_channel(web3, token_network, get_accounts):
     assert B_locked_amount == 0
 
 
-def test_open_channel_event(get_accounts, token_network, event_handler):
+def test_open_channel_event(
+    get_accounts: Callable, token_network: Contract, event_handler: Callable
+) -> None:
     """ A successful openChannel() causes an OPENED event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)

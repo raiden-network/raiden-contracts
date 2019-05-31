@@ -1,6 +1,7 @@
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import pytest
+from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
@@ -22,7 +23,7 @@ from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
 @pytest.mark.parametrize("version", [None])
-def test_gas_json_has_enough_fields(version):
+def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
     """ Check is gas.json contains enough fields """
     doc = gas_measurements(version)
     keys = {
@@ -52,8 +53,11 @@ def test_gas_json_has_enough_fields(version):
 
 @pytest.fixture
 def print_gas_token_network_registry(
-    web3, deploy_tester_contract_txhash, secret_registry_contract, print_gas
-):
+    web3: Web3,
+    deploy_tester_contract_txhash: Callable,
+    secret_registry_contract: Contract,
+    print_gas: Callable,
+) -> None:
     """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -70,15 +74,15 @@ def print_gas_token_network_registry(
 
 @pytest.fixture
 def print_gas_token_network_deployment(
-    web3,
-    get_accounts,
-    print_gas,
-    custom_token,
-    secret_registry_contract,
-    deploy_tester_contract_txhash,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    print_gas: Callable,
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    deploy_tester_contract_txhash: Callable,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+) -> None:
     """ Abusing pytest to print the deployment gas cost of TokenNetwork """
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
@@ -105,7 +109,7 @@ def print_gas_token_network_create(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
     token_network_registry_constructor_args: List,
-):
+) -> None:
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
     registry = get_token_network_registry(token_network_registry_constructor_args)
     txn_hash = registry.functions.createERC20TokenNetwork(
@@ -116,7 +120,7 @@ def print_gas_token_network_create(
 
 
 @pytest.fixture
-def print_gas_secret_registry(secret_registry_contract, print_gas):
+def print_gas_secret_registry(secret_registry_contract: Contract, print_gas: Callable) -> None:
     """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b"secretsecretsecretsecretsecretse"
     txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
@@ -125,17 +129,17 @@ def print_gas_secret_registry(secret_registry_contract, print_gas):
 
 @pytest.fixture
 def print_gas_channel_cycle(
-    web3,
-    token_network,
-    create_channel,
-    channel_deposit,
-    withdraw_channel,
-    secret_registry_contract,
-    get_accounts,
-    print_gas,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-):
+    web3: Web3,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    withdraw_channel: Callable,
+    secret_registry_contract: Contract,
+    get_accounts: Callable,
+    print_gas: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+) -> None:
     """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
     settle_timeout = 11
@@ -221,7 +225,9 @@ def print_gas_channel_cycle(
 
 
 @pytest.fixture
-def print_gas_endpointregistry(endpoint_registry_contract, get_accounts, print_gas):
+def print_gas_endpointregistry(
+    endpoint_registry_contract: Contract, get_accounts: Callable, print_gas: Callable
+) -> None:
     """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
     A = get_accounts(1)[0]
     ENDPOINT = "127.0.0.1:38647"
@@ -233,18 +239,18 @@ def print_gas_endpointregistry(endpoint_registry_contract, get_accounts, print_g
 
 @pytest.fixture
 def print_gas_monitoring_service(
-    token_network,
-    monitoring_service_external,
-    get_accounts,
-    create_channel,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    create_reward_proof,
-    service_registry,
-    custom_token,
-    deposit_to_udc,
-    print_gas,
-):
+    token_network: Contract,
+    monitoring_service_external: Contract,
+    get_accounts: Callable,
+    create_channel: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+    create_reward_proof: Callable,
+    service_registry: Contract,
+    custom_token: Contract,
+    deposit_to_udc: Callable,
+    print_gas: Callable,
+) -> None:
     """ Abusing pytest to print gas cost of MonitoringService functions """
     # setup: two parties + MS
     (A, B, MS) = get_accounts(3)
@@ -306,8 +312,13 @@ def print_gas_monitoring_service(
 
 @pytest.fixture
 def print_gas_one_to_n(
-    one_to_n_contract, deposit_to_udc, get_accounts, get_private_key, web3, print_gas
-):
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    web3: Web3,
+    print_gas: Callable,
+) -> None:
     """ Abusing pytest to print gas cost of OneToN functions """
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
@@ -332,7 +343,13 @@ def print_gas_one_to_n(
 
 
 @pytest.fixture
-def print_gas_user_deposit(user_deposit_contract, custom_token, get_accounts, web3, print_gas):
+def print_gas_user_deposit(
+    user_deposit_contract: Contract,
+    custom_token: Contract,
+    get_accounts: Callable,
+    web3: Web3,
+    print_gas: Callable,
+) -> None:
     """ Abusing pytest to print gas cost of UserDeposit functions
 
     The `transfer` function is not included because it's only called by trusted
@@ -375,5 +392,5 @@ def print_gas_user_deposit(user_deposit_contract, custom_token, get_accounts, we
     "print_gas_one_to_n",
     "print_gas_user_deposit",
 )
-def test_print_gas():
+def test_print_gas() -> None:
     pass

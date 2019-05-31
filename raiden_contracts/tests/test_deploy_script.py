@@ -1,6 +1,6 @@
 from copy import deepcopy
 from tempfile import NamedTemporaryFile
-from typing import List, Optional
+from typing import Callable, Generator, List, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,7 +8,9 @@ from click import BadParameter, NoSuchOption
 from click.testing import CliRunner
 from eth_typing.evm import HexAddress
 from eth_utils import ValidationError, to_checksum_address
+from pyfakefs.fake_filesystem import FakeFilesystem
 from pyfakefs.fake_filesystem_unittest import Patcher
+from web3 import Web3
 from web3.eth import Eth
 
 import raiden_contracts
@@ -21,7 +23,11 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
 )
-from raiden_contracts.contract_manager import contracts_precompiled_path
+from raiden_contracts.contract_manager import (
+    DeployedContract,
+    DeployedContracts,
+    contracts_precompiled_path,
+)
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     ContractVerifier,
@@ -47,7 +53,7 @@ GAS_LIMIT = 5860000
 
 
 @pytest.fixture(scope="session")
-def deployer(web3):
+def deployer(web3: Web3) -> ContractDeployer:
     return ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -59,7 +65,7 @@ def deployer(web3):
 
 
 @pytest.fixture(scope="session")
-def deployer_0_4_0(web3):
+def deployer_0_4_0(web3: Web3) -> ContractDeployer:
     return ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -72,13 +78,13 @@ def deployer_0_4_0(web3):
 
 @pytest.mark.slow
 @pytest.fixture(scope="session")
-def deployed_raiden_info(deployer):
+def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(max_num_of_token_networks=1)
 
 
 @pytest.mark.slow
 @pytest.fixture(scope="session")
-def deployed_raiden_info_0_4_0(deployer_0_4_0):
+def deployed_raiden_info_0_4_0(deployer_0_4_0: ContractDeployer) -> DeployedContracts:
     return deployer_0_4_0.deploy_raiden_contracts(max_num_of_token_networks=None)
 
 
@@ -86,7 +92,7 @@ TOKEN_SUPPLY = 10000000
 
 
 @pytest.fixture(scope="session")
-def token_address(deployer):
+def token_address(deployer: ContractDeployer) -> DeployedContract:
     token_type = "CustomToken"
     deployed_token = deployer.deploy_token_contract(
         token_supply=TOKEN_SUPPLY,
@@ -103,7 +109,9 @@ DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
 
 @pytest.mark.slow
 @pytest.fixture(scope="session")
-def deployed_service_info(deployer, token_address):
+def deployed_service_info(
+    deployer: ContractDeployer, token_address: HexAddress
+) -> DeployedContracts:
     return deployer.deploy_service_contracts(
         token_address=token_address, user_deposit_whole_balance_limit=DEPOSIT_LIMIT
     )
@@ -120,12 +128,16 @@ def deployed_service_info(deployer, token_address):
         (None, True),
     ],
 )
-def test_contract_version_with_max_token_networks(version: Optional[str], expectation: bool):
+def test_contract_version_with_max_token_networks(
+    version: Optional[str], expectation: bool
+) -> None:
     assert contract_version_with_max_token_networks(version) == expectation
 
 
 @pytest.mark.slow
-def test_deploy_script_raiden(web3, deployer, deployed_raiden_info):
+def test_deploy_script_raiden(
+    web3: Web3, deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
+) -> None:
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
     This checks if deploy_raiden_contracts() works correctly in the happy case,
@@ -207,7 +219,7 @@ def test_deploy_script_raiden(web3, deployer, deployed_raiden_info):
         deployer.deploy_raiden_contracts(1)
 
 
-def test_deploy_script_token(web3,):
+def test_deploy_script_token(web3: Web3) -> None:
     """ Run test token deployment function used in the deployment script
 
     This checks if deploy_token_contract() works correctly in the happy case,
@@ -248,12 +260,12 @@ def test_deploy_script_token(web3,):
 
 @pytest.mark.slow
 def test_deploy_script_register(
-    web3,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-    deployed_raiden_info,
-    token_address,
-):
+    web3: Web3,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+    deployed_raiden_info: DeployedContracts,
+    token_address: HexAddress,
+) -> None:
     """ Run token register function used in the deployment script
 
     This checks if register_token_network() works correctly in the happy case,
@@ -286,8 +298,10 @@ def test_deploy_script_register(
 
 @pytest.mark.slow
 def test_deploy_script_register_without_limit(
-    token_address, deployer_0_4_0, deployed_raiden_info_0_4_0
-):
+    token_address: HexAddress,
+    deployer_0_4_0: ContractDeployer,
+    deployed_raiden_info_0_4_0: DeployedContracts,
+) -> None:
     """ Run token register function used in the deployment script
 
     This checks if register_token_network() works correctly in the happy case for 0.4.0 version,
@@ -312,12 +326,12 @@ def test_deploy_script_register_without_limit(
 
 
 def test_deploy_script_register_missing_limits(
-    token_network_deposit_limit,
-    channel_participant_deposit_limit,
-    deployed_raiden_info,
-    token_address,
-    deployer,
-):
+    token_network_deposit_limit: int,
+    channel_participant_deposit_limit: int,
+    deployed_raiden_info: DeployedContracts,
+    token_address: HexAddress,
+    deployer: ContractDeployer,
+) -> None:
     """ Run token register function used in the deployment script
 
     without the expected channel participant deposit limit.
@@ -355,12 +369,12 @@ def test_deploy_script_register_missing_limits(
 
 
 def test_deploy_script_register_unexpected_limits(
-    web3,
-    token_network_deposit_limit,
-    channel_participant_deposit_limit,
-    token_address,
-    deployed_raiden_info,
-):
+    web3: Web3,
+    token_network_deposit_limit: int,
+    channel_participant_deposit_limit: int,
+    token_address: HexAddress,
+    deployed_raiden_info: DeployedContracts,
+) -> None:
     """ Run token register function used in the deployment script
 
     without the expected channel participant deposit limit.
@@ -407,7 +421,9 @@ def test_deploy_script_register_unexpected_limits(
 
 
 @pytest.mark.slow
-def test_deploy_script_service(web3, deployed_service_info, token_address: HexAddress):
+def test_deploy_script_service(
+    web3: Web3, deployed_service_info: DeployedContracts, token_address: HexAddress
+) -> None:
     """ Run deploy_service_contracts() used in the deployment script
 
     This checks if deploy_service_contracts() works correctly in the happy case.
@@ -561,7 +577,7 @@ def test_deploy_script_service(web3, deployed_service_info, token_address: HexAd
             deployed_contracts_info=deployed_info_fail,
         )
 
-    def test_missing_deployment(contract_name):
+    def test_missing_deployment(contract_name: str) -> None:
         deployed_info_fail = deepcopy(deployed_service_contracts)
         deployed_info_fail["contracts"][contract_name]["address"] = EMPTY_ADDRESS
         with pytest.raises(RuntimeError):
@@ -580,32 +596,32 @@ def test_deploy_script_service(web3, deployed_service_info, token_address: HexAd
         test_missing_deployment(contract_name)
 
 
-def test_validate_address_on_none():
+def test_validate_address_on_none() -> None:
     """ validate_address(x, y, None) should return None """
     mock_command = MagicMock()
     mock_parameter = MagicMock()
     assert validate_address(mock_command, mock_parameter, None) is None
 
 
-def test_validate_address_empty_string():
+def test_validate_address_empty_string() -> None:
     """ validate_address(x, y, '') should return None """
     assert validate_address(MagicMock(), MagicMock(), "") is None
 
 
-def test_validate_address_not_an_address():
+def test_validate_address_not_an_address() -> None:
     """ validate_address(x, y, 'not an address') should raise click.BadParameter """
     with pytest.raises(BadParameter):
         validate_address(MagicMock(), MagicMock(), "not an address")
 
 
-def test_validate_address_happy_path():
+def test_validate_address_happy_path() -> None:
     """ validate_address(x, y, address) should return the same address checksumed """
     address = CONTRACT_DEPLOYER_ADDRESS
     assert validate_address(MagicMock(), MagicMock(), address) == to_checksum_address(address)
 
 
 @pytest.fixture
-def fs_reload_deployer():
+def fs_reload_deployer() -> Generator[FakeFilesystem, None, None]:
     patcher = Patcher(
         modules_to_reload=[raiden_contracts.contract_manager, raiden_contracts.deploy.__main__]
     )
@@ -615,7 +631,11 @@ def fs_reload_deployer():
 
 
 @pytest.mark.slow
-def test_store_and_verify_raiden(fs_reload_deployer, deployed_raiden_info, deployer):
+def test_store_and_verify_raiden(
+    fs_reload_deployer: FakeFilesystem,
+    deployed_raiden_info: DeployedContracts,
+    deployer: ContractDeployer,
+) -> None:
     """ Store some raiden contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
     deployed_contracts_info = deployed_raiden_info
@@ -629,8 +649,11 @@ def test_store_and_verify_raiden(fs_reload_deployer, deployed_raiden_info, deplo
 
 @pytest.mark.slow
 def test_store_and_verify_services(
-    fs_reload_deployer, deployer, deployed_service_info, token_address
-):
+    fs_reload_deployer: FakeFilesystem,
+    deployer: ContractDeployer,
+    deployed_service_info: DeployedContracts,
+    token_address: HexAddress,
+) -> None:
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
     deployed_contracts_info = deployed_service_info
@@ -647,7 +670,7 @@ def test_store_and_verify_services(
 
 
 @pytest.mark.slow
-def test_red_eyes_deployer(web3):
+def test_red_eyes_deployer(web3: Web3) -> None:
     """ A smoke test for deploying RedEyes version contracts """
     deployer = ContractDeployer(
         web3=web3,
@@ -660,13 +683,13 @@ def test_red_eyes_deployer(web3):
     deployer.deploy_raiden_contracts(max_num_of_token_networks=None)
 
 
-def test_error_removed_option_raises():
+def test_error_removed_option_raises() -> None:
     with pytest.raises(NoSuchOption):
         mock = MagicMock()
         error_removed_option("msg")(None, mock, "0xaabbcc")
 
 
-def test_contracts_version_expects_deposit_limits():
+def test_contracts_version_expects_deposit_limits() -> None:
     assert not contracts_version_expects_deposit_limits("0.3._")
     assert not contracts_version_expects_deposit_limits("0.4.0")
     assert contracts_version_expects_deposit_limits("0.9.0")
@@ -677,7 +700,7 @@ def test_contracts_version_expects_deposit_limits():
         contracts_version_expects_deposit_limits("not a semver string")
 
 
-def deploy_token_arguments(privkey: str):
+def deploy_token_arguments(privkey: str) -> List[str]:
     return [
         "--rpc-provider",
         "rpc_provider",
@@ -696,7 +719,7 @@ def deploy_token_arguments(privkey: str):
     ]
 
 
-def test_deploy_token_invalid_privkey():
+def test_deploy_token_invalid_privkey() -> None:
     """ Call deploy token command with invalid private key """
     with patch.object(
         ContractDeployer, "deploy_token_contract", spec=ContractDeployer
@@ -709,7 +732,7 @@ def test_deploy_token_invalid_privkey():
         mock_deployer.assert_not_called()
 
 
-def test_deploy_token_no_balance(get_accounts, get_private_key):
+def test_deploy_token_no_balance(get_accounts: Callable, get_private_key: Callable) -> None:
     """ Call deploy token command with a private key with no balance """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -728,7 +751,7 @@ def test_deploy_token_no_balance(get_accounts, get_private_key):
                 mock_deployer.assert_not_called()
 
 
-def test_deploy_token_with_balance(get_accounts, get_private_key):
+def test_deploy_token_with_balance(get_accounts: Callable, get_private_key: Callable) -> None:
     """ Call deploy token command with a private key with some balance """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -765,9 +788,15 @@ def deploy_raiden_arguments(
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
-@patch.object(ContractDeployer, "store_and_verify_deployment_info_raiden")
+@patch.object(ContractVerifier, "store_and_verify_deployment_info_raiden")
 @pytest.mark.parametrize("contracts_version", [None, "0.4.0"])
-def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key, contracts_version):
+def test_deploy_raiden(
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    contracts_version: Optional[str],
+) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -789,7 +818,9 @@ def test_deploy_raiden(mock_deploy, mock_verify, get_accounts, get_private_key, 
 
 
 @patch.object(ContractDeployer, "register_token_network")
-def test_register_script(mock_deploy, get_accounts, get_private_key):
+def test_register_script(
+    mock_deploy: MagicMock, get_accounts: Callable, get_private_key: Callable
+) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -823,7 +854,9 @@ def test_register_script(mock_deploy, get_accounts, get_private_key):
 
 
 @patch.object(ContractDeployer, "register_token_network")
-def test_register_script_without_token_network(mock_deploy, get_accounts, get_private_key):
+def test_register_script_without_token_network(
+    mock_deploy: MagicMock, get_accounts: Callable, get_private_key: Callable
+) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -860,7 +893,12 @@ def test_register_script_without_token_network(mock_deploy, get_accounts, get_pr
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractDeployer, "verify_deployment_data")
-def test_deploy_raiden_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
+def test_deploy_raiden_save_info_false(
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+) -> None:
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -900,8 +938,13 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
 
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
-@patch.object(ContractDeployer, "store_and_verify_deployment_info_services")
-def test_deploy_services(mock_deploy, mock_verify, get_accounts, get_private_key):
+@patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
+def test_deploy_services(
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -921,7 +964,12 @@ def test_deploy_services(mock_deploy, mock_verify, get_accounts, get_private_key
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractDeployer, "verify_service_contracts_deployment_data")
-def test_deploy_services_save_info_false(mock_deploy, mock_verify, get_accounts, get_private_key):
+def test_deploy_services_save_info_false(
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+) -> None:
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
@@ -940,7 +988,7 @@ def test_deploy_services_save_info_false(mock_deploy, mock_verify, get_accounts,
 
 
 @patch.object(ContractVerifier, "verify_deployed_contracts_in_filesystem")
-def test_verify_script(mock_verify):
+def test_verify_script(mock_verify: MagicMock) -> None:
     """ Calling deploy verify command """
     with patch.object(Eth, "getBalance", return_value=1):
         runner = CliRunner()
@@ -950,7 +998,7 @@ def test_verify_script(mock_verify):
         mock_verify.assert_called_once()
 
 
-def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg():
+def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg() -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS
     mock_monitoring_service = MagicMock()
@@ -965,7 +1013,7 @@ def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg()
         )
 
 
-def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address():
+def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address() -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS
     mock_monitoring_service = MagicMock()

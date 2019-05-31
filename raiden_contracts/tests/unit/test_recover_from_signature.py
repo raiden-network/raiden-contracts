@@ -3,6 +3,7 @@ from typing import Callable
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.proofs import hash_balance_proof
@@ -12,18 +13,18 @@ from raiden_contracts.utils.signature import sign
 
 
 @pytest.fixture
-def signature_test_contract(deploy_tester_contract):
+def signature_test_contract(deploy_tester_contract: Contract) -> Contract:
     return deploy_tester_contract("SignatureVerifyTest")
 
 
 def test_verify(
-    web3,
-    token_network,
-    signature_test_contract,
-    get_accounts,
+    web3: Web3,
+    token_network: Contract,
+    signature_test_contract: Contract,
+    get_accounts: Callable,
     create_channel: Callable,
-    create_balance_proof,
-):
+    create_balance_proof: Callable,
+) -> None:
     """ ECVerify.ecverify returns the correct address
 
     This test checks if the signature test contract returns the correct
@@ -48,7 +49,9 @@ def test_verify(
     assert address == B
 
 
-def test_verify_fail(signature_test_contract, get_accounts, get_private_key):
+def test_verify_fail(
+    signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
+) -> None:
     """ ECVerify.ecverify on failure cases
 
     the signature test contract returns the correct address on a correct
@@ -69,13 +72,13 @@ def test_verify_fail(signature_test_contract, get_accounts, get_private_key):
 
 
 def test_ecrecover_output(
-    web3,
-    token_network,
-    signature_test_contract,
-    get_accounts,
-    create_channel,
-    create_balance_proof,
-):
+    web3: Web3,
+    token_network: Contract,
+    signature_test_contract: Contract,
+    get_accounts: Callable,
+    create_channel: Callable,
+    create_balance_proof: Callable,
+) -> None:
     """ ecrecover returns the address that was used to sign a balance proof """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -94,7 +97,9 @@ def test_ecrecover_output(
     assert address == A
 
 
-def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_private_key):
+def test_ecrecover_output_zero(
+    signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
+) -> None:
     """ ecrecover returns 0 for an incorrect value of the v parameter """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
@@ -109,7 +114,9 @@ def test_ecrecover_output_zero(signature_test_contract, get_accounts, get_privat
     )
 
 
-def test_ecrecover_output_fail(signature_test_contract, get_accounts, get_private_key):
+def test_ecrecover_output_fail(
+    signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
+) -> None:
     """ ecrecover detects a wrong message content and returns zero """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)

@@ -1,5 +1,9 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
@@ -438,13 +442,13 @@ def test_channel_unlock_smaller_locked_amount(
 
 
 def test_channel_unlock_bigger_unlocked_amount(
-    web3,
-    token_network,
-    custom_token,
-    secret_registry_contract,
-    create_settled_channel,
-    get_accounts,
-    reveal_secrets,
+    web3: Web3,
+    token_network: Contract,
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    create_settled_channel: Callable,
+    get_accounts: Callable,
+    reveal_secrets: Callable,
 ):
     """ unlock() transfers not more than the locked amount for more expensive unlock() demands """
     (A, B) = get_accounts(2)

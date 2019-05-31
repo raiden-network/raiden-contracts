@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.exceptions import ValidationError
@@ -132,7 +134,9 @@ def test_deposit_wrong_channel(get_accounts, token_network, create_channel, assi
 
 
 @pytest.mark.skip("Not necessary with limited deposits for the test release.")
-def test_channel_deposit_overflow(get_accounts, create_channel, channel_deposit):
+def test_channel_deposit_overflow(
+    get_accounts: Callable, create_channel: Callable, channel_deposit: Callable
+) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 50
     deposit_B_ok = MAX_UINT256 - deposit_A

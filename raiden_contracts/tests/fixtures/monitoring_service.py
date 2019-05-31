@@ -1,4 +1,7 @@
+from typing import Callable, Tuple
+
 import pytest
+from eth_typing.evm import HexAddress
 from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_MONITORING_SERVICE
@@ -7,8 +10,11 @@ from raiden_contracts.utils.proofs import sign_reward_proof
 
 @pytest.fixture(scope="session")
 def monitoring_service_external(
-    deploy_tester_contract, custom_token, service_registry, uninitialized_user_deposit_contract
-):
+    deploy_tester_contract: Contract,
+    custom_token: Contract,
+    service_registry: Contract,
+    uninitialized_user_deposit_contract: Contract,
+) -> Contract:
     return deploy_tester_contract(
         CONTRACT_MONITORING_SERVICE,
         [
@@ -21,7 +27,10 @@ def monitoring_service_external(
 
 @pytest.fixture()
 def monitoring_service_internals(
-    custom_token, service_registry, uninitialized_user_deposit_contract, deploy_tester_contract
+    custom_token: Contract,
+    service_registry: Contract,
+    uninitialized_user_deposit_contract: Contract,
+    deploy_tester_contract: Contract,
 ) -> Contract:
     return deploy_tester_contract(
         "MonitoringServiceInternalsTest",
@@ -34,16 +43,16 @@ def monitoring_service_internals(
 
 
 @pytest.fixture()
-def create_reward_proof(token_network, get_private_key):
+def create_reward_proof(token_network: Contract, get_private_key: Callable) -> Callable:
     def get(
-        signer,
-        channel_identifier,
-        reward_amount,
-        token_network_address,
-        monitoring_service_contract_address,
-        nonce=0,
-        v=27,
-    ):
+        signer: HexAddress,
+        channel_identifier: int,
+        reward_amount: int,
+        token_network_address: HexAddress,
+        monitoring_service_contract_address: HexAddress,
+        nonce: int = 0,
+        v: int = 27,
+    ) -> Tuple[int, int, HexAddress, int, int, bytes]:
         private_key = get_private_key(signer)
 
         signature = sign_reward_proof(

@@ -6,6 +6,7 @@ from eth_typing import HexAddress
 
 from raiden_contracts.constants import CONTRACTS_VERSION, DeploymentModule
 from raiden_contracts.contract_manager import (
+    DeployedContract,
     contracts_data_path,
     contracts_deployed_path,
     get_contracts_deployment_info,
@@ -16,14 +17,14 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
-def test_deploy_data_dir_exists(version: Optional[str]):
+def test_deploy_data_dir_exists(version: Optional[str]) -> None:
     """ Make sure directories exist for deployment data """
     assert contracts_data_path(version).exists(), "deployment data do not exist"
     assert contracts_data_path(version).is_dir()
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
-def test_deploy_data_dir_is_not_nested(version: Optional[str]):
+def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
     """ Make sure 'data' directories do not contain 'data*' recursively """
     assert list(contracts_data_path(version).glob("./data*")) == []
 
@@ -31,12 +32,12 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]):
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
 @pytest.mark.parametrize("services", [False, True])
-def test_deploy_data_file_exists(version: Optional[str], chain_id: int, services: bool):
+def test_deploy_data_file_exists(version: Optional[str], chain_id: int, services: bool) -> None:
     """ Make sure files exist for deployment data of each chain_id """
     assert contracts_deployed_path(chain_id, version, services).exists()
 
 
-def reasonable_deployment_of_a_contract(deployed):
+def reasonable_deployment_of_a_contract(deployed: DeployedContract) -> None:
     """ Checks an entry under deployment_*.json under a contract name """
     assert isinstance(deployed["address"], str)
     assert len(deployed["address"]) == 42
@@ -54,7 +55,7 @@ RAIDEN_CONTRACT_NAMES = ("EndpointRegistry", "TokenNetworkRegistry", "SecretRegi
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: int):
+def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: int) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data
     assert data["contracts_version"] == version if version else CONTRACTS_VERSION
@@ -70,7 +71,7 @@ SERVICE_CONTRACT_NAMES = ("ServiceRegistry", "MonitoringService", "OneToN", "Use
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_has_fields_services(version: Optional[str], chain_id: int):
+def test_deploy_data_has_fields_services(version: Optional[str], chain_id: int) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data
     assert data["contracts_version"] == version if version else CONTRACTS_VERSION
@@ -83,7 +84,7 @@ def test_deploy_data_has_fields_services(version: Optional[str], chain_id: int):
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_all(version: Optional[str], chain_id: int):
+def test_deploy_data_all(version: Optional[str], chain_id: int) -> None:
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     data_default = get_contracts_deployment_info(chain_id, version)
     assert data_all
@@ -94,29 +95,29 @@ def test_deploy_data_all(version: Optional[str], chain_id: int):
         reasonable_deployment_of_a_contract(deployed)
 
 
-def test_deploy_data_unknown_module():
+def test_deploy_data_unknown_module() -> None:
     with pytest.raises(ValueError):
         get_contracts_deployment_info(3, None, module=None)  # type: ignore
 
 
-def test_deploy_data_not_deployed():
+def test_deploy_data_not_deployed() -> None:
     assert get_contracts_deployment_info(1, "0.8.0", module=DeploymentModule.RAIDEN) is None
 
 
 @pytest.mark.parametrize("chain_id", [3, 4, 42])
-def test_deploy_data_for_redeyes_succeed(chain_id):
+def test_deploy_data_for_redeyes_succeed(chain_id: int) -> None:
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
     assert get_contracts_deployment_info(chain_id, "0.4.0")
 
 
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_service_deploy_data_for_redeyes_fail(chain_id):
+def test_service_deploy_data_for_redeyes_fail(chain_id: int) -> None:
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
     with pytest.raises(ValueError):
         assert get_contracts_deployment_info(chain_id, "0.4.0", DeploymentModule.SERVICES)
 
 
-def test_version_provides_services():
+def test_version_provides_services() -> None:
     assert not version_provides_services("0.3._")
     assert not version_provides_services("0.4.0")
     assert version_provides_services("0.8.0")
@@ -127,7 +128,7 @@ def test_version_provides_services():
         assert version_provides_services("not a semver")
 
 
-def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit,):
+def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit: int) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
     web3_mock = Mock()
     web3_mock.version.network = 1
@@ -142,7 +143,7 @@ def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit,):
         )
 
 
-def test_verify_existent_deployment():
+def test_verify_existent_deployment() -> None:
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that returns a wrong block number for deployment.
@@ -161,7 +162,7 @@ def test_verify_existent_deployment():
         )
 
 
-def test_verify_existent_deployment_with_wrong_code():
+def test_verify_existent_deployment_with_wrong_code() -> None:
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that does not return the correct code.
