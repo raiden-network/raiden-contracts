@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, Generator, Optional
 
 import pytest
 from eth_tester import EthereumTester, PyEVMBackend
@@ -17,13 +17,13 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def ethereum_tester(patch_genesis_gas_limit) -> EthereumTester:  # pylint: disable=W0613
+def ethereum_tester(patch_genesis_gas_limit: None) -> EthereumTester:  # pylint: disable=W0613
     """Returns an instance of an Ethereum tester"""
     return EthereumTester(PyEVMBackend())
 
 
 @pytest.fixture(scope="session")
-def patch_genesis_gas_limit():
+def patch_genesis_gas_limit() -> None:
     """Increases the block gas limit, to make the TokenNetworkRegistry contract deployable"""
 
     tmp_limit = 6 * 10 ** 6
@@ -36,7 +36,7 @@ def patch_genesis_gas_limit():
 
 
 @pytest.fixture(scope="session")
-def web3(ethereum_tester,):
+def web3(ethereum_tester: EthereumTester) -> Web3:
     """Returns an initialized Web3 instance"""
     provider = EthereumTesterProvider(ethereum_tester)
     web3 = Web3(provider)
@@ -60,7 +60,7 @@ def web3(ethereum_tester,):
 
 
 @pytest.fixture(autouse=True)
-def auto_revert_chain(web3: Web3):
+def auto_revert_chain(web3: Web3) -> Generator:
     """Reverts the chain to its before the test run
 
     This reverts the side effects created during the test run, so that we can
@@ -84,5 +84,5 @@ def _call_and_transact(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def call_and_transact():
+def call_and_transact() -> None:
     ContractFunction.call_and_transact = _call_and_transact

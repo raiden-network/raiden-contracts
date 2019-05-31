@@ -1,19 +1,23 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACTS_VERSION, OneToNEvent
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
 def test_claim(
-    user_deposit_contract,
-    one_to_n_contract,
-    deposit_to_udc,
-    get_accounts,
-    get_private_key,
-    web3,
-    event_handler,
-):
+    user_deposit_contract: Contract,
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    web3: Web3,
+    event_handler: Callable,
+) -> None:
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
@@ -116,14 +120,14 @@ def test_claim(
 
 
 def test_claim_with_insufficient_deposit(
-    user_deposit_contract,
-    one_to_n_contract,
-    deposit_to_udc,
-    get_accounts,
-    get_private_key,
-    web3,
-    event_handler,
-):
+    user_deposit_contract: Contract,
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    web3: Web3,
+    event_handler: Callable,
+) -> None:
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 6)
@@ -182,7 +186,7 @@ def test_claim_with_insufficient_deposit(
     )
 
 
-def test_version(one_to_n_contract):
+def test_version(one_to_n_contract: Contract) -> None:
     """ Check the result of contract_version() call on the UserDeposit """
     version = one_to_n_contract.functions.contract_version().call()
     assert version == CONTRACTS_VERSION

@@ -1,15 +1,18 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3.contract import Contract
 
 from raiden_contracts.tests.utils import fake_bytes
 
 
 def test_recover_address_from_withdraw_message(
-    token_network_test_signatures,
-    create_withdraw_signatures,
-    create_channel_and_deposit,
-    get_accounts,
-):
+    token_network_test_signatures: Contract,
+    create_withdraw_signatures: Callable,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     (A, B) = get_accounts(2)
     token_network = token_network_test_signatures
     fake_signature = fake_bytes(64)
@@ -55,8 +58,8 @@ def test_recover_address_from_withdraw_message(
 
 
 def test_recover_address_from_balance_proof(
-    token_network_test_signatures, create_balance_proof, get_accounts
-):
+    token_network_test_signatures: Contract, create_balance_proof: Callable, get_accounts: Callable
+) -> None:
     """ TokenNetwork can recover the signer's address from a balance proof
 
     This test checks that the TokenNetwork contract
@@ -100,11 +103,11 @@ def test_recover_address_from_balance_proof(
 
 
 def test_recover_address_from_balance_proof_update(
-    token_network_test_signatures,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    get_accounts,
-):
+    token_network_test_signatures: Contract,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+    get_accounts: Callable,
+) -> None:
     """ TokenNetwork can recover the signer's address from a balance proof update
 
     This test checks that the TokenNetwork contract
@@ -158,8 +161,10 @@ def test_recover_address_from_balance_proof_update(
 
 @pytest.mark.skip(reason="Delayed to another milestone")
 def test_recover_address_from_cooperative_settle_signature(
-    token_network_test_signatures, create_cooperative_settle_signatures, get_accounts
-):
+    token_network_test_signatures: Contract,
+    create_cooperative_settle_signatures: Callable,
+    get_accounts: Callable,
+) -> None:
     (A, B) = get_accounts(2)
     other_token_network = token_network_test_signatures
     channel_identifier = 4

@@ -154,16 +154,16 @@ def check_version_dependent_parameters(
 )
 @click.pass_context
 def raiden(
-    ctx,
-    private_key,
-    rpc_provider,
-    wait,
-    gas_price,
-    gas_limit,
-    save_info,
-    contracts_version,
+    ctx: click.Context,
+    private_key: Optional[str],
+    rpc_provider: str,
+    wait: int,
+    gas_price: int,
+    gas_limit: int,
+    save_info: int,
+    contracts_version: Optional[str],
     max_token_networks: Optional[int],
-):
+) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
 
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
@@ -214,7 +214,7 @@ def services(
     save_info: bool,
     contracts_version: Optional[str],
     user_deposit_whole_limit: int,
-):
+) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
 
@@ -266,7 +266,7 @@ def token(
     token_name: str,
     token_decimals: int,
     token_symbol: str,
-):
+) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj["deployer"]
     token_supply *= 10 ** token_decimals

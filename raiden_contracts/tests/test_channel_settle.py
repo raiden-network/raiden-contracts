@@ -1,7 +1,10 @@
 from copy import deepcopy
+from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
 from raiden_contracts.tests.fixtures.channel import call_settle
@@ -196,15 +199,15 @@ def test_settle_single_direct_transfer_for_closing_party(
 
 
 def test_settle_single_direct_transfer_for_counterparty(
-    web3,
-    get_accounts,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that did not call close.
     """

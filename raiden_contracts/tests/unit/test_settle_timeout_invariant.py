@@ -1,11 +1,17 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import fake_bytes
 
 
-def test_settle_timeout_inrange(token_network, get_accounts, web3):
+def test_settle_timeout_inrange(
+    token_network: Contract, get_accounts: Callable, web3: Web3
+) -> None:
     """ The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.
 

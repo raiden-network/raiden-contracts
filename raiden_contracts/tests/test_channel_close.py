@@ -1,5 +1,9 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
 from raiden_contracts.tests.utils import (
@@ -14,7 +18,7 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_channel_closed
 
 
-def test_close_nonexistent_channel(token_network, get_accounts):
+def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callable) -> None:
     """ Test getChannelInfo and closeChannel on a not-yet opened channel """
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
@@ -37,8 +41,12 @@ def test_close_nonexistent_channel(token_network, get_accounts):
 
 
 def test_close_settled_channel_fail(
-    web3, token_network, create_channel, channel_deposit, get_accounts
-):
+    web3: Web3,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     """ Test getChannelInfo and closeChannel on an already settled channel """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
@@ -86,8 +94,12 @@ def test_close_settled_channel_fail(
 
 
 def test_close_wrong_signature(
-    token_network, create_channel, channel_deposit, get_accounts, create_balance_proof
-):
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    create_balance_proof: Callable,
+) -> None:
     """ Closing a channel with a balance proof of the third party should fail """
     (A, B, C) = get_accounts(3)
     deposit_A = 6
@@ -109,7 +121,12 @@ def test_close_wrong_signature(
         )
 
 
-def test_close_call_twice_fail(token_network, create_channel, channel_deposit, get_accounts):
+def test_close_call_twice_fail(
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     """ The second of two same closeChannel calls should fail """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -135,7 +152,12 @@ def test_close_call_twice_fail(token_network, create_channel, channel_deposit, g
         ).call({"from": A})
 
 
-def test_close_wrong_sender(token_network, create_channel, channel_deposit, get_accounts):
+def test_close_wrong_sender(
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     """ A closeChannel call from a wrong Ethereum address should fail """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -153,8 +175,12 @@ def test_close_wrong_sender(token_network, create_channel, channel_deposit, get_
 
 
 def test_close_nonce_zero(
-    get_accounts, token_network, create_channel, create_balance_proof, event_handler
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    create_balance_proof: Callable,
+    event_handler: Callable,
+) -> None:
     """ closeChannel with a balance proof with nonce zero should not change the channel state """
     (A, B) = get_accounts(2)
     vals_B = ChannelValues(
@@ -217,8 +243,11 @@ def test_close_nonce_zero(
 
 
 def test_close_first_argument_is_for_partner_transfer(
-    token_network, create_channel, get_accounts, create_balance_proof
-):
+    token_network: Contract,
+    create_channel: Callable,
+    get_accounts: Callable,
+    create_balance_proof: Callable,
+) -> None:
     """ closeChannel fails on a self-submitted balance proof """
     (A, B) = get_accounts(2)
 
@@ -240,7 +269,9 @@ def test_close_first_argument_is_for_partner_transfer(
     )
 
 
-def test_close_first_participant_can_close(token_network, create_channel, get_accounts, get_block):
+def test_close_first_participant_can_close(
+    token_network: Contract, create_channel: Callable, get_accounts: Callable, get_block: Callable
+) -> None:
     """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -287,7 +318,9 @@ def test_close_first_participant_can_close(token_network, create_channel, get_ac
     assert B_nonce == 0
 
 
-def test_close_second_participant_can_close(token_network, create_channel, get_accounts):
+def test_close_second_participant_can_close(
+    token_network: Contract, create_channel: Callable, get_accounts: Callable
+) -> None:
     """ Simplest successful closeChannel by the second participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -303,16 +336,16 @@ def test_close_second_participant_can_close(token_network, create_channel, get_a
 
 
 def test_close_channel_state(
-    web3,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    get_block,
-    create_balance_proof,
-    txn_cost,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    get_block: Callable,
+    create_balance_proof: Callable,
+    txn_cost: Callable,
+) -> None:
     """ Observe the effect of a successful closeChannel
 
     This test compares the state of the channel and the balances of Ethereum
@@ -428,8 +461,11 @@ def test_close_channel_state(
 
 
 def test_close_channel_event_no_offchain_transfers(
-    get_accounts, token_network, create_channel, event_handler
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    event_handler: Callable,
+) -> None:
     """ closeChannel succeeds and emits an event even with nonce 0 and no balance proofs """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
@@ -447,8 +483,13 @@ def test_close_channel_event_no_offchain_transfers(
 
 
 def test_close_replay_reopened_channel(
-    web3, get_accounts, token_network, create_channel, channel_deposit, create_balance_proof
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_balance_proof: Callable,
+) -> None:
     """ The same balance proof cannot close another channel between the same participants """
     (A, B) = get_accounts(2)
     nonce = 3
@@ -506,13 +547,13 @@ def test_close_replay_reopened_channel(
 
 
 def test_close_channel_event(
-    get_accounts,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_balance_proof,
-    event_handler,
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_balance_proof: Callable,
+    event_handler: Callable,
+) -> None:
     """ A successful closeChannel call produces a CLOSED event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
