@@ -19,7 +19,7 @@ BLACK_PARAMS = --line-length 99 raiden_contracts/
 lint:
 	black --check --diff $(BLACK_PARAMS)
 	flake8 raiden_contracts/
-	pylint --rcfile .pylint.rc --load-plugins pylint_quotes raiden_contracts/
+	pylint raiden_contracts/
 	isort $(ISORT_PARAMS) --check-only
 
 isort:
