@@ -10,6 +10,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
+        public
         TokenNetwork(
             _token_address,
             _secret_registry,
@@ -20,7 +21,6 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
         )
-        public
     {
 
     }
@@ -68,8 +68,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount
     )
-        view
         public
+        view
         returns (uint256)
     {
 
@@ -104,8 +104,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 locked_amount,
         bytes32 locksroot
     )
-        view
         public
+        view
         returns (bool)
     {
         uint256 channel_identifier;
@@ -124,8 +124,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         address participant1,
         address participant2
     )
-        view
         public
+        view
         returns (uint256 total_available_deposit)
     {
         uint256 channel_identifier = getChannelIdentifier(participant1,
@@ -170,8 +170,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes32 additional_hash,
         bytes memory signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromBalanceProof(
@@ -191,8 +191,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes memory closing_signature,
         bytes memory non_closing_signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromBalanceProofUpdateMessage(
@@ -233,8 +233,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         uint256 amount_to_withdraw,
         bytes memory signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromWithdrawMessage(
@@ -270,16 +270,16 @@ contract TokenNetworkUtilsTest is TokenNetwork {
     }
 
     function getMerkleRootAndUnlockedAmountPublic(bytes memory merkle_tree_leaves)
-        view
         public
+        view
         returns (bytes32, uint256)
     {
         return getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
     }
 
     function getLockDataFromMerkleTreePublic(bytes memory merkle_tree_leaves, uint256 offset)
-        view
         public
+        view
         returns (bytes32, uint256)
     {
         return getLockDataFromMerkleTree(merkle_tree_leaves, offset);

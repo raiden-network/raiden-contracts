@@ -8,8 +8,8 @@ import "lib/ECVerify.sol";
 
 contract SignatureVerifyTest {
     function verify(bytes32 _message_hash, bytes memory _signed_message)
-        pure
         public
+        pure
         returns (address signer)
     {
         // Derive address from signature
@@ -17,8 +17,8 @@ contract SignatureVerifyTest {
     }
 
     function verifyEcrecoverOutput(bytes32 hash, bytes32 r, bytes32 s, uint8 v)
-        pure
         public
+        pure
         returns (address signature_address)
     {
         signature_address = ecrecover(hash, v, r, s);

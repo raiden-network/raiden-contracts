@@ -41,8 +41,8 @@ contract MonitoringServiceInternalsTest is MonitoringService {
     }
 
     function rewardNonce(bytes32 reward_identifier)
-        view
         public
+        view
         returns (uint256 nonce)
     {
         return rewards[reward_identifier].nonce;
