@@ -13,7 +13,10 @@ from raiden_contracts.contract_manager import (
 )
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
-from raiden_contracts.utils.versions import contracts_version_provides_services
+from raiden_contracts.utils.versions import (
+    contract_version_with_max_token_networks,
+    contracts_version_provides_services,
+)
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
@@ -126,6 +129,11 @@ def test_version_provides_services() -> None:
     assert contracts_version_provides_services("0.11.0")
     with pytest.raises(ValueError):
         assert contracts_version_provides_services("not a semver")
+
+
+def test_version_with_max_token_networks() -> None:
+    assert contract_version_with_max_token_networks(None)
+    assert not contract_version_with_max_token_networks("0.8.0_unlimited")
 
 
 def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit: int) -> None:
