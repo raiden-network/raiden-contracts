@@ -1,7 +1,6 @@
 import json
 import pprint
 import subprocess
-from collections import namedtuple
 from pathlib import Path
 from time import sleep
 from typing import Dict, Optional
@@ -10,16 +9,7 @@ import click
 import requests
 from eth_abi import encode_abi
 
-from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
-    CONTRACT_MONITORING_SERVICE,
-    CONTRACT_ONE_TO_N,
-    CONTRACT_SECRET_REGISTRY,
-    CONTRACT_SERVICE_REGISTRY,
-    CONTRACT_TOKEN_NETWORK_REGISTRY,
-    CONTRACT_USER_DEPOSIT,
-    DeploymentModule,
-)
+from raiden_contracts.constants import CONTRACT_LIST, DeploymentModule
 from raiden_contracts.contract_manager import (
     ContractManager,
     DeployedContract,
@@ -31,19 +21,6 @@ from raiden_contracts.contract_source_manager import (
     contracts_source_path,
     contracts_source_path_of_deployment_module,
 )
-
-ContractListEntry = namedtuple("ContractListEntry", "module name")
-
-CONTRACT_LIST = [
-    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_ENDPOINT_REGISTRY),
-    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_SECRET_REGISTRY),
-    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK_REGISTRY),
-    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_SERVICE_REGISTRY),
-    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_MONITORING_SERVICE),
-    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_ONE_TO_N),
-    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_USER_DEPOSIT),
-]
-
 
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 
