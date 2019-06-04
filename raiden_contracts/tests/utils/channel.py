@@ -90,12 +90,15 @@ def are_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelV
     total_available_deposit = get_total_available_deposit(participant1, participant2)
 
     return (
-        participant1.transferred + participant1.locked_amounts.locked <= MAX_UINT256
+        0 <= participant1.transferred <= MAX_UINT256
+        and 0 <= participant2.transferred <= MAX_UINT256
+        and 0 <= participant1.locked_amounts.locked <= MAX_UINT256
+        and 0 <= participant2.locked_amounts.locked <= MAX_UINT256
+        and participant1.transferred + participant1.locked_amounts.locked <= MAX_UINT256
         and participant2.transferred + participant2.locked_amounts.locked <= MAX_UINT256
-        and participant1_available_balance >= 0
-        and participant2_available_balance >= 0
-        and participant1_available_balance <= total_available_deposit
-        and participant2_available_balance <= total_available_deposit
+        and 0 <= participant1_available_balance <= total_available_deposit
+        and 0 <= participant2_available_balance <= total_available_deposit
+        and total_available_deposit <= MAX_UINT256
         and participant1.locked_amounts.locked <= participant1_available_balance
         and participant2.locked_amounts.locked <= participant2_available_balance
     )
