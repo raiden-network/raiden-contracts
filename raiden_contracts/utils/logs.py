@@ -3,6 +3,8 @@ from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from click import echo
+
 from eth_typing.evm import HexAddress
 from web3 import Web3
 from web3.utils.events import get_event_data
@@ -91,7 +93,7 @@ class LogHandler:
                 while len(list(self.event_waiting.keys())):
                     timeout.sleep(2)
         except Exception as e:
-            print(e)
+            echo(e, err=True)
             message = "NO EVENTS WERE TRIGGERED FOR: " + str(self.event_waiting)
             if len(self.event_unknown) > 0:
                 message += "\n UNKOWN EVENTS: " + str(self.event_unknown)
@@ -103,7 +105,7 @@ class LogHandler:
             waiting_events = sum([len(lst) for lst in self.event_waiting.values()])
 
             if waiting_events == len(self.event_unknown):
-                sandwitch_print(message)
+                sandwitch_echo(message)
             else:
                 raise Exception(
                     message + " waiting_events " + str(waiting_events),
@@ -125,10 +127,10 @@ class LogHandler:
         self.check(timeout=timeout)
 
 
-def sandwitch_print(msg: str) -> None:
-    print("----------------------------------")
-    print(msg)
-    print("----------------------------------")
+def sandwitch_echo(msg: str) -> None:
+    echo("----------------------------------", err=True)
+    echo(msg, err=True)
+    echo("----------------------------------", err=True)
 
 
 class LogFilter:
