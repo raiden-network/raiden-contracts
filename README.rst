@@ -244,3 +244,6 @@ How to find the addresses of deployed contracts?
 
 How to mint the tokens on the test network?
   Each contract that receives a token has a public variable ``Token public token``.  On the test networks, they might be `CustomToken contract <https://github.com/raiden-network/raiden-contracts/blob/59631b6c8b7bcb0b9a3accdf1fb41082c29dcaa1/raiden_contracts/data/source/test/CustomToken.sol>`__ so you can call ``mint(how_many)`` function of the CustomToken contract to get some new tokens.
+
+I see ``block gas exceeded``
+  Perhaps you've added ``--gas-limit`` option with a too big integer. Try dropping the option.
