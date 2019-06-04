@@ -92,6 +92,7 @@ contract OneToN is Utils {
         if (transferable > 0) {
             // register to avoid double claiming
             settled_sessions[_key] = expiration_block;
+            assert(expiration_block > 0);
             emit Claimed(sender, receiver, expiration_block, transferable);
 
             // event SessionSettled(_key, expiration_block);
