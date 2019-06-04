@@ -28,7 +28,7 @@ from raiden_contracts.utils.pending_transfers import (
 # pytest: disable=C0103
 
 
-def test_packed_transfer_0_items(token_network_test_utils):
+def test_packed_transfer_0_items(token_network_test_utils: Contract) -> None:
     """ getHashAndUnlockedAmount() returns a reasonable return value for no items """
     (
         locksroot,
@@ -38,8 +38,13 @@ def test_packed_transfer_0_items(token_network_test_utils):
     assert unlocked_amount == 0
 
 
-def test_1_item_unlockable(web3, get_accounts, token_network_test_utils, secret_registry_contract):
-    """ Test getHashAndUnlockedAmount() on a single item whose secret has been registered """
+def test_1_item_unlockable(
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    secret_registry_contract: Contract,
+) -> None:
+    """ Test getHashRootAndUnlockedAmount() on a single item whose secret has been registered """
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(
         web3=web3, unlockable_amounts=[6], expired_amounts=[]
@@ -68,8 +73,11 @@ def test_1_item_unlockable(web3, get_accounts, token_network_test_utils, secret_
 
 
 def test_get_hash_length_fail(
-    web3, get_accounts, token_network_test_utils, secret_registry_contract
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    secret_registry_contract: Contract,
+) -> None:
     """ Test getHashAndUnlockedAmount() on inputs of irregular lengths """
     network_utils = token_network_test_utils
     A = get_accounts(1)[0]
@@ -102,7 +110,12 @@ def test_get_hash_length_fail(
     network_utils.functions.getHashAndUnlockedAmountPublic(packed[0:-96]).call()
 
 
-def test_odd_even_locks(web3, get_accounts, token_network_test_utils, reveal_secrets):
+def test_odd_even_components(
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    reveal_secrets: Callable,
+) -> None:
     """ Test getHashAndUnlockedAmount() on an odd/even number of locks """
     A = get_accounts(1)[0]
 
@@ -138,13 +151,13 @@ def test_odd_even_locks(web3, get_accounts, token_network_test_utils, reveal_sec
 
 
 def test_locks_order(
-    web3,
-    get_accounts,
-    token_network_test_utils,
-    reveal_secrets,
-    token_network,
-    create_settled_channel,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    reveal_secrets: Callable,
+    token_network: Contract,
+    create_settled_channel: Callable,
+) -> None:
     """ Shuffling the leaves usually changes the root, but sometimes not """
     network_utils = token_network_test_utils
     (A, B) = get_accounts(2)
@@ -209,9 +222,13 @@ def test_locks_order(
 
 
 def test_lock_data_from_packed_locks(
-    web3, get_accounts, token_network_test_utils, secret_registry_contract, reveal_secrets
-):
-    """ Test getLockedAmountFromLockPublic() on various offsets """
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    secret_registry_contract: Contract,
+    reveal_secrets: Callable,
+) -> None:
+    """ Test getLockDataFromLockPublic() on various offsets """
     network_utils = token_network_test_utils
     A = get_accounts(1)[0]
 
@@ -222,7 +239,7 @@ def test_lock_data_from_packed_locks(
     )
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
-    def claimable(index):
+    def claimable(index: int) -> int:
         amount = pending_transfers_tree.transfers[index][1]
         return amount if amount in unlockable_amounts else 0
 
@@ -278,7 +295,9 @@ def test_lock_data_from_packed_locks(
     assert claimable_amount == 0
 
 
-def test_unlock_wrong_locksroot(web3, token_network, create_settled_channel, get_accounts):
+def test_unlock_wrong_locksroot(
+    web3: Web3, token_network: Contract, create_settled_channel: Callable, get_accounts: Callable
+) -> None:
     """ Test unlocking with wrong pending locks """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -311,14 +330,14 @@ def test_unlock_wrong_locksroot(web3, token_network, create_settled_channel, get
 
 
 def test_channel_unlock_bigger_locked_amount(
-    web3,
-    token_network,
-    custom_token,
-    secret_registry_contract,
-    create_settled_channel,
-    get_accounts,
-    reveal_secrets,
-):
+    web3: Web3,
+    token_network: Contract,
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    create_settled_channel: Callable,
+    get_accounts: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ Test an unlock() call that claims too little tokens"
 
     When an unlock() call does not contain enough pending locks to claim
@@ -368,14 +387,14 @@ def test_channel_unlock_bigger_locked_amount(
 
 
 def test_channel_unlock_smaller_locked_amount(
-    web3,
-    token_network,
-    custom_token,
-    secret_registry_contract,
-    create_settled_channel,
-    get_accounts,
-    reveal_secrets,
-):
+    web3: Web3,
+    token_network: Contract,
+    custom_token: Contract,
+    secret_registry_contract: Contract,
+    create_settled_channel: Callable,
+    get_accounts: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ Test an unlock() call that claims too many tokens
 
     When settleChannel() call computes a smaller amount of locked tokens than
@@ -433,7 +452,7 @@ def test_channel_unlock_bigger_unlocked_amount(
     create_settled_channel: Callable,
     get_accounts: Callable,
     reveal_secrets: Callable,
-):
+) -> None:
     """ unlock() transfers not more than the locked amount for more expensive unlock() demands """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -478,8 +497,12 @@ def test_channel_unlock_bigger_unlocked_amount(
 
 
 def test_channel_unlock_no_locked_amount_fail(
-    web3, token_network, create_settled_channel, get_accounts, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    create_settled_channel: Callable,
+    get_accounts: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ After settleChannel() is called with zero locked amount, unlock() calls fail """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -501,15 +524,15 @@ def test_channel_unlock_no_locked_amount_fail(
 
 
 def test_channel_unlock(
-    web3,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-    reveal_secrets,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties """
     (A, B) = get_accounts(2)
@@ -567,8 +590,12 @@ def test_channel_unlock(
 
 @pytest.mark.slow
 def test_channel_settle_and_unlock(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -653,15 +680,15 @@ def test_channel_settle_and_unlock(
 
 
 def test_channel_unlock_registered_expired_lock_refunds(
-    web3,
-    custom_token,
-    token_network,
-    secret_registry_contract,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    secret_registry_contract: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+) -> None:
     """ unlock() should refund tokens locked with secrets revealed after the expiration """
     (A, B) = get_accounts(2)
     max_lock_expiration = 3
@@ -725,14 +752,14 @@ def test_channel_unlock_registered_expired_lock_refunds(
 
 
 def test_channel_unlock_unregistered_locks(
-    web3,
-    token_network,
-    get_accounts,
-    create_channel_and_deposit,
-    withdraw_channel,
-    close_and_update_channel,
-    custom_token,
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    close_and_update_channel: Callable,
+    custom_token: Contract,
+) -> None:
     """ unlock() should refund tokens locked by secrets not registered before settlement """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -774,15 +801,15 @@ def test_channel_unlock_unregistered_locks(
 
 
 def test_channel_unlock_before_settlement_fails(
-    web3,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-    reveal_secrets,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() should not work before settlement """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -856,8 +883,12 @@ def test_channel_unlock_before_settlement_fails(
 
 
 def test_unlock_fails_with_partial_locks(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() should fail when one lock is missing """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -895,8 +926,12 @@ def test_unlock_fails_with_partial_locks(
 
 
 def test_unlock_tampered_proof_fails(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() should fail when the submitted proofs are tampered """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -934,16 +969,16 @@ def test_unlock_tampered_proof_fails(
 
 
 def test_channel_unlock_both_participants(
-    web3,
-    custom_token,
-    token_network,
-    secret_registry_contract,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-    reveal_secrets,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    secret_registry_contract: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ A scenario where both parties get some of the pending transfers """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -1026,8 +1061,12 @@ def test_channel_unlock_both_participants(
 
 
 def test_unlock_twice_fails(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ The same unlock() call twice do not work """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -1058,15 +1097,15 @@ def test_unlock_twice_fails(
 
 
 def test_channel_unlock_with_a_large_expiration(
-    web3,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-    reveal_secrets,
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() should still work after a delayed settleChannel() call """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -1116,8 +1155,12 @@ def test_channel_unlock_with_a_large_expiration(
 
 
 def test_reverse_participants_unlock(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ unlock() with wrong argument orders """
     (A, B, C) = get_accounts(3)
     settle_timeout = 12
@@ -1191,8 +1234,12 @@ def test_reverse_participants_unlock(
 
 
 def test_unlock_different_channel_same_participants_fail(
-    web3, token_network, get_accounts, create_settled_channel, reveal_secrets
-):
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ Try to confuse unlock() with two channels between the same participants """
     (A, B) = get_accounts(2)
     settle_timeout = 8
@@ -1241,16 +1288,16 @@ def test_unlock_different_channel_same_participants_fail(
 
 
 def test_unlock_channel_event(
-    web3,
-    token_network,
-    secret_registry_contract,
-    create_channel,
-    channel_deposit,
-    get_accounts,
-    close_and_update_channel,
-    reveal_secrets,
-    event_handler,
-):
+    web3: Web3,
+    token_network: Contract,
+    secret_registry_contract: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+    event_handler: Callable,
+) -> None:
     """ Successful unlock() should cause an UNLOCKED event """
     (A, B) = get_accounts(2)
     settle_timeout = 8
