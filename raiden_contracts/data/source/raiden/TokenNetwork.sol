@@ -42,9 +42,11 @@ contract TokenNetwork is Utils {
 
     string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
 
-    // Only for the limited Red Eyes release
+    // Useful for the limited releases
     address public deprecation_executor;
     bool public safety_deprecation_switch = false;
+
+    address public limit_raiser;
 
     // channel_identifier => Channel
     // channel identifier is the channel_counter value at the time of opening
@@ -176,8 +178,18 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount
     );
 
+    event TokenNetworkLimitsRaised(
+        uint256 new_channel_participant_deposit_limit,
+        uint256 new_token_network_deposit_limit
+    );
+
     modifier onlyDeprecationExecutor() {
         require(msg.sender == deprecation_executor);
+        _;
+    }
+
+    modifier onlyLimitRaiser() {
+        require(msg.sender == limit_raiser);
         _;
     }
 
@@ -216,6 +228,7 @@ contract TokenNetwork is Utils {
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
         address _deprecation_executor,
+        address _limit_raiser,
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
     )
@@ -224,6 +237,7 @@ contract TokenNetwork is Utils {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
         require(_deprecation_executor != address(0x0));
+        // _limit_raiser can be 0x0 and there is not problem about that.
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
@@ -244,6 +258,7 @@ contract TokenNetwork is Utils {
         require(token.totalSupply() > 0);
 
         deprecation_executor = _deprecation_executor;
+        limit_raiser = _limit_raiser;
         channel_participant_deposit_limit = _channel_participant_deposit_limit;
         token_network_deposit_limit = _token_network_deposit_limit;
     }
@@ -1691,5 +1706,28 @@ contract TokenNetwork is Utils {
     {
         uint256 sum = a + b;
         return sum >= a ? sum : MAX_SAFE_UINT256;
+    }
+
+    function raise_limits(
+        uint256 _new_channel_participant_deposit_limit,
+        uint256 _new_token_network_deposit_limit
+    )
+        external
+        isSafe
+        onlyLimitRaiser
+    {
+        // Detect arguments in wrong order
+        require(_new_channel_participant_deposit_limit <= _new_token_network_deposit_limit);
+        // Make sure that limits are increased
+        require(channel_participant_deposit_limit <= _new_channel_participant_deposit_limit);
+        require(token_network_deposit_limit <= _new_token_network_deposit_limit);
+
+        channel_participant_deposit_limit = _new_channel_participant_deposit_limit;
+        token_network_deposit_limit = _new_token_network_deposit_limit;
+
+        emit TokenNetworkLimitsRaised(
+            _new_channel_participant_deposit_limit,
+            _new_token_network_deposit_limit
+        );
     }
 }
