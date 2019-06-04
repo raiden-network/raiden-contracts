@@ -1,4 +1,4 @@
-from raiden_contracts.tests.utils import MAX_UINT256, ChannelValues, LockedAmounts
+from raiden_contracts.tests.utils import UINT256_MAX, ChannelValues, LockedAmounts
 
 # We must cover the edge cases documented in
 # https://github.com/raiden-network/raiden-contracts/issues/188
@@ -317,13 +317,13 @@ channel_settle_invalid_test_values = [
         ChannelValues(
             deposit=35,
             withdrawn=5,
-            transferred=MAX_UINT256 - 15,
+            transferred=UINT256_MAX - 15,
             locked_amounts=LockedAmounts(claimable_locked=3, unclaimable_locked=1),
         ),
         ChannelValues(
             deposit=40,
             withdrawn=10,
-            transferred=MAX_UINT256 - 5,
+            transferred=UINT256_MAX - 5,
             locked_amounts=LockedAmounts(claimable_locked=5, unclaimable_locked=1),
         ),
     ),
@@ -338,7 +338,7 @@ channel_settle_invalid_test_values = [
         ChannelValues(
             deposit=40,
             withdrawn=10,
-            transferred=MAX_UINT256 - 5,
+            transferred=UINT256_MAX - 5,
             locked_amounts=LockedAmounts(claimable_locked=0, unclaimable_locked=6),
         ),
     ),
@@ -353,7 +353,7 @@ channel_settle_invalid_test_values = [
         ChannelValues(
             deposit=35,
             withdrawn=5,
-            transferred=MAX_UINT256 - 15,
+            transferred=UINT256_MAX - 15,
             locked_amounts=LockedAmounts(claimable_locked=1, unclaimable_locked=3),
         ),
     ),
@@ -365,7 +365,7 @@ channel_settle_invalid_test_values = [
             transferred=20020,
             locked_amounts=LockedAmounts(claimable_locked=200000, unclaimable_locked=200),
         ),
-        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5),
+        ChannelValues(deposit=40, withdrawn=10, transferred=UINT256_MAX - 5),
     ),
     # overflow on transferred amount, overflow on netted transfer + deposit
     (
@@ -375,6 +375,6 @@ channel_settle_invalid_test_values = [
             transferred=20,
             locked_amounts=LockedAmounts(claimable_locked=200, unclaimable_locked=200000),
         ),
-        ChannelValues(deposit=40, withdrawn=10, transferred=MAX_UINT256 - 5),
+        ChannelValues(deposit=40, withdrawn=10, transferred=UINT256_MAX - 5),
     ),
 ]
