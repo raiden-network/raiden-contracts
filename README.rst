@@ -224,6 +224,35 @@ See `Release Process Document`_.
 
 .. _Release Process Document: RELEASE.rst
 
+
+Directory Structure
+-------------------
+
+- `raiden_contracts`
+    - `contracts`
+        - `lib` - libraries used by core contracts
+        - `services` - contains 3rd party services contracts
+        - `test` - test contracts used to test core contracts
+        - raiden core contracts files
+    - `data` - compiled contracts data & deployment information
+    - `data_0.3._` - compiled contracts data & deployment information for an older version with only a channel limit of 100 tokens
+    - `data_0.4.0` - compiled contracts data & deployment information for Red Eyes release
+    - `data_0.x.y` - compiled contracts data & deployment information only for test nets
+    - `deploy` - deployment & verification scripts
+    - `tests`
+        - `fixtures` - fixtures used by all tests
+        - `property` - property tests for core contracts
+        - `unit` - unit tests for internal functions in core contracts
+        - `utils` - specific utilities for tests, closely related to the contracts logic
+        - main test files for both core & service contracts
+    - `utils`
+        - general utilities for tests (signing, merkle trees, logs), independent of the contracts logic
+        - some utilities related to the contracts logic that might be exported by projects using the package
+    - `constants.py` - package deliverable, constants used by projects that import the package
+    - `contract_manager.py` - package deliverable, used by projects that import the package, gets the correct compiled contracts data based on version
+- setup files for requirements, builds etc.
+
+
 FAQ
 ---
 
