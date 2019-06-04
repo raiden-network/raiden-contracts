@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.tests.utils import ChannelValues, LockedAmounts
+from raiden_contracts.tests.utils import EMPTY_ADDRESS, ChannelValues, LockedAmounts
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
 )
@@ -58,18 +58,27 @@ def test_deprecation_executor(
     # We can only deploy one TokenNetwork contract
     # It can be deployed by anyone
     tx_hash = token_network_registry.functions.createERC20TokenNetwork(
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        _token_address=custom_token.address,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
+        _limit_raiser=EMPTY_ADDRESS,
     ).call_and_transact({"from": B})
     assert token_network_registry.functions.token_network_created().call() == 1
 
     # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            _token_address=custom_token.address,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+            _limit_raiser=EMPTY_ADDRESS,
         ).call({"from": B})
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            _token_address=custom_token.address,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+            _limit_raiser=EMPTY_ADDRESS,
         ).call({"from": deprecation_executor})
 
     tx_receipt = web3.eth.getTransactionReceipt(tx_hash)

@@ -26,7 +26,7 @@ def ethereum_tester(patch_genesis_gas_limit: None) -> EthereumTester:  # pylint:
 def patch_genesis_gas_limit() -> None:
     """Increases the block gas limit, to make the TokenNetworkRegistry contract deployable"""
 
-    tmp_limit = 6 * 10 ** 6
+    tmp_limit = 8 * 10 ** 6
     import eth_tester.backends.pyevm.main as pyevm_main
 
     pyevm_main.GENESIS_GAS_LIMIT = tmp_limit
@@ -41,7 +41,7 @@ def web3(ethereum_tester: EthereumTester) -> Web3:
     provider = EthereumTesterProvider(ethereum_tester)
     web3 = Web3(provider)
     # Improve test speed by skipping the gas cost estimation.
-    web3.eth.estimateGas = lambda txn: int(5.2e6)  # pylint: disable=E1101
+    web3.eth.estimateGas = lambda txn: int(7.2e6)  # pylint: disable=E1101
 
     # add faucet account to tester
     ethereum_tester.add_account(FAUCET_PRIVATE_KEY)

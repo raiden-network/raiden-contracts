@@ -13,6 +13,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     ParticipantInfoIndex,
 )
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 
 
 def test_register_three_but_not_four(
@@ -39,17 +40,29 @@ def test_register_three_but_not_four(
     token2 = custom_token_factory()
     token3 = custom_token_factory()
     token_network_registry.functions.createERC20TokenNetwork(
-        token0.address, channel_participant_deposit_limit, token_network_deposit_limit
+        _token_address=token0.address,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
+        _limit_raiser=CONTRACT_DEPLOYER_ADDRESS,
     ).call_and_transact()
     token_network_registry.functions.createERC20TokenNetwork(
-        token1.address, channel_participant_deposit_limit, token_network_deposit_limit
+        _token_address=token1.address,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
+        _limit_raiser=CONTRACT_DEPLOYER_ADDRESS,
     ).call_and_transact()
     token_network_registry.functions.createERC20TokenNetwork(
-        token2.address, channel_participant_deposit_limit, token_network_deposit_limit
+        _token_address=token2.address,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
+        _limit_raiser=CONTRACT_DEPLOYER_ADDRESS,
     ).call_and_transact()
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            token3.address, channel_participant_deposit_limit, token_network_deposit_limit
+            _token_address=token3.address,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+            _limit_raiser=CONTRACT_DEPLOYER_ADDRESS,
         ).call()
 
 

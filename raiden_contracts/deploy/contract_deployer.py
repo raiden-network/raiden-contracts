@@ -30,7 +30,10 @@ from raiden_contracts.contract_source_manager import ContractSourceManager, cont
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
-from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
+from raiden_contracts.utils.versions import (
+    contracts_version_expects_deposit_limits,
+    contracts_version_expects_limit_raiser,
+)
 
 LOG = getLogger(__name__)
 
@@ -193,25 +196,29 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
+        limit_raiser: Optional[HexAddress],
     ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract."""
         with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
-        if with_limits:
-            return self._register_token_network_with_limits(
-                token_registry_abi,
-                token_registry_address,
-                token_address,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            )
+        with_limit_raiser = contracts_version_expects_limit_raiser(self.contracts_version)
+
+        if with_limits and with_limit_raiser:
+            register_token_network_variant = self._register_token_network_with_limit_raiser
+        elif with_limits and not with_limit_raiser:
+            register_token_network_variant = self._register_token_network_with_limits
+        elif not with_limits and not with_limit_raiser:
+            register_token_network_variant = self._register_token_network_without_limits
         else:
-            return self._register_token_network_without_limits(
-                token_registry_abi,
-                token_registry_address,
-                token_address,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            )
+            raise AssertionError("A version expects limit_raiser but no limit!")
+
+        register_token_network_variant(
+            token_registry_abi,
+            token_registry_address,
+            token_address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            limit_raiser,
+        )
 
     def _register_token_network_without_limits(
         self,
@@ -220,6 +227,7 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
+        limit_raiser: Optional[HexAddress],
     ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract
 
@@ -235,6 +243,9 @@ class ContractDeployer(ContractVerifier):
             raise ValueError(
                 "contracts_version below 0.9.0 does not expect token_network_deposit_limit"
             )
+        if limit_raiser:
+            raise ValueError("contracts_version below 0.9.0 does not expect limit_raiser")
+
         token_network_registry = self.web3.eth.contract(
             abi=token_registry_abi, address=token_registry_address
         )
@@ -263,6 +274,7 @@ class ContractDeployer(ContractVerifier):
         token_address: str,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
+        limit_raiser: Optional[HexAddress],
     ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract
 
@@ -276,8 +288,11 @@ class ContractDeployer(ContractVerifier):
             )
         if token_network_deposit_limit is None:
             raise ValueError(
-                "contracts_version 0.9.0 and afterwards expect " "token_network_deposit_limit"
+                "contracts_version 0.9.0 and afterwards expect token_network_deposit_limit"
             )
+        if limit_raiser:
+            raise ValueError("contracts_version below 0.16.0 does not expect limit_raiser")
+
         token_network_registry = self.web3.eth.contract(
             abi=token_registry_abi, address=token_registry_address
         )
@@ -293,6 +308,57 @@ class ContractDeployer(ContractVerifier):
             _token_address=token_address,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+        )
+        self.transact(command)
+
+        token_network_address = token_network_registry.functions.token_to_token_networks(
+            token_address
+        ).call()
+        token_network_address = to_checksum_address(token_network_address)
+        LOG.debug(f"TokenNetwork address: {token_network_address}")
+        return token_network_address
+
+    def _register_token_network_with_limit_raiser(
+        self,
+        token_registry_abi: List[Dict[str, Any]],
+        token_registry_address: str,
+        token_address: str,
+        channel_participant_deposit_limit: Optional[int],
+        token_network_deposit_limit: Optional[int],
+        limit_raiser: Optional[HexAddress],
+    ) -> HexAddress:
+        """Register token with a TokenNetworkRegistry contract
+
+        with a contracts-version that requires deposit limits in the TokenNetwork
+        constructor.
+        """
+        if channel_participant_deposit_limit is None:
+            raise ValueError(
+                "contracts_version 0.9.0 and afterwards expect "
+                "channel_participant_deposit_limit"
+            )
+        if token_network_deposit_limit is None:
+            raise ValueError(
+                "contracts_version 0.9.0 and afterwards expect token_network_deposit_limit"
+            )
+        if limit_raiser is None:
+            raise ValueError("contracts_version 0.16.0 and afterwards expect limit_raiser address")
+        token_network_registry = self.web3.eth.contract(
+            abi=token_registry_abi, address=token_registry_address
+        )
+
+        version_from_onchain: str = token_network_registry.functions.contract_version().call()
+        if version_from_onchain != self.contract_manager.version_string:
+            raise RuntimeError(
+                f"got {version_from_onchain} from the chain, expected "
+                f"{self.contract_manager.version_string} in the deployment data"
+            )
+
+        command = token_network_registry.functions.createERC20TokenNetwork(
+            _token_address=token_address,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+            _limit_raiser=limit_raiser,
         )
         self.transact(command)
 

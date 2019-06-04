@@ -39,11 +39,15 @@ def register_token_network(
 
     def get(
         token_address: HexAddress,
+        limit_raiser: HexAddress,
         channel_participant_deposit_limit: int,
         token_network_deposit_limit: int,
     ) -> Contract:
         tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
-            token_address, channel_participant_deposit_limit, token_network_deposit_limit
+            _token_address=token_address,
+            _limit_raiser=limit_raiser,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
@@ -93,7 +97,10 @@ def token_network(
     global snapshot_before_token_network
     snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        custom_token.address,
+        CONTRACT_DEPLOYER_ADDRESS,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     )
 
 
@@ -126,6 +133,7 @@ def token_network_external(
             int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
+            CONTRACT_DEPLOYER_ADDRESS,
             CONTRACT_DEPLOYER_ADDRESS,
             channel_participant_deposit_limit,
             token_network_deposit_limit,

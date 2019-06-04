@@ -97,6 +97,7 @@ def deprecation_test_setup(
     token_amount: int,
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
+    limit_raiser: HexAddress,
 ) -> Tuple:
     deployed_contracts = deployer.deploy_raiden_contracts(max_num_of_token_networks=1)["contracts"]
 
@@ -134,6 +135,7 @@ def deprecation_test_setup(
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
+        limit_raiser=limit_raiser
     )
 
     token_network_abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)

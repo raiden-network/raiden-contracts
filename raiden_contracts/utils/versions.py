@@ -15,6 +15,15 @@ def contracts_version_expects_deposit_limits(contracts_version: Optional[str]) -
     return compare(contracts_version, "0.9.0") > -1
 
 
+def contracts_version_expects_limit_raiser(contracts_version: Optional[str]) -> bool:
+    """ Answers whether TokenNetwork's constructor expects a limit raiser address """
+    if contracts_version is None:
+        return True
+    if contracts_version == "0.3._":
+        return False
+    return compare(contracts_version, "0.15.0") > 0
+
+
 def contract_version_with_max_token_networks(version: Optional[str]) -> bool:
     manager = ContractManager(contracts_precompiled_path(version))
     abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
