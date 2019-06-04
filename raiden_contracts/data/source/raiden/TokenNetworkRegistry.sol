@@ -74,8 +74,8 @@ contract TokenNetworkRegistry is Utils {
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
     )
-        canCreateTokenNetwork
         external
+        canCreateTokenNetwork
         returns (address token_network_address)
     {
         require(token_to_token_networks[_token_address] == address(0x0));

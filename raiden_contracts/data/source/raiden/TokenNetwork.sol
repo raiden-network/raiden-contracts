@@ -248,7 +248,7 @@ contract TokenNetwork is Utils {
         token_network_deposit_limit = _token_network_deposit_limit;
     }
 
-    function deprecate() isSafe onlyDeprecationExecutor public {
+    function deprecate() public isSafe onlyDeprecationExecutor {
         safety_deprecation_switch = true;
     }
 
@@ -259,9 +259,9 @@ contract TokenNetwork is Utils {
     /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel.
     function openChannel(address participant1, address participant2, uint256 settle_timeout)
+        public
         isSafe
         settleTimeoutValid(settle_timeout)
-        public
         returns (uint256)
     {
         bytes32 pair_hash;
@@ -318,9 +318,9 @@ contract TokenNetwork is Utils {
         uint256 total_deposit,
         address partner
     )
+        public
         isSafe
         isOpen(channel_identifier)
-        public
     {
         require(channel_identifier == getChannelIdentifier(participant, partner));
         require(total_deposit > 0);
@@ -387,8 +387,8 @@ contract TokenNetwork is Utils {
         bytes calldata participant_signature,
         bytes calldata partner_signature
     )
-        isOpen(channel_identifier)
         external
+        isOpen(channel_identifier)
     {
         uint256 total_deposit;
         uint256 current_withdraw;
@@ -483,8 +483,8 @@ contract TokenNetwork is Utils {
         bytes32 additional_hash,
         bytes memory signature
     )
-        isOpen(channel_identifier)
         public
+        isOpen(channel_identifier)
     {
         require(channel_identifier == getChannelIdentifier(msg.sender, partner));
 
@@ -975,8 +975,8 @@ contract TokenNetwork is Utils {
     /// @return Unique identifier for the channel. It can be 0 if channel does
     /// not exist.
     function getChannelIdentifier(address participant, address partner)
-        view
         public
+        view
         returns (uint256)
     {
         require(participant != address(0x0));
@@ -1001,8 +1001,8 @@ contract TokenNetwork is Utils {
         address participant1,
         address participant2
     )
-        view
         external
+        view
         returns (uint256, ChannelState)
     {
         bytes32 unlock_key1;
@@ -1054,8 +1054,8 @@ contract TokenNetwork is Utils {
             address participant,
             address partner
     )
-        view
         external
+        view
         returns (uint256, uint256, bool, bytes32, uint256, bytes32, uint256)
     {
         bytes32 unlock_key;
@@ -1082,8 +1082,8 @@ contract TokenNetwork is Utils {
     /// @param participant Address of a channel participant.
     /// @param partner Address of the other channel participant.
     function getParticipantsHash(address participant, address partner)
-        pure
         public
+        pure
         returns (bytes32)
     {
         require(participant != address(0x0));
@@ -1111,8 +1111,8 @@ contract TokenNetwork is Utils {
         address sender,
         address receiver
     )
-        pure
         public
+        pure
         returns (bytes32)
     {
         require(sender != receiver);
@@ -1162,8 +1162,8 @@ contract TokenNetwork is Utils {
         Participant storage participant1_state,
         Participant storage participant2_state
     )
-        view
         internal
+        view
         returns (uint256 total_available_deposit)
     {
         total_available_deposit = (
@@ -1186,8 +1186,8 @@ contract TokenNetwork is Utils {
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount
     )
-        view
         private
+        view
         returns (uint256, uint256, uint256, uint256)
     {
         // The scope of this function is to compute the settlement amounts that
@@ -1363,8 +1363,8 @@ contract TokenNetwork is Utils {
         SettlementData memory participant1_settlement,
         SettlementData memory participant2_settlement
     )
-        pure
         internal
+        pure
         returns (uint256)
     {
         uint256 participant1_max_transferred;
@@ -1425,8 +1425,8 @@ contract TokenNetwork is Utils {
         uint256 locked_amount,
         bytes32 locksroot
     )
-        view
         internal
+        view
         returns (bool)
     {
         // When no balance proof has been provided, we need to check this
@@ -1455,8 +1455,8 @@ contract TokenNetwork is Utils {
         bytes32 additional_hash,
         bytes memory signature
     )
-        view
         internal
+        view
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
@@ -1485,8 +1485,8 @@ contract TokenNetwork is Utils {
         bytes memory closing_signature,
         bytes memory non_closing_signature
     )
-        view
         internal
+        view
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
@@ -1545,8 +1545,8 @@ contract TokenNetwork is Utils {
         uint256 total_withdraw,
         bytes memory signature
     )
-        view
         internal
+        view
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32
@@ -1570,8 +1570,8 @@ contract TokenNetwork is Utils {
     /// calculates the amount of tokens that can be unlocked because the secret
     /// was registered on-chain.
     function getMerkleRootAndUnlockedAmount(bytes memory merkle_tree_leaves)
-        view
         internal
+        view
         returns (bytes32, uint256)
     {
         uint256 length = merkle_tree_leaves.length;
@@ -1621,8 +1621,8 @@ contract TokenNetwork is Utils {
     }
 
     function getLockDataFromMerkleTree(bytes memory merkle_tree_leaves, uint256 offset)
-        view
         internal
+        view
         returns (bytes32, uint256)
     {
         uint256 expiration_block;
@@ -1656,12 +1656,12 @@ contract TokenNetwork is Utils {
         return (lockhash, locked_amount);
     }
 
-    function min(uint256 a, uint256 b) pure internal returns (uint256)
+    function min(uint256 a, uint256 b) internal pure returns (uint256)
     {
         return a > b ? b : a;
     }
 
-    function max(uint256 a, uint256 b) pure internal returns (uint256)
+    function max(uint256 a, uint256 b) internal pure returns (uint256)
     {
         return a > b ? a : b;
     }
@@ -1672,8 +1672,8 @@ contract TokenNetwork is Utils {
     /// @return Minimum between the result of the subtraction and 0, the maximum
     /// subtrahend for which no underflow occurs.
     function failsafe_subtract(uint256 a, uint256 b)
-        pure
         internal
+        pure
         returns (uint256, uint256)
     {
         return a > b ? (a - b, b) : (0, a);
@@ -1685,8 +1685,8 @@ contract TokenNetwork is Utils {
     /// @return Maximum between the result of the addition or the maximum
     /// uint256 value.
     function failsafe_addition(uint256 a, uint256 b)
-        pure
         internal
+        pure
         returns (uint256)
     {
         uint256 sum = a + b;

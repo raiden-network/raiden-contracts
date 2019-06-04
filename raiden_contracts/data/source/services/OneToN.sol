@@ -117,8 +117,8 @@ contract OneToN is Utils {
         uint256 chain_id,
         bytes memory signature
     )
-        pure
         internal
+        pure
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
@@ -134,7 +134,7 @@ contract OneToN is Utils {
         return ECVerify.ecverify(message_hash, signature);
     }
 
-    function min(uint256 a, uint256 b) pure internal returns (uint256)
+    function min(uint256 a, uint256 b) internal pure returns (uint256)
     {
         return a > b ? b : a;
     }

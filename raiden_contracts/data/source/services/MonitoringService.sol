@@ -339,8 +339,8 @@ contract MonitoringService is Utils {
         uint256 nonce,
         bytes memory signature
     )
-        pure
         internal
+        pure
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
