@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1013](https://github.com/raiden-network/raiden-contracts/pull/1013) Remove EndpointRegistry contract
 - When OneToN checks the signature of an IOU, it considers MessageTypeId.IOU
 
 ## [0.22.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.22.0) - 2019-06-03
