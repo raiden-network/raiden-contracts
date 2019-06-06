@@ -793,7 +793,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address receiver,
         address sender,
-        bytes memory bytes
+        bytes memory locks
     )
         public
     {
@@ -806,7 +806,7 @@ contract TokenNetwork is Utils {
         // for the external APIs
         require(channels[channel_identifier].state == ChannelState.NonExistent);
 
-        require(bytes.length > 0);
+        require(locks.length > 0);
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -818,7 +818,7 @@ contract TokenNetwork is Utils {
         // tokens corresponding to the locked transfers with secrets revealed
         // on chain.
         (computed_locksroot, unlocked_amount) = getHashAndUnlockedAmount(
-            bytes
+            locks
         );
 
         // The sender must have a non-empty locksroot on-chain that must be
