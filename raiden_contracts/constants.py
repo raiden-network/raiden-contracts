@@ -1,3 +1,4 @@
+from collections import namedtuple
 from enum import Enum, IntEnum
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
@@ -152,3 +153,18 @@ ID_TO_NETWORKNAME = {
 }
 
 NETWORKNAME_TO_ID = {name: id for id, name in ID_TO_NETWORKNAME.items()}
+
+# ContractNames
+
+
+ContractListEntry = namedtuple("ContractListEntry", "module name")
+
+CONTRACT_LIST = [
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_ENDPOINT_REGISTRY),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_SECRET_REGISTRY),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK_REGISTRY),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_SERVICE_REGISTRY),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_MONITORING_SERVICE),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_ONE_TO_N),
+    ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_USER_DEPOSIT),
+]
