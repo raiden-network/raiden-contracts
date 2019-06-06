@@ -174,7 +174,7 @@ def test_deprecation_switch_settle(
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
-    vals_A.locksroot = pending_transfers_tree_A.merkle_root
+    vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
     # Reveal A's secrets.
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
@@ -184,7 +184,7 @@ def test_deprecation_switch_settle(
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
-    vals_B.locksroot = pending_transfers_tree_B.merkle_root
+    vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
     # Reveal B's secrets
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 

@@ -8,7 +8,7 @@ from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDITIONAL_HASH,
-    EMPTY_LOCKSROOT,
+    LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
 )
 
@@ -39,7 +39,7 @@ class ChannelValues:
         nonce: int = 0,
         transferred: int = 0,
         locked_amounts: LockedAmounts = ZERO_LOCKED_VALUES,
-        locksroot: bytes = EMPTY_LOCKSROOT,
+        locksroot: bytes = LOCKSROOT_OF_NO_LOCKS,
         additional_hash: bytes = EMPTY_ADDITIONAL_HASH,
     ):
         self.deposit = deposit

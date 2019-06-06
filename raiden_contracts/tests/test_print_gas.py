@@ -16,7 +16,6 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import gas_measurements
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
-from raiden_contracts.utils.merkle import get_merkle_root
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
@@ -158,11 +157,11 @@ def print_gas_channel_cycle(
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".setTotalWithdraw")
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
-    locksroot1 = get_merkle_root(pending_transfers_tree1.merkle_tree)
+    locksroot1 = pending_transfers_tree1.hash_of_packed_transfers
     locked_amount1 = get_locked_amount(pending_transfers_tree1.transfers)
 
     pending_transfers_tree2 = get_pending_transfers_tree(web3, [3], [], 7)
-    locksroot2 = get_merkle_root(pending_transfers_tree2.merkle_tree)
+    locksroot2 = pending_transfers_tree2.hash_of_packed_transfers
     locked_amount2 = get_locked_amount(pending_transfers_tree2.transfers)
 
     balance_proof_A = create_balance_proof(

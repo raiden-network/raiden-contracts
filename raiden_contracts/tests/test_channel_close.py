@@ -9,8 +9,8 @@ from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, Ch
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
-    EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
+    LOCKSROOT_OF_NO_LOCKS,
     ChannelValues,
     LockedAmounts,
     fake_bytes,
@@ -69,11 +69,11 @@ def test_close_settled_channel_fail(
         participant1=A,
         participant1_transferred_amount=0,
         participant1_locked_amount=0,
-        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
         participant2=B,
         participant2_transferred_amount=0,
         participant2_locked_amount=0,
-        participant2_locksroot=EMPTY_LOCKSROOT,
+        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
     ).call_and_transact({"from": A})
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(

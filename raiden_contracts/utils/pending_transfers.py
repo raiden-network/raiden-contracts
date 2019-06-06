@@ -5,10 +5,10 @@ from random import randint
 from typing import Collection, Iterable, List, NamedTuple, Optional, Tuple
 
 from eth_abi import encode_abi
+from eth_utils import keccak
 from web3 import Web3
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.utils.merkle import MerkleTree, compute_merkle_tree, get_merkle_root
 
 PendingTransfersTree = NamedTuple(
     "PendingTransfersTree",
@@ -17,8 +17,7 @@ PendingTransfersTree = NamedTuple(
         ("unlockable", List[List]),
         ("expired", List[List]),
         ("packed_transfers", bytes),
-        ("merkle_tree", MerkleTree),
-        ("merkle_root", bytes),
+        ("hash_of_packed_transfers", bytes),
         ("locked_amount", int),
     ],
 )
@@ -71,8 +70,6 @@ def get_pending_transfers_tree(
         pending_transfers = list(pending_transfers)
         packed_transfers = get_packed_transfers(pending_transfers=pending_transfers, types=types)
 
-    merkle_tree = compute_merkle_tree(hashed_pending_transfers)
-    merkle_root = get_merkle_root(merkle_tree)
     locked_amount = get_locked_amount(pending_transfers)
 
     return PendingTransfersTree(
@@ -80,8 +77,7 @@ def get_pending_transfers_tree(
         unlockable=unlockable_locks,
         expired=expired_locks,
         packed_transfers=packed_transfers,
-        merkle_tree=merkle_tree,
-        merkle_root=merkle_root,
+        hash_of_packed_transfers=keccak(packed_transfers),
         locked_amount=locked_amount,
     )
 

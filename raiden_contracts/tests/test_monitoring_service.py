@@ -9,7 +9,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, MonitoringServiceEvent
-from raiden_contracts.tests.utils.constants import EMPTY_LOCKSROOT
+from raiden_contracts.tests.utils.constants import LOCKSROOT_OF_NO_LOCKS
 
 REWARD_AMOUNT = 10
 
@@ -133,11 +133,11 @@ def test_claimReward_with_settle_call(
             B,  # participant_B
             10,  # participant_B_transferred_amount
             0,  # participant_B_locked_amount
-            EMPTY_LOCKSROOT,  # participant_B_locksroot
+            LOCKSROOT_OF_NO_LOCKS,  # participant_B_locksroot
             A,  # participant_A
             20,  # participant_A_transferred_amount
             0,  # participant_A_locked_amount
-            EMPTY_LOCKSROOT,  # participant_A_locksroot
+            LOCKSROOT_OF_NO_LOCKS,  # participant_A_locksroot
         ).call_and_transact()
 
     # Claim reward for MS

@@ -31,6 +31,8 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
+    bytes32 keccak_of_empty = keccak256("");
+
     // The deposit limit per channel per participant.
     uint256 public channel_participant_deposit_limit;
     // The total combined deposit of all channels across the whole network
@@ -1434,7 +1436,7 @@ contract TokenNetwork is Utils {
         if (participant.balance_hash == 0 &&
             transferred_amount == 0 &&
             locked_amount == 0 &&
-            locksroot == 0
+            locksroot == keccak_of_empty
         ) {
             return true;
         }
