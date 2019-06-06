@@ -815,7 +815,7 @@ contract TokenNetwork is Utils {
         // Calculate the locksroot for the pending transfers and the amount of
         // tokens corresponding to the locked transfers with secrets revealed
         // on chain.
-        (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(
+        (computed_locksroot, unlocked_amount) = getHashAndUnlockedAmount(
             merkle_tree_leaves
         );
 
@@ -1566,15 +1566,15 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
-    /// @dev Calculates the merkle root for the pending transfers data and
+    /// @dev Calculates the hash of the pending transfers data and
     /// calculates the amount of tokens that can be unlocked because the secret
     /// was registered on-chain.
-    function getMerkleRootAndUnlockedAmount(bytes memory merkle_tree_leaves)
+    function getHashAndUnlockedAmount(bytes memory locks)
         internal
         view
         returns (bytes32, uint256)
     {
-        uint256 length = merkle_tree_leaves.length;
+        uint256 length = locks.length;
 
         // each merkle_tree lock component has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
@@ -1584,65 +1584,37 @@ contract TokenNetwork is Utils {
         uint256 total_unlocked_amount;
         uint256 unlocked_amount;
         bytes32 lockhash;
-        bytes32 merkle_root;
-
-        bytes32[] memory merkle_layer = new bytes32[](length / 96 + 1);
+        bytes32 total_hash;
 
         for (i = 32; i < length; i += 96) {
-            (lockhash, unlocked_amount) = getLockDataFromMerkleTree(merkle_tree_leaves, i);
+            unlocked_amount = getLockedAmountFromLock(locks, i);
             total_unlocked_amount += unlocked_amount;
-            merkle_layer[i / 96] = lockhash;
         }
 
-        length /= 96;
+        total_hash = keccak256(locks);
 
-        while (length > 1) {
-            if (length % 2 != 0) {
-                merkle_layer[length] = merkle_layer[length - 1];
-                length += 1;
-            }
-
-            for (i = 0; i < length - 1; i += 2) {
-                if (merkle_layer[i] == merkle_layer[i + 1]) {
-                    lockhash = merkle_layer[i];
-                } else if (merkle_layer[i] < merkle_layer[i + 1]) {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i], merkle_layer[i + 1]));
-                } else {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i + 1], merkle_layer[i]));
-                }
-                merkle_layer[i / 2] = lockhash;
-            }
-            length = i / 2;
-        }
-
-        merkle_root = merkle_layer[0];
-
-        return (merkle_root, total_unlocked_amount);
+        return (total_hash, total_unlocked_amount);
     }
 
-    function getLockDataFromMerkleTree(bytes memory merkle_tree_leaves, uint256 offset)
+    function getLockedAmountFromLock(bytes memory locks, uint256 offset)
         internal
         view
-        returns (bytes32, uint256)
+        returns (uint256)
     {
         uint256 expiration_block;
         uint256 locked_amount;
         uint256 reveal_block;
         bytes32 secrethash;
-        bytes32 lockhash;
 
-        if (merkle_tree_leaves.length <= offset) {
-            return (lockhash, 0);
+        if (locks.length <= offset) {
+            return 0;
         }
 
         assembly {
-            expiration_block := mload(add(merkle_tree_leaves, offset))
-            locked_amount := mload(add(merkle_tree_leaves, add(offset, 32)))
-            secrethash := mload(add(merkle_tree_leaves, add(offset, 64)))
+            expiration_block := mload(add(locks, offset))
+            locked_amount := mload(add(locks, add(offset, 32)))
+            secrethash := mload(add(locks, add(offset, 64)))
         }
-
-        // Calculate the lockhash for computing the merkle root
-        lockhash = keccak256(abi.encodePacked(expiration_block, locked_amount, secrethash));
 
         // Check if the lock's secret was revealed in the SecretRegistry The
         // secret must have been revealed in the SecretRegistry contract before
@@ -1653,7 +1625,7 @@ contract TokenNetwork is Utils {
             locked_amount = 0;
         }
 
-        return (lockhash, locked_amount);
+        return locked_amount;
     }
 
     function min(uint256 a, uint256 b) internal pure returns (uint256)
