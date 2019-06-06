@@ -13,7 +13,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
-    MAX_UINT256,
+    UINT256_MAX,
     ChannelValues,
     LockedAmounts,
     fake_bytes,
@@ -446,7 +446,7 @@ def test_settle_wrong_balance_hash(
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
-    vals_A_fail.transferred = MAX_UINT256
+    vals_A_fail.transferred = UINT256_MAX
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
@@ -460,7 +460,7 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked_amounts.unclaimable_locked = 0
-    vals_A_fail.locked_amounts.claimable_locked = MAX_UINT256
+    vals_A_fail.locked_amounts.claimable_locked = UINT256_MAX
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
@@ -482,7 +482,7 @@ def test_settle_wrong_balance_hash(
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
-    vals_B_fail.transferred = MAX_UINT256
+    vals_B_fail.transferred = UINT256_MAX
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
@@ -496,7 +496,7 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.locked_amounts.unclaimable_locked = 0
-    vals_B_fail.locked_amounts.claimable_locked = MAX_UINT256
+    vals_B_fail.locked_amounts.claimable_locked = UINT256_MAX
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 

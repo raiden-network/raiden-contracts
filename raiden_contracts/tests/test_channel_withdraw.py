@@ -13,7 +13,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
-    MAX_UINT256,
+    UINT256_MAX,
 )
 from raiden_contracts.utils.events import check_withdraw
 
@@ -68,7 +68,7 @@ def test_withdraw_call(
         token_network.functions.setTotalWithdraw(
             channel_identifier=channel_identifier,
             participant=A,
-            total_withdraw=MAX_UINT256 + 1,
+            total_withdraw=UINT256_MAX + 1,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
         )

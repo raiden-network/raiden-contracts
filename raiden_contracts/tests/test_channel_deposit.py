@@ -12,7 +12,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
     FAKE_ADDRESS,
-    MAX_UINT256,
+    UINT256_MAX,
     ChannelValues,
 )
 from raiden_contracts.utils.events import check_new_deposit
@@ -139,7 +139,7 @@ def test_channel_deposit_overflow(
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 50
-    deposit_B_ok = MAX_UINT256 - deposit_A
+    deposit_B_ok = UINT256_MAX - deposit_A
     deposit_B_fail = deposit_B_ok + 1
 
     channel_identifier = create_channel(A, B)[0]

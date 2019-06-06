@@ -9,7 +9,7 @@ from web3.contract import Contract
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_LOCKSROOT,
-    MAX_UINT256,
+    UINT256_MAX,
 )
 
 SettlementValues = namedtuple(
@@ -90,15 +90,15 @@ def are_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelV
     total_available_deposit = get_total_available_deposit(participant1, participant2)
 
     return (
-        0 <= participant1.transferred <= MAX_UINT256
-        and 0 <= participant2.transferred <= MAX_UINT256
-        and 0 <= participant1.locked_amounts.locked <= MAX_UINT256
-        and 0 <= participant2.locked_amounts.locked <= MAX_UINT256
-        and participant1.transferred + participant1.locked_amounts.locked <= MAX_UINT256
-        and participant2.transferred + participant2.locked_amounts.locked <= MAX_UINT256
+        0 <= participant1.transferred <= UINT256_MAX
+        and 0 <= participant2.transferred <= UINT256_MAX
+        and 0 <= participant1.locked_amounts.locked <= UINT256_MAX
+        and 0 <= participant2.locked_amounts.locked <= UINT256_MAX
+        and participant1.transferred + participant1.locked_amounts.locked <= UINT256_MAX
+        and participant2.transferred + participant2.locked_amounts.locked <= UINT256_MAX
         and 0 <= participant1_available_balance <= total_available_deposit
         and 0 <= participant2_available_balance <= total_available_deposit
-        and total_available_deposit <= MAX_UINT256
+        and total_available_deposit <= UINT256_MAX
         and participant1.locked_amounts.locked <= participant1_available_balance
         and participant2.locked_amounts.locked <= participant2_available_balance
     )
@@ -145,10 +145,10 @@ def get_settlement_amounts(
     """
     total_available_deposit = get_total_available_deposit(participant1, participant2)
     participant1_max_transferred = min(
-        participant1.transferred + participant1.locked_amounts.locked, MAX_UINT256
+        participant1.transferred + participant1.locked_amounts.locked, UINT256_MAX
     )
     participant2_max_transferred = min(
-        participant2.transferred + participant2.locked_amounts.locked, MAX_UINT256
+        participant2.transferred + participant2.locked_amounts.locked, UINT256_MAX
     )
     participant1_max_amount_receivable = (
         participant1.deposit
@@ -221,13 +221,13 @@ def failsafe_add(a: int, b: int) -> int:
     :param b: Addend
     :return: sum, if a+b mod MAX_UINT+1 would not overflow else: MAX_UINT256
     """
-    a = a % (MAX_UINT256 + 1)
-    b = b % (MAX_UINT256 + 1)
-    ret = (a + b) % (MAX_UINT256 + 1)
+    a = a % (UINT256_MAX + 1)
+    b = b % (UINT256_MAX + 1)
+    ret = (a + b) % (UINT256_MAX + 1)
     if ret >= a:
         return ret
     else:
-        return MAX_UINT256
+        return UINT256_MAX
 
 
 def failsafe_sub(a: int, b: int) -> Tuple[int, int]:
@@ -238,8 +238,8 @@ def failsafe_sub(a: int, b: int) -> Tuple[int, int]:
     :return: tuple(difference, Subtrahend) if a-b mod MAX_UINT+1 would not underflow
      else: tuple(0, Minuend)
     """
-    a = a % (MAX_UINT256 + 1)
-    b = b % (MAX_UINT256 + 1)
+    a = a % (UINT256_MAX + 1)
+    b = b % (UINT256_MAX + 1)
     return (a - b, b) if a > b else (0, a)
 
 
@@ -262,7 +262,7 @@ def get_onchain_settlement_amounts(
     total_available_deposit = get_total_available_deposit(participant1, participant2)
 
     # we assume that total_available_deposit does not overflow in settleChannel
-    assert total_available_deposit <= MAX_UINT256
+    assert total_available_deposit <= UINT256_MAX
 
     participant1_max_transferred = failsafe_add(
         participant1.transferred, participant1.locked_amounts.locked
@@ -271,8 +271,8 @@ def get_onchain_settlement_amounts(
         participant2.transferred, participant2.locked_amounts.locked
     )
 
-    assert participant1_max_transferred <= MAX_UINT256
-    assert participant2_max_transferred <= MAX_UINT256
+    assert participant1_max_transferred <= UINT256_MAX
+    assert participant2_max_transferred <= UINT256_MAX
 
     participant1_net_max_transferred = participant2_max_transferred - participant1_max_transferred
 
