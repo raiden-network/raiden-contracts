@@ -85,7 +85,7 @@ channel_settle_test_values = [
             ),
             # participant2 provides an old participant1 balance proof, with a higher
             # unclaimable locked amount can happen if expired transfers are removed
-            # from the merkle tree
+            # from the pending locks
             ChannelValues(
                 deposit=35,
                 withdrawn=5,
@@ -167,7 +167,7 @@ channel_settle_test_values = [
             ),
             # participant1 provides an old participant2 balance proof, with a higher
             # unclaimable locked amount
-            # can happen if expired transfers are removed from the merkle tree
+            # can happen if expired transfers are removed from the pending locks
             ChannelValues(
                 deposit=40,
                 withdrawn=10,

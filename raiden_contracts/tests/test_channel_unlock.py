@@ -106,7 +106,7 @@ def test_odd_even_locks(web3, get_accounts, token_network_test_utils, reveal_sec
     """ Test getHashAndUnlockedAmount() on an odd/even number of locks """
     A = get_accounts(1)[0]
 
-    # Even number of merkle tree components
+    # Even number of locks
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8, 3])
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
@@ -121,7 +121,7 @@ def test_odd_even_locks(web3, get_accounts, token_network_test_utils, reveal_sec
     assert locksroot == total_hash
     assert unlocked_amount == 9
 
-    # Odd number of merkle tree components
+    # Odd number of locks
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 8])
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
@@ -162,11 +162,8 @@ def test_locks_order(
         LOCKSROOT_OF_NO_LOCKS,
     )
 
-    # Merkle tree lockhashes are ordered lexicographicaly.
-    # If we change the order, we change the computed merkle root.
-    # However, the getHashAndUnlockedAmount orders neighbouring lockhashes
-    # lexicographicaly, so simple item[i], item[i + 1] swap
-    # will still result in the same merkle root.
+    # Pending locks are ordered lexicographicaly.
+    # If we change the order, we change the computed hash.
     wrong_order = pending_transfers_tree.transfers
     wrong_order[1], wrong_order[0] = wrong_order[0], wrong_order[1]
     wrong_order_packed = get_packed_transfers(wrong_order, types)
@@ -211,10 +208,10 @@ def test_locks_order(
     ).call_and_transact()
 
 
-def test_lock_data_from_merkle_tree(
+def test_lock_data_from_packed_locks(
     web3, get_accounts, token_network_test_utils, secret_registry_contract, reveal_secrets
 ):
-    """ Test getLockDataFromMerkleTreePublic() on various offsets """
+    """ Test getLockedAmountFromLockPublic() on various offsets """
     network_utils = token_network_test_utils
     A = get_accounts(1)[0]
 
@@ -274,7 +271,7 @@ def test_lock_data_from_merkle_tree(
     ).call()
     assert claimable_amount == claimable(4)
 
-    # If the offset is bigger than the length of the merkle tree, return (0, 0)
+    # If the offset is bigger than the length of the packed locks, return (0, 0)
     claimable_amount = network_utils.functions.getLockedAmountFromLockPublic(
         pending_transfers_tree.packed_transfers, 32 + 5 * 96
     ).call()
@@ -282,7 +279,7 @@ def test_lock_data_from_merkle_tree(
 
 
 def test_unlock_wrong_locksroot(web3, token_network, create_settled_channel, get_accounts):
-    """ Test unlocking with wrong Merkle tree entries """
+    """ Test unlocking with wrong pending locks """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -304,7 +301,7 @@ def test_unlock_wrong_locksroot(web3, token_network, create_settled_channel, get
             channel_identifier, B, A, pending_transfers_tree_A_fake.packed_transfers
         ).call()
 
-    # Fails for an empty merkle tree
+    # Fails for an empty packed locks
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(channel_identifier, B, A, b"").call()
 
@@ -324,7 +321,7 @@ def test_channel_unlock_bigger_locked_amount(
 ):
     """ Test an unlock() call that claims too little tokens"
 
-    When an unlock() call does not contain enough Merkle tree leaves to claim
+    When an unlock() call does not contain enough pending locks to claim
     the locked amount declared in the settleChannel() call, the difference goes
     to the other party.
     """
@@ -339,7 +336,7 @@ def test_channel_unlock_bigger_locked_amount(
     )
 
     # We settle the channel with a bigger locked amount than we will need for the
-    # actual merkle tree of pending transfers
+    # actual pending transfers
     channel_identifier = create_settled_channel(
         A,
         pending_transfers_tree_A.locked_amount + 1,
@@ -396,7 +393,7 @@ def test_channel_unlock_smaller_locked_amount(
     )
 
     # We settle the channel with a smaller locked amount than we will need for the
-    # actual merkle tree of pending transfers
+    # actual pending transfers
     channel_identifier = create_settled_channel(
         A,
         pending_transfers_tree_A.locked_amount - 1,
@@ -858,10 +855,10 @@ def test_channel_unlock_before_settlement_fails(
     assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
-def test_unlock_fails_with_partial_merkle_proof(
+def test_unlock_fails_with_partial_locks(
     web3, token_network, get_accounts, create_settled_channel, reveal_secrets
 ):
-    """ unlock() should fail when one Merkle leaf is missing """
+    """ unlock() should fail when one lock is missing """
     (A, B) = get_accounts(2)
     settle_timeout = 8
 
@@ -891,13 +888,13 @@ def test_unlock_fails_with_partial_merkle_proof(
                 channel_identifier, B, A, packed_transfers_tampered
             ).call({"from": A})
 
-    # Unlock with full merkle tree does work
+    # Unlock with full pending locks does work
     token_network.functions.unlock(
         channel_identifier, B, A, pending_transfers_tree.packed_transfers
     ).call_and_transact({"from": A})
 
 
-def test_unlock_tampered_merkle_proof_fails(
+def test_unlock_tampered_proof_fails(
     web3, token_network, get_accounts, create_settled_channel, reveal_secrets
 ):
     """ unlock() should fail when the submitted proofs are tampered """
@@ -930,7 +927,7 @@ def test_unlock_tampered_merkle_proof_fails(
                 channel_identifier, B, A, packed_transfers_tampered
             ).call({"from": A})
 
-    # Unlock with correct merkle tree does work
+    # Unlock with correct pending locks does work
     token_network.functions.unlock(
         channel_identifier, B, A, pending_transfers_tree.packed_transfers
     ).call_and_transact({"from": A})

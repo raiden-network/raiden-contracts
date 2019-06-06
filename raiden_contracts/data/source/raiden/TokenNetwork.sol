@@ -122,7 +122,7 @@ contract TokenNetwork is Utils {
     }
 
     struct UnlockData {
-        // Merkle root of the pending transfers tree from the Raiden client
+        // keccak256 hash of the pending transfers from the Raiden client
         bytes32 locksroot;
         // Total amount of tokens locked in the pending transfers corresponding
         // to the `locksroot`
@@ -638,7 +638,7 @@ contract TokenNetwork is Utils {
     /// @param participant1_locked_amount Amount of tokens owed by
     /// `participant1` to `participant2`, contained in locked transfers that
     /// will be retrieved by calling `unlock` after the channel is settled.
-    /// @param participant1_locksroot The latest known merkle root of the
+    /// @param participant1_locksroot The latest known hash of the
     /// pending hash-time locks of `participant1`, used to validate the unlocked
     /// proofs.
     /// @param participant2 Other channel participant.
@@ -647,7 +647,7 @@ contract TokenNetwork is Utils {
     /// @param participant2_locked_amount Amount of tokens owed by
     /// `participant2` to `participant1`, contained in locked transfers that
     /// will be retrieved by calling `unlock` after the channel is settled.
-    /// @param participant2_locksroot The latest known merkle root of the
+    /// @param participant2_locksroot The latest known hash of the
     /// pending hash-time locks of `participant2`, used to validate the unlocked
     /// proofs.
     function settleChannel(
@@ -787,13 +787,13 @@ contract TokenNetwork is Utils {
     /// tokens.
     /// @param sender Address who sent the pending transfers and will receive
     /// the unclaimable unlocked tokens.
-    /// @param merkle_tree_leaves The entire merkle tree of pending transfers
+    /// @param locks The entire pending transfers
     /// that `sender` sent to `receiver`.
     function unlock(
         uint256 channel_identifier,
         address receiver,
         address sender,
-        bytes memory merkle_tree_leaves
+        bytes memory bytes
     )
         public
     {
@@ -806,7 +806,7 @@ contract TokenNetwork is Utils {
         // for the external APIs
         require(channels[channel_identifier].state == ChannelState.NonExistent);
 
-        require(merkle_tree_leaves.length > 0);
+        require(bytes.length > 0);
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -818,7 +818,7 @@ contract TokenNetwork is Utils {
         // tokens corresponding to the locked transfers with secrets revealed
         // on chain.
         (computed_locksroot, unlocked_amount) = getHashAndUnlockedAmount(
-            merkle_tree_leaves
+            bytes
         );
 
         // The sender must have a non-empty locksroot on-chain that must be
@@ -1578,7 +1578,7 @@ contract TokenNetwork is Utils {
     {
         uint256 length = locks.length;
 
-        // each merkle_tree lock component has this form:
+        // each lock has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
         require(length % 96 == 0);
 
