@@ -11,8 +11,8 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
-    EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
+    LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
 )
 from raiden_contracts.utils.events import check_withdraw
@@ -153,7 +153,7 @@ def test_withdraw_wrong_state(
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
-        channel_identifier, A, 0, 0, EMPTY_LOCKSROOT, B, 0, 0, EMPTY_LOCKSROOT
+        channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
     ).call_and_transact({"from": A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
@@ -380,7 +380,7 @@ def test_withdraw_replay_reopened_channel(
     ).call_and_transact({"from": B})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
-        channel_identifier1, A, 0, 0, EMPTY_LOCKSROOT, B, 0, 0, EMPTY_LOCKSROOT
+        channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
     ).call_and_transact({"from": A})
 
     # Reopen the channel and make sure we cannot use the old withdraw proof

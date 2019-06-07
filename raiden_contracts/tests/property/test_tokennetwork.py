@@ -22,7 +22,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.fixtures.base.web3_fixtures import ethereum_tester
 from raiden_contracts.tests.property.strategies import direct_transfer
 from raiden_contracts.tests.utils import (
-    EMPTY_LOCKSROOT,
+    LOCKSROOT_OF_NO_LOCKS,
     deploy_contract,
     deploy_custom_token,
     get_token_network,
@@ -145,7 +145,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
             sampled_from(self.token_addresses),
             sampled_from(self.channel_addresses),
             sampled_from(self.addresses),
-            just(EMPTY_LOCKSROOT),
+            just(LOCKSROOT_OF_NO_LOCKS),
         )
 
         deposit_op = tuples(

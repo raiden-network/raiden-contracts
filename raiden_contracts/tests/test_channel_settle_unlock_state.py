@@ -8,7 +8,7 @@ from raiden_contracts.tests.fixtures.channel_test_values import (
     channel_settle_test_values,
 )
 from raiden_contracts.tests.utils import (
-    EMPTY_LOCKSROOT,
+    NONEXISTENT_LOCKSROOT,
     are_balance_proofs_valid,
     get_expected_after_settlement_unlock_amounts,
     get_onchain_settlement_amounts,
@@ -53,7 +53,7 @@ def test_settlement_outcome(
             unlockable_amount=vals_A.locked_amounts.claimable_locked,
             expired_amount=vals_A.locked_amounts.unclaimable_locked,
         )
-        vals_A.locksroot = pending_transfers_tree_A.merkle_root
+        vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
         # Reveal A's secrets.
         reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
@@ -63,7 +63,7 @@ def test_settlement_outcome(
             unlockable_amount=vals_B.locked_amounts.claimable_locked,
             expired_amount=vals_B.locked_amounts.unclaimable_locked,
         )
-        vals_B.locksroot = pending_transfers_tree_B.merkle_root
+        vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
         # Reveal B's secrets
         reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
@@ -142,7 +142,7 @@ def test_settlement_outcome(
         # The locked amount should have been removed from contract storage
         info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == 0
-        assert info_B[ParticipantInfoIndex.LOCKSROOT] == EMPTY_LOCKSROOT
+        assert info_B[ParticipantInfoIndex.LOCKSROOT] == NONEXISTENT_LOCKSROOT
 
         # B unlocks A's pending transfers
         info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
@@ -163,7 +163,7 @@ def test_settlement_outcome(
         # The locked amount should have been removed from contract storage
         info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert info_A[ParticipantInfoIndex.LOCKED_AMOUNT] == 0
-        assert info_A[ParticipantInfoIndex.LOCKSROOT] == EMPTY_LOCKSROOT
+        assert info_A[ParticipantInfoIndex.LOCKSROOT] == NONEXISTENT_LOCKSROOT
 
         # Do the post settlement and unlock tests for valid balance proofs
         balance_A = custom_token.functions.balanceOf(A).call()
@@ -357,7 +357,7 @@ def test_channel_settle_invalid_balance_proof_values(
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
-    vals_A.locksroot = pending_transfers_tree_A.merkle_root
+    vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
     # Reveal A's secrets.
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
@@ -367,7 +367,7 @@ def test_channel_settle_invalid_balance_proof_values(
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
-    vals_B.locksroot = pending_transfers_tree_B.merkle_root
+    vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
     # Reveal B's secrets
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 

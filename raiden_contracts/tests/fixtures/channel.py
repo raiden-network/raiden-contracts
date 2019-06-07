@@ -8,7 +8,8 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
-    EMPTY_LOCKSROOT,
+    LOCKSROOT_OF_NO_LOCKS,
+    NONEXISTENT_LOCKSROOT,
     ChannelValues,
     LockedAmounts,
     fake_bytes,
@@ -350,7 +351,7 @@ def update_state_tests(token_network, get_block):
         assert A_is_the_closer is True
         assert A_balance_hash == balance_proof_A[0]
         assert A_nonce == 5
-        assert A_locksroot == EMPTY_LOCKSROOT
+        assert A_locksroot == NONEXISTENT_LOCKSROOT
         assert A_locked == 0
 
         (
@@ -365,7 +366,7 @@ def update_state_tests(token_network, get_block):
         assert B_is_the_closer is False
         assert B_balance_hash == balance_proof_B[0]
         assert B_nonce == 3
-        assert B_locksroot == EMPTY_LOCKSROOT
+        assert B_locksroot == NONEXISTENT_LOCKSROOT
         assert B_locked == 0
 
     return get
@@ -535,7 +536,7 @@ def withdraw_state_tests(custom_token, token_network):
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
-        assert locksroot == EMPTY_LOCKSROOT
+        assert locksroot == NONEXISTENT_LOCKSROOT
         assert locked_amount == 0
 
         (
@@ -554,7 +555,7 @@ def withdraw_state_tests(custom_token, token_network):
         assert is_the_closer is False
         assert balance_hash == fake_bytes(32)
         assert nonce == 0
-        assert locksroot == EMPTY_LOCKSROOT
+        assert locksroot == NONEXISTENT_LOCKSROOT
         assert locked_amount == 0
 
         balance_participant = custom_token.functions.balanceOf(participant).call()
@@ -587,7 +588,7 @@ def create_balance_proof(token_network, get_private_key):
     ):
         _token_network = other_token_network or token_network
         private_key = get_private_key(signer or participant)
-        locksroot = locksroot or b"\x00" * 32
+        locksroot = locksroot or LOCKSROOT_OF_NO_LOCKS
         additional_hash = additional_hash or b"\x00" * 32
 
         balance_hash = hash_balance_data(transferred_amount, locked_amount, locksroot)

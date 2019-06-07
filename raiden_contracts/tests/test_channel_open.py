@@ -19,9 +19,10 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
-    EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
     FAKE_ADDRESS,
+    LOCKSROOT_OF_NO_LOCKS,
+    NONEXISTENT_LOCKSROOT,
 )
 from raiden_contracts.utils.events import check_channel_opened
 
@@ -228,7 +229,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     assert A_is_the_closer is False
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
-    assert A_locksroot == EMPTY_LOCKSROOT
+    assert A_locksroot == NONEXISTENT_LOCKSROOT
     assert A_locked_amount == 0
 
     (
@@ -245,7 +246,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
-    assert B_locksroot == EMPTY_LOCKSROOT
+    assert B_locksroot == NONEXISTENT_LOCKSROOT
     assert B_locked_amount == 0
 
 
@@ -266,7 +267,7 @@ def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Calla
 
     # Close channel
     token_network.functions.closeChannel(
-        channel_identifier1, B, EMPTY_LOCKSROOT, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier1, B, LOCKSROOT_OF_NO_LOCKS, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
     ).call_and_transact({"from": A})
 
     # Reopen Channel before settlement fails
@@ -278,7 +279,7 @@ def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Calla
 
     # Settle channel
     token_network.functions.settleChannel(
-        channel_identifier1, A, 0, 0, EMPTY_LOCKSROOT, B, 0, 0, EMPTY_LOCKSROOT
+        channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
     ).call_and_transact({"from": A})
 
     # Reopening the channel should work iff channel is settled
@@ -312,7 +313,7 @@ def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Calla
     assert A_is_the_closer is False
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
-    assert A_locksroot == EMPTY_LOCKSROOT
+    assert A_locksroot == NONEXISTENT_LOCKSROOT
     assert A_locked_amount == 0
 
     (
@@ -329,7 +330,7 @@ def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Calla
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
-    assert B_locksroot == EMPTY_LOCKSROOT
+    assert B_locksroot == NONEXISTENT_LOCKSROOT
     assert B_locked_amount == 0
 
 

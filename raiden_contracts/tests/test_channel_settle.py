@@ -11,8 +11,8 @@ from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
-    EMPTY_LOCKSROOT,
     EMPTY_SIGNATURE,
+    LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
     ChannelValues,
     LockedAmounts,
@@ -50,11 +50,11 @@ def test_settle_no_bp_success(
         participant1=A,
         participant1_transferred_amount=0,
         participant1_locked_amount=0,
-        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
         participant2=B,
         participant2_transferred_amount=0,
         participant2_locked_amount=0,
-        participant2_locksroot=EMPTY_LOCKSROOT,
+        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
     ).call_and_transact({"from": A})
 
     assert custom_token.functions.balanceOf(A).call() == deposit_A
@@ -96,8 +96,8 @@ def test_settle_channel_state(
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
-    vals_A.locksroot = pending_transfers_tree_A.merkle_root
-    vals_B.locksroot = pending_transfers_tree_B.merkle_root
+    vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
+    vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
 
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
     withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
@@ -161,7 +161,12 @@ def test_settle_single_direct_transfer_for_closing_party(
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     balance_proof_B = create_balance_proof(
-        channel_identifier, B, vals_B.transferred, vals_B.locked_amounts.locked, 1, EMPTY_LOCKSROOT
+        channel_identifier,
+        B,
+        vals_B.transferred,
+        vals_B.locked_amounts.locked,
+        1,
+        LOCKSROOT_OF_NO_LOCKS,
     )
     token_network.functions.closeChannel(
         channel_identifier, B, *balance_proof_B
@@ -177,11 +182,11 @@ def test_settle_single_direct_transfer_for_closing_party(
         participant1=A,
         participant1_transferred_amount=0,
         participant1_locked_amount=0,
-        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
         participant2=B,
         participant2_transferred_amount=vals_B.transferred,
         participant2_locked_amount=0,
-        participant2_locksroot=EMPTY_LOCKSROOT,
+        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
     ).call_and_transact({"from": A})
 
     # Calculate how much A and B should receive
@@ -222,11 +227,16 @@ def test_settle_single_direct_transfer_for_counterparty(
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
     token_network.functions.closeChannel(
-        channel_identifier, B, EMPTY_LOCKSROOT, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier, B, LOCKSROOT_OF_NO_LOCKS, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
     ).call_and_transact({"from": A})
 
     balance_proof_A = create_balance_proof(
-        channel_identifier, A, vals_A.transferred, vals_A.locked_amounts.locked, 1, EMPTY_LOCKSROOT
+        channel_identifier,
+        A,
+        vals_A.transferred,
+        vals_A.locked_amounts.locked,
+        1,
+        LOCKSROOT_OF_NO_LOCKS,
     )
 
     balance_proof_update_signature_B = create_balance_proof_update_signature(
@@ -246,11 +256,11 @@ def test_settle_single_direct_transfer_for_counterparty(
         participant1=B,
         participant1_transferred_amount=0,
         participant1_locked_amount=0,
-        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
         participant2=A,
         participant2_transferred_amount=vals_A.transferred,
         participant2_locked_amount=0,
-        participant2_locksroot=EMPTY_LOCKSROOT,
+        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
     ).call_and_transact({"from": B})
 
     # Calculate how much A and B should receive
@@ -416,7 +426,7 @@ def test_settle_wrong_balance_hash(
         unlockable_amount=vals_A.locked_amounts.claimable_locked,
         expired_amount=vals_A.locked_amounts.unclaimable_locked,
     )
-    vals_A.locksroot = pending_transfers_tree_A.merkle_root
+    vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
     # Reveal A's secrets.
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
@@ -426,7 +436,7 @@ def test_settle_wrong_balance_hash(
         unlockable_amount=vals_B.locked_amounts.claimable_locked,
         expired_amount=vals_B.locked_amounts.unclaimable_locked,
     )
-    vals_B.locksroot = pending_transfers_tree_B.merkle_root
+    vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
     # Reveal B's secrets
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
@@ -465,7 +475,7 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
-    vals_A_fail.locksroot = EMPTY_LOCKSROOT
+    vals_A_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
@@ -501,7 +511,7 @@ def test_settle_wrong_balance_hash(
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
-    vals_B_fail.locksroot = EMPTY_LOCKSROOT
+    vals_B_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
@@ -532,8 +542,8 @@ def test_settle_channel_event(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, EMPTY_LOCKSROOT)
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, EMPTY_LOCKSROOT)
+    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
+    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B, channel_identifier, *balance_proof_A
     )
@@ -551,11 +561,11 @@ def test_settle_channel_event(
         participant1=B,
         participant1_transferred_amount=5,
         participant1_locked_amount=0,
-        participant1_locksroot=EMPTY_LOCKSROOT,
+        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
         participant2=A,
         participant2_transferred_amount=10,
         participant2_locked_amount=0,
-        participant2_locksroot=EMPTY_LOCKSROOT,
+        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
     ).call_and_transact({"from": A})
 
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))

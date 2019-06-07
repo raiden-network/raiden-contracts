@@ -269,20 +269,20 @@ contract TokenNetworkUtilsTest is TokenNetwork {
 
     }
 
-    function getMerkleRootAndUnlockedAmountPublic(bytes memory merkle_tree_leaves)
+    function getHashAndUnlockedAmountPublic(bytes memory locks)
         public
         view
         returns (bytes32, uint256)
     {
-        return getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
+        return getHashAndUnlockedAmount(locks);
     }
 
-    function getLockDataFromMerkleTreePublic(bytes memory merkle_tree_leaves, uint256 offset)
+    function getLockedAmountFromLockPublic(bytes memory locks, uint256 offset)
         public
         view
-        returns (bytes32, uint256)
+        returns (uint256)
     {
-        return getLockDataFromMerkleTree(merkle_tree_leaves, offset);
+        return getLockedAmountFromLock(locks, offset);
     }
 
     function minPublic(uint256 a, uint256 b) view public returns (uint256)

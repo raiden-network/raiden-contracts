@@ -6,7 +6,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.tests.utils import fake_bytes
+from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, fake_bytes
 
 
 def test_settle_timeout_inrange(
@@ -42,7 +42,7 @@ def test_settle_timeout_inrange(
     ).call_and_transact({"from": A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
-        channel_identifier, A, 0, 0, fake_bytes(32), B, 0, 0, fake_bytes(32)
+        channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
     ).call_and_transact({"from": A})
     token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX).call_and_transact()
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()

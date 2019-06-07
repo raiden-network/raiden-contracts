@@ -120,9 +120,9 @@ contract TokenNetwork is Utils {
     }
 
     struct UnlockData {
-        // Merkle root of the pending transfers tree from the Raiden client
+        // keccak256 hash of the pending locks from the Raiden client
         bytes32 locksroot;
-        // Total amount of tokens locked in the pending transfers corresponding
+        // Total amount of tokens locked in the pending locks corresponding
         // to the `locksroot`
         uint256 locked_amount;
     }
@@ -636,18 +636,18 @@ contract TokenNetwork is Utils {
     /// @param participant1_locked_amount Amount of tokens owed by
     /// `participant1` to `participant2`, contained in locked transfers that
     /// will be retrieved by calling `unlock` after the channel is settled.
-    /// @param participant1_locksroot The latest known merkle root of the
+    /// @param participant1_locksroot The latest known hash of the
     /// pending hash-time locks of `participant1`, used to validate the unlocked
-    /// proofs.
+    /// proofs. If no balance_hash has been submitted, locksroot is ignored.
     /// @param participant2 Other channel participant.
     /// @param participant2_transferred_amount The latest known amount of tokens
     /// transferred from `participant2` to `participant1`.
     /// @param participant2_locked_amount Amount of tokens owed by
     /// `participant2` to `participant1`, contained in locked transfers that
     /// will be retrieved by calling `unlock` after the channel is settled.
-    /// @param participant2_locksroot The latest known merkle root of the
+    /// @param participant2_locksroot The latest known hash of the
     /// pending hash-time locks of `participant2`, used to validate the unlocked
-    /// proofs.
+    /// proofs. If no balance_hash has been submitted, locksroot is ignored.
     function settleChannel(
         uint256 channel_identifier,
         address participant1,
@@ -785,13 +785,13 @@ contract TokenNetwork is Utils {
     /// tokens.
     /// @param sender Address who sent the pending transfers and will receive
     /// the unclaimable unlocked tokens.
-    /// @param merkle_tree_leaves The entire merkle tree of pending transfers
+    /// @param locks All pending locks concatenated in order of creation.
     /// that `sender` sent to `receiver`.
     function unlock(
         uint256 channel_identifier,
         address receiver,
         address sender,
-        bytes memory merkle_tree_leaves
+        bytes memory locks
     )
         public
     {
@@ -804,7 +804,7 @@ contract TokenNetwork is Utils {
         // for the external APIs
         require(channels[channel_identifier].state == ChannelState.NonExistent);
 
-        require(merkle_tree_leaves.length > 0);
+        require(locks.length > 0);
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -815,8 +815,8 @@ contract TokenNetwork is Utils {
         // Calculate the locksroot for the pending transfers and the amount of
         // tokens corresponding to the locked transfers with secrets revealed
         // on chain.
-        (computed_locksroot, unlocked_amount) = getMerkleRootAndUnlockedAmount(
-            merkle_tree_leaves
+        (computed_locksroot, unlocked_amount) = getHashAndUnlockedAmount(
+            locks
         );
 
         // The sender must have a non-empty locksroot on-chain that must be
@@ -1148,7 +1148,7 @@ contract TokenNetwork is Utils {
     {
         // If there are transfers to unlock, store the locksroot and total
         // amount of tokens
-        if (locked_amount == 0 || locksroot == 0) {
+        if (locked_amount == 0) {
             return;
         }
 
@@ -1433,8 +1433,8 @@ contract TokenNetwork is Utils {
         // separately because hashing values of 0 outputs a value != 0
         if (participant.balance_hash == 0 &&
             transferred_amount == 0 &&
-            locked_amount == 0 &&
-            locksroot == 0
+            locked_amount == 0
+            /* locksroot is ignored. */
         ) {
             return true;
         }
@@ -1566,17 +1566,17 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
-    /// @dev Calculates the merkle root for the pending transfers data and
+    /// @dev Calculates the hash of the pending transfers data and
     /// calculates the amount of tokens that can be unlocked because the secret
     /// was registered on-chain.
-    function getMerkleRootAndUnlockedAmount(bytes memory merkle_tree_leaves)
+    function getHashAndUnlockedAmount(bytes memory locks)
         internal
         view
         returns (bytes32, uint256)
     {
-        uint256 length = merkle_tree_leaves.length;
+        uint256 length = locks.length;
 
-        // each merkle_tree lock component has this form:
+        // each lock has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
         require(length % 96 == 0);
 
@@ -1584,65 +1584,37 @@ contract TokenNetwork is Utils {
         uint256 total_unlocked_amount;
         uint256 unlocked_amount;
         bytes32 lockhash;
-        bytes32 merkle_root;
-
-        bytes32[] memory merkle_layer = new bytes32[](length / 96 + 1);
+        bytes32 total_hash;
 
         for (i = 32; i < length; i += 96) {
-            (lockhash, unlocked_amount) = getLockDataFromMerkleTree(merkle_tree_leaves, i);
+            unlocked_amount = getLockedAmountFromLock(locks, i);
             total_unlocked_amount += unlocked_amount;
-            merkle_layer[i / 96] = lockhash;
         }
 
-        length /= 96;
+        total_hash = keccak256(locks);
 
-        while (length > 1) {
-            if (length % 2 != 0) {
-                merkle_layer[length] = merkle_layer[length - 1];
-                length += 1;
-            }
-
-            for (i = 0; i < length - 1; i += 2) {
-                if (merkle_layer[i] == merkle_layer[i + 1]) {
-                    lockhash = merkle_layer[i];
-                } else if (merkle_layer[i] < merkle_layer[i + 1]) {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i], merkle_layer[i + 1]));
-                } else {
-                    lockhash = keccak256(abi.encodePacked(merkle_layer[i + 1], merkle_layer[i]));
-                }
-                merkle_layer[i / 2] = lockhash;
-            }
-            length = i / 2;
-        }
-
-        merkle_root = merkle_layer[0];
-
-        return (merkle_root, total_unlocked_amount);
+        return (total_hash, total_unlocked_amount);
     }
 
-    function getLockDataFromMerkleTree(bytes memory merkle_tree_leaves, uint256 offset)
+    function getLockedAmountFromLock(bytes memory locks, uint256 offset)
         internal
         view
-        returns (bytes32, uint256)
+        returns (uint256)
     {
         uint256 expiration_block;
         uint256 locked_amount;
         uint256 reveal_block;
         bytes32 secrethash;
-        bytes32 lockhash;
 
-        if (merkle_tree_leaves.length <= offset) {
-            return (lockhash, 0);
+        if (locks.length <= offset) {
+            return 0;
         }
 
         assembly {
-            expiration_block := mload(add(merkle_tree_leaves, offset))
-            locked_amount := mload(add(merkle_tree_leaves, add(offset, 32)))
-            secrethash := mload(add(merkle_tree_leaves, add(offset, 64)))
+            expiration_block := mload(add(locks, offset))
+            locked_amount := mload(add(locks, add(offset, 32)))
+            secrethash := mload(add(locks, add(offset, 64)))
         }
-
-        // Calculate the lockhash for computing the merkle root
-        lockhash = keccak256(abi.encodePacked(expiration_block, locked_amount, secrethash));
 
         // Check if the lock's secret was revealed in the SecretRegistry The
         // secret must have been revealed in the SecretRegistry contract before
@@ -1653,7 +1625,7 @@ contract TokenNetwork is Utils {
             locked_amount = 0;
         }
 
-        return (lockhash, locked_amount);
+        return locked_amount;
     }
 
     function min(uint256 a, uint256 b) internal pure returns (uint256)

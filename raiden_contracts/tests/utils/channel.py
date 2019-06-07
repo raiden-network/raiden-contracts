@@ -8,7 +8,7 @@ from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import (
     EMPTY_ADDITIONAL_HASH,
-    EMPTY_LOCKSROOT,
+    LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
 )
 
@@ -39,7 +39,7 @@ class ChannelValues:
         nonce: int = 0,
         transferred: int = 0,
         locked_amounts: LockedAmounts = ZERO_LOCKED_VALUES,
-        locksroot: bytes = EMPTY_LOCKSROOT,
+        locksroot: bytes = LOCKSROOT_OF_NO_LOCKS,
         additional_hash: bytes = EMPTY_ADDITIONAL_HASH,
     ):
         self.deposit = deposit
@@ -316,11 +316,11 @@ def get_total_available_deposit(participant1: ChannelValues, participant2: Chann
     return total_available_deposit
 
 
-def get_unlocked_amount(secret_registry: Contract, merkle_tree_leaves: bytes) -> int:
+def get_unlocked_amount(secret_registry: Contract, packed_locks: bytes) -> int:
     unlocked_amount = 0
 
-    for i in range(0, len(merkle_tree_leaves), 96):
-        lock = merkle_tree_leaves[i : (i + 96)]
+    for i in range(0, len(packed_locks), 96):
+        lock = packed_locks[i : (i + 96)]
         expiration_block = int.from_bytes(lock[0:32], byteorder="big")
         locked_amount = int.from_bytes(lock[32:64], byteorder="big")
         secrethash = lock[64:96]
