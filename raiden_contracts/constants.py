@@ -7,7 +7,6 @@ CONTRACTS_VERSION = "0.16.0"
 PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
 
 # Contract names
-CONTRACT_ENDPOINT_REGISTRY = "EndpointRegistry"
 CONTRACT_HUMAN_STANDARD_TOKEN = "HumanStandardToken"
 CONTRACT_TOKEN_NETWORK_REGISTRY = "TokenNetworkRegistry"
 CONTRACT_TOKEN_NETWORK = "TokenNetwork"
@@ -41,7 +40,6 @@ GAS_REQUIRED_FOR_UNLOCK_1_LOCKS = 33515
 GAS_REQUIRED_FOR_UNLOCK_6_LOCKS = 72944
 
 GAS_REQUIRED_FOR_REGISTER_SECRET = 46161
-GAS_REQUIRED_FOR_ENDPOINT_REGISTER = 49183
 
 GAS_REQUIRED_FOR_MS_MONITOR = 203802
 GAS_REQUIRED_FOR_MS_CLAIM_REWARD = 42647
@@ -160,7 +158,6 @@ NETWORKNAME_TO_ID = {name: id for id, name in ID_TO_NETWORKNAME.items()}
 ContractListEntry = namedtuple("ContractListEntry", "module name")
 
 CONTRACT_LIST = [
-    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_ENDPOINT_REGISTRY),
     ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_SECRET_REGISTRY),
     ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK_REGISTRY),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_SERVICE_REGISTRY),
