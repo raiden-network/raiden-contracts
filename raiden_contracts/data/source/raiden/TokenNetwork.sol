@@ -31,8 +31,6 @@ contract TokenNetwork is Utils {
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
 
-    bytes32 keccak_of_empty = keccak256("");
-
     // The deposit limit per channel per participant.
     uint256 public channel_participant_deposit_limit;
     // The total combined deposit of all channels across the whole network
@@ -122,9 +120,9 @@ contract TokenNetwork is Utils {
     }
 
     struct UnlockData {
-        // keccak256 hash of the pending transfers from the Raiden client
+        // keccak256 hash of the pending locks from the Raiden client
         bytes32 locksroot;
-        // Total amount of tokens locked in the pending transfers corresponding
+        // Total amount of tokens locked in the pending locks corresponding
         // to the `locksroot`
         uint256 locked_amount;
     }
@@ -640,7 +638,7 @@ contract TokenNetwork is Utils {
     /// will be retrieved by calling `unlock` after the channel is settled.
     /// @param participant1_locksroot The latest known hash of the
     /// pending hash-time locks of `participant1`, used to validate the unlocked
-    /// proofs.
+    /// proofs. If no balance_hash has been submitted, locksroot is ignored.
     /// @param participant2 Other channel participant.
     /// @param participant2_transferred_amount The latest known amount of tokens
     /// transferred from `participant2` to `participant1`.
@@ -649,7 +647,7 @@ contract TokenNetwork is Utils {
     /// will be retrieved by calling `unlock` after the channel is settled.
     /// @param participant2_locksroot The latest known hash of the
     /// pending hash-time locks of `participant2`, used to validate the unlocked
-    /// proofs.
+    /// proofs. If no balance_hash has been submitted, locksroot is ignored.
     function settleChannel(
         uint256 channel_identifier,
         address participant1,
@@ -787,7 +785,7 @@ contract TokenNetwork is Utils {
     /// tokens.
     /// @param sender Address who sent the pending transfers and will receive
     /// the unclaimable unlocked tokens.
-    /// @param locks The entire pending transfers
+    /// @param locks All pending locks concatenated in order of creation.
     /// that `sender` sent to `receiver`.
     function unlock(
         uint256 channel_identifier,
@@ -1150,7 +1148,7 @@ contract TokenNetwork is Utils {
     {
         // If there are transfers to unlock, store the locksroot and total
         // amount of tokens
-        if (locked_amount == 0 || locksroot == 0) {
+        if (locked_amount == 0) {
             return;
         }
 
@@ -1435,8 +1433,8 @@ contract TokenNetwork is Utils {
         // separately because hashing values of 0 outputs a value != 0
         if (participant.balance_hash == 0 &&
             transferred_amount == 0 &&
-            locked_amount == 0 &&
-            locksroot == keccak_of_empty
+            locked_amount == 0
+            /* locksroot is ignored. */
         ) {
             return true;
         }

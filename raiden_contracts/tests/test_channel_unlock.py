@@ -162,7 +162,7 @@ def test_locks_order(
         LOCKSROOT_OF_NO_LOCKS,
     )
 
-    # Pending locks are ordered lexicographicaly.
+    # Pending locks are in the insertion order.
     # If we change the order, we change the computed hash.
     wrong_order = pending_transfers_tree.transfers
     wrong_order[1], wrong_order[0] = wrong_order[0], wrong_order[1]
@@ -170,7 +170,7 @@ def test_locks_order(
     (locksroot, unlocked_amount) = network_utils.functions.getHashAndUnlockedAmountPublic(
         wrong_order_packed
     ).call()
-    # Get a different hash (when it was a Merkle tree, the two roots were the same).
+    # If we change the order, we change the computed hash.
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
     with pytest.raises(TransactionFailed):
