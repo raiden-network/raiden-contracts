@@ -1,10 +1,11 @@
+import functools
+
 import click
 import requests
-import functools
 from eth_utils import encode_hex, to_checksum_address
 from web3 import HTTPProvider, Web3
-from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.middleware import geth_poa_middleware
+from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
+
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
 from raiden_contracts.utils.private_key import get_private_key
@@ -13,12 +14,7 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 
 class TokenOperations:
-    def __init__(
-            self,
-            rpc_url: str,
-            private_key: str,
-            wait: int = 10,
-    ):
+    def __init__(self, rpc_url: str, private_key: str, wait: int = 10):
         self.web3 = Web3(HTTPProvider(rpc_url))
         self.private_key = get_private_key(private_key)
         assert self.private_key is not None
@@ -29,11 +25,13 @@ class TokenOperations:
         self.web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
     def is_valid_contract(self, token_address):
-        return self.web3.eth.getCode(token_address, "latest") != b''
+        return self.web3.eth.getCode(token_address, "latest") != b""
 
     def mint_tokens(self, token_address: str, amount: int):
         token_address = to_checksum_address(token_address)
-        assert self.is_valid_contract(token_address), "The custom token contract does not seem to exist on this address"
+        assert self.is_valid_contract(
+            token_address
+        ), "The custom token contract does not seem to exist on this address"
         token_contract = ContractManager(contracts_precompiled_path()).get_contract(
             CONTRACT_CUSTOM_TOKEN
         )
@@ -44,11 +42,16 @@ class TokenOperations:
 
     def get_weth(self, token_address: str, amount: int):
         token_address = to_checksum_address(token_address)
-        assert self.web3.eth.getBalance(self.owner) > amount, "Not sufficient ether to make a deposit to WETH contract"
-        assert self.is_valid_contract(token_address), "The WETH token does not exist on this contract"
+        assert (
+            self.web3.eth.getBalance(self.owner) > amount
+        ), "Not sufficient ether to make a deposit to WETH contract"
+        assert self.is_valid_contract(
+            token_address
+        ), "The WETH token does not exist on this contract"
         result = requests.get(
             f"http://api.etherscan.io/api?module=contract&action=getabi&"
-            f"address=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
+            f"address=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        )
         weth_abi = result.json()["result"]
         weth_proxy = self.web3.eth.contract(address=token_address, abi=weth_abi)
         assert weth_proxy.functions.symbol().call() == "WETH", "This contract is not a WETH token"
@@ -60,12 +63,16 @@ class TokenOperations:
     def transfer_tokens(self, token_address: str, dest: str, amount: int):
         token_address = to_checksum_address(token_address)
         dest = to_checksum_address(dest)
-        assert self.is_valid_contract(token_address), "The token contract does not seem to exist on this address"
+        assert self.is_valid_contract(
+            token_address
+        ), "The token contract does not seem to exist on this address"
         token_contract = ContractManager(contracts_precompiled_path()).get_contract(
             CONTRACT_CUSTOM_TOKEN
         )
         token_proxy = self.web3.eth.contract(address=token_address, abi=token_contract["abi"])
-        assert token_proxy.functions.balanceOf(self.owner).call() >= amount, "Not enough token balances"
+        assert (
+            token_proxy.functions.balanceOf(self.owner).call() >= amount
+        ), "Not enough token balances"
         txhash = token_proxy.functions.transfer(dest, amount).transact({"from": self.owner})
         (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
@@ -73,7 +80,9 @@ class TokenOperations:
     def get_balance(self, token_address: str, address: str):
         token_address = to_checksum_address(token_address)
         address = to_checksum_address(address)
-        assert self.is_valid_contract(token_address), "The Token Contract does not seem to exist on this address"
+        assert self.is_valid_contract(
+            token_address
+        ), "The Token Contract does not seem to exist on this address"
         token_contract = ContractManager(contracts_precompiled_path()).get_contract(
             CONTRACT_CUSTOM_TOKEN
         )
@@ -84,15 +93,21 @@ class TokenOperations:
 def common_options(func):
     """A decorator that combines commonly appearing @click.option decorators."""
 
-    @click.option("--private-key", required=True, help="Path to a private key store.", type=click.STRING)
+    @click.option(
+        "--private-key", required=True, help="Path to a private key store.", type=click.STRING
+    )
     @click.option(
         "--rpc-url",
         default="http://127.0.0.1:8545",
         help="Address of the Ethereum RPC provider",
         type=click.STRING,
     )
-    @click.option("--token-address", required=True, help="Address of the token contract", type=click.STRING)
-    @click.option("--amount", required=True, help="Amount to mint/deposit/transfer", type=click.INT)
+    @click.option(
+        "--token-address", required=True, help="Address of the token contract", type=click.STRING
+    )
+    @click.option(
+        "--amount", required=True, help="Amount to mint/deposit/transfer", type=click.INT
+    )
     @click.option("--wait", default=300, help="Max tx wait time in s.", type=click.INT)
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -145,12 +160,14 @@ def transfer(ctx, private_key, rpc_url, token_address, amount, wait, destination
 
 @cli.command()
 @click.option(
-        "--rpc-url",
-        default="http://127.0.0.1:8545",
-        help="Address of the Ethereum RPC provider",
-        type=click.STRING,
-    )
-@click.option("--token-address", required=True, help="Address of the token contract", type=click.STRING)
+    "--rpc-url",
+    default="http://127.0.0.1:8545",
+    help="Address of the Ethereum RPC provider",
+    type=click.STRING,
+)
+@click.option(
+    "--token-address", required=True, help="Address of the token contract", type=click.STRING
+)
 @click.option("--address", help="Address of account to get Balance", type=click.STRING)
 def balance(rpc_url, token_address, address):
     token_address = to_checksum_address(token_address)
