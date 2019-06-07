@@ -118,7 +118,6 @@ def test_current_development_version() -> None:
     contracts_version = CONTRACTS_VERSION
     contract_names = [
         "Utils",
-        "EndpointRegistry",
         "SecretRegistry",
         "TokenNetworkRegistry",
         "TokenNetwork",

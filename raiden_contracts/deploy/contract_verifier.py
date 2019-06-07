@@ -119,9 +119,10 @@ class ContractVerifier:
         if chain_id != deployment_data["chain_id"]:
             raise RuntimeError("chain id mismatch.")
 
-        self._verify_deployed_contract(
-            deployment_data=deployment_data, contract_name=CONTRACT_ENDPOINT_REGISTRY
-        )
+        if self.contract_manager.has_contract(CONTRACT_ENDPOINT_REGISTRY):
+            self._verify_deployed_contract(
+                deployment_data=deployment_data, contract_name=CONTRACT_ENDPOINT_REGISTRY
+            )
 
         secret_registry, _ = self._verify_deployed_contract(
             deployment_data=deployment_data, contract_name=CONTRACT_SECRET_REGISTRY

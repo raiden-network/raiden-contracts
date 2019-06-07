@@ -5,7 +5,6 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -27,7 +26,6 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
     """ Check is gas.json contains enough fields """
     doc = gas_measurements(version)
     keys = {
-        "EndpointRegistry.registerEndpoint",
         "MonitoringService.claimReward",
         "MonitoringService.monitor",
         "OneToN.claim",
@@ -225,19 +223,6 @@ def print_gas_channel_cycle(
 
 
 @pytest.fixture
-def print_gas_endpointregistry(
-    endpoint_registry_contract: Contract, get_accounts: Callable, print_gas: Callable
-) -> None:
-    """ Abusing pytest to print gas cost of EndpointRegistry's registerEndpoint() """
-    A = get_accounts(1)[0]
-    ENDPOINT = "127.0.0.1:38647"
-    txn_hash = endpoint_registry_contract.functions.registerEndpoint(ENDPOINT).call_and_transact(
-        {"from": A}
-    )
-    print_gas(txn_hash, CONTRACT_ENDPOINT_REGISTRY + ".registerEndpoint")
-
-
-@pytest.fixture
 def print_gas_monitoring_service(
     token_network: Contract,
     monitoring_service_external: Contract,
@@ -387,7 +372,6 @@ def print_gas_user_deposit(
     "print_gas_token_network_create",
     "print_gas_secret_registry",
     "print_gas_channel_cycle",
-    "print_gas_endpointregistry",
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
     "print_gas_user_deposit",

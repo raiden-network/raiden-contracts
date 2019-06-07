@@ -4,7 +4,6 @@ import requests_mock
 from click.testing import CliRunner
 
 from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -108,7 +107,6 @@ def test_run_join_contracts() -> None:
     """ Just running join_sources() """
     join_sources(DeploymentModule.RAIDEN, CONTRACT_TOKEN_NETWORK_REGISTRY)
     join_sources(DeploymentModule.RAIDEN, CONTRACT_SECRET_REGISTRY)
-    join_sources(DeploymentModule.RAIDEN, CONTRACT_ENDPOINT_REGISTRY)
     join_sources(DeploymentModule.SERVICES, CONTRACT_MONITORING_SERVICE)
     join_sources(DeploymentModule.SERVICES, CONTRACT_SERVICE_REGISTRY)
     join_sources(DeploymentModule.SERVICES, CONTRACT_ONE_TO_N)
@@ -152,14 +150,7 @@ def test_etherscan_verify_already_verified() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            [
-                "--chain-id",
-                str(chain_id),
-                "--apikey",
-                "API",
-                "--contract-name",
-                "EndpointRegistry",
-            ],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SedcretRegistry"],
         )
         assert result.exit_code == 0
 
@@ -181,14 +172,7 @@ def test_etherscan_verify_unknown_error() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            [
-                "--chain-id",
-                str(chain_id),
-                "--apikey",
-                "API",
-                "--contract-name",
-                "EndpointRegistry",
-            ],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
         )
         assert result.exit_code != 0
 
@@ -220,14 +204,7 @@ def test_etherscan_verify_unable_to_verify() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            [
-                "--chain-id",
-                str(chain_id),
-                "--apikey",
-                "API",
-                "--contract-name",
-                "EndpointRegistry",
-            ],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
         )
         assert result.exit_code != 0
 
@@ -250,14 +227,7 @@ def test_etherscan_verify_success() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            [
-                "--chain-id",
-                str(chain_id),
-                "--apikey",
-                "API",
-                "--contract-name",
-                "EndpointRegistry",
-            ],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
         )
         assert result.exit_code == 0
 
@@ -283,13 +253,6 @@ def test_etherscan_verify_success_after_a_loop() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            [
-                "--chain-id",
-                str(chain_id),
-                "--apikey",
-                "API",
-                "--contract-name",
-                "EndpointRegistry",
-            ],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
         )
         assert result.exit_code == 0
