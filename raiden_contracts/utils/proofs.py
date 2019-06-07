@@ -140,7 +140,7 @@ def sign_balance_proof(
         additional_hash=additional_hash,
     )
 
-    return sign(privkey=privatekey, msg=message_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
 def sign_balance_proof_update_message(
@@ -164,7 +164,7 @@ def sign_balance_proof_update_message(
         closing_signature=closing_signature,
     )
 
-    return sign(privkey=privatekey, msg=message_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
 def sign_cooperative_settle_message(
@@ -188,7 +188,7 @@ def sign_cooperative_settle_message(
         participant2_balance=participant2_balance,
     )
 
-    return sign(privkey=privatekey, msg=message_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
 def sign_withdraw_message(
@@ -208,7 +208,7 @@ def sign_withdraw_message(
         amount_to_withdraw=amount_to_withdraw,
     )
 
-    return sign(privkey=privatekey, msg=message_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
 def sign_reward_proof(
@@ -230,7 +230,7 @@ def sign_reward_proof(
         nonce=nonce,
     )
 
-    return sign(privkey=privatekey, msg=message_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
 def sign_one_to_n_iou(
@@ -252,4 +252,4 @@ def sign_one_to_n_iou(
         + encode_single("uint256", amount)
         + encode_single("uint256", expiration_block)
     )
-    return sign(privkey=privatekey, msg=iou_hash, v=v)
+    return sign(privkey=privatekey, msg_hash=iou_hash, v=v)
