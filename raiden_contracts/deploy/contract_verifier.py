@@ -7,7 +7,6 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -118,11 +117,6 @@ class ContractVerifier:
             raise RuntimeError("Version string mismatch.")
         if chain_id != deployment_data["chain_id"]:
             raise RuntimeError("chain id mismatch.")
-
-        if self.contract_manager.has_contract(CONTRACT_ENDPOINT_REGISTRY):
-            self._verify_deployed_contract(
-                deployment_data=deployment_data, contract_name=CONTRACT_ENDPOINT_REGISTRY
-            )
 
         secret_registry, _ = self._verify_deployed_contract(
             deployment_data=deployment_data, contract_name=CONTRACT_SECRET_REGISTRY

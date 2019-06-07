@@ -9,7 +9,6 @@ from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
 
 from raiden_contracts.constants import (
-    CONTRACT_ENDPOINT_REGISTRY,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -151,8 +150,6 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        if self.contract_manager.has_contract(CONTRACT_ENDPOINT_REGISTRY):
-            self._deploy_and_remember(CONTRACT_ENDPOINT_REGISTRY, [], deployed_contracts)
         secret_registry = self._deploy_and_remember(
             contract_name=CONTRACT_SECRET_REGISTRY,
             arguments=[],
