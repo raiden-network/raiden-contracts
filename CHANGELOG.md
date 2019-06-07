@@ -7,9 +7,12 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.23.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.23.0) - 2019-06-07
+
 - [#1013](https://github.com/raiden-network/raiden-contracts/pull/1013) Remove EndpointRegistry contract
-- When OneToN checks the signature of an IOU, it considers MessageTypeId.IOU
-- Stopped using Merkle trees; instead the concatenation of all submitted locks is hashed
+- [#1024](https://github.com/raiden-network/raiden-contracts/pull/1024) When OneToN checks the signature of an IOU, it considers MessageTypeId.IOU
+- [#1062](https://github.com/raiden-network/raiden-contracts/pull/1062) Stopped using Merkle trees; instead the concatenation of all submitted locks is hashed
+- [#1043](https://github.com/raiden-network/raiden-contracts/pull/1062) This Changelog is supposed to appear in the package
 
 ## [0.22.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.22.0) - 2019-06-03
 
