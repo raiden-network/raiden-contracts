@@ -3,7 +3,6 @@
 from .base import *
 from .channel import *
 from .contracts import *
-from .endpoint_registry import *
 from .monitoring_service import *
 from .one_to_n import *
 from .secret_registry import *
