@@ -9,6 +9,7 @@ from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
+from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_provides_services
 
 _BASE = Path(__file__).parent
@@ -144,7 +145,7 @@ def gas_measurements(version: Optional[str] = None) -> Dict[str, int]:
 
 
 def contracts_deployed_path(
-    chain_id: int, version: Optional[str] = None, services: bool = False
+    chain_id: ChainID, version: Optional[str] = None, services: bool = False
 ) -> Path:
     """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
@@ -184,7 +185,9 @@ def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) ->
 
 
 def get_contracts_deployment_info(
-    chain_id: int, version: Optional[str] = None, module: DeploymentModule = DeploymentModule.ALL
+    chain_id: ChainID,
+    version: Optional[str] = None,
+    module: DeploymentModule = DeploymentModule.ALL,
 ) -> Optional[DeployedContracts]:
     """Reads the deployment data. Returns None if the file is not found.
 

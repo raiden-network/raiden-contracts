@@ -22,6 +22,7 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
+from raiden_contracts.utils.type_aliases import ChainID
 
 
 class ContractVerifier:
@@ -32,7 +33,7 @@ class ContractVerifier:
         self.contract_manager = ContractManager(self.precompiled_path)
 
     def verify_deployed_contracts_in_filesystem(self) -> None:
-        chain_id = int(self.web3.version.network)
+        chain_id = ChainID(int(self.web3.version.network))
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -54,7 +55,7 @@ class ContractVerifier:
     def verify_deployed_service_contracts_in_filesystem(
         self, token_address: HexAddress, user_deposit_whole_balance_limit: int
     ) -> None:
-        chain_id = int(self.web3.version.network)
+        chain_id = ChainID(int(self.web3.version.network))
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -97,7 +98,7 @@ class ContractVerifier:
 
     def _store_deployment_info(self, services: bool, deployment_info: DeployedContracts) -> None:
         deployment_file_path = contracts_deployed_path(
-            chain_id=int(self.web3.version.network),
+            chain_id=ChainID(int(self.web3.version.network)),
             version=self.contracts_version,
             services=services,
         )

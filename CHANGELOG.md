@@ -8,6 +8,7 @@ Documents changes that result in:
 ## Unreleased
 
 - Remove `contract_version` variable from the contracts
+- Type-annotate `ChainID`s
 
 ## [0.23.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.23.0) - 2019-06-07
 

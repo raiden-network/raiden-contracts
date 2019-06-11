@@ -21,6 +21,7 @@ from raiden_contracts.contract_source_manager import (
     contracts_source_path,
     contracts_source_path_of_deployment_module,
 )
+from raiden_contracts.utils.type_aliases import ChainID
 
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 
@@ -38,7 +39,7 @@ CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
     " Default is to submit the sources of all contracts.",
 )
 def etherscan_verify(
-    chain_id: int, apikey: str, guid: Optional[str], contract_name: Optional[str]
+    chain_id: ChainID, apikey: str, guid: Optional[str], contract_name: Optional[str]
 ) -> None:
     if guid:
         guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid)
@@ -137,7 +138,7 @@ def post_data_for_etherscan_verification(
 
 
 def etherscan_verify_contract(
-    chain_id: int, apikey: str, source_module: DeploymentModule, contract_name: str
+    chain_id: ChainID, apikey: str, source_module: DeploymentModule, contract_name: str
 ) -> None:
     """ Calls Etherscan API for verifying the Solidity source of a contract.
 

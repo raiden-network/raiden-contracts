@@ -1,5 +1,8 @@
 from collections import namedtuple
 from enum import Enum, IntEnum
+from typing import Dict
+
+from raiden_contracts.utils.type_aliases import ChainID
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
 CONTRACTS_VERSION = "0.16.0"
@@ -141,16 +144,16 @@ class DeploymentModule(Enum):
 # Network configurations
 START_QUERY_BLOCK_KEY = "DefaultStartBlock"
 
-ID_TO_NETWORKNAME = {
-    1: "mainnet",
-    3: "ropsten",
-    4: "rinkeby",
-    5: "goerli",
-    42: "kovan",
-    627: "smoketest",
+ID_TO_NETWORKNAME: Dict[ChainID, str] = {
+    ChainID(1): "mainnet",
+    ChainID(3): "ropsten",
+    ChainID(4): "rinkeby",
+    ChainID(5): "goerli",
+    ChainID(42): "kovan",
+    ChainID(627): "smoketest",
 }
 
-NETWORKNAME_TO_ID = {name: id for id, name in ID_TO_NETWORKNAME.items()}
+NETWORKNAME_TO_ID: Dict[str, ChainID] = {name: id for id, name in ID_TO_NETWORKNAME.items()}
 
 # ContractNames
 

@@ -13,6 +13,7 @@ from raiden_contracts.contract_manager import (
 )
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
+from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import (
     contract_version_with_max_token_networks,
     contracts_version_provides_services,
@@ -35,7 +36,9 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
 @pytest.mark.parametrize("services", [False, True])
-def test_deploy_data_file_exists(version: Optional[str], chain_id: int, services: bool) -> None:
+def test_deploy_data_file_exists(
+    version: Optional[str], chain_id: ChainID, services: bool
+) -> None:
     """ Make sure files exist for deployment data of each chain_id """
     assert contracts_deployed_path(chain_id, version, services).exists()
 
@@ -58,7 +61,7 @@ RAIDEN_CONTRACT_NAMES = ("TokenNetworkRegistry", "SecretRegistry")
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: int) -> None:
+def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data
     assert data["contracts_version"] == version if version else CONTRACTS_VERSION
@@ -74,7 +77,7 @@ SERVICE_CONTRACT_NAMES = ("ServiceRegistry", "MonitoringService", "OneToN", "Use
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_has_fields_services(version: Optional[str], chain_id: int) -> None:
+def test_deploy_data_has_fields_services(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data
     assert data["contracts_version"] == version if version else CONTRACTS_VERSION
@@ -87,7 +90,7 @@ def test_deploy_data_has_fields_services(version: Optional[str], chain_id: int) 
 
 @pytest.mark.parametrize("version", [None])
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_deploy_data_all(version: Optional[str], chain_id: int) -> None:
+def test_deploy_data_all(version: Optional[str], chain_id: ChainID) -> None:
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     data_default = get_contracts_deployment_info(chain_id, version)
     assert data_all
@@ -104,17 +107,19 @@ def test_deploy_data_unknown_module() -> None:
 
 
 def test_deploy_data_not_deployed() -> None:
-    assert get_contracts_deployment_info(1, "0.8.0", module=DeploymentModule.RAIDEN) is None
+    assert (
+        get_contracts_deployment_info(ChainID(1), "0.8.0", module=DeploymentModule.RAIDEN) is None
+    )
 
 
 @pytest.mark.parametrize("chain_id", [3, 4, 42])
-def test_deploy_data_for_redeyes_succeed(chain_id: int) -> None:
+def test_deploy_data_for_redeyes_succeed(chain_id: ChainID) -> None:
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
     assert get_contracts_deployment_info(chain_id, "0.4.0")
 
 
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_service_deploy_data_for_redeyes_fail(chain_id: int) -> None:
+def test_service_deploy_data_for_redeyes_fail(chain_id: ChainID) -> None:
     """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
     with pytest.raises(ValueError):
         assert get_contracts_deployment_info(chain_id, "0.4.0", DeploymentModule.SERVICES)
