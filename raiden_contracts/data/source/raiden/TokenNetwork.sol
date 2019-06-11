@@ -393,7 +393,7 @@ contract TokenNetwork is Utils {
 
         require(total_withdraw > 0);
 
-        // Authenticate both channel partners via there signatures:
+        // Authenticate both channel partners via their signatures:
         require(participant == recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
