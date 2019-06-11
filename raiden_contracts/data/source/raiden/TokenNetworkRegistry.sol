@@ -9,8 +9,6 @@ import "raiden/TokenNetwork.sol";
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils {
-
-    string constant public contract_version = "0.16.0";
     address public secret_registry_address;
     uint256 public chain_id;
     uint256 public settlement_timeout_min;

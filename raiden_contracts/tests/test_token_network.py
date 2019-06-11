@@ -5,17 +5,8 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import (
-    CONTRACTS_VERSION,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
-)
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAKE_ADDRESS, UINT256_MAX
-
-
-def test_version(token_network: Contract) -> None:
-    """ Check the output of contract_version() of the TokenNetwork contract """
-    assert token_network.functions.contract_version().call() == CONTRACTS_VERSION
 
 
 def test_constructor_call(

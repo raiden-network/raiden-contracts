@@ -15,7 +15,6 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import (
     ContractManager,
     ContractManagerLoadError,
-    contract_version_string,
     contracts_deployed_path,
     contracts_precompiled_path,
 )
@@ -268,7 +267,3 @@ def test_contract_source_manager_constructor_with_wrong_type() -> None:
     """ ConstructSourceManager's constructor raises TypeError on a wrong kind of argument """
     with pytest.raises(TypeError):
         ContractSourceManager(None)  # type: ignore
-
-
-def test_contract_version_string_with_none() -> None:
-    assert contract_version_string(version=None) == CONTRACTS_VERSION

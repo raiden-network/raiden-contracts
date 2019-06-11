@@ -4,8 +4,6 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
-from raiden_contracts.constants import CONTRACTS_VERSION
-
 
 def test_deposit(
     service_registry: Contract, custom_token: Contract, get_accounts: Callable
@@ -43,9 +41,3 @@ def test_setURL(service_registry: Contract, get_accounts: Callable) -> None:
     assert service_registry.functions.urls(A).call() == url2
     assert service_registry.functions.service_addresses(0).call() == A
     assert service_registry.functions.serviceCount().call() == 1
-
-
-def test_version(service_registry: Contract) -> None:
-    """ Check the result of contract_version() call on the ServiceRegistry """
-    version = service_registry.functions.contract_version().call()
-    assert version == CONTRACTS_VERSION

@@ -4,8 +4,6 @@ pragma solidity 0.5.4;
 /// @notice This contract is a registry which maps an Ethereum address to its
 /// endpoint. The Raiden node registers its ethereum address in this registry.
 contract EndpointRegistry {
-    string constant public contract_version = "0.15.0";
-
     event AddressRegistered(address indexed eth_address, string endpoint);
     mapping (address => string) private address_to_endpoint;
 

@@ -19,12 +19,7 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import (
-    CompiledContract,
-    DeployedContract,
-    DeployedContracts,
-    contract_version_string,
-)
+from raiden_contracts.contract_manager import CompiledContract, DeployedContract, DeployedContracts
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.signature import private_key_to_address
@@ -113,9 +108,6 @@ class ContractDeployer(ContractVerifier):
 
         return txhash
 
-    def contract_version_string(self) -> str:
-        return contract_version_string(self.contracts_version)
-
     def deploy_token_contract(
         self,
         token_supply: int,
@@ -145,7 +137,7 @@ class ContractDeployer(ContractVerifier):
         """
 
         deployed_contracts: DeployedContracts = {
-            "contracts_version": self.contract_version_string(),
+            "contracts_version": self.contract_manager.contracts_version,
             "chain_id": int(self.web3.version.network),
             "contracts": {},
         }
@@ -237,13 +229,6 @@ class ContractDeployer(ContractVerifier):
             abi=token_registry_abi, address=token_registry_address
         )
 
-        version_from_onchain = token_network_registry.functions.contract_version().call()
-        if version_from_onchain != self.contract_manager.version_string:
-            raise RuntimeError(
-                f"got {version_from_onchain} from the chain, expected "
-                f"{self.contract_manager.version_string} in the deployment data"
-            )
-
         command = token_network_registry.functions.createERC20TokenNetwork(token_address)
         self.transact(command)
 
@@ -280,13 +265,6 @@ class ContractDeployer(ContractVerifier):
             abi=token_registry_abi, address=token_registry_address
         )
 
-        version_from_onchain: str = token_network_registry.functions.contract_version().call()
-        if version_from_onchain != self.contract_manager.version_string:
-            raise RuntimeError(
-                f"got {version_from_onchain} from the chain, expected "
-                f"{self.contract_manager.version_string} in the deployment data"
-            )
-
         command = token_network_registry.functions.createERC20TokenNetwork(
             _token_address=token_address,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
@@ -307,7 +285,7 @@ class ContractDeployer(ContractVerifier):
         """Deploy 3rd party service contracts"""
         chain_id = int(self.web3.version.network)
         deployed_contracts: DeployedContracts = {
-            "contracts_version": self.contract_version_string(),
+            "contracts_version": self.contract_manager.contracts_version,
             "chain_id": chain_id,
             "contracts": {},
         }

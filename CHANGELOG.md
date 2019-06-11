@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Remove `contract_version` variable from the contracts
+
 ## [0.23.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.23.0) - 2019-06-07
 
 - [#1013](https://github.com/raiden-network/raiden-contracts/pull/1013) Remove EndpointRegistry contract

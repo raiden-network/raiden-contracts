@@ -5,8 +5,6 @@ import "services/UserDeposit.sol";
 import "lib/ECVerify.sol";
 
 contract OneToN is Utils {
-    string constant public contract_version = "0.16.0";
-
     UserDeposit public deposit_contract;
 
     // The signature given to claim() has to be computed with

@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import CONTRACTS_VERSION, UserDepositEvent
+from raiden_contracts.constants import UserDepositEvent
 
 
 def test_deposit(
@@ -169,9 +169,3 @@ def test_withdraw(
     user_deposit_contract.functions.withdraw(18).call_and_transact({"from": A})
     assert user_deposit_contract.functions.balances(A).call() == 12
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
-
-
-def test_version(user_deposit_contract: Contract) -> None:
-    """ Check the result of contract_version() call on the UserDeposit """
-    version = user_deposit_contract.functions.contract_version().call()
-    assert version == CONTRACTS_VERSION

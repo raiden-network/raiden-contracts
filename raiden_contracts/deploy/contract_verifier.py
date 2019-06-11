@@ -113,7 +113,7 @@ class ContractVerifier:
         chain_id = int(self.web3.version.network)
         assert deployment_data is not None
 
-        if self.contract_manager.version_string != deployment_data["contracts_version"]:
+        if self.contract_manager.contracts_version != deployment_data["contracts_version"]:
             raise RuntimeError("Version string mismatch.")
         if chain_id != deployment_data["chain_id"]:
             raise RuntimeError("chain id mismatch.")
@@ -194,16 +194,6 @@ class ContractVerifier:
         else:
             raise RuntimeError(f"{contract_name} at {contract_address} has wrong code")
 
-        # Check the contract version
-        version = contract_instance.functions.contract_version().call()
-
-        # It's an assert because the caller of this function should have checked this.
-        assert version == deployment_data["contracts_version"], (
-            f'got {version} expected {deployment_data["contracts_version"]}. '
-            "contract_manager has contracts_version"
-            f"{self.contract_manager.contracts_version}"
-        )
-
         return contract_instance, contracts[contract_name]["constructor_arguments"]
 
     def verify_service_contracts_deployment_data(
@@ -215,7 +205,7 @@ class ContractVerifier:
         chain_id = int(self.web3.version.network)
         assert deployed_contracts_info is not None
 
-        if self.contract_manager.version_string != deployed_contracts_info["contracts_version"]:
+        if self.contract_manager.contracts_version != deployed_contracts_info["contracts_version"]:
             raise RuntimeError("Version string mismatch")
         if chain_id != deployed_contracts_info["chain_id"]:
             raise RuntimeError("chain_id mismatch")
