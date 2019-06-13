@@ -122,8 +122,7 @@ def cli():
 
 @cli.command()
 @common_options
-@click.pass_context
-def mint(ctx, private_key, password, rpc_url, token_address, amount, wait):
+def mint(private_key, password, rpc_url, token_address, amount, wait):
     token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.mint_tokens(token_address, amount)
     print(f"Minting tokens for {token_ops.owner}")
@@ -134,8 +133,7 @@ def mint(ctx, private_key, password, rpc_url, token_address, amount, wait):
 
 @cli.command()
 @common_options
-@click.pass_context
-def weth(ctx, private_key, password, rpc_url, token_address, amount, wait):
+def weth(private_key, password, rpc_url, token_address, amount, wait):
     token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.get_weth(token_address, amount)
     print(f"Getting WETH tokens for {token_ops.owner}")
@@ -147,8 +145,7 @@ def weth(ctx, private_key, password, rpc_url, token_address, amount, wait):
 @cli.command()
 @common_options
 @click.option("--destination", help="Address of payee account", type=click.STRING)
-@click.pass_context
-def transfer(ctx, private_key, password, rpc_url, token_address, amount, wait, destination):
+def transfer(private_key, password, rpc_url, token_address, amount, wait, destination):
     token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.transfer_tokens(token_address, destination, amount)
     print(f"Transferring tokens to {destination}")
