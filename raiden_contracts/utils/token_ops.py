@@ -1,9 +1,9 @@
 import functools
+from pathlib import Path
+from typing import Optional
 
 import click
 import requests
-from pathlib import Path
-from typing import Optional
 from eth_utils import to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
@@ -17,11 +17,8 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 class TokenOperations:
     def __init__(
-            self,
-            rpc_url: str,
-            private_key: Path,
-            password: Optional[Path] = None,
-            wait: int = 10):
+        self, rpc_url: str, private_key: Path, password: Optional[Path] = None, wait: int = 10
+    ):
         self.web3 = Web3(HTTPProvider(rpc_url))
         self.private_key = get_private_key(private_key, password)
         assert self.private_key is not None
