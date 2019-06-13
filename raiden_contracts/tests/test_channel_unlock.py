@@ -16,13 +16,13 @@ from raiden_contracts.tests.utils import (
     fake_bytes,
     get_unlocked_amount,
 )
-from raiden_contracts.utils import (
+from raiden_contracts.utils.events import check_channel_unlocked
+from raiden_contracts.utils.pending_transfers import (
     get_locked_amount,
     get_packed_transfers,
     get_pending_transfers_tree,
     random_secret,
 )
-from raiden_contracts.utils.events import check_channel_unlocked
 
 # Account names like 'A', 'B', 'C' are intuitive here.
 # pytest: disable=C0103
