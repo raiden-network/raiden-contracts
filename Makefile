@@ -20,6 +20,7 @@ lint:
 	black --check --diff $(BLACK_PARAMS)
 	flake8 raiden_contracts/
 	pylint raiden_contracts/
+	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts
 	isort $(ISORT_PARAMS) --check-only
 
 isort:
@@ -32,9 +33,6 @@ autopep8:
 	autopep8 raiden_contracts/
 
 format: autopep8 isort black
-
-mypy:
-	mypy --ignore-missing-imports --check-untyped-defs raiden_contracts
 
 clean:
 	rm -rf build/ *egg-info/ dist .eggs
