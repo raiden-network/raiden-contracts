@@ -18,7 +18,9 @@ from raiden_contracts.tests.utils import (
     is_balance_proof_old,
     were_balance_proofs_valid,
 )
-from raiden_contracts.utils import get_pending_transfers_tree_with_generated_lists
+from raiden_contracts.utils.pending_transfers import (
+    get_pending_transfers_tree_with_generated_lists,
+)
 
 
 @pytest.fixture()

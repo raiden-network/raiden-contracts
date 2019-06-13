@@ -20,8 +20,10 @@ from raiden_contracts.tests.utils import (
     get_onchain_settlement_amounts,
     get_settlement_amounts,
 )
-from raiden_contracts.utils import get_pending_transfers_tree_with_generated_lists
 from raiden_contracts.utils.events import check_channel_settled
+from raiden_contracts.utils.pending_transfers import (
+    get_pending_transfers_tree_with_generated_lists,
+)
 
 
 def test_settle_no_bp_success(
