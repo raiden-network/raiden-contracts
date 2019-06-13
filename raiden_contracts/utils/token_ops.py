@@ -12,9 +12,9 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 
 class TokenOperations:
-    def __init__(self, rpc_url: str, private_key: str, wait: int = 10):
+    def __init__(self, rpc_url: str, private_key: str, password: str = None, wait: int = 10):
         self.web3 = Web3(HTTPProvider(rpc_url))
-        self.private_key = get_private_key(private_key)
+        self.private_key = get_private_key(private_key, password)
         assert self.private_key is not None
         self.owner = private_key_to_address(self.private_key)
         self.wait = wait
@@ -94,6 +94,7 @@ def common_options(func):
     @click.option(
         "--private-key", required=True, help="Path to a private key store.", type=click.STRING
     )
+    @click.option("--password", help="password file for the keystore json file", type=click.STRING)
     @click.option(
         "--rpc-url",
         default="http://127.0.0.1:8545",
@@ -122,8 +123,8 @@ def cli():
 @cli.command()
 @common_options
 @click.pass_context
-def mint(ctx, private_key, rpc_url, token_address, amount, wait):
-    token_ops = TokenOperations(rpc_url, private_key, wait)
+def mint(ctx, private_key, password, rpc_url, token_address, amount, wait):
+    token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.mint_tokens(token_address, amount)
     print(f"Minting tokens for {token_ops.owner}")
     print(receipt)
@@ -134,8 +135,8 @@ def mint(ctx, private_key, rpc_url, token_address, amount, wait):
 @cli.command()
 @common_options
 @click.pass_context
-def weth(ctx, private_key, rpc_url, token_address, amount, wait):
-    token_ops = TokenOperations(rpc_url, private_key, wait)
+def weth(ctx, private_key, password, rpc_url, token_address, amount, wait):
+    token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.get_weth(token_address, amount)
     print(f"Getting WETH tokens for {token_ops.owner}")
     print(receipt)
@@ -147,8 +148,8 @@ def weth(ctx, private_key, rpc_url, token_address, amount, wait):
 @common_options
 @click.option("--destination", help="Address of payee account", type=click.STRING)
 @click.pass_context
-def transfer(ctx, private_key, rpc_url, token_address, amount, wait, destination):
-    token_ops = TokenOperations(rpc_url, private_key, wait)
+def transfer(ctx, private_key, password, rpc_url, token_address, amount, wait, destination):
+    token_ops = TokenOperations(rpc_url, private_key, password, wait)
     receipt = token_ops.transfer_tokens(token_address, destination, amount)
     print(f"Transferring tokens to {destination}")
     print(receipt)
