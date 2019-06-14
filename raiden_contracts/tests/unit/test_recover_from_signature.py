@@ -145,7 +145,7 @@ def test_ecrecover_output_fail(
     )
 
 
-def test_sign_not_bytes(get_private_key, get_accounts):
+def test_sign_not_bytes(get_private_key: Callable, get_accounts: Callable) -> None:
     """ sign() raises when message is not bytes """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
@@ -153,7 +153,7 @@ def test_sign_not_bytes(get_private_key, get_accounts):
         sign(privatekey, "a" * 32, v=27)  # type: ignore
 
 
-def test_sign_not_32_bytes(get_private_key, get_accounts):
+def test_sign_not_32_bytes(get_private_key: Callable, get_accounts: Callable) -> None:
     """ sign() raises when message is not exactly 32 bytes """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
@@ -161,7 +161,7 @@ def test_sign_not_32_bytes(get_private_key, get_accounts):
         sign(privatekey, bytes("a" * 31, "ascii"), v=27)  # type: ignore
 
 
-def test_sign_privatekey_not_string(get_private_key, get_accounts):
+def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Callable) -> None:
     """ sign() raises when the private key is not a string """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
@@ -169,7 +169,7 @@ def test_sign_privatekey_not_string(get_private_key, get_accounts):
         sign(bytes(privatekey, "ascii"), bytes("a" * 32, "ascii"), v=27)  # type: ignore
 
 
-def test_sign_wrong_v(get_private_key, get_accounts):
+def test_sign_wrong_v(get_private_key: Callable, get_accounts: Callable) -> None:
     """ sign() raises when the private key is not a string """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)

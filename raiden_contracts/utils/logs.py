@@ -4,7 +4,6 @@ from inspect import getframeinfo, stack
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from click import echo
-
 from eth_typing.evm import HexAddress
 from web3 import Web3
 from web3.utils.events import get_event_data
