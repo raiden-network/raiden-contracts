@@ -2,6 +2,8 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent
@@ -18,7 +20,12 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_new_deposit
 
 
-def test_deposit_channel_call(token_network, custom_token, create_channel, get_accounts):
+def test_deposit_channel_call(
+    token_network: Contract,
+    custom_token: Contract,
+    create_channel: Callable,
+    get_accounts: Callable,
+) -> None:
     """ Calling setTotalDeposit() fails with various invalid inputs """
     (A, B) = get_accounts(2)
     deposit_A = 200
@@ -75,7 +82,13 @@ def test_deposit_channel_call(token_network, custom_token, create_channel, get_a
     token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B)
 
 
-def test_deposit_notapproved(token_network, custom_token, create_channel, get_accounts, web3):
+def test_deposit_notapproved(
+    token_network: Contract,
+    custom_token: Contract,
+    create_channel: Callable,
+    get_accounts: Callable,
+    web3: Web3,
+) -> None:
     """ Calling setTotalDeposit() fails without approving transfers on the token contract """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -93,8 +106,12 @@ def test_deposit_notapproved(token_network, custom_token, create_channel, get_ac
 
 
 def test_null_or_negative_deposit_fail(
-    token_network, create_channel, channel_deposit, assign_tokens, get_accounts
-):
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    assign_tokens: Callable,
+    get_accounts: Callable,
+) -> None:
     """ setTotalDeposit() fails when the total deposit does not increase """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
@@ -109,14 +126,21 @@ def test_null_or_negative_deposit_fail(
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})
 
 
-def test_deposit_delegate_works(get_accounts, create_channel, channel_deposit):
+def test_deposit_delegate_works(
+    get_accounts: Callable, create_channel: Callable, channel_deposit: Callable
+) -> None:
     """ A third party can successfully call setTokenDeposit() """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
 
 
-def test_deposit_wrong_channel(get_accounts, token_network, create_channel, assign_tokens):
+def test_deposit_wrong_channel(
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    assign_tokens: Callable,
+) -> None:
     """ setTotalDeposit() with a wrong channelID fails """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
@@ -151,7 +175,12 @@ def test_channel_deposit_overflow(
     channel_deposit(channel_identifier, B, deposit_B_ok, A)
 
 
-def test_deposit_channel_state(token_network, create_channel, channel_deposit, get_accounts):
+def test_deposit_channel_state(
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     """ Observe how setTotalDeposit() changes the results of getChannelParticipantInfo() """
     (A, B) = get_accounts(2)
     deposit_A = 10
@@ -191,8 +220,12 @@ def test_deposit_channel_state(token_network, create_channel, channel_deposit, g
 
 
 def test_deposit_wrong_state_fail(
-    web3, get_accounts, token_network, create_channel, assign_tokens
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    assign_tokens: Callable,
+) -> None:
     """ setTotalDeposit() fails on Closed or Settled channels. """
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=2, transferred=0)
@@ -237,8 +270,12 @@ def test_deposit_wrong_state_fail(
 
 
 def test_deposit_channel_event(
-    get_accounts, token_network, create_channel, channel_deposit, event_handler
-):
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    event_handler: Callable,
+) -> None:
     """ setTotalDeposit() from each participant causes a DEPOSIT event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)

@@ -1,11 +1,15 @@
 import json
 from sys import argv
-from typing import Dict
+from typing import Callable, Dict, Iterable, List, Optional
 
 import pytest
+from eth_tester import EthereumTester
 from eth_tester.exceptions import TransactionFailed
+from eth_typing.evm import HexAddress
 from eth_utils import is_same_address
 from eth_utils.units import units
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import get_random_privkey
@@ -14,8 +18,8 @@ from raiden_contracts.utils.signature import private_key_to_address
 
 
 @pytest.fixture(scope="session")
-def create_account(web3, ethereum_tester):
-    def get(privkey=None):
+def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
+    def get(privkey: Optional[str] = None) -> HexAddress:
         if not privkey:
             privkey = get_random_privkey()
         address = private_key_to_address(privkey)
@@ -38,8 +42,8 @@ def create_account(web3, ethereum_tester):
 
 
 @pytest.fixture(scope="session")
-def get_accounts(create_account):
-    def get(number, privkeys=()):
+def get_accounts(create_account: Callable) -> Callable:
+    def get(number: int, privkeys: Iterable = ()) -> List:
         privkeys = iter(privkeys)
         return [create_account(privkey=next(privkeys, None)) for x in range(number)]
 
@@ -47,8 +51,8 @@ def get_accounts(create_account):
 
 
 @pytest.fixture(scope="session")
-def get_private_key(ethereum_tester):
-    def get(account_address):
+def get_private_key(ethereum_tester: EthereumTester) -> Callable:
+    def get(account_address: HexAddress) -> str:
         keys = [
             key.to_hex()
             for key in ethereum_tester.backend.account_keys
@@ -61,8 +65,12 @@ def get_private_key(ethereum_tester):
 
 
 @pytest.fixture(scope="session")
-def event_handler(web3):
-    def get(contract=None, address=None, abi=None):
+def event_handler(web3: Web3) -> Callable:
+    def get(
+        contract: Optional[Contract] = None,
+        address: Optional[HexAddress] = None,
+        abi: Optional[List] = None,
+    ) -> LogHandler:
         if contract:
             abi = contract.abi
             address = contract.address
@@ -76,16 +84,16 @@ def event_handler(web3):
 
 
 @pytest.fixture
-def txn_cost(web3, txn_gas):
-    def get(txn_hash):
+def txn_cost(web3: Web3, txn_gas: Callable) -> Callable:
+    def get(txn_hash: str) -> int:
         return txn_gas(txn_hash) * web3.eth.gasPrice
 
     return get
 
 
 @pytest.fixture
-def txn_gas(web3):
-    def get(txn_hash):
+def txn_gas(web3: Web3) -> Callable:
+    def get(txn_hash: str) -> int:
         receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt["gasUsed"]
 
@@ -93,7 +101,7 @@ def txn_gas(web3):
 
 
 @pytest.fixture(scope="session")
-def gas_measurement_results():
+def gas_measurement_results() -> Dict:
     results: Dict = {}
     return results
 
@@ -107,8 +115,8 @@ def sys_args_contain(searched: str) -> bool:
 
 
 @pytest.fixture
-def print_gas(txn_gas, gas_measurement_results):
-    def get(txn_hash, message=None, additional_gas=0):
+def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
+    def get(txn_hash: str, message: Optional[str] = None, additional_gas: int = 0) -> None:
         if not sys_args_contain("test_print_gas"):
             # If the command line arguments don't contain 'test_print_gas', do nothing
             return
@@ -128,8 +136,8 @@ def print_gas(txn_gas, gas_measurement_results):
 
 
 @pytest.fixture()
-def get_block(web3):
-    def get(txn_hash):
+def get_block(web3: Web3) -> Callable:
+    def get(txn_hash: str) -> int:
         receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt["blockNumber"]
 

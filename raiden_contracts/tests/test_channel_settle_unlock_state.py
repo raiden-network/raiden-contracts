@@ -1,5 +1,9 @@
+from typing import Any, Callable, Dict, Tuple
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from web3 import Web3
+from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
@@ -25,17 +29,22 @@ from raiden_contracts.utils.pending_transfers import (
 
 @pytest.fixture()
 def test_settlement_outcome(
-    web3,
-    secret_registry_contract,
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    withdraw_channel,
-    close_and_update_channel,
-    settle_state_tests,
-    reveal_secrets,
-):
-    def f(participants, channel_values, expected_final_balance_A0, expected_final_balance_B0):
+    web3: Web3,
+    secret_registry_contract: Contract,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    close_and_update_channel: Callable,
+    settle_state_tests: Callable,
+    reveal_secrets: Callable,
+) -> Callable:
+    def f(
+        participants: Tuple,
+        channel_values: Tuple,
+        expected_final_balance_A0: int,
+        expected_final_balance_B0: int,
+    ) -> None:
         (A, B) = participants
         (vals_A, vals_B, balance_proof_type) = channel_values
         assert were_balance_proofs_valid(vals_A, vals_B)
@@ -223,13 +232,13 @@ def test_settlement_outcome(
 @pytest.mark.parametrize("tested_range", ("one_old", "both_old_1", "both_old_2"))
 # This test is split in three so it does not time out on travis
 def test_channel_settle_old_balance_proof_values(
-    get_accounts,
-    assign_tokens,
-    channel_test_values,
-    create_channel_and_deposit,
-    test_settlement_outcome,
-    tested_range,
-):
+    get_accounts: Callable,
+    assign_tokens: Callable,
+    channel_test_values: Dict[str, Any],
+    create_channel_and_deposit: Callable,
+    test_settlement_outcome: Callable,
+    tested_range: str,
+) -> None:
     """ Test the settlement implementation when both/one of the balance proofs are outdated """
     (A, B, C, D) = get_accounts(4)
     (vals_A0, vals_B0) = channel_test_values["valid_last"]
@@ -321,17 +330,17 @@ def test_channel_settle_old_balance_proof_values(
 @pytest.mark.slow
 @pytest.mark.parametrize("channel_test_values", channel_settle_invalid_test_values)
 def test_channel_settle_invalid_balance_proof_values(
-    web3,
-    get_accounts,
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    withdraw_channel,
-    close_and_update_channel,
-    settle_state_tests,
-    reveal_secrets,
-    channel_test_values,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    close_and_update_channel: Callable,
+    settle_state_tests: Callable,
+    reveal_secrets: Callable,
+    channel_test_values: Tuple,
+) -> None:
     """ Check the settlement results with invalid balance proofs """
     (A, B, C, D) = get_accounts(4)
     (vals_A, vals_B) = channel_test_values

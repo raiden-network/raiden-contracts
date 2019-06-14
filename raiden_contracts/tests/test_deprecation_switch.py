@@ -1,6 +1,9 @@
+from typing import Callable
+
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3.contract import get_event_data
+from web3 import Web3
+from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
@@ -9,6 +12,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
+from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import ChannelValues, LockedAmounts
 from raiden_contracts.utils.pending_transfers import (
@@ -17,15 +21,15 @@ from raiden_contracts.utils.pending_transfers import (
 
 
 def test_deprecation_executor(
-    web3,
-    contracts_manager,
-    deploy_contract,
-    secret_registry_contract,
-    custom_token,
-    channel_participant_deposit_limit,
-    token_network_deposit_limit,
-    get_accounts,
-):
+    web3: Web3,
+    contracts_manager: ContractManager,
+    deploy_contract: Callable,
+    secret_registry_contract: Contract,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+    get_accounts: Callable,
+) -> None:
     """ A creates a TokenNetworkRegistry and B registers a TokenNetwork
 
     This test is mainly a happy-path scenario. One Ethereum account creates a
@@ -86,7 +90,7 @@ def test_deprecation_executor(
     assert token_network.functions.deprecation_executor().call() == deprecation_executor
 
 
-def test_set_deprecation_switch(get_accounts, token_network):
+def test_set_deprecation_switch(get_accounts: Callable, token_network: Contract) -> None:
     """ The deprecation executor deprecates a TokenNetwork contract """
     (A) = get_accounts(1)[0]
     deprecation_executor = token_network.functions.deprecation_executor().call()
@@ -104,7 +108,12 @@ def test_set_deprecation_switch(get_accounts, token_network):
         token_network.functions.deprecate().call({"from": A})
 
 
-def test_deprecation_switch(get_accounts, token_network, create_channel, channel_deposit):
+def test_deprecation_switch(
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+) -> None:
     """ Test the effects of the deprecation switch on deposits and channel opening """
 
     deprecation_executor = token_network.functions.deprecation_executor().call()
@@ -131,15 +140,15 @@ def test_deprecation_switch(get_accounts, token_network, create_channel, channel
 
 
 def test_deprecation_switch_settle(
-    web3,
-    get_accounts,
-    token_network,
-    custom_token,
-    reveal_secrets,
-    create_channel,
-    channel_deposit,
-    close_and_update_channel,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    custom_token: Contract,
+    reveal_secrets: Callable,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    close_and_update_channel: Callable,
+) -> None:
     """ Channel close and settlement still work after the depracation switch is turned on """
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B) = get_accounts(2)

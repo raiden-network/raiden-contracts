@@ -27,8 +27,12 @@ from raiden_contracts.utils.pending_transfers import (
 
 
 def test_settle_no_bp_success(
-    web3, custom_token, token_network, create_channel_and_deposit, get_accounts
-):
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+) -> None:
     """ The simplest settlement without any balance proofs provided """
     (A, B) = get_accounts(2)
     deposit_A = 10
@@ -64,15 +68,15 @@ def test_settle_no_bp_success(
 
 
 def test_settle_channel_state(
-    web3,
-    get_accounts,
-    custom_token,
-    token_network,
-    create_channel_and_deposit,
-    withdraw_channel,
-    close_and_update_channel,
-    settle_state_tests,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    close_and_update_channel: Callable,
+    settle_state_tests: Callable,
+) -> None:
     """ settleChannel() with some balance proofs """
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(
@@ -140,14 +144,14 @@ def test_settle_channel_state(
 
 
 def test_settle_single_direct_transfer_for_closing_party(
-    web3,
-    get_accounts,
-    custom_token,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_balance_proof,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_balance_proof: Callable,
+) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that called close.
     """
@@ -280,15 +284,15 @@ def test_settle_single_direct_transfer_for_counterparty(
 
 
 def test_settlement_with_unauthorized_token_transfer(
-    web3,
-    get_accounts,
-    custom_token,
-    token_network,
-    assign_tokens,
-    create_channel_and_deposit,
-    withdraw_channel,
-    close_and_update_channel,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    custom_token: Contract,
+    token_network: Contract,
+    assign_tokens: Callable,
+    create_channel_and_deposit: Callable,
+    withdraw_channel: Callable,
+    close_and_update_channel: Callable,
+) -> None:
     """ A participant transfers some tokens to the contract and so loses them """
     externally_transferred_amount = 5
     (A, B) = get_accounts(2)
@@ -354,8 +358,12 @@ def test_settlement_with_unauthorized_token_transfer(
 
 
 def test_settle_wrong_state_fail(
-    web3, get_accounts, token_network, create_channel_and_deposit, get_block
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_block: Callable,
+) -> None:
     """ settleChannel() fails on OPENED state and on CLOSED state before the settlement block """
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=35)
@@ -399,13 +407,13 @@ def test_settle_wrong_state_fail(
 
 
 def test_settle_wrong_balance_hash(
-    web3,
-    get_accounts,
-    token_network,
-    create_channel_and_deposit,
-    close_and_update_channel,
-    reveal_secrets,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    close_and_update_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
     """ Calling settleChannel() with various wrong arguments and see failures """
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(
@@ -526,15 +534,15 @@ def test_settle_wrong_balance_hash(
 
 
 def test_settle_channel_event(
-    web3,
-    get_accounts,
-    token_network,
-    create_channel,
-    channel_deposit,
-    create_balance_proof,
-    create_balance_proof_update_signature,
-    event_handler,
-):
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
+    event_handler: Callable,
+) -> None:
     """ A successful settleChannel() call causes a SETTLED event """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)

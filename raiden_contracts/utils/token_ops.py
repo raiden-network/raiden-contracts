@@ -1,6 +1,6 @@
 import functools
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import click
 import requests
@@ -28,10 +28,10 @@ class TokenOperations:
         self.web3.eth.defaultAccount = self.owner
         self.web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
-    def is_valid_contract(self, token_address):
+    def is_valid_contract(self, token_address: str) -> bool:
         return self.web3.eth.getCode(token_address, "latest") != b""
 
-    def mint_tokens(self, token_address: str, amount: int):
+    def mint_tokens(self, token_address: str, amount: int) -> Dict[str, Any]:
         token_address = to_checksum_address(token_address)
         assert self.is_valid_contract(
             token_address
@@ -44,7 +44,7 @@ class TokenOperations:
         (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def get_weth(self, token_address: str, amount: int):
+    def get_weth(self, token_address: str, amount: int) -> Dict[str, Any]:
         token_address = to_checksum_address(token_address)
         assert (
             self.web3.eth.getBalance(self.owner) > amount
@@ -64,7 +64,7 @@ class TokenOperations:
         return receipt
 
     # Could be used for both custom token as well as WETH contracts
-    def transfer_tokens(self, token_address: str, dest: str, amount: int):
+    def transfer_tokens(self, token_address: str, dest: str, amount: int) -> Dict[str, Any]:
         token_address = to_checksum_address(token_address)
         dest = to_checksum_address(dest)
         assert self.is_valid_contract(
@@ -81,7 +81,7 @@ class TokenOperations:
         (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def get_balance(self, token_address: str, address: str):
+    def get_balance(self, token_address: str, address: str) -> int:
         token_address = to_checksum_address(token_address)
         address = to_checksum_address(address)
         assert self.is_valid_contract(
@@ -94,7 +94,7 @@ class TokenOperations:
         return token_proxy.functions.balanceOf(address).call()
 
 
-def common_options(func):
+def common_options(func: Callable) -> Callable:
     """A decorator that combines commonly appearing @click.option decorators."""
 
     @click.option(
@@ -115,21 +115,24 @@ def common_options(func):
     )
     @click.option("--wait", default=300, help="Max tx wait time in s.", type=click.INT)
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: List, **kwargs: Dict) -> Any:
         return func(*args, **kwargs)
 
     return wrapper
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command()
 @common_options
-def mint(private_key, password, rpc_url, token_address, amount, wait):
-    token_ops = TokenOperations(rpc_url, private_key, password, wait)
+def mint(
+    private_key: str, password: str, rpc_url: str, token_address: str, amount: int, wait: int
+) -> None:
+    password_file = Path(password) if password else None
+    token_ops = TokenOperations(rpc_url, Path(private_key), password_file, wait)
     receipt = token_ops.mint_tokens(token_address, amount)
     print(f"Minting tokens for {token_ops.owner}")
     print(receipt)
@@ -139,8 +142,16 @@ def mint(private_key, password, rpc_url, token_address, amount, wait):
 
 @cli.command()
 @common_options
-def weth(private_key, password, rpc_url, token_address, amount, wait):
-    token_ops = TokenOperations(rpc_url, private_key, password, wait)
+def weth(
+    private_key: str,
+    password: Optional[str],
+    rpc_url: str,
+    token_address: str,
+    amount: int,
+    wait: int,
+) -> None:
+    password_path = Path(password) if password else None
+    token_ops = TokenOperations(rpc_url, Path(private_key), password_path, wait)
     receipt = token_ops.get_weth(token_address, amount)
     print(f"Getting WETH tokens for {token_ops.owner}")
     print(receipt)
@@ -151,8 +162,17 @@ def weth(private_key, password, rpc_url, token_address, amount, wait):
 @cli.command()
 @common_options
 @click.option("--destination", help="Address of payee account", type=click.STRING)
-def transfer(private_key, password, rpc_url, token_address, amount, wait, destination):
-    token_ops = TokenOperations(rpc_url, private_key, password, wait)
+def transfer(
+    private_key: str,
+    password: str,
+    rpc_url: str,
+    token_address: str,
+    amount: int,
+    wait: int,
+    destination: str,
+) -> None:
+    password_path = Path(password) if password else None
+    token_ops = TokenOperations(rpc_url, Path(private_key), password_path, wait)
     receipt = token_ops.transfer_tokens(token_address, destination, amount)
     print(f"Transferring tokens to {destination}")
     print(receipt)
@@ -171,7 +191,7 @@ def transfer(private_key, password, rpc_url, token_address, amount, wait, destin
     "--token-address", required=True, help="Address of the token contract", type=click.STRING
 )
 @click.option("--address", help="Address of account to get Balance", type=click.STRING)
-def balance(rpc_url, token_address, address):
+def balance(rpc_url: str, token_address: str, address: str) -> None:
     token_address = to_checksum_address(token_address)
     address = to_checksum_address(address)
     web3 = Web3(HTTPProvider(rpc_url))
