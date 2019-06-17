@@ -17,7 +17,7 @@ contract MonitoringService is Utils {
 
     // keccak256(channel_identifier, token_network_address) => Struct
     // Keep track of the rewards per channel
-    mapping(bytes32 => Reward) rewards;
+    mapping(bytes32 => Reward) internal rewards;
 
     /*
      *  Structs
