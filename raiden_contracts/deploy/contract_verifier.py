@@ -112,7 +112,6 @@ class ContractVerifier:
 
     def verify_deployment_data(self, deployment_data: DeployedContracts) -> bool:
         chain_id = int(self.web3.version.network)
-        assert deployment_data is not None
 
         if self.contract_manager.contracts_version != deployment_data["contracts_version"]:
             raise RuntimeError("Version string mismatch.")
@@ -271,7 +270,6 @@ def _verify_user_deposit_deployment(
         raise RuntimeError("UserDeposit has a wrong whole_balance_limit onchain")
     if user_deposit_whole_balance_limit != constructor_arguments[1]:
         raise RuntimeError("UserDeposit received a wrong whole_balance_limit during construction.")
-    assert user_deposit_whole_balance_limit == constructor_arguments[1]
     if to_checksum_address(user_deposit.functions.one_to_n_address().call()) != one_to_n_address:
         raise RuntimeError("UserDeposit has a wrong OneToN address onchain.")
     onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())
