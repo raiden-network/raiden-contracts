@@ -25,6 +25,7 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
     """ Check is gas.json contains enough fields """
     doc = gas_measurements(version)
     keys = {
+        "CustomToken.mint",
         "MonitoringService.claimReward",
         "MonitoringService.monitor",
         "OneToN.claim",
@@ -362,6 +363,13 @@ def print_gas_user_deposit(
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 
 
+@pytest.fixture
+def print_gas_token_mint(get_accounts, custom_token, print_gas):
+    (A,) = get_accounts(1)
+    tx_hash = custom_token.functions.mint(100).call_and_transact({"from": A})
+    print_gas(tx_hash, "CustomToken.mint")
+
+
 # All gas printing is done in a single test. Otherwise, after a parallel
 # execution of multiple gas printing tests, you see a corrupted gas.json.
 @pytest.mark.slow
@@ -374,6 +382,7 @@ def print_gas_user_deposit(
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
     "print_gas_user_deposit",
+    "print_gas_token_mint",
 )
 def test_print_gas() -> None:
     pass
