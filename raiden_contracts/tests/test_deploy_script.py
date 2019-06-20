@@ -30,7 +30,7 @@ from raiden_contracts.contract_manager import (
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     ContractVerifier,
-    contract_version_with_max_token_networks,
+    contracts_version_with_max_token_networks,
     error_removed_option,
     raiden,
     register,
@@ -130,7 +130,7 @@ def deployed_service_info(
 def test_contract_version_with_max_token_networks(
     version: Optional[str], expectation: bool
 ) -> None:
-    assert contract_version_with_max_token_networks(version) == expectation
+    assert contracts_version_with_max_token_networks(version) == expectation
 
 
 @pytest.mark.slow
@@ -775,7 +775,7 @@ def deploy_raiden_arguments(
     elif save_info is False:
         arguments.append("--no-save-info")
 
-    if contract_version_with_max_token_networks(contracts_version):
+    if contracts_version_with_max_token_networks(contracts_version):
         arguments.extend(["--max-token-networks", 1])
 
     if contracts_version:
