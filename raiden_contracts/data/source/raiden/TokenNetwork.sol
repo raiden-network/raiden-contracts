@@ -810,8 +810,6 @@ contract TokenNetwork is Utils {
         // for the external APIs
         require(channels[channel_identifier].state == ChannelState.NonExistent);
 
-        require(locks.length > 0);
-
         bytes32 unlock_key;
         bytes32 computed_locksroot;
         uint256 unlocked_amount;
