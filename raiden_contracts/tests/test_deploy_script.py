@@ -21,11 +21,13 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
     DeployedContract,
     DeployedContracts,
     contracts_precompiled_path,
+    get_contracts_deployment_info,
 )
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
@@ -40,12 +42,16 @@ from raiden_contracts.deploy.__main__ import (
     verify,
 )
 from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
-from raiden_contracts.deploy.contract_verifier import _verify_monitoring_service_deployment
+from raiden_contracts.deploy.contract_verifier import (
+    _verify_monitoring_service_deployment,
+    _verify_user_deposit_deployment,
+)
 from raiden_contracts.tests.utils import FAKE_ADDRESS, get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
     EMPTY_ADDRESS,
     FAUCET_PRIVATE_KEY,
+    UINT256_MAX,
 )
 
 GAS_LIMIT = 5860000
@@ -1022,4 +1028,28 @@ def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address()
             token_address=FAKE_ADDRESS,
             service_registry_address=EMPTY_ADDRESS,
             user_deposit_address=FAKE_ADDRESS,
+        )
+
+
+def test_user_deposit_deployment_with_wrong_one_to_n_address(web3) -> None:
+    """ ContractVerifier.verify_user_deposit_deployment raises an exception on a wrong OneToN address """
+    contract_verifier = ContractVerifier(web3=web3, contracts_version="0.16.0")
+    chain_id = 3
+    deployed_contracts_info = get_contracts_deployment_info(
+        chain_id, "0.16.0", DeploymentModule.SERVICES
+    )
+    user_deposit_constructor_arguments = [
+        "0xDa12Dc74D2d0881749CCd9330ac4f0aecda5686a",
+        UINT256_MAX,
+    ]
+    wrong_one_to_n_address = FAKE_ADDRESS
+    user_deposit_mock = MagicMock()
+    with pytest.raises(RuntimeError):
+        _verify_user_deposit_deployment(
+            user_deposit=user_deposit_mock,
+            constructor_arguments=user_deposit_constructor_arguments,
+            token_address=token_address,
+            user_deposit_whole_balance_limit=UINT256_MAX,
+            one_to_n_address=wrong_one_to_n_address,
+            monitoring_service_address="0xb7765972d78B6C97bB0a5a6b7529DC1fb64aA287",
         )
