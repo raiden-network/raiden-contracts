@@ -326,6 +326,8 @@ contract MonitoringService is Utils {
 
         // delete storage
         delete rewards[reward_identifier];
+
+        return true;
     }
 
     function recoverAddressFromRewardProof(
