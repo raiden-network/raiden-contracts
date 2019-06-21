@@ -1037,11 +1037,14 @@ def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
     ]
     wrong_one_to_n_address = FAKE_ADDRESS
     user_deposit_mock = MagicMock()
+    mock_token_address = MagicMock()
+    mock_token_address.call.return_value = user_deposit_constructor_arguments[0]
+    user_deposit_mock.functions.token.return_value = mock_token_address
     with pytest.raises(RuntimeError):
         _verify_user_deposit_deployment(
             user_deposit=user_deposit_mock,
             constructor_arguments=user_deposit_constructor_arguments,
-            token_address=token_address,
+            token_address=user_deposit_constructor_arguments[0],
             user_deposit_whole_balance_limit=UINT256_MAX,
             one_to_n_address=wrong_one_to_n_address,
             monitoring_service_address="0xb7765972d78B6C97bB0a5a6b7529DC1fb64aA287",
