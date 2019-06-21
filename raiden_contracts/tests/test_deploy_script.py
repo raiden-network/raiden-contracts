@@ -21,13 +21,11 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
     DeployedContract,
     DeployedContracts,
     contracts_precompiled_path,
-    get_contracts_deployment_info,
 )
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
@@ -1031,13 +1029,8 @@ def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address()
         )
 
 
-def test_user_deposit_deployment_with_wrong_one_to_n_address(web3) -> None:
-    """ ContractVerifier.verify_user_deposit_deployment raises an exception on a wrong OneToN address """
-    contract_verifier = ContractVerifier(web3=web3, contracts_version="0.16.0")
-    chain_id = 3
-    deployed_contracts_info = get_contracts_deployment_info(
-        chain_id, "0.16.0", DeploymentModule.SERVICES
-    )
+def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
+    """ ContractVerifier.verify_user_deposit_deployment raises on a wrong OneToN address """
     user_deposit_constructor_arguments = [
         "0xDa12Dc74D2d0881749CCd9330ac4f0aecda5686a",
         UINT256_MAX,
