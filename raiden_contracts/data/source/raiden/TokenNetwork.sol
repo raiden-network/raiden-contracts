@@ -174,23 +174,23 @@ contract TokenNetwork is Utils {
     );
 
     modifier onlyDeprecationExecutor() {
-        require(msg.sender == deprecation_executor);
+        require(msg.sender == deprecation_executor, "TN: not the deprecation executor");
         _;
     }
 
     modifier isSafe() {
-        require(safety_deprecation_switch == false);
+        require(safety_deprecation_switch == false, "TN: deprecation switch is on");
         _;
     }
 
     modifier isOpen(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == ChannelState.Opened);
+        require(channels[channel_identifier].state == ChannelState.Opened, "TN: channel is not open");
         _;
     }
 
     modifier settleTimeoutValid(uint256 timeout) {
-        require(timeout >= settlement_timeout_min);
-        require(timeout <= settlement_timeout_max);
+        require(timeout >= settlement_timeout_min, "TN: timeout too small");
+        require(timeout <= settlement_timeout_max, "TN: timeout too big");
         _;
     }
 
@@ -218,17 +218,17 @@ contract TokenNetwork is Utils {
     )
         public
     {
-        require(_token_address != address(0x0));
-        require(_secret_registry != address(0x0));
-        require(_deprecation_executor != address(0x0));
-        require(_chain_id > 0);
-        require(_settlement_timeout_min > 0);
-        require(_settlement_timeout_max > _settlement_timeout_min);
-        require(contractExists(_token_address));
-        require(contractExists(_secret_registry));
-        require(_channel_participant_deposit_limit > 0);
-        require(_token_network_deposit_limit > 0);
-        require(_token_network_deposit_limit >= _channel_participant_deposit_limit);
+        require(_token_address != address(0x0), "TN: token addr is zero");
+        require(_secret_registry != address(0x0), "TN: SecretRegistry addr is zero");
+        require(_deprecation_executor != address(0x0), "TN: deprec executor addr is zero");
+        require(_chain_id > 0, "TN: chain_id is zero");
+        require(_settlement_timeout_min > 0, "TN: settlement_min is zero");
+        require(_settlement_timeout_max > _settlement_timeout_min, "TN: settle min & max confused" );
+        require(contractExists(_token_address), "TN: token has no code");
+        require(contractExists(_secret_registry), "TN: SecretRegistry has no code");
+        require(_channel_participant_deposit_limit > 0, "TN: participant depo limit zero");
+        require(_token_network_deposit_limit > 0, "TN: total depo limit zero");
+        require(_token_network_deposit_limit >= _channel_participant_deposit_limit, "TN: part < total limit");
 
         token = Token(_token_address);
 
@@ -238,7 +238,7 @@ contract TokenNetwork is Utils {
         settlement_timeout_max = _settlement_timeout_max;
 
         // Make sure the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0, "TN: token supply is zero");
 
         deprecation_executor = _deprecation_executor;
         channel_participant_deposit_limit = _channel_participant_deposit_limit;
@@ -265,7 +265,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier;
 
         // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) < token_network_deposit_limit);
+        require(token.balanceOf(address(this)) < token_network_deposit_limit, "TN: too many tokens in contract");
 
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
@@ -319,9 +319,9 @@ contract TokenNetwork is Utils {
         isSafe
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_deposit > 0);
-        require(total_deposit <= channel_participant_deposit_limit);
+        require(channel_identifier == getChannelIdentifier(participant, partner), "TN: channel id broken");
+        require(total_deposit > 0, "TN: total deposit zero");
+        require(total_deposit <= channel_participant_deposit_limit, "TN: total deposit too much");
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -334,18 +334,18 @@ contract TokenNetwork is Utils {
         added_deposit = total_deposit - participant_state.deposit;
 
         // The actual amount of tokens that will be transferred must be > 0
-        require(added_deposit > 0);
+        require(added_deposit > 0, "TN: no addition");
 
         // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
 
-        require(added_deposit <= total_deposit);
+        require(added_deposit <= total_deposit, "TN: underflown total deposit");
 
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens.
         assert(participant_state.deposit + added_deposit == total_deposit);
 
         // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
+        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit, "TN: total limit breached");
 
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;
@@ -353,7 +353,7 @@ contract TokenNetwork is Utils {
         // Calculate the entire channel deposit, to avoid overflow
         channel_deposit = participant_state.deposit + partner_state.deposit;
         // Overflow check
-        require(channel_deposit >= participant_state.deposit);
+        require(channel_deposit >= participant_state.deposit, "TN: overflown channel depo");
 
         emit ChannelNewDeposit(
             channel_identifier,
@@ -362,7 +362,7 @@ contract TokenNetwork is Utils {
         );
 
         // Do the transfer
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
+        require(token.transferFrom(msg.sender, address(this), added_deposit), "TN: deposit transfer failure");
     }
 
     /// @notice Allows `participant` to withdraw tokens from the channel that he
@@ -391,7 +391,7 @@ contract TokenNetwork is Utils {
         uint256 current_withdraw;
         address partner;
 
-        require(total_withdraw > 0);
+        require(total_withdraw > 0, "TN: total withdraw zero");
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -400,7 +400,7 @@ contract TokenNetwork is Utils {
             participant,
             total_withdraw,
             participant_signature
-        ));
+        ), "TN: wrong withdraw participant");
         partner = recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
@@ -409,7 +409,7 @@ contract TokenNetwork is Utils {
         );
 
         // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(participant, partner));
+        require(channel_identifier == getChannelIdentifier(participant, partner), "TN: wrong withdraw channel id");
 
         // Read channel state after validating the function input
         Channel storage channel = channels[channel_identifier];
@@ -419,8 +419,8 @@ contract TokenNetwork is Utils {
         total_deposit = participant_state.deposit + partner_state.deposit;
 
         // Entire withdrawn amount must not be bigger than the current channel deposit
-        require((total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
-        require(total_withdraw <= (total_withdraw + partner_state.withdrawn_amount));
+        require((total_withdraw + partner_state.withdrawn_amount) <= total_deposit, "TN: too much withdrawn");
+        require(total_withdraw <= (total_withdraw + partner_state.withdrawn_amount), "TN: withdraw overflow");
 
         // Using the total_withdraw (monotonically increasing) in the signed
         // message ensures that we do not allow replay attack to happen, by
@@ -428,11 +428,11 @@ contract TokenNetwork is Utils {
         // Next two lines enforce the monotonicity of total_withdraw and check for an underflow:
         // (we use <= because current_withdraw == total_withdraw for the first withdraw)
         current_withdraw = total_withdraw - participant_state.withdrawn_amount;
-        require(current_withdraw <= total_withdraw);
+        require(current_withdraw <= total_withdraw, "TN: double withdraw");
 
         // The actual amount of tokens that will be transferred must be > 0 to disable the reuse of
         // withdraw messages completely.
-        require(current_withdraw > 0);
+        require(current_withdraw > 0, "TN: zero withdraw");
 
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.withdrawn_amount = total_withdraw,
@@ -447,7 +447,7 @@ contract TokenNetwork is Utils {
 
         // Do the state change and tokens transfer
         participant_state.withdrawn_amount = total_withdraw;
-        require(token.transfer(participant, current_withdraw));
+        require(token.transfer(participant, current_withdraw), "TN: withdraw transfer fail");
 
         // This should never happen, as we have an overflow check in setTotalDeposit
         assert(total_deposit >= participant_state.deposit);
@@ -484,7 +484,7 @@ contract TokenNetwork is Utils {
         public
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(msg.sender, partner));
+        require(channel_identifier == getChannelIdentifier(msg.sender, partner), "TN.close: wrong channel id");
 
         address recovered_partner_address;
 
@@ -509,7 +509,7 @@ contract TokenNetwork is Utils {
                 signature
             );
             // Signature must be from the channel partner
-            require(partner == recovered_partner_address);
+            require(partner == recovered_partner_address, "TN.close: wrong partner sig");
 
             updateBalanceProofData(
                 channel,
@@ -554,16 +554,16 @@ contract TokenNetwork is Utils {
         require(channel_identifier == getChannelIdentifier(
             closing_participant,
             non_closing_participant
-        ));
-        require(balance_hash != bytes32(0x0));
-        require(nonce > 0);
+        ), "TN.update: wrong channel id");
+        require(balance_hash != bytes32(0x0), "TN.update: empty balance hash");
+        require(nonce > 0, "TN.update: zero nonce");
 
         address recovered_non_closing_participant;
         address recovered_closing_participant;
 
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, "TN.update: not closed");
 
         // Calling this function after the settlement window is forbidden to
         // fix the following race condition:
@@ -585,7 +585,7 @@ contract TokenNetwork is Utils {
         // settlement window. This does not affect safety, since we assume the
         // nodes are always properly configured and have a monitoring service
         // available to call update on the user's behalf.
-        require(channel.settle_block_number >= block.number);
+        require(channel.settle_block_number >= block.number, "TN.update: too late");
 
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
@@ -597,7 +597,7 @@ contract TokenNetwork is Utils {
             closing_signature,
             non_closing_signature
         );
-        require(non_closing_participant == recovered_non_closing_participant);
+        require(non_closing_participant == recovered_non_closing_participant, "TN.update: wrong nonclosing sig");
 
         recovered_closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
@@ -606,11 +606,11 @@ contract TokenNetwork is Utils {
             additional_hash,
             closing_signature
         );
-        require(closing_participant == recovered_closing_participant);
+        require(closing_participant == recovered_closing_participant, "TN.update: wrong closing sig");
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
         // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
+        require(closing_participant_state.is_the_closer, "TN.update: no closer");
 
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
@@ -674,7 +674,7 @@ contract TokenNetwork is Utils {
         // therefore it cannot ensure correctness. Users MUST use the official
         // Raiden clients for signing balance proofs.
 
-        require(channel_identifier == getChannelIdentifier(participant1, participant2));
+        require(channel_identifier == getChannelIdentifier(participant1, participant2), "TN.settle: wrong channel id");
 
         bytes32 pair_hash;
 
@@ -684,7 +684,7 @@ contract TokenNetwork is Utils {
         require(channel.state == ChannelState.Closed);
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number);
+        require(channel.settle_block_number < block.number, "TN.settle: too early");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -694,14 +694,14 @@ contract TokenNetwork is Utils {
             participant1_transferred_amount,
             participant1_locked_amount,
             participant1_locksroot
-        ));
+        ), "TN.settle wrong sig1");
 
         require(verifyBalanceHashData(
             participant2_state,
             participant2_transferred_amount,
             participant2_locked_amount,
             participant2_locksroot
-        ));
+        ), "TN.settle wrong sig2");
 
         // We are calculating the final token amounts that need to be
         // transferred to the participants now and the amount of tokens that
@@ -764,11 +764,11 @@ contract TokenNetwork is Utils {
 
         // Do the actual token transfers
         if (participant1_transferred_amount > 0) {
-            require(token.transfer(participant1, participant1_transferred_amount));
+            require(token.transfer(participant1, participant1_transferred_amount), "TN.settle: transfer1 fail");
         }
 
         if (participant2_transferred_amount > 0) {
-            require(token.transfer(participant2, participant2_transferred_amount));
+            require(token.transfer(participant2, participant2_transferred_amount), "TN.settle: transfer2 fail");
         }
     }
 
@@ -795,14 +795,14 @@ contract TokenNetwork is Utils {
     {
         // Channel represented by channel_identifier must be settled and
         // channel data deleted
-        require(channel_identifier != getChannelIdentifier(receiver, sender));
+        require(channel_identifier != getChannelIdentifier(receiver, sender), "TN.unlock: channel id wrong");
 
         // After the channel is settled the storage is cleared, therefore the
         // value will be NonExistent and not Settled. The value Settled is used
         // for the external APIs
-        require(channels[channel_identifier].state == ChannelState.NonExistent);
+        require(channels[channel_identifier].state == ChannelState.NonExistent, "TN.unlock: channel exists");
 
-        require(locks.length > 0);
+        require(locks.length > 0, "TN.unlock: no locks");
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -826,11 +826,11 @@ contract TokenNetwork is Utils {
         locked_amount = unlock_data.locked_amount;
 
         // Locksroot must be the same as the computed locksroot
-        require(unlock_data.locksroot == computed_locksroot);
+        require(unlock_data.locksroot == computed_locksroot, "TN.unlock: wrong root");
 
         // There are no pending transfers if the locked_amount is 0.
         // Transaction must fail
-        require(locked_amount > 0);
+        require(locked_amount > 0, "TN.unlock: no locked");
 
         // Make sure we don't transfer more tokens than previously reserved in
         // the smart contract.
@@ -854,12 +854,12 @@ contract TokenNetwork is Utils {
         // Transfer the unlocked tokens to the receiver. unlocked_amount can
         // be 0
         if (unlocked_amount > 0) {
-            require(token.transfer(receiver, unlocked_amount));
+            require(token.transfer(receiver, unlocked_amount), "TN.unlock: transfer fail");
         }
 
         // Transfer the rest of the tokens back to the sender
         if (returned_tokens > 0) {
-            require(token.transfer(sender, returned_tokens));
+            require(token.transfer(sender, returned_tokens), "TN.unlock: return fail");
         }
 
         // At this point, this should always be true
@@ -977,9 +977,9 @@ contract TokenNetwork is Utils {
         view
         returns (uint256)
     {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
+        require(participant != address(0x0), "TN: participant zero");
+        require(partner != address(0x0), "TN: partner zero");
+        require(participant != partner, "TN: looping channel");
 
         bytes32 pair_hash = getParticipantsHash(participant, partner);
         return participants_hash_to_channel_identifier[pair_hash];
@@ -1084,9 +1084,9 @@ contract TokenNetwork is Utils {
         pure
         returns (bytes32)
     {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
+        require(participant != address(0x0), "TN: zero participant!");
+        require(partner != address(0x0), "TN: zero partner!");
+        require(participant != partner, "TN: looping channel!");
 
         if (participant < partner) {
             return keccak256(abi.encodePacked(participant, partner));
@@ -1113,7 +1113,7 @@ contract TokenNetwork is Utils {
         pure
         returns (bytes32)
     {
-        require(sender != receiver);
+        require(sender != receiver, "TN: sender == receiver");
         return keccak256(abi.encodePacked(channel_identifier, sender, receiver));
     }
 
@@ -1129,7 +1129,7 @@ contract TokenNetwork is Utils {
 
         // Multiple calls to updateNonClosingBalanceProof can be made and we
         // need to store the last known balance proof data
-        require(nonce > participant_state.nonce);
+        require(nonce > participant_state.nonce, "TN: not new");
 
         participant_state.nonce = nonce;
         participant_state.balance_hash = balance_hash;
@@ -1391,7 +1391,7 @@ contract TokenNetwork is Utils {
         // symmetric (we can calculate either RmaxP1 and RmaxP2 first, order does
         // not affect result). This means settleChannel must be called with
         // ordered values.
-        require(participant2_max_transferred >= participant1_max_transferred);
+        require(participant2_max_transferred >= participant1_max_transferred, "TN: swap 1 and 2");
 
         assert(participant1_max_transferred >= participant1_settlement.transferred);
         assert(participant2_max_transferred >= participant2_settlement.transferred);
@@ -1576,7 +1576,7 @@ contract TokenNetwork is Utils {
 
         // each lock has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
-        require(length % 96 == 0);
+        require(length % 96 == 0, "TN: locks of weird length");
 
         uint256 i;
         uint256 total_unlocked_amount;
