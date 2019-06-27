@@ -217,6 +217,33 @@ Verification with Etherscan
 If the command exists with status code 0, Etherscan has verified all contracts against Solidity sources.
 
 
+Utilities for minting, balance checking, token transfer
+-------------------------------------------------------
+You can mint tokens from a CustomToken contract, WETH contract from any testnet
+and query balances from the commandline using the ``token_ops.py``
+Sample usage
+
+* Minting tokens ::
+
+   python token_ops.py mint --rpc-url http://127.0.0.1:8545 --private-key ~/priv_chain/blkchain1/keystore/private_net_address --token-address 0x2feEd0E54238051dddCc01bF3960B143e887a9B7 --amount 1000
+
+* Minting tokens with a password file ::
+
+   python token_ops.py mint --rpc-url https://rpc.slock.it/goerli --private-key ~/.ethereum/keystore/UTC--2019-04-25T07-10-37.872928741Z--f8608ad00ab66b3a2aa21253c7915413034d0be5 --password ~/.ethereum/keystore/passwd_F8608A.txt --token-address 0x610f3c3C1998FAd6A659A9f5Bb83962DA27eAf1d --amount 1000
+
+* Getting weth tokens ::
+
+   python token_ops.py weth --rpc-url http://127.0.0.1:8545 --private-key ~/priv_chain/blkchain1/keystore/private_net_address --token-address 0xdf048aa8cbA44f9590F888BAb5e5AC78AAb503C8 --amount 1000
+
+* Query account balance in any token ::
+
+   python token_ops.py balance --rpc-url http://127.0.0.1:8545 --token-address 0xdf048aa8cbA44f9590F888BAb5e5AC78AAb503C8 --address 0xb8eb60F2E45667c9B2cFf861b82656452659C6dE
+
+* Transfer tokens ::
+
+   python token_ops.py transfer --rpc-url http://127.0.0.1:8545 --private-key ~/priv_chain/blkchain1/keystore/private_net_address --token-address 0xdf048aa8cbA44f9590F888BAb5e5AC78AAb503C8 --amount 1000 --destination 0x7ba5f1c08548f80d52856c21e87fcca05c5e40e3
+
+
 Making a Release
 ----------------
 
