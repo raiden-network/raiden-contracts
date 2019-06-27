@@ -127,7 +127,7 @@ def deployed_service_info(
         (None, True),
     ],
 )
-def test_contract_version_with_max_token_networks(
+def test_contracts_version_with_max_token_networks(
     version: Optional[str], expectation: bool
 ) -> None:
     assert contracts_version_with_max_token_networks(version) == expectation
