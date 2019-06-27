@@ -33,7 +33,6 @@ def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Opt
     password is asked interactively. Raw hex-encoded private keys are supported,
     but deprecated."""
 
-    assert key_path, key_path
     if not os.path.exists(key_path):
         log.fatal("%s: no such file", key_path)
         return None
