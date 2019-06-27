@@ -4,6 +4,13 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+
+
+def test_owner_of_service_registry(service_registry: Contract) -> None:
+    """ The owner of ServiceRegistry should be the deployer """
+    assert service_registry.functions.owner().call() == CONTRACT_DEPLOYER_ADDRESS
+
 
 def test_deposit(
     service_registry: Contract, custom_token: Contract, get_accounts: Callable
