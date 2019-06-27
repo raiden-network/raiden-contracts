@@ -20,7 +20,7 @@ from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.utils.versions import contract_version_with_max_token_networks
+from raiden_contracts.utils.versions import contracts_version_with_max_token_networks
 
 LOG = getLogger(__name__)
 
@@ -128,19 +128,19 @@ def main() -> int:
 def check_version_dependent_parameters(
     contracts_version: Optional[str], max_token_networks: Optional[int]
 ) -> None:
-    required = contract_version_with_max_token_networks(contracts_version)
+    required = contracts_version_with_max_token_networks(contracts_version)
     got = max_token_networks is not None
 
     # For newer conracts --max-token-networks is necessary.
     if required and not got:
         raise BadParameter(
-            f"For contract_version {contracts_version},"
+            f"For contracts_version {contracts_version},"
             " --max-token-networks option is necessary.  See --help."
         )
     # For older contracts --max_token_networks is forbidden.
     if not required and got:
         raise BadParameter(
-            f"For contract_version {contracts_version},"
+            f"For contracts_version {contracts_version},"
             " --max-token-networks option is forbidden"
             " because TokenNetworkRegistry this version is not configurable this way."
         )

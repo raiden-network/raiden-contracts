@@ -15,8 +15,8 @@ from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import (
-    contract_version_with_max_token_networks,
     contracts_version_provides_services,
+    contracts_version_with_max_token_networks,
 )
 
 
@@ -137,8 +137,8 @@ def test_version_provides_services() -> None:
 
 
 def test_version_with_max_token_networks() -> None:
-    assert contract_version_with_max_token_networks(None)
-    assert not contract_version_with_max_token_networks("0.8.0_unlimited")
+    assert contracts_version_with_max_token_networks(None)
+    assert not contracts_version_with_max_token_networks("0.8.0_unlimited")
 
 
 def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit: int) -> None:
