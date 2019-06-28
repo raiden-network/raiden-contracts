@@ -1,4 +1,5 @@
 from logging import getLogger
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from eth_typing import HexAddress
@@ -126,7 +127,9 @@ class ContractDeployer(ContractVerifier):
         return {token_type: token_address}
 
     def deploy_raiden_contracts(
-        self, max_num_of_token_networks: Optional[int]
+        self,
+        max_num_of_token_networks: Optional[int],
+        reuse_secret_registry_from_deploy_file: Optional[Path],
     ) -> DeployedContracts:
         """ Deploy all required raiden contracts and return a dict of contract_name:address
 
@@ -142,11 +145,14 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        secret_registry = self._deploy_and_remember(
-            contract_name=CONTRACT_SECRET_REGISTRY,
-            arguments=[],
-            deployed_contracts=deployed_contracts,
-        )
+        if reuse_secret_registry_from_deploy_file:
+            raise NotImplementedError
+        else:
+            secret_registry = self._deploy_and_remember(
+                contract_name=CONTRACT_SECRET_REGISTRY,
+                arguments=[],
+                deployed_contracts=deployed_contracts,
+            )
         token_network_registry_args = [
             secret_registry.address,
             deployed_contracts["chain_id"],
