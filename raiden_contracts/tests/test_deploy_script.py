@@ -786,7 +786,7 @@ def test_deploy_token_with_balance(get_accounts: Callable, get_private_key: Call
 
 
 def deploy_raiden_arguments(
-    privkey: str, save_info: Optional[bool], contracts_version: Optional[str]
+    privkey: str, save_info: Optional[bool], contracts_version: Optional[str], reuse_secret_registry: bool
 ) -> List:
     arguments: List = ["--private-key", privkey, "--rpc-provider", "rpc_provider"]
 
@@ -801,18 +801,23 @@ def deploy_raiden_arguments(
     if contracts_version:
         arguments.extend(["--contracts-version", contracts_version])
 
+    if reuse_secret_registry:
+        arguments.extend(["--secret-registry-from-deployment-file", "./old-deployment-file.json"])
+
     return arguments
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_raiden")
 @pytest.mark.parametrize("contracts_version", [None, "0.4.0"])
+@pytest.mark.parametrize("reuse_secret_registry", [False, True])
 def test_deploy_raiden(
     mock_deploy: MagicMock,
     mock_verify: MagicMock,
     get_accounts: Callable,
     get_private_key: Callable,
     contracts_version: Optional[str],
+    reuse_secret_registry: bool,
 ) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
@@ -825,7 +830,7 @@ def test_deploy_raiden(
             result = runner.invoke(
                 raiden,
                 deploy_raiden_arguments(
-                    privkey=privkey_file.name, save_info=None, contracts_version=contracts_version
+                    privkey=privkey_file.name, save_info=None, contracts_version=contracts_version, reuse_secret_registry=reuse_secret_registry
                 ),
             )
             assert result.exception is None
