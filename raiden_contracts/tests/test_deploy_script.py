@@ -249,14 +249,17 @@ def test_deploy_raiden_reuse_secret_registry(
     with NamedTemporaryFile() as previous_deployment_file:
         previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
         previous_deployment_file.flush()
-        deployer.deploy_raiden_contracts(
+        new_deployment = deployer.deploy_raiden_contracts(
             1, reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name)
         )
-
-
-#        call_deploy_with_previous_deployment_file_no_save()
-#        compare_secret_registry()
-#        check_result()
+        assert (
+            new_deployment["contracts"][CONTRACT_SECRET_REGISTRY]
+            == deployed_raiden_info["contracts"][CONTRACT_SECRET_REGISTRY]
+        )
+        assert (
+            new_deployment["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]
+            != deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]
+        )
 
 
 def test_deploy_script_token(web3: Web3) -> None:
