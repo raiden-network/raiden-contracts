@@ -932,7 +932,7 @@ def test_deploy_raiden_save_info_false(
             result = runner.invoke(
                 raiden,
                 deploy_raiden_arguments(
-                    privkey=privkey_file.name, save_info=False, contracts_version=None
+                    privkey=privkey_file.name, save_info=False, contracts_version=None, reuse_secret_registry=False
                 ),
             )
             assert result.exception is None
