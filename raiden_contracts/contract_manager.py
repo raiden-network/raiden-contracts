@@ -9,6 +9,7 @@ from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
+from raiden_contracts.utils.load_json import load_json_from_path
 from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_provides_services
 
@@ -219,7 +220,7 @@ def get_contracts_deployment_info(
     deployment_data: DeployedContracts = {}  # type: ignore
 
     for f in files:
-        j = _load_json_from_path(f)
+        j = load_json_from_path(f)
         if j is None:
             continue
         deployment_data = merge_deployment_data(
@@ -236,13 +237,3 @@ def get_contracts_deployment_info(
     if not deployment_data:
         deployment_data = None
     return deployment_data
-
-
-def _load_json_from_path(f: Path) -> Optional[Dict[str, Any]]:
-    try:
-        with f.open() as deployment_file:
-            return json.load(deployment_file)
-    except FileNotFoundError:
-        return None
-    except (JSONDecodeError, UnicodeDecodeError) as ex:
-        raise ValueError(f"Deployment data file is corrupted: {ex}") from ex

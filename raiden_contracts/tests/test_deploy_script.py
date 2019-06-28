@@ -248,6 +248,7 @@ def test_deploy_raiden_reuse_secret_registry(
     """ Run deploy_raiden_contracts with a previous SecretRegistry deployment data """
     with NamedTemporaryFile() as previous_deployment_file:
         previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
+        previous_deployment_file.flush()
         deployer.deploy_raiden_contracts(
             1, reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name)
         )
