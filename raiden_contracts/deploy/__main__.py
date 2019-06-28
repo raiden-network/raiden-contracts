@@ -174,7 +174,8 @@ def raiden(
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj["deployer"]
     deployed_contracts_info = deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=max_token_networks
+        max_num_of_token_networks=max_token_networks,
+        secret_registry_from_deployment_file=secret_registry_from_deployment_file,
     )
     deployed_contracts = {
         contract_name: info["address"]

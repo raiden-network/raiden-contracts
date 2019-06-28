@@ -1,4 +1,6 @@
+import json
 from copy import deepcopy
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Generator, List, Optional
 from unittest.mock import MagicMock, patch
@@ -82,7 +84,9 @@ def deployer_0_4_0(web3: Web3) -> ContractDeployer:
 @pytest.mark.slow
 @pytest.fixture(scope="session")
 def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
-    return deployer.deploy_raiden_contracts(max_num_of_token_networks=1)
+    return deployer.deploy_raiden_contracts(
+        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
+    )
 
 
 @pytest.mark.slow
@@ -94,7 +98,9 @@ def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
 @pytest.mark.slow
 @pytest.fixture(scope="session")
 def deployed_raiden_info_0_4_0(deployer_0_4_0: ContractDeployer) -> DeployedContracts:
-    return deployer_0_4_0.deploy_raiden_contracts(max_num_of_token_networks=None)
+    return deployer_0_4_0.deploy_raiden_contracts(
+        max_num_of_token_networks=None, reuse_secret_registry_from_deploy_file=None
+    )
 
 
 TOKEN_SUPPLY = 10000000
@@ -233,7 +239,23 @@ def test_deploy_script_raiden(
         web3=web3, private_key=get_random_privkey(), gas_limit=GAS_LIMIT, gas_price=1, wait=10
     )
     with pytest.raises(ValidationError):
-        deployer.deploy_raiden_contracts(1)
+        deployer.deploy_raiden_contracts(1, reuse_secret_registry_from_deploy_file=None)
+
+
+def test_deploy_raiden_reuse_secret_registry(
+    deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
+) -> None:
+    """ Run deploy_raiden_contracts with a previous SecretRegistry deployment data """
+    with NamedTemporaryFile() as previous_deployment_file:
+        previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
+        deployer.deploy_raiden_contracts(
+            1, reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name)
+        )
+
+
+#        call_deploy_with_previous_deployment_file_no_save()
+#        compare_secret_registry()
+#        check_result()
 
 
 def test_deploy_script_token(web3: Web3) -> None:
@@ -697,7 +719,9 @@ def test_red_eyes_deployer(web3: Web3) -> None:
         wait=10,
         contracts_version="0.4.0",
     )
-    deployer.deploy_raiden_contracts(max_num_of_token_networks=None)
+    deployer.deploy_raiden_contracts(
+        max_num_of_token_networks=None, reuse_secret_registry_from_deploy_file=None
+    )
 
 
 def test_error_removed_option_raises() -> None:
@@ -786,7 +810,10 @@ def test_deploy_token_with_balance(get_accounts: Callable, get_private_key: Call
 
 
 def deploy_raiden_arguments(
-    privkey: str, save_info: Optional[bool], contracts_version: Optional[str], reuse_secret_registry: bool
+    privkey: str,
+    save_info: Optional[bool],
+    contracts_version: Optional[str],
+    reuse_secret_registry: bool,
 ) -> List:
     arguments: List = ["--private-key", privkey, "--rpc-provider", "rpc_provider"]
 
@@ -830,7 +857,10 @@ def test_deploy_raiden(
             result = runner.invoke(
                 raiden,
                 deploy_raiden_arguments(
-                    privkey=privkey_file.name, save_info=None, contracts_version=contracts_version, reuse_secret_registry=reuse_secret_registry
+                    privkey=privkey_file.name,
+                    save_info=None,
+                    contracts_version=contracts_version,
+                    reuse_secret_registry=reuse_secret_registry,
                 ),
             )
             assert result.exception is None
@@ -932,7 +962,10 @@ def test_deploy_raiden_save_info_false(
             result = runner.invoke(
                 raiden,
                 deploy_raiden_arguments(
-                    privkey=privkey_file.name, save_info=False, contracts_version=None, reuse_secret_registry=False
+                    privkey=privkey_file.name,
+                    save_info=False,
+                    contracts_version=None,
+                    reuse_secret_registry=False,
                 ),
             )
             assert result.exception is None
