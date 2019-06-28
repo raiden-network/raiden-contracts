@@ -1,3 +1,4 @@
+from copy import deepcopy
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -23,6 +24,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import CompiledContract, DeployedContract, DeployedContracts
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
+from raiden_contracts.utils.load_json import load_json_from_path
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
@@ -146,7 +148,21 @@ class ContractDeployer(ContractVerifier):
         }
 
         if reuse_secret_registry_from_deploy_file:
-            raise NotImplementedError
+            # FIXME: the following several lines duplicate a part of _verify_deployed_contract()
+            reused_doc = load_json_from_path(reuse_secret_registry_from_deploy_file)
+            if not reused_doc:
+                raise RuntimeError(
+                    f"{reuse_secret_registry_from_deploy_file} does not contain deployment data."
+                )
+            reused_contracts = reused_doc["contracts"]
+            reused_address = reused_contracts[CONTRACT_SECRET_REGISTRY]["address"]
+            secret_registry = self.web3.eth.contract(
+                abi=self.contract_manager.get_contract_abi(CONTRACT_SECRET_REGISTRY),
+                address=reused_address,
+            )
+            deployed_contracts["contracts"][CONTRACT_SECRET_REGISTRY] = deepcopy(
+                reused_contracts[CONTRACT_SECRET_REGISTRY]
+            )
         else:
             secret_registry = self._deploy_and_remember(
                 contract_name=CONTRACT_SECRET_REGISTRY,
