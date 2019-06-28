@@ -3,8 +3,6 @@ import stat
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from raiden_contracts.utils.private_key import check_permission_safety, get_private_key
 
 
@@ -30,9 +28,8 @@ def test_permission_safety_executable() -> None:
 
 
 def test_get_private_key_empty_path() -> None:
-    """ get_private_key() should raise AssertionFailure on an empty key path """
-    with pytest.raises(AssertionError):
-        get_private_key(None)  # type: ignore
+    """ get_private_key() should return None on a None key path """
+    assert get_private_key(None) is None  # type: ignore
 
 
 def test_get_private_key_nonexistent() -> None:
