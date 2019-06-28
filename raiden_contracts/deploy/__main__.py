@@ -152,6 +152,10 @@ def check_version_dependent_parameters(
 @click.option(
     "--max-token-networks", help="The maximum number of tokens that can be registered.", type=int
 )
+@click.option(
+    "--secret-registry-from-deployment-file",
+    help="The deployment file from which SecretRegistry should be reused",
+)
 @click.pass_context
 def raiden(
     ctx: click.Context,
@@ -163,6 +167,7 @@ def raiden(
     save_info: int,
     contracts_version: Optional[str],
     max_token_networks: Optional[int],
+    secret_registry_from_deployment_file: Optional[str],
 ) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
 
