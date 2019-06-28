@@ -9,7 +9,7 @@ from eth_typing.evm import HexAddress
 from mypy_extensions import TypedDict
 
 from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
-from raiden_contracts.utils.load_json import load_json_from_path
+from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_provides_services
 

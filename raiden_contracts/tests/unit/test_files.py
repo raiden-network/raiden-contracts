@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from raiden_contracts.utils.load_json import load_json_from_path
+from raiden_contracts.utils.file_ops import load_json_from_path
 
 
 def test_load_json_from_corrupt_file() -> None:
