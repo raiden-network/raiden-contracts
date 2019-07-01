@@ -2,6 +2,8 @@ from collections import namedtuple
 from enum import Enum, IntEnum
 from typing import Dict
 
+from eth_utils import keccak
+
 from raiden_contracts.utils.type_aliases import ChainID
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
@@ -32,6 +34,9 @@ DEPLOY_SETTLE_TIMEOUT_MAX = 555428  # ~ 3 months
 # Temporary deposit limits for the Red Eyes release in WEI
 MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10 ** 18)
 MAX_ETH_TOKEN_NETWORK = int(250 * 10 ** 18)
+
+# Special hashes
+LOCKSROOT_OF_NO_LOCKS = keccak(b"")
 
 # Event names
 # TokenNetworkRegistry

@@ -6,11 +6,8 @@ from eth_typing import HexAddress
 from eth_utils import keccak, to_canonical_address
 from web3.contract import Contract
 
-from raiden_contracts.tests.utils.constants import (
-    EMPTY_ADDITIONAL_HASH,
-    LOCKSROOT_OF_NO_LOCKS,
-    UINT256_MAX,
-)
+from raiden_contracts.constants import LOCKSROOT_OF_NO_LOCKS
+from raiden_contracts.tests.utils.constants import EMPTY_ADDITIONAL_HASH, UINT256_MAX
 
 SettlementValues = namedtuple(
     "SettlementValues",

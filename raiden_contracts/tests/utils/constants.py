@@ -1,7 +1,6 @@
 from enum import IntEnum
 
 from eth_typing.evm import HexAddress
-from eth_utils import keccak
 from eth_utils.units import units
 
 from raiden_contracts.utils.signature import private_key_to_address
@@ -11,7 +10,6 @@ FAKE_ADDRESS = "0x03432"
 EMPTY_ADDRESS = HexAddress("0x0000000000000000000000000000000000000000")
 EMPTY_BALANCE_HASH = b"\x00" * 32
 EMPTY_ADDITIONAL_HASH = b"\x00" * 32
-LOCKSROOT_OF_NO_LOCKS = keccak(b"")
 EMPTY_SIGNATURE = b"\x00" * 65
 passphrase = "0"
 FAUCET_PRIVATE_KEY = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
