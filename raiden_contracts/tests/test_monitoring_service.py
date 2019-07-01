@@ -8,8 +8,11 @@ from eth_utils import to_checksum_address
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, MonitoringServiceEvent
-from raiden_contracts.tests.utils.constants import LOCKSROOT_OF_NO_LOCKS
+from raiden_contracts.constants import (
+    LOCKSROOT_OF_NO_LOCKS,
+    TEST_SETTLE_TIMEOUT_MIN,
+    MonitoringServiceEvent,
+)
 
 REWARD_AMOUNT = 10
 
