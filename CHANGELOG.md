@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Remove `raiden_contracts.constants.GAS_REQUIRED_FOR*` constants. Use instead `raiden_contracts.contract_manager.gas_measurements()`.
+
 ## [0.24.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.24.0) - 2019-06-19
 
 - [#1023](https://github.com/raiden-network/raiden-contracts/pull/1023) Remove `contract_version` variable from the contracts
