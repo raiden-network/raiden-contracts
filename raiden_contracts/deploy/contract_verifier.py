@@ -127,10 +127,11 @@ class ContractVerifier:
         )
 
         # We need to also check the constructor parameters against the chain
-        assert (
+        if (
             to_checksum_address(token_network_registry.functions.secret_registry_address().call())
-            == secret_registry.address
-        )
+            != secret_registry.address
+        ):
+            raise RuntimeError("secret_registry_address onchain has an unexpected value.")
         assert secret_registry.address == constructor_arguments[0]
         assert token_network_registry.functions.chain_id().call() == constructor_arguments[1]
         assert (
