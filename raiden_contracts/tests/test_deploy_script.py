@@ -87,6 +87,12 @@ def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
 
 @pytest.mark.slow
 @pytest.fixture(scope="session")
+def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
+    return deployer.deploy_raiden_contracts(max_num_of_token_networks=1)
+
+
+@pytest.mark.slow
+@pytest.fixture(scope="session")
 def deployed_raiden_info_0_4_0(deployer_0_4_0: ContractDeployer) -> DeployedContracts:
     return deployer_0_4_0.deploy_raiden_contracts(max_num_of_token_networks=None)
 
@@ -139,7 +145,10 @@ def test_contracts_version_with_max_token_networks(
 
 @pytest.mark.slow
 def test_deploy_script_raiden(
-    web3: Web3, deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
+    web3: Web3,
+    deployer: ContractDeployer,
+    deployed_raiden_info: DeployedContracts,
+    deployed_raiden_info2: DeployedContracts,
 ) -> None:
     """ Run raiden contracts deployment function and tamper with deployed_contracts_info
 
@@ -209,6 +218,13 @@ def test_deploy_script_raiden(
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail["contracts_version"] = "0.4.0"
+    with pytest.raises(RuntimeError):
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
+
+    deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
+    deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY] = deployed_raiden_info2[
+        "contracts"
+    ][CONTRACT_SECRET_REGISTRY]
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
