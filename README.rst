@@ -178,6 +178,8 @@ Deploying the main Raiden Network contracts with the ``raiden`` command::
 
     python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --max-token-networks 1
 
+When the ``raiden`` command takes an optional argument ``--secret-registry-from-deployment-file <deployment-file>``, the command tries to reuse ``SecretRegistry`` instance found in ``<deployment-file>``.  For example, some deployment files are found under ``raiden_contracts/data*/deployment_*.json``.
+
 Deploying the mock token contract for paying for the services (not to be done on the mainnet)::
 
     python -m raiden_contracts.deploy token --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --token-supply 20000000 --token-name ServiceToken --token-decimals 18 --token-symbol SVT
