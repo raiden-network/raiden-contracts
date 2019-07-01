@@ -5,6 +5,7 @@ import "raiden/Utils.sol";
 
 contract ServiceRegistry is Utils {
     Token public token;
+    address public owner;
 
     mapping(address => uint256) public deposits;  // token amount staked by the service provider
     mapping(address => string) public urls;  // URLs of services for HTTP access
@@ -18,6 +19,7 @@ contract ServiceRegistry is Utils {
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
+        owner = msg.sender;
     }
 
     function deposit(uint amount) public {
