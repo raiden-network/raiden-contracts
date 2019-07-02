@@ -1552,8 +1552,8 @@ contract TokenNetwork is Utils {
         view
         returns (address signature_address)
     {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32
-        string memory message_length = '168';
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 32
+        string memory message_length = '200';
 
         bytes32 message_hash = keccak256(abi.encodePacked(
             signature_prefix,
