@@ -39,6 +39,29 @@ def test_packed_transfer_0_items(token_network_test_utils: Contract) -> None:
     assert unlocked_amount == 0
 
 
+def test_0_item_unlockable(
+    web3: Web3,
+    get_accounts: Callable,
+    token_network_test_utils: Contract,
+    secret_registry_contract: Contract,
+) -> None:
+    """ Test getHashRootAndUnlockedAmount() on zero items whose secret has been registered """
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3=web3, unlockable_amounts=[], expired_amounts=[]
+    )
+
+    (
+        locksroot,
+        unlocked_amount,
+    ) = token_network_test_utils.functions.getHashAndUnlockedAmountPublic(
+        pending_transfers_tree.packed_transfers
+    ).call()
+
+    total_hash = pending_transfers_tree.hash_of_packed_transfers
+    assert locksroot == total_hash
+    assert unlocked_amount == 0
+
+
 def test_1_item_unlockable(
     web3: Web3,
     get_accounts: Callable,
@@ -1075,6 +1098,46 @@ def test_unlock_twice_fails(
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     reveal_secrets(A, pending_transfers_tree_1.unlockable)
+
+    # Settle the channel
+    channel_identifier = create_settled_channel(
+        A,
+        pending_transfers_tree_1.locked_amount,
+        pending_transfers_tree_1.hash_of_packed_transfers,
+        B,
+        0,
+        LOCKSROOT_OF_NO_LOCKS,
+        settle_timeout,
+    )
+    token_network.functions.unlock(
+        channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+    ).call_and_transact({"from": A})
+
+    # Calling unlock twice does not work
+    with pytest.raises(TransactionFailed):
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+        ).call({"from": A})
+
+
+def test_unlock_nothing(
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_settled_channel: Callable,
+    reveal_secrets: Callable,
+) -> None:
+    """ unlock() should work on no pending locks """
+    (A, B) = get_accounts(2)
+    settle_timeout = 8
+
+    # Mock pending transfers data
+    pending_transfers_tree_1 = get_pending_transfers_tree(
+        web3=web3,
+        unlockable_amounts=[],
+        expired_amounts=[2, 4],
+        min_expiration_delta=settle_timeout,
+    )
 
     # Settle the channel
     channel_identifier = create_settled_channel(
