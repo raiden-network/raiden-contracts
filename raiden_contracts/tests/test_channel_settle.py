@@ -106,8 +106,8 @@ def test_settle_channel_state(
     vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
 
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
@@ -305,8 +305,8 @@ def test_settlement_with_unauthorized_token_transfer(
 
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
 
-    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 

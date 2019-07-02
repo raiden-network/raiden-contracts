@@ -19,39 +19,40 @@ def test_recover_address_from_withdraw_message(
     deposit_A = 5
     deposit_B = 7
     withdraw_A = 3
+    expiration_block = 492889
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     (signature_A, signature_B) = create_withdraw_signatures(
-        [A, B], channel_identifier, A, withdraw_A, token_network.address
+        [A, B], channel_identifier, A, withdraw_A, expiration_block, token_network.address
     )
 
     recovered_address_A = token_network.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier, A, withdraw_A, signature_A
+        channel_identifier, A, withdraw_A, expiration_block, signature_A
     ).call()
     assert recovered_address_A == A
 
     recovered_address_B = token_network.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier, A, withdraw_A, signature_B
+        channel_identifier, A, withdraw_A, expiration_block, signature_B
     ).call()
     assert recovered_address_B == B
 
     with pytest.raises(TransactionFailed):
         token_network.functions.recoverAddressFromWithdrawMessagePublic(
-            channel_identifier, A, withdraw_A, fake_signature
+            channel_identifier, A, withdraw_A, expiration_block, fake_signature
         ).call()
 
     wrong_participant = token_network.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier, B, withdraw_A, signature_A
+        channel_identifier, B, withdraw_A, expiration_block, signature_A
     ).call()
     assert recovered_address_A != wrong_participant
 
     wrong_withdraw_value = token_network.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier, A, 1, signature_A
+        channel_identifier, A, 1, expiration_block, signature_A
     ).call()
 
     assert recovered_address_A != wrong_withdraw_value
 
     wrong_signature = token_network.functions.recoverAddressFromWithdrawMessagePublic(
-        channel_identifier, A, withdraw_A, signature_B
+        channel_identifier, A, withdraw_A, expiration_block, signature_B
     ).call()
 
     assert recovered_address_A != wrong_signature

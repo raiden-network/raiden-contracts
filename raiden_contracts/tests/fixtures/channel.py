@@ -134,6 +134,7 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
         channel_identifier: int,
         participant: HexAddress,
         withdraw_amount: int,
+        expiration_block: int,
         partner: HexAddress,
         delegate: Optional[HexAddress] = None,
     ) -> str:
@@ -143,12 +144,17 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
         ).call()
 
         (signature_participant, signature_partner) = create_withdraw_signatures(
-            [participant, partner], channel_identifier, participant, withdraw_amount
+            [participant, partner],
+            channel_identifier,
+            participant,
+            withdraw_amount,
+            expiration_block,
         )
         txn_hash = token_network.functions.setTotalWithdraw(
             channel_identifier,
             participant,
             withdraw_amount,
+            expiration_block,
             signature_participant,
             signature_partner,
         ).call_and_transact({"from": delegate})
@@ -716,6 +722,7 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
         channel_identifier: int,
         participant_who_withdraws: HexAddress,
         amount_to_withdraw: int,
+        expiration_block: int,
         token_network_address: Optional[HexAddress] = None,
         v: int = 27,
     ) -> List[bytes]:
@@ -732,6 +739,7 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
                 channel_identifier,
                 participant_who_withdraws,
                 amount_to_withdraw,
+                expiration_block,
                 v,
             )
             signatures.append(signature)

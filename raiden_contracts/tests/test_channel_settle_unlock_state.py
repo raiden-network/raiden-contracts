@@ -13,6 +13,7 @@ from raiden_contracts.tests.fixtures.channel_test_values import (
 )
 from raiden_contracts.tests.utils import (
     NONEXISTENT_LOCKSROOT,
+    UINT256_MAX,
     are_balance_proofs_valid,
     get_expected_after_settlement_unlock_amounts,
     get_onchain_settlement_amounts,
@@ -51,8 +52,8 @@ def test_settlement_outcome(
 
         # Start channel lifecycle
         channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-        withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-        withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+        withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
+        withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
 
         # For the purpose of this test, it is not important when the secrets are revealed,
         # as long as the secrets connected to pending transfers that should be finalized,
@@ -355,8 +356,8 @@ def test_channel_settle_invalid_balance_proof_values(
 
     # Start channel lifecycle for A, B
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
 
     # For the purpose of this test, it is not important when the secrets are revealed,
     # as long as the secrets connected to pending transfers that should be finalized,

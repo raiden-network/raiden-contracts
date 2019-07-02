@@ -91,6 +91,7 @@ def hash_withdraw_message(
     channel_identifier: int,
     participant: HexAddress,
     amount_to_withdraw: int,
+    expiration_block: int,
 ) -> bytes:
     return eth_sign_hash_message(
         Web3.toBytes(hexstr=token_network_address)
@@ -99,6 +100,7 @@ def hash_withdraw_message(
         + encode_single("uint256", channel_identifier)
         + Web3.toBytes(hexstr=participant)
         + encode_single("uint256", amount_to_withdraw)
+        + encode_single("uint256", expiration_block)
     )
 
 
@@ -198,6 +200,7 @@ def sign_withdraw_message(
     channel_identifier: int,
     participant: HexAddress,
     amount_to_withdraw: int,
+    expiration_block: int,
     v: int = 27,
 ) -> bytes:
     message_hash = hash_withdraw_message(
@@ -206,6 +209,7 @@ def sign_withdraw_message(
         channel_identifier=channel_identifier,
         participant=participant,
         amount_to_withdraw=amount_to_withdraw,
+        expiration_block=expiration_block,
     )
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)

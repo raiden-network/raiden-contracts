@@ -10,6 +10,7 @@ from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     LOCKSROOT_OF_NO_LOCKS,
     NONEXISTENT_LOCKSROOT,
+    UINT256_MAX,
     ChannelValues,
     LockedAmounts,
     TestLockIndex,
@@ -779,8 +780,8 @@ def test_channel_unlock_unregistered_locks(
     vals_A.locksroot = pending_transfers_tree.hash_of_packed_transfers
     vals_B.locksroot = fake_bytes(32, "03")
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
-    withdraw_channel(channel_identifier, A, vals_A.withdrawn, B)
-    withdraw_channel(channel_identifier, B, vals_B.withdrawn, A)
+    withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
+    withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 

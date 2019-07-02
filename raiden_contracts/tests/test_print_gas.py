@@ -15,7 +15,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import gas_measurements
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
@@ -154,7 +154,7 @@ def print_gas_channel_cycle(
     txn_hash = channel_deposit(channel_identifier, B, 10, A)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".setTotalDeposit")
 
-    txn_hash = withdraw_channel(channel_identifier, A, 5, B)
+    txn_hash = withdraw_channel(channel_identifier, A, 5, UINT256_MAX, B)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".setTotalWithdraw")
 
     pending_transfers_tree1 = get_pending_transfers_tree(web3, [1, 1, 2, 3], [2, 1])
