@@ -248,7 +248,9 @@ def print_gas_monitoring_service(
     # register MS in the ServiceRegistry contract
     custom_token.functions.mint(50).call_and_transact({"from": MS})
     custom_token.functions.approve(service_registry.address, 20).call_and_transact({"from": MS})
-    service_registry.functions.deposit(20).call_and_transact({"from": MS})
+    service_registry.functions.add_service(MS).call_and_transact(
+        {"from": CONTRACT_DEPLOYER_ADDRESS}
+    )
 
     # open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]

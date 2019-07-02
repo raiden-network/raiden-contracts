@@ -7,9 +7,8 @@ contract ServiceRegistry is Utils {
     Token public token;
     address public owner;
 
-    mapping(address => uint256) public deposits;  // token amount staked by the service provider
     mapping(address => string) public urls;  // URLs of services for HTTP access
-    address[] public service_addresses;  // list of available services (ethereum addresses)
+    mapping(address => bool) public is_service;  // true if it's a registered service
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
     constructor(address _token_for_registration) public {
@@ -22,30 +21,18 @@ contract ServiceRegistry is Utils {
         owner = msg.sender;
     }
 
-    function deposit(uint amount) public {
-        require(amount > 0);
-
-        // This also allows for MSs to deposit and use other MSs
-        deposits[msg.sender] += amount;
-
-        // Transfer the deposit to the smart contract
-        require(token.transferFrom(msg.sender, address(this), amount));
+    function add_service(address _service_to_add) public {
+        require(msg.sender == owner);
+        is_service[_service_to_add] = true;
     }
 
     /// Set the URL used to access a service via HTTP.
     /// When this is called for the first time, the service's ethereum address
     /// is also added to `service_addresses`.
     function setURL(string memory new_url) public {
+        require(is_service[msg.sender]);
         require(bytes(new_url).length != 0);
-        if (bytes(urls[msg.sender]).length == 0) {
-            service_addresses.push(msg.sender);
-        }
         urls[msg.sender] = new_url;
-    }
-
-    /// Returns number of registered services. Useful for accessing service_addresses.
-    function serviceCount() public view returns(uint) {
-        return service_addresses.length;
     }
 }
 

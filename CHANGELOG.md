@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Services cannot register themselves to ServiceRegistry anymore.  The owner can register them.
+
 ## [0.25.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.25.1) - 2019-07-03
 
 - [#1101](https://github.com/raiden-network/raiden-contracts/pull/1101) Add more gas measurements about CustomToken calls

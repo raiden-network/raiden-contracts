@@ -9,7 +9,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, MonitoringServiceEvent
-from raiden_contracts.tests.utils.constants import LOCKSROOT_OF_NO_LOCKS
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, LOCKSROOT_OF_NO_LOCKS
 
 REWARD_AMOUNT = 10
 
@@ -23,7 +23,9 @@ def ms_address(
     # register MS in the ServiceRegistry contract
     custom_token.functions.mint(50).call_and_transact({"from": ms})
     custom_token.functions.approve(service_registry.address, 20).call_and_transact({"from": ms})
-    service_registry.functions.deposit(20).call_and_transact({"from": ms})
+    service_registry.functions.add_service(ms).call_and_transact(
+        {"from": CONTRACT_DEPLOYER_ADDRESS}
+    )
 
     return ms
 
