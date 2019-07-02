@@ -26,6 +26,9 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
     doc = gas_measurements(version)
     keys = {
         "CustomToken.mint",
+        "CustomToken.approve",
+        "CustomToken.transfer",
+        "CustomToken.transferFrom",
         "MonitoringService.claimReward",
         "MonitoringService.monitor",
         "OneToN.claim",
@@ -364,12 +367,18 @@ def print_gas_user_deposit(
 
 
 @pytest.fixture
-def print_gas_token_mint(
+def print_gas_token(
     get_accounts: Callable, custom_token: Contract, print_gas: Callable
 ) -> None:
-    (A,) = get_accounts(1)
+    (A, B) = get_accounts(2)
     tx_hash = custom_token.functions.mint(100).call_and_transact({"from": A})
     print_gas(tx_hash, "CustomToken.mint")
+    tx_hash = custom_token.functions.transfer(B, 100).call_and_transact({"from": A})
+    print_gas(tx_hash, "CustomToken.transfer")
+    tx_hash = custom_token.functions.approve(A, 100).call_and_transact({"from": B})
+    print_gas(tx_hash, "CustomToken.approve")
+    tx_hash = custom_token.functions.transferFrom(B, A, 100).call_and_transact({"from": A})
+    print_gas(tx_hash, "CustomToken.transferFrom")
 
 
 # All gas printing is done in a single test. Otherwise, after a parallel
@@ -384,7 +393,7 @@ def print_gas_token_mint(
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
     "print_gas_user_deposit",
-    "print_gas_token_mint",
+    "print_gas_token",
 )
 def test_print_gas() -> None:
     pass
