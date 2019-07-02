@@ -230,7 +230,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,
         address participant,
-        uint256 amount_to_withdraw,
+        uint256 total_withdraw,
+        uint256 expiration_block,
         bytes memory signature
     )
         public
@@ -240,7 +241,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         return recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
-            amount_to_withdraw,
+            total_withdraw,
+            expiration_block,
             signature
         );
     }
