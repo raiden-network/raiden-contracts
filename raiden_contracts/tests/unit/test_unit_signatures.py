@@ -57,6 +57,12 @@ def test_recover_address_from_withdraw_message(
 
     assert recovered_address_A != wrong_signature
 
+    wrong_expiration = token_network.functions.recoverAddressFromWithdrawMessagePublic(
+        channel_identifier, A, withdraw_A, expiration_block + 3, signature_B
+    ).call()
+
+    assert recovered_address_A != wrong_expiration
+
 
 def test_recover_address_from_balance_proof(
     token_network_test_signatures: Contract, create_balance_proof: Callable, get_accounts: Callable

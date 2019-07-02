@@ -131,6 +131,33 @@ def test_withdraw_call(
     ).call_and_transact({"from": A})
 
 
+def test_withdraw_call_near_expiration(
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+    web3: Web3,
+) -> None:
+    """ setTotalWithdraw() succeeds when expiration_block is one block in the future """
+    (A, B) = get_accounts(2)
+    withdraw_A = 3
+    channel_identifier = create_channel_and_deposit(A, B, 10, 1)
+    expiration = web3.eth.blockNumber + 1
+
+    (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, withdraw_A, expiration
+    )
+
+    token_network.functions.setTotalWithdraw(
+        channel_identifier=channel_identifier,
+        participant=A,
+        total_withdraw=withdraw_A,
+        expiration_block=expiration,
+        participant_signature=signature_A_for_A,
+        partner_signature=signature_B_for_A,
+    ).call_and_transact({"from": A})
+
+
 def test_withdraw_wrong_state(
     web3: Web3,
     token_network: Contract,
@@ -229,6 +256,7 @@ def test_withdraw_wrong_signature_content(
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
+    web3: Web3,
 ) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 15
@@ -304,6 +332,19 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A,
             signature_B_for_A_fake3,
         ).call({"from": A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalWithdraw(
+            channel_identifier, A, withdraw_A, 0, signature_A_for_A, signature_B_for_A
+        ).call_and_transact({"from": A})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.setTotalWithdraw(
+            channel_identifier,
+            A,
+            withdraw_A,
+            web3.eth.blockNumber,
+            signature_A_for_A,
+            signature_B_for_A,
+        ).call_and_transact({"from": A})
 
     token_network.functions.setTotalWithdraw(
         channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
