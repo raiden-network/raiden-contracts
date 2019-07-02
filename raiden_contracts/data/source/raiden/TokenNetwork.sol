@@ -381,6 +381,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
+        uint256 expiration_block,
         bytes calldata participant_signature,
         bytes calldata partner_signature
     )
@@ -392,6 +393,7 @@ contract TokenNetwork is Utils {
         address partner;
 
         require(total_withdraw > 0);
+        require(block.number < expiration_block);
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -399,12 +401,14 @@ contract TokenNetwork is Utils {
             channel_identifier,
             participant,
             total_withdraw,
+            expiration_block,
             participant_signature
         ));
         partner = recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
             total_withdraw,
+            expiration_block,
             partner_signature
         );
 
@@ -1541,6 +1545,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
+        uint256 expiration_block,
         bytes memory signature
     )
         internal
@@ -1558,7 +1563,8 @@ contract TokenNetwork is Utils {
             uint256(MessageTypeId.Withdraw),
             channel_identifier,
             participant,
-            total_withdraw
+            total_withdraw,
+            expiration_block
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
