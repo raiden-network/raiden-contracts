@@ -92,7 +92,9 @@ def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
 @pytest.mark.slow
 @pytest.fixture(scope="session")
 def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
-    return deployer.deploy_raiden_contracts(max_num_of_token_networks=1)
+    return deployer.deploy_raiden_contracts(
+        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
+    )
 
 
 @pytest.mark.slow

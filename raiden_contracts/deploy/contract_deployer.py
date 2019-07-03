@@ -148,18 +148,19 @@ class ContractDeployer(ContractVerifier):
         }
 
         if reuse_secret_registry_from_deploy_file:
-            # FIXME: the following several lines duplicate a part of _verify_deployed_contract()
-            reused_doc = load_json_from_path(reuse_secret_registry_from_deploy_file)
+            reused_doc = DeployedContracts(  # type: ignore
+                load_json_from_path(reuse_secret_registry_from_deploy_file)
+            )
             if not reused_doc:
                 raise RuntimeError(
                     f"{reuse_secret_registry_from_deploy_file} does not contain deployment data."
                 )
             reused_contracts = reused_doc["contracts"]
-            reused_address = reused_contracts[CONTRACT_SECRET_REGISTRY]["address"]
-            secret_registry = self.web3.eth.contract(
-                abi=self.contract_manager.get_contract_abi(CONTRACT_SECRET_REGISTRY),
-                address=reused_address,
+
+            secret_registry = self.contract_instance_from_deployment_data(
+                reused_doc, CONTRACT_SECRET_REGISTRY
             )
+
             deployed_contracts["contracts"][CONTRACT_SECRET_REGISTRY] = deepcopy(
                 reused_contracts[CONTRACT_SECRET_REGISTRY]
             )
