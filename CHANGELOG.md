@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.25.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.25.1) - 2019-07-03
+
+- [#1101](https://github.com/raiden-network/raiden-contracts/pull/1101) Add more gas measurements about CustomToken calls
+
 ## [0.25.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.25.0) - 2019-07-03
 
 - [#1103](https://github.com/raiden-network/raiden-contracts/pull/1103) Add `expiration_block` argument to `TokenNetwork.setTotalWithdraw()`.
