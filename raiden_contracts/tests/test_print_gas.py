@@ -367,9 +367,7 @@ def print_gas_user_deposit(
 
 
 @pytest.fixture
-def print_gas_token(
-    get_accounts: Callable, custom_token: Contract, print_gas: Callable
-) -> None:
+def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: Callable) -> None:
     (A, B) = get_accounts(2)
     tx_hash = custom_token.functions.mint(100).call_and_transact({"from": A})
     print_gas(tx_hash, "CustomToken.mint")
