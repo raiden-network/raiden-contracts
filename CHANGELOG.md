@@ -7,8 +7,12 @@ Documents changes that result in:
 
 ## Unreleased
 
-- Add `expiration_block` argument to `TokenNetwork.setTotalWithdraw()`.
-- Remove `raiden_contracts.constants.GAS_REQUIRED_FOR*` constants. Use instead `raiden_contracts.contract_manager.gas_measurements()`.
+## [0.25.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.25.0) - 2019-07-03
+
+- [#1103](https://github.com/raiden-network/raiden-contracts/pull/1103) Add `expiration_block` argument to `TokenNetwork.setTotalWithdraw()`.
+- [#1099](https://github.com/raiden-network/raiden-contracts/pull/1099) Remove `raiden_contracts.constants.GAS_REQUIRED_FOR*` constants. Use instead `raiden_contracts.contract_manager.gas_measurements()`.
+- [#1079](https://github.com/raiden-network/raiden-contracts/pull/1079) Measure gas consumption of CustomToken.mint()
+- [#1050](https://github.com/raiden-network/raiden-contracts/pull/1050) MonitoringService.claimReward() returns a boolean as the signature says
 
 ## [0.24.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.24.0) - 2019-06-19
 
