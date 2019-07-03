@@ -1,7 +1,5 @@
 from typing import Callable
 
-import pytest
-from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
