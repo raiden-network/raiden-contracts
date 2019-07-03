@@ -39,12 +39,7 @@ def test_packed_transfer_0_items(token_network_test_utils: Contract) -> None:
     assert unlocked_amount == 0
 
 
-def test_0_item_unlockable(
-    web3: Web3,
-    get_accounts: Callable,
-    token_network_test_utils: Contract,
-    secret_registry_contract: Contract,
-) -> None:
+def test_0_item_unlockable(web3: Web3, token_network_test_utils: Contract) -> None:
     """ Test getHashRootAndUnlockedAmount() on zero items whose secret has been registered """
     pending_transfers_tree = get_pending_transfers_tree(
         web3=web3, unlockable_amounts=[], expired_amounts=[]
@@ -1121,11 +1116,7 @@ def test_unlock_twice_fails(
 
 
 def test_unlock_nothing(
-    web3: Web3,
-    token_network: Contract,
-    get_accounts: Callable,
-    create_settled_channel: Callable,
-    reveal_secrets: Callable,
+    web3: Web3, token_network: Contract, get_accounts: Callable, create_settled_channel: Callable
 ) -> None:
     """ unlock() should work on no pending locks """
     (A, B) = get_accounts(2)
