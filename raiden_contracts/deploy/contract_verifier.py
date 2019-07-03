@@ -158,12 +158,10 @@ class ContractVerifier:
 
         Returns: (onchain_instance, constructor_arguments)
         """
-        contracts = deployment_data["contracts"]
-
-        contract_address = contracts[contract_name]["address"]
-        contract_instance = self.web3.eth.contract(
-            abi=self.contract_manager.get_contract_abi(contract_name), address=contract_address
+        contract_instance = self.contract_instance_from_deployment_data(
+            deployment_data, contract_name
         )
+        contracts = deployment_data["contracts"]
 
         # Check blockchain transaction hash & block information
         receipt = self.web3.eth.getTransactionReceipt(contracts[contract_name]["transaction_hash"])
@@ -185,17 +183,27 @@ class ContractVerifier:
             )
 
         # Check that the deployed bytecode matches the precompiled data
-        blockchain_bytecode = self.web3.eth.getCode(contract_address).hex()
+        blockchain_bytecode = self.web3.eth.getCode(contract_instance.address).hex()
         compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
         if blockchain_bytecode == compiled_bytecode:
             print(
-                f"{contract_name} at {contract_address} "
+                f"{contract_name} at {contract_instance.address} "
                 f"matches the compiled data from contracts.json"
             )
         else:
-            raise RuntimeError(f"{contract_name} at {contract_address} has wrong code")
+            raise RuntimeError(f"{contract_name} at {contract_instance.address} has wrong code")
 
         return contract_instance, contracts[contract_name]["constructor_arguments"]
+
+    def contract_instance_from_deployment_data(
+        self, deployment_data: DeployedContracts, contract_name: str
+    ) -> Contract:
+        contracts = deployment_data["contracts"]
+        contract_address = contracts[contract_name]["address"]
+        contract_instance = self.web3.eth.contract(
+            abi=self.contract_manager.get_contract_abi(contract_name), address=contract_address
+        )
+        return contract_instance
 
     def verify_service_contracts_deployment_data(
         self,
