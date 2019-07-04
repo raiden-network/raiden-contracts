@@ -8,6 +8,7 @@ from web3.contract import Contract, get_event_data
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
+    EVENT_DEPRECATION_SWITCH,
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
@@ -90,7 +91,9 @@ def test_deprecation_executor(
     assert token_network.functions.deprecation_executor().call() == deprecation_executor
 
 
-def test_set_deprecation_switch(get_accounts: Callable, token_network: Contract) -> None:
+def test_set_deprecation_switch(
+    get_accounts: Callable, token_network: Contract, web3: Web3, contracts_manager: ContractManager
+) -> None:
     """ The deprecation executor deprecates a TokenNetwork contract """
     (A) = get_accounts(1)[0]
     deprecation_executor = token_network.functions.deprecation_executor().call()
@@ -100,8 +103,12 @@ def test_set_deprecation_switch(get_accounts: Callable, token_network: Contract)
     with pytest.raises(TransactionFailed):
         token_network.functions.deprecate().call({"from": A})
 
-    token_network.functions.deprecate().call_and_transact({"from": deprecation_executor})
+    tx = token_network.functions.deprecate().call_and_transact({"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
+    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
+    event_data = get_event_data(event_abi, tx_receipt["logs"][0])
+    assert event_data["args"]["new_value"]
 
     # We should not be able to call it again
     with pytest.raises(TransactionFailed):
