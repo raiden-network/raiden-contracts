@@ -137,6 +137,9 @@ contract TokenNetwork is Utils {
         uint256 total_deposit
     );
 
+    // Fires when the deprecation_switch's value changes
+    event DeprecationSwitch(bool new_value);
+
     // total_withdraw is how much the participant has withdrawn during the
     // lifetime of the channel. The actual amount which the participant withdrew
     // is `total_withdraw - total_withdraw_from_previous_event_or_zero`
@@ -247,6 +250,7 @@ contract TokenNetwork is Utils {
 
     function deprecate() public isSafe onlyDeprecationExecutor {
         safety_deprecation_switch = true;
+        emit DeprecationSwitch(safety_deprecation_switch);
     }
 
     /// @notice Opens a new channel between `participant1` and `participant2`.

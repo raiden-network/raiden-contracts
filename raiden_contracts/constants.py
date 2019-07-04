@@ -37,6 +37,9 @@ MAX_ETH_TOKEN_NETWORK = int(250 * 10 ** 18)
 # TokenNetworkRegistry
 EVENT_TOKEN_NETWORK_CREATED = "TokenNetworkCreated"
 
+# TokenNetwork
+EVENT_DEPRECATION_SWITCH = "DeprecationSwitch"
+
 # SecretRegistry
 EVENT_SECRET_REVEALED = "SecretRevealed"
 
