@@ -3,33 +3,86 @@ pragma solidity 0.5.4;
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
+contract Deposit {
+    Token public token;
+    address public owner;
+    uint256 public release_at;
+
+    constructor(address _token, uint256 _release_at, address _owner) {
+        token = Token(_token);
+        // Don't care even if it's in the past.
+        release_at = _release_at;
+        owner = _owner;
+    }
+
+    function deposit(uint256 _amount) {
+        require(token.transferFrom(msg.sender, address(this), _amount));
+    }
+
+    function withdraw(address _to) {
+        sent_amount = token.balanceOf(address(this));
+        require(msg.sender == owner);
+        require(now >= release_at);
+        require(sent_amount > 0);
+        require(token.transfer(_to, sent_amount));
+    }
+}
+
+
 contract ServiceRegistry is Utils {
     Token public token;
     address public owner;
 
-    mapping(address => uint256) public deposits;  // token amount staked by the service provider
+    uint256 public last_price;
+    uint256 public last_price_at;
+
+    mapping(address => uint256) public service_valid_till;
+
+
     mapping(address => string) public urls;  // URLs of services for HTTP access
-    address[] public service_addresses;  // list of available services (ethereum addresses)
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
-    constructor(address _token_for_registration) public {
+    constructor(address _token_for_registration, uint256 _initial_price) public {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
+        require(_initial_price >= 100, "initial price too low");
 
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "total supply zero");
         owner = msg.sender;
+
+        // Set up the last price and the last price timestamp
+        last_price = _initial_price;
+        last_price_at = now;
     }
 
-    function deposit(uint amount) public {
-        require(amount > 0);
+    function deposit(uint _limit_amount) public {
+        uint256 amount = current_price();
+        require(_limit_amount >= amount);
 
-        // This also allows for MSs to deposit and use other MSs
-        deposits[msg.sender] += amount;
-
-        // Transfer the deposit to the smart contract
+        // Move the deposit in a new Deposit contract.
         require(token.transferFrom(msg.sender, address(this), amount), "tokens did not transfer");
+        Deposit depo = new Deposit(token, amount);
+        require(token.approve(depo, amount));
+        require(depo.deposit(required));
+
+        // Extend the service position.
+        valid_till = service_valid_till[msg.sender];
+        if (valid_till < now) {
+            valid_till = now;
+        }
+        valid_till = valid_till + 180 days;
+        // Check against overflow.
+        require(valid_till > service_valid_till[msg.sender]);
+        service_valid_till[msg.sender] = valid_till;
+
+        // Record the price
+        last_price = amount;
+        last_price_at = now;
+
+        // fire event
+        emit Deposit(valid_till, amount, msg.sender);
     }
 
     /// Set the URL used to access a service via HTTP.
@@ -46,6 +99,44 @@ contract ServiceRegistry is Utils {
     /// Returns number of registered services. Useful for accessing service_addresses.
     function serviceCount() public view returns(uint) {
         return service_addresses.length;
+    }
+
+    uint constant half_time = 11977583; // Maybe make this configurable?
+
+    function current_price() view returns (uint256) {
+        // The price increased for the last event.
+        uint256 price = last_price * 6 / 5; // Maybe make this configurable too?
+        require(now >= last_price_at);
+        uint256 passed_time = now - last_price_at;
+
+        // We are here trying to approximate some exponential decay.
+        // exp(- X / A) where
+        //   X is the number of seconds since the last price change
+        //   A is the decay constant.
+
+        // The price halves half_time seconds.
+        uint256 halves = passed_time / half_time;
+        price = price >> halves;
+        passed_time = passed_time mod half_time;
+
+        // exp(- X / A) ~~ P / Q where
+        //   P = 24 A^4
+        //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
+        // Note: swap P and Q, and then think about the Taylor expansion.
+
+        uint256 A = half_time * 144269504 / 100000000;  // ln and log.
+        uint256 P = 24 * (A ** 4);
+        uint256 Q = P + 24 * (A**3) * X + 12 * (A**2) * (X**2) + 4*A*(X**3) + X **4;
+
+        price = price * P / Q;
+
+        // Not allowing a price smaller than 1000.
+        // Once it's too low it's too low forever.
+        if (price < 1000) {  // Maybe make this configurable too?
+            price = 1000;
+        }
+
+        return price;
     }
 }
 
