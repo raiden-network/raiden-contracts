@@ -117,7 +117,7 @@ contract ServiceRegistry is Utils {
             return min_price;
         }
         uint256 P = 24 * (A ** 4);
-        uint256 Q = P + 24 * (A**3) * X + 12 * (A**2) * (X**2) + 4*A*(X**3) + X **4;
+        uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
 
         price = price * P / Q;
 
