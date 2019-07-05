@@ -183,40 +183,40 @@ def test_deposit_channel_state(
 ) -> None:
     """ Observe how setTotalDeposit() changes the results of getChannelParticipantInfo() """
     (A, B) = get_accounts(2)
-    deposit_A = 10
-    deposit_B = 15
+    A_planned_deposit = 10
+    B_planned_deposit = 15
 
     channel_identifier = create_channel(A, B)[0]
 
-    A_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[
-        0
-    ]
-    assert A_deposit == 0
+    A_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()[0]
+    assert A_onchain_deposit == 0
 
-    B_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[
-        0
-    ]
-    assert B_deposit == 0
+    B_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()[0]
+    assert B_onchain_deposit == 0
 
-    channel_deposit(channel_identifier, A, deposit_A, B)
-    A_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[
-        0
-    ]
-    assert A_deposit == deposit_A
-    B_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[
-        0
-    ]
-    assert B_deposit == 0
+    channel_deposit(channel_identifier, A, A_planned_deposit, B)
+    A_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()[0]
+    assert A_onchain_deposit == A_planned_deposit
+    B_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()[0]
+    assert B_onchain_deposit == 0
 
-    channel_deposit(channel_identifier, B, deposit_B, A)
-    A_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[
-        0
-    ]
-    assert A_deposit == deposit_A
-    B_deposit = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[
-        0
-    ]
-    assert B_deposit == deposit_B
+    channel_deposit(channel_identifier, B, B_planned_deposit, A)
+    A_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()[0]
+    assert A_onchain_deposit == A_planned_deposit
+    B_onchain_deposit = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()[0]
+    assert B_onchain_deposit == B_planned_deposit
 
 
 def test_deposit_wrong_state_fail(
