@@ -1115,7 +1115,7 @@ def test_unlock_twice_fails(
         ).call({"from": A})
 
 
-def test_unlock_nothing(
+def test_unlock_no_locks(
     web3: Web3, token_network: Contract, get_accounts: Callable, create_settled_channel: Callable
 ) -> None:
     """ unlock() should work on no pending locks """
@@ -1123,7 +1123,7 @@ def test_unlock_nothing(
     settle_timeout = 8
 
     # Mock pending transfers data
-    pending_transfers_tree_1 = get_pending_transfers_tree(
+    pending_transfers_tree = get_pending_transfers_tree(
         web3=web3,
         unlockable_amounts=[],
         expired_amounts=[2, 4],
@@ -1133,21 +1133,21 @@ def test_unlock_nothing(
     # Settle the channel
     channel_identifier = create_settled_channel(
         A,
-        pending_transfers_tree_1.locked_amount,
-        pending_transfers_tree_1.hash_of_packed_transfers,
+        pending_transfers_tree.locked_amount,
+        pending_transfers_tree.hash_of_packed_transfers,
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
         settle_timeout,
     )
     token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+        channel_identifier, B, A, pending_transfers_tree.packed_transfers
     ).call_and_transact({"from": A})
 
     # Calling unlock twice does not work
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(
-            channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
         ).call({"from": A})
 
 
