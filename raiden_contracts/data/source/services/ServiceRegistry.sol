@@ -37,8 +37,6 @@ contract ServiceRegistry is Utils {
     uint256 public last_price_at;
 
     mapping(address => uint256) public service_valid_till;
-
-
     mapping(address => string) public urls;  // URLs of services for HTTP access
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
@@ -69,12 +67,14 @@ contract ServiceRegistry is Utils {
 
         // Extend the service position.
         valid_till = service_valid_till[msg.sender];
-        if (valid_till < now) {
+        if (valid_till < now) { // first time joiner or expired service.
             valid_till = now;
         }
         valid_till = valid_till + 180 days;
         // Check against overflow.
-        require(valid_till > service_valid_till[msg.sender]);
+        require(valid_till < valid_till + 6 month)
+        valid_till = valid_till + 6 month;
+        assert(valid_till > service_valid_till[msg.sender]);
         service_valid_till[msg.sender] = valid_till;
 
         // Record the price
@@ -82,49 +82,40 @@ contract ServiceRegistry is Utils {
         last_price_at = now;
 
         // fire event
-        emit Deposit(valid_till, amount, msg.sender);
+        emit Deposit(valid_till, amount, msg.sender, depo);
     }
 
     /// Set the URL used to access a service via HTTP.
     /// When this is called for the first time, the service's ethereum address
     /// is also added to `service_addresses`.
     function setURL(string memory new_url) public {
+        require(now < service_valid_till[msg.sender]);
         require(bytes(new_url).length != 0, "new url is empty string");
-        if (bytes(urls[msg.sender]).length == 0) {
-            service_addresses.push(msg.sender);
-        }
         urls[msg.sender] = new_url;
     }
 
-    /// Returns number of registered services. Useful for accessing service_addresses.
-    function serviceCount() public view returns(uint) {
-        return service_addresses.length;
-    }
-
-    uint constant half_time = 11977583; // Maybe make this configurable?
+    uint constant decay_constant = 200 days; // Maybe make this configurable?
 
     function current_price() view returns (uint256) {
         // The price increased for the last event.
         uint256 price = last_price * 6 / 5; // Maybe make this configurable too?
-        require(now >= last_price_at);
-        uint256 passed_time = now - last_price_at;
 
         // We are here trying to approximate some exponential decay.
         // exp(- X / A) where
         //   X is the number of seconds since the last price change
-        //   A is the decay constant.
-
-        // The price halves half_time seconds.
-        uint256 halves = passed_time / half_time;
-        price = price >> halves;
-        passed_time = passed_time mod half_time;
+        //   A is the decay constant (A = 200 days correspnods to 0.5% decrease per day)
 
         // exp(- X / A) ~~ P / Q where
         //   P = 24 A^4
         //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
         // Note: swap P and Q, and then think about the Taylor expansion.
 
-        uint256 A = half_time * 144269504 / 100000000;  // ln and log.
+        uint256 A = decay_constant;  // ln and log.
+        require(now >= last_price_at);
+        uint256 X = now - last_price_at;
+        if (X >= 2 ** 64) { // The computation below overflows.
+            return min_price;
+        }
         uint256 P = 24 * (A ** 4);
         uint256 Q = P + 24 * (A**3) * X + 12 * (A**2) * (X**2) + 4*A*(X**3) + X **4;
 
@@ -132,8 +123,8 @@ contract ServiceRegistry is Utils {
 
         // Not allowing a price smaller than 1000.
         // Once it's too low it's too low forever.
-        if (price < 1000) {  // Maybe make this configurable too?
-            price = 1000;
+        if (price < min_price) {  // Maybe make this configurable too?
+            price = min_price;
         }
 
         return price;
