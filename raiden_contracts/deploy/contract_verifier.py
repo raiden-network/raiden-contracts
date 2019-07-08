@@ -136,7 +136,8 @@ class ContractVerifier:
             raise RuntimeError(
                 "TokenNetwork's constructor received a different SecretRegistry address."
             )
-        assert token_network_registry.functions.chain_id().call() == constructor_arguments[1]
+        if token_network_registry.functions.chain_id().call() != constructor_arguments[1]:
+            raise RuntimeError("TokenNetwork remembers a wrong chain_id.")
         assert (
             token_network_registry.functions.settlement_timeout_min().call()
             == constructor_arguments[2]
