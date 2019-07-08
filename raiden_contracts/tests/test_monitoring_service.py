@@ -13,6 +13,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     MonitoringServiceEvent,
 )
+from raiden_contracts.tests.utils import SERVICE_DEPOSIT
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -25,9 +26,11 @@ def ms_address(
     (ms,) = get_accounts(1)
 
     # register MS in the ServiceRegistry contract
-    custom_token.functions.mint(50).call_and_transact({"from": ms})
-    custom_token.functions.approve(service_registry.address, 20).call_and_transact({"from": ms})
-    service_registry.functions.deposit(20).call_and_transact({"from": ms})
+    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": ms})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+        {"from": ms}
+    )
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": ms})
 
     return ms
 
