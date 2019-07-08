@@ -13,12 +13,12 @@ contract ServiceRegistry is Utils {
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
     constructor(address _token_for_registration) public {
-        require(_token_for_registration != address(0x0));
-        require(contractExists(_token_for_registration));
+        require(_token_for_registration != address(0x0), "token at address zero");
+        require(contractExists(_token_for_registration), "token has no code");
 
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0, "total supply zero");
         owner = msg.sender;
     }
 
@@ -29,14 +29,14 @@ contract ServiceRegistry is Utils {
         deposits[msg.sender] += amount;
 
         // Transfer the deposit to the smart contract
-        require(token.transferFrom(msg.sender, address(this), amount));
+        require(token.transferFrom(msg.sender, address(this), amount), "tokens did not transfer");
     }
 
     /// Set the URL used to access a service via HTTP.
     /// When this is called for the first time, the service's ethereum address
     /// is also added to `service_addresses`.
     function setURL(string memory new_url) public {
-        require(bytes(new_url).length != 0);
+        require(bytes(new_url).length != 0, "new url is empty string");
         if (bytes(urls[msg.sender]).length == 0) {
             service_addresses.push(msg.sender);
         }

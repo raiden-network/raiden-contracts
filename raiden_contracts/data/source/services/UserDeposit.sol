@@ -45,7 +45,7 @@ contract UserDeposit is Utils {
      */
 
     modifier canTransfer() {
-        require(msg.sender == msc_address || msg.sender == one_to_n_address);
+        require(msg.sender == msc_address || msg.sender == one_to_n_address, "unknown caller");
         _;
     }
 
@@ -59,12 +59,12 @@ contract UserDeposit is Utils {
         public
     {
         // check token contract
-        require(_token_address != address(0x0));
-        require(contractExists(_token_address));
+        require(_token_address != address(0x0), "token at address zero");
+        require(contractExists(_token_address), "token has no code");
         token = Token(_token_address);
-        require(token.totalSupply() > 0); // Check if the contract is indeed a token contract
+        require(token.totalSupply() > 0, "token has no total supply"); // Check if the contract is indeed a token contract
         // check and set the whole balance limit
-        require(_whole_balance_limit > 0);
+        require(_whole_balance_limit > 0, "whole balance limit is zero");
         whole_balance_limit = _whole_balance_limit;
     }
 
@@ -76,16 +76,16 @@ contract UserDeposit is Utils {
         external
     {
         // prevent changes of trusted contracts after initialization
-        require(msc_address == address(0x0) && one_to_n_address == address(0x0));
+        require(msc_address == address(0x0) && one_to_n_address == address(0x0), "already initialized");
 
         // check monitoring service contract
-        require(_msc_address != address(0x0));
-        require(contractExists(_msc_address));
+        require(_msc_address != address(0x0), "MS contract at address zero");
+        require(contractExists(_msc_address), "MS contract has no code");
         msc_address = _msc_address;
 
         // check one to n contract
-        require(_one_to_n_address != address(0x0));
-        require(contractExists(_one_to_n_address));
+        require(_one_to_n_address != address(0x0), "OneToN at address zero");
+        require(contractExists(_one_to_n_address), "OneToN has no code");
         one_to_n_address = _one_to_n_address;
     }
 
@@ -99,7 +99,7 @@ contract UserDeposit is Utils {
     function deposit(address beneficiary, uint256 new_total_deposit)
         external
     {
-        require(new_total_deposit > total_deposit[beneficiary]);
+        require(new_total_deposit > total_deposit[beneficiary], "deposit not increasing");
 
         // Calculate the actual amount of tokens that will be transferred
         uint256 added_deposit = new_total_deposit - total_deposit[beneficiary];
@@ -108,14 +108,14 @@ contract UserDeposit is Utils {
         total_deposit[beneficiary] += added_deposit;
 
         // Update whole_balance, but take care against overflows.
-        require(whole_balance + added_deposit >= whole_balance);
+        require(whole_balance + added_deposit >= whole_balance, "overflowing deposit");
         whole_balance += added_deposit;
 
         // Decline deposit if the whole balance is bigger than the limit.
-        require(whole_balance <= whole_balance_limit);
+        require(whole_balance <= whole_balance_limit, "too much deposit");
 
         // Actual transfer.
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
+        require(token.transferFrom(msg.sender, address(this), added_deposit), "tokens didn't transfer");
     }
 
     /// @notice Internally transfer deposits between two addresses.
@@ -133,7 +133,7 @@ contract UserDeposit is Utils {
         external
         returns (bool success)
     {
-        require(sender != receiver);
+        require(sender != receiver, "sender == receiver");
         if (balances[sender] >= amount && amount > 0) {
             balances[sender] -= amount;
             balances[receiver] += amount;
@@ -151,8 +151,8 @@ contract UserDeposit is Utils {
     function planWithdraw(uint256 amount)
         external
     {
-        require(amount > 0);
-        require(balances[msg.sender] >= amount);
+        require(amount > 0, "withdrawing zero");
+        require(balances[msg.sender] >= amount, "withdrawing too much");
 
         withdraw_plans[msg.sender] = WithdrawPlan({
             amount: amount,
@@ -171,19 +171,19 @@ contract UserDeposit is Utils {
         external
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
-        require(amount <= withdraw_plan.amount);
-        require(withdraw_plan.withdraw_block <= block.number);
+        require(amount <= withdraw_plan.amount, "withdrawing more than planned");
+        require(withdraw_plan.withdraw_block <= block.number, "withdrawing too early");
         uint256 withdrawable = min(amount, balances[msg.sender]);
         balances[msg.sender] -= withdrawable;
 
         // Update whole_balance, but take care against underflows.
-        require(whole_balance - withdrawable <= whole_balance);
+        require(whole_balance - withdrawable <= whole_balance, "underflow in whole_balance");
         whole_balance -= withdrawable;
 
         emit BalanceReduced(msg.sender, balances[msg.sender]);
         delete withdraw_plans[msg.sender];
 
-        require(token.transfer(msg.sender, withdrawable));
+        require(token.transfer(msg.sender, withdrawable), "tokens didn't transfer");
     }
 
     /// @notice The owner's balance with planned withdrawals deducted

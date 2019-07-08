@@ -65,18 +65,18 @@ contract MonitoringService is Utils {
     )
         public
     {
-        require(_token_address != address(0x0));
-        require(_service_registry_address != address(0x0));
-        require(_udc_address != address(0x0));
-        require(contractExists(_token_address));
-        require(contractExists(_service_registry_address));
-        require(contractExists(_udc_address));
+        require(_token_address != address(0x0), "Token at address zero?");
+        require(_service_registry_address != address(0x0), "ServiceRegistry at address zero?");
+        require(_udc_address != address(0x0), "UDC at address zero?");
+        require(contractExists(_token_address), "token has no code");
+        require(contractExists(_service_registry_address), "ServiceRegistry has no code");
+        require(contractExists(_udc_address), "UDC has no code");
 
         token = Token(_token_address);
         service_registry = ServiceRegistry(_service_registry_address);
         user_deposit = UserDeposit(_udc_address);
         // Check if the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0, "Token with zero total supply");
         // Check if the contract is indeed a service_registry contract
         // TODO: Check that some function exists in the contract
     }
@@ -129,7 +129,7 @@ contract MonitoringService is Utils {
         Reward storage reward = rewards[reward_identifier];
 
         // Only allow BPs with higher nonce to be submitted
-        require(reward.nonce < nonce);
+        require(reward.nonce < nonce, "stale nonce");
 
         // MSC stores channel_identifier, MS_address, reward_amount, nonce
         // of the MS that provided the balance_proof with highest nonce
@@ -185,7 +185,7 @@ contract MonitoringService is Utils {
         require(isAllowedToMonitor(
             token_network, channel_identifier,
             closing_participant, non_closing_participant, msg.sender
-        ));
+        ), "not allowed to monitor");
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
@@ -224,12 +224,12 @@ contract MonitoringService is Utils {
         (settle_block_number, channel_state) = token_network.getChannelInfo(
             channel_identifier, closing_participant, non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Closed);
+        require(channel_state == TokenNetwork.ChannelState.Closed, "not closed");
 
         // We don't actually know when the channel has been closed. So we'll
         // make a guess so that assumed_close_block >= real_close_block.
         uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
-        require(settle_block_number >= assumed_settle_timeout);
+        require(settle_block_number >= assumed_settle_timeout, "weird settle block number");
         uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
         return block.number >= firstBlockAllowedToMonitor(
             assumed_close_block,
@@ -251,8 +251,8 @@ contract MonitoringService is Utils {
         returns (uint256)
     {
         // avoid overflows when multiplying with percentages
-        require(settle_timeout < uint256(2**256 - 1) / 100);
-        require(closed_at_block < uint256(2**256 - 1) / 100);
+        require(settle_timeout < uint256(2**256 - 1) / 100, "maliciously big settle timeout");
+        require(closed_at_block < uint256(2**256 - 1) / 100, "maliciously big closed_at_block");
 
         // First allowed block as percentage of settle_timeout. We're using
         // integers here to avoid accuracy loss during calculations.
@@ -305,20 +305,20 @@ contract MonitoringService is Utils {
         );
         require(channel_state == TokenNetwork.ChannelState.Closed ||
             channel_state == TokenNetwork.ChannelState.Settled ||
-            channel_state == TokenNetwork.ChannelState.Removed);
-        require(settle_block_number < block.number);
+            channel_state == TokenNetwork.ChannelState.Removed, "too early channel state");
+        require(settle_block_number < block.number, "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];
 
         // Make sure that the Reward exists
-        require(reward.reward_sender_address != address(0x0));
+        require(reward.reward_sender_address != address(0x0), "reward_sender is zero");
 
         // Add reward to the monitoring service's balance
         require(user_deposit.transfer(
             reward.reward_sender_address,
             reward.monitoring_service_address,
             reward.reward_amount
-        ));
+        ), "UDC did not transfer");
 
         emit RewardClaimed(
             reward.monitoring_service_address,
