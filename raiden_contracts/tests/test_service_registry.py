@@ -1,9 +1,12 @@
 from typing import Callable
 
 import pytest
+import web3
 from eth_tester.exceptions import TransactionFailed
-from web3.contract import Contract
+from web3.contract import Contract, get_event_data
 
+from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE
+from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, SERVICE_DEPOSIT
 
 
@@ -34,7 +37,10 @@ def test_deposit(
 
 
 def test_setURL(
-    custom_token: Contract, service_registry: Contract, get_accounts: Callable
+    custom_token: Contract,
+    service_registry: Contract,
+    get_accounts: Callable,
+    contract_manager: ContractManager,
 ) -> None:
     (A,) = get_accounts(1)
     url1 = "http://example.com"
@@ -44,7 +50,12 @@ def test_setURL(
     custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
         {"from": A}
     )
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    tx = service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
+    event_data = get_event_data(event_abi, tx_receipt["logs"][0])
+    assert event_data["args"][0] == A
+    assert event_data["args"][3]
 
     service_registry.functions.setURL(url1).call_and_transact({"from": A})
     assert service_registry.functions.urls(A).call() == url1
