@@ -27,7 +27,10 @@ from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
-from raiden_contracts.utils.versions import contracts_version_expects_deposit_limits
+from raiden_contracts.utils.versions import (
+    contracts_version_expects_deposit_limits,
+    contracts_version_has_initial_service_deposit,
+)
 
 LOG = getLogger(__name__)
 
@@ -309,6 +312,11 @@ class ContractDeployer(ContractVerifier):
         initial_service_deposit: int,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
+        if not contracts_version_has_initial_service_deposit(
+            self.contract_manager.contracts_version
+        ):
+            raise RuntimeError("Deployment of older service contracts is not suppported.")
+
         chain_id = int(self.web3.version.network)
         deployed_contracts: DeployedContracts = {
             "contracts_version": self.contract_manager.contracts_version,

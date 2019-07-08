@@ -33,3 +33,14 @@ def contracts_version_provides_services(version: Optional[str]) -> bool:
     if version == "0.8.0_unlimited":
         return True
     return compare(version, "0.8.0") >= 0
+
+
+def contracts_version_has_initial_service_deposit(version: Optional[str]) -> bool:
+    if version is None:
+        # contracts_versoin == None means the stock version in development.
+        return True
+    if version == "0.3._":
+        return False
+    if version == "0.8.0_unlimited":
+        return False
+    return compare(version, "0.18.0") > 0
