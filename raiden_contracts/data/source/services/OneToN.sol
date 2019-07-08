@@ -68,8 +68,8 @@ contract OneToN is Utils {
         public
         returns (uint)
     {
-        require(one_to_n_address == address(this));
-        require(block.number <= expiration_block);
+        require(one_to_n_address == address(this), "IOU for another OneToN address");
+        require(block.number <= expiration_block, "IOU expired");
 
         // validate signature
         address addressFromSignature = recoverAddressFromSignature(
@@ -81,11 +81,11 @@ contract OneToN is Utils {
             chain_id,
             signature
         );
-        require(addressFromSignature == sender);
+        require(addressFromSignature == sender, "Signature mismatch");
 
         // must not be claimed before
         bytes32 _key = keccak256(abi.encodePacked(receiver, sender, expiration_block));
-        require(settled_sessions[_key] == 0);
+        require(settled_sessions[_key] == 0, "Already settled session");
 
         // claim as much as possible
         uint256 transferable = min(amount, deposit_contract.balances(sender));
@@ -96,7 +96,7 @@ contract OneToN is Utils {
             emit Claimed(sender, receiver, expiration_block, transferable);
 
             // event SessionSettled(_key, expiration_block);
-            require(deposit_contract.transfer(sender, receiver, transferable));
+            require(deposit_contract.transfer(sender, receiver, transferable), "deposit did not transfer");
         }
         return transferable;
     }
