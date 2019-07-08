@@ -4,7 +4,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, SERVICE_DEPOSIT
 
 
 def test_owner_of_service_registry(service_registry: Contract) -> None:
@@ -16,15 +16,15 @@ def test_deposit(
     service_registry: Contract, custom_token: Contract, get_accounts: Callable
 ) -> None:
     (A,) = get_accounts(1)
-    custom_token.functions.mint(5000 * (10 ** 18)).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, 5000 * (10 ** 18)).call_and_transact(
+    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
         {"from": A}
     )
 
     # happy path
     old_balance = custom_token.functions.balanceOf(A).call()
     old_price = service_registry.functions.current_price().call()
-    service_registry.functions.deposit(5000 * (10 ** 18)).call_and_transact({"from": A})
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     assert old_balance > custom_token.functions.balanceOf(A).call() > old_balance - old_price
     assert service_registry.functions.current_price().call() > old_price
 
@@ -40,11 +40,11 @@ def test_setURL(
     url1 = "http://example.com"
     url2 = "http://raiden.example.com"
 
-    custom_token.functions.mint(5000 * (10 ** 18)).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, 5000 * (10 ** 18)).call_and_transact(
+    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
         {"from": A}
     )
-    service_registry.functions.deposit(5000 * (10 ** 18)).call_and_transact({"from": A})
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
 
     service_registry.functions.setURL(url1).call_and_transact({"from": A})
     assert service_registry.functions.urls(A).call() == url1
