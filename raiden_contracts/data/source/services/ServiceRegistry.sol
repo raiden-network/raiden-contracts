@@ -60,7 +60,7 @@ contract ServiceRegistry is Utils {
 
     function deposit(uint _limit_amount) public {
         uint256 amount = current_price();
-        require(_limit_amount >= amount);
+        require(_limit_amount >= amount, "not enough limit");
 
         // Extend the service position.
         uint256 valid_till = service_valid_till[msg.sender];
