@@ -5,14 +5,14 @@ import "raiden/Utils.sol";
 
 contract Deposit {
     Token public token;
-    address public owner;
+    address public withdrawer;
     uint256 public release_at;
 
     constructor(address _token, uint256 _release_at, address _withdrawer) public {
         token = Token(_token);
         // Don't care even if it's in the past.
         release_at = _release_at;
-        owner = _withdrawer;
+        withdrawer = _withdrawer;
     }
 
     function deposit(uint256 _amount) external returns (bool success) {
@@ -22,7 +22,7 @@ contract Deposit {
 
     function withdraw(address _to) external {
         uint256 sent_amount = token.balanceOf(address(this));
-        require(msg.sender == owner);
+        require(msg.sender == withdrawer);
         require(now >= release_at);
         require(sent_amount > 0);
         require(token.transfer(_to, sent_amount));
