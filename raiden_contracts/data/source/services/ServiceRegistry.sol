@@ -20,12 +20,13 @@ contract Deposit {
         return true;
     }
 
-    function withdraw(address _to) external {
+    function withdraw(address _to) external returns (bool success) {
         uint256 sent_amount = token.balanceOf(address(this));
         require(msg.sender == withdrawer);
         require(now >= release_at);
         require(sent_amount > 0);
         require(token.transfer(_to, sent_amount));
+        return true;
     }
 }
 
@@ -34,8 +35,13 @@ contract ServiceRegistry is Utils {
     Token public token;
     address public owner;
 
-    uint256 public last_price;
-    uint256 public last_price_at;
+    // After a price is set to set_price at timestamp set_price_at,
+    // the price decays according to decayed_price().
+    uint256 public set_price;
+    uint256 public set_price_at;
+
+    // Once the price is too low, 20% increase cannot not move the price upwards.
+    uint256 constant min_price = 1000;
 
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
@@ -46,16 +52,16 @@ contract ServiceRegistry is Utils {
     constructor(address _token_for_registration, uint256 _initial_price) public {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
-        require(_initial_price >= 100, "initial price too low");
+        require(_initial_price >= min_price, "initial price too low");
 
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "total supply zero");
         owner = msg.sender;
 
-        // Set up the last price and the last price timestamp
-        last_price = _initial_price;
-        last_price_at = now;
+        // Set up the price and the set price timestamp
+        set_price = _initial_price;
+        set_price_at = now;
     }
 
     function deposit(uint _limit_amount) public {
@@ -75,8 +81,8 @@ contract ServiceRegistry is Utils {
         service_valid_till[msg.sender] = valid_till;
 
         // Record the price
-        last_price = amount;
-        last_price_at = now;
+        set_price = amount * 6 / 5;
+        set_price_at = now;
 
         // Move the deposit in a new Deposit contract.
         require(token.transferFrom(msg.sender, address(this), amount));
@@ -113,7 +119,6 @@ contract ServiceRegistry is Utils {
 
         uint256 X = time_passed;
 
-        uint256 min_price = 1000;
         if (X >= 2 ** 64) { // The computation below overflows.
             return min_price;
         }
@@ -135,12 +140,10 @@ contract ServiceRegistry is Utils {
     }
 
     function current_price() public view returns (uint256) {
-        // The price increased for the last event.
-        uint256 price = last_price * 6 / 5; // Maybe make this configurable too?
-        require(now >= last_price_at);
-        uint256 passed = now - last_price_at;
+        require(now >= set_price_at);
+        uint256 passed = now - set_price_at;
 
-        return decayed_price(price, passed);
+        return decayed_price(set_price, passed);
     }
 }
 

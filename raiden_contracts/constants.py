@@ -51,6 +51,9 @@ EVENT_SECRET_REVEALED = "SecretRevealed"
 # EndpointRegistry
 EVENT_ADDRESS_REGISTERED = "AddressRegistered"
 
+# ServiceRegistry
+EVENT_REGISTERED_SERVICE = "RegisteredService"
+
 
 class ChannelEvent(str, Enum):
     OPENED = "ChannelOpened"
