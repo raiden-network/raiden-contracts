@@ -355,7 +355,7 @@ def _verify_service_registry_deployment(
             f"but the constructor argument for {CONTRACT_SERVICE_REGISTRY} is "
             f"{constructor_arguments[0]}"
         )
-    if len(constructor_arguments) != 1:
+    if len(constructor_arguments) != 2:
         raise RuntimeError(
             "service_registry was deployed with a wrong number of constructor arguments"
         )

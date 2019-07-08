@@ -15,7 +15,11 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import gas_measurements
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.constants import (
+    CONTRACT_DEPLOYER_ADDRESS,
+    SERVICE_DEPOSIT,
+    UINT256_MAX,
+)
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
 
@@ -247,9 +251,11 @@ def print_gas_monitoring_service(
     deposit_to_udc(B, reward_amount)
 
     # register MS in the ServiceRegistry contract
-    custom_token.functions.mint(50).call_and_transact({"from": MS})
-    custom_token.functions.approve(service_registry.address, 20).call_and_transact({"from": MS})
-    service_registry.functions.deposit(20).call_and_transact({"from": MS})
+    custom_token.functions.mint(SERVICE_DEPOSIT * 2).call_and_transact({"from": MS})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+        {"from": MS}
+    )
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": MS})
 
     # open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]

@@ -51,6 +51,7 @@ from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
     EMPTY_ADDRESS,
     FAUCET_PRIVATE_KEY,
+    SERVICE_DEPOSIT,
     UINT256_MAX,
 )
 
@@ -130,7 +131,9 @@ def deployed_service_info(
     deployer: ContractDeployer, token_address: HexAddress
 ) -> DeployedContracts:
     return deployer.deploy_service_contracts(
-        token_address=token_address, user_deposit_whole_balance_limit=DEPOSIT_LIMIT
+        token_address=token_address,
+        user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        initial_service_deposit=SERVICE_DEPOSIT // 2,
     )
 
 
@@ -1008,6 +1011,8 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         "rpc_provider",
         "--user-deposit-whole-limit",
         100,
+        "--initial_service_deposit",
+        SERVICE_DEPOSIT // 2,
     ]
     return common_arguments + save_info_arguments
 

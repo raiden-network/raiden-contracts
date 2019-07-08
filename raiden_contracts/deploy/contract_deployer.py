@@ -303,7 +303,10 @@ class ContractDeployer(ContractVerifier):
         return token_network_address
 
     def deploy_service_contracts(
-        self, token_address: HexAddress, user_deposit_whole_balance_limit: int
+        self,
+        token_address: HexAddress,
+        user_deposit_whole_balance_limit: int,
+        initial_service_deposit: int,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         chain_id = int(self.web3.version.network)
@@ -313,7 +316,9 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        self._deploy_and_remember(CONTRACT_SERVICE_REGISTRY, [token_address], deployed_contracts)
+        self._deploy_and_remember(
+            CONTRACT_SERVICE_REGISTRY, [token_address, initial_service_deposit], deployed_contracts
+        )
         user_deposit = self._deploy_and_remember(
             contract_name=CONTRACT_USER_DEPOSIT,
             arguments=[token_address, user_deposit_whole_balance_limit],
