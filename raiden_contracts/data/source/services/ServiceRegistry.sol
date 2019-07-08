@@ -8,19 +8,20 @@ contract Deposit {
     address public owner;
     uint256 public release_at;
 
-    constructor(address _token, uint256 _release_at, address _owner) {
+    constructor(address _token, uint256 _release_at, address _withdrawer) public {
         token = Token(_token);
         // Don't care even if it's in the past.
         release_at = _release_at;
-        owner = _owner;
+        owner = _withdrawer;
     }
 
-    function deposit(uint256 _amount) {
+    function deposit(uint256 _amount) external returns (bool success) {
         require(token.transferFrom(msg.sender, address(this), _amount));
+        return true;
     }
 
-    function withdraw(address _to) {
-        sent_amount = token.balanceOf(address(this));
+    function withdraw(address _to) external {
+        uint256 sent_amount = token.balanceOf(address(this));
         require(msg.sender == owner);
         require(now >= release_at);
         require(sent_amount > 0);
@@ -38,6 +39,8 @@ contract ServiceRegistry is Utils {
 
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
+
+    event RegisteredService(address indexed service, uint256 valid_till, uint256 deposit_amount, Deposit deposit_contract);
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
     constructor(address _token_for_registration, uint256 _initial_price) public {
@@ -59,21 +62,15 @@ contract ServiceRegistry is Utils {
         uint256 amount = current_price();
         require(_limit_amount >= amount);
 
-        // Move the deposit in a new Deposit contract.
-        require(token.transferFrom(msg.sender, address(this), amount), "tokens did not transfer");
-        Deposit depo = new Deposit(token, amount);
-        require(token.approve(depo, amount));
-        require(depo.deposit(required));
-
         // Extend the service position.
-        valid_till = service_valid_till[msg.sender];
+        uint256 valid_till = service_valid_till[msg.sender];
         if (valid_till < now) { // first time joiner or expired service.
             valid_till = now;
         }
         valid_till = valid_till + 180 days;
         // Check against overflow.
-        require(valid_till < valid_till + 6 month)
-        valid_till = valid_till + 6 month;
+        require(valid_till < valid_till + 180 days);
+        valid_till = valid_till + 180 days;
         assert(valid_till > service_valid_till[msg.sender]);
         service_valid_till[msg.sender] = valid_till;
 
@@ -81,8 +78,14 @@ contract ServiceRegistry is Utils {
         last_price = amount;
         last_price_at = now;
 
-        // fire event
-        emit Deposit(valid_till, amount, msg.sender, depo);
+        // Move the deposit in a new Deposit contract.
+        require(token.transferFrom(msg.sender, address(this), amount));
+        Deposit depo = new Deposit(address(token), valid_till, msg.sender);
+        require(token.approve(address(depo), amount));
+        require(depo.deposit(amount));
+
+        // Fire event
+        emit RegisteredService(msg.sender, valid_till, amount, depo);
     }
 
     /// Set the URL used to access a service via HTTP.
@@ -96,10 +99,8 @@ contract ServiceRegistry is Utils {
 
     uint constant decay_constant = 200 days; // Maybe make this configurable?
 
-    function current_price() view returns (uint256) {
-        // The price increased for the last event.
-        uint256 price = last_price * 6 / 5; // Maybe make this configurable too?
-
+    function decayed_price(uint256 set_price, uint256 time_passed) public
+        view returns (uint256) {
         // We are here trying to approximate some exponential decay.
         // exp(- X / A) where
         //   X is the number of seconds since the last price change
@@ -110,24 +111,36 @@ contract ServiceRegistry is Utils {
         //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
         // Note: swap P and Q, and then think about the Taylor expansion.
 
-        uint256 A = decay_constant;  // ln and log.
-        require(now >= last_price_at);
-        uint256 X = now - last_price_at;
+        uint256 X = time_passed;
+
+        uint256 min_price = 1000;
         if (X >= 2 ** 64) { // The computation below overflows.
             return min_price;
         }
+
+        uint256 A = decay_constant;
+
         uint256 P = 24 * (A ** 4);
         uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
 
-        price = price * P / Q;
+        uint256 price = set_price * P / Q;
 
         // Not allowing a price smaller than 1000.
         // Once it's too low it's too low forever.
         if (price < min_price) {  // Maybe make this configurable too?
             price = min_price;
         }
-
         return price;
+
+    }
+
+    function current_price() public view returns (uint256) {
+        // The price increased for the last event.
+        uint256 price = last_price * 6 / 5; // Maybe make this configurable too?
+        require(now >= last_price_at);
+        uint256 passed = now - last_price_at;
+
+        return decayed_price(price, passed);
     }
 }
 
