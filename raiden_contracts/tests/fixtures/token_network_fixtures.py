@@ -21,7 +21,7 @@ snapshot_before_token_network = None
 
 
 @pytest.fixture
-def get_token_network(deploy_tester_contract: Contract) -> Callable:
+def get_token_network(deploy_tester_contract: Callable) -> Callable:
     """Deploy a token network as a separate contract (registry is not used)"""
 
     def get(arguments: List) -> Contract:

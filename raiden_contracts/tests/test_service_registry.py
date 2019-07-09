@@ -19,6 +19,20 @@ def test_owner_of_service_registry(service_registry: Contract) -> None:
     assert service_registry.functions.owner().call() == CONTRACT_DEPLOYER_ADDRESS
 
 
+def test_deposit_contract(
+    get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
+) -> None:
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(100).call_and_transact({"from": A})
+    depo = get_deposit_contract([custom_token.address, 0, A])
+    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(depo.address).call() == 100
+    depo.functions.withdraw(A).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 100
+    assert custom_token.functions.balanceOf(depo.address).call() == 0
+
+
 def test_deposit(
     service_registry: Contract, custom_token: Contract, get_accounts: Callable
 ) -> None:
