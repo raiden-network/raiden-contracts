@@ -23,6 +23,7 @@ CONTRACT_RAIDEN_SERVICE_BUNDLE = "ServiceRegistry"  # old name for compatibility
 CONTRACT_SERVICE_REGISTRY = "ServiceRegistry"
 CONTRACT_USER_DEPOSIT = "UserDeposit"
 CONTRACT_ONE_TO_N = "OneToN"
+CONTRACT_DEPOSIT = "Deposit"
 
 # Timeouts
 TEST_SETTLE_TIMEOUT_MIN = 5
