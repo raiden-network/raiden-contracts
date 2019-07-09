@@ -222,7 +222,11 @@ def test_close_nonce_zero(
         channel_identifier, B, *balance_proof_B
     ).call_and_transact({"from": A})
 
-    ev_handler.add(close_tx, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
+    ev_handler.add(
+        close_tx,
+        ChannelEvent.CLOSED,
+        check_channel_closed(channel_identifier, A, 0, balance_proof_B[0]),
+    )
     ev_handler.check()
 
     # Even though we somehow provide valid values for the balance proof, they are not taken into
@@ -478,7 +482,11 @@ def test_close_channel_event_no_offchain_transfers(
         channel_identifier, B, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
     ).call_and_transact({"from": A})
 
-    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 0))
+    ev_handler.add(
+        txn_hash,
+        ChannelEvent.CLOSED,
+        check_channel_closed(channel_identifier, A, 0, EMPTY_BALANCE_HASH),
+    )
     ev_handler.check()
 
 
@@ -569,5 +577,9 @@ def test_close_channel_event(
         channel_identifier, B, *balance_proof
     ).call_and_transact({"from": A})
 
-    ev_handler.add(txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, A, 3))
+    ev_handler.add(
+        txn_hash,
+        ChannelEvent.CLOSED,
+        check_channel_closed(channel_identifier, A, 3, balance_proof[0]),
+    )
     ev_handler.check()

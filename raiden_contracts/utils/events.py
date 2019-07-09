@@ -76,12 +76,13 @@ def check_withdraw(
 
 
 def check_channel_closed(
-    channel_identifier: int, closing_participant: HexAddress, nonce: int
+    channel_identifier: int, closing_participant: HexAddress, nonce: int, balance_hash: bytes
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["closing_participant"] == closing_participant
         assert event["args"]["nonce"] == nonce
+        assert event["args"]["balance_hash"] == balance_hash
 
     return get
 
@@ -106,12 +107,13 @@ def check_channel_unlocked(
 
 
 def check_transfer_updated(
-    channel_identifier: int, closing_participant: HexAddress, nonce: int
+    channel_identifier: int, closing_participant: HexAddress, nonce: int, balance_hash: bytes
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["closing_participant"] == closing_participant
         assert event["args"]["nonce"] == nonce
+        assert event["args"]["balance_hash"] == balance_hash
 
     return get
 
