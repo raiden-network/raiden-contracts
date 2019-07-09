@@ -904,7 +904,7 @@ def test_update_channel_event(
     ev_handler.add(
         txn_hash,
         ChannelEvent.BALANCE_PROOF_UPDATED,
-        check_transfer_updated(channel_identifier, A, 1),
+        check_transfer_updated(channel_identifier, A, 1, balance_proof_A[0]),
     )
     ev_handler.check()
 
@@ -920,6 +920,6 @@ def test_update_channel_event(
     ev_handler.add(
         txn_hash,
         ChannelEvent.BALANCE_PROOF_UPDATED,
-        check_transfer_updated(channel_identifier, A, 2),
+        check_transfer_updated(channel_identifier, A, 2, balance_proof_A2[0]),
     )
     ev_handler.check()
