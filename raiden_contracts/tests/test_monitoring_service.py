@@ -43,7 +43,7 @@ def setup_monitor_data(
     ms_address: HexAddress,
     get_private_key: Callable,
 ) -> Callable:
-    def f(monitoring_service_contract: Contract):
+    def f(monitoring_service_contract: Contract) -> Dict:
         # Create two parties and a channel between them
         (A, B) = get_accounts(2, privkeys=["0x" + "1" * 64, "0x" + "2" * 64])
         deposit_to_udc(B, REWARD_AMOUNT)
@@ -339,7 +339,7 @@ def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
 
 
 def test_recoverAddressFromRewardProof(
-    monitor_data_internal, token_network, monitoring_service_internals
+    monitor_data_internal: Dict, token_network: Contract, monitoring_service_internals: Contract
 ) -> None:
     _, B = monitor_data_internal["participants"]
 

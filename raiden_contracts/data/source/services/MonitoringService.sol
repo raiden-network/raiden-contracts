@@ -90,6 +90,8 @@ contract MonitoringService is Utils {
     /// @param reward_amount The amount of tokens to be rewarded
     /// @param nonce The nonce of the newly provided balance_proof
     /// @param monitoring_service_address The address of the MS calling monitor()
+    /// @param non_closing_signature Non-closing participant signature of the
+    /// balance proof data.
     /// @param reward_proof_signature The signature of the signed reward proof
     function updateReward(
         address token_network_address,
@@ -116,7 +118,7 @@ contract MonitoringService is Utils {
             reward_amount,
             reward_proof_signature
         );
-        require(raiden_node_address == non_closing_participant, 'Bad reward proof');
+        require(raiden_node_address == non_closing_participant, "Bad reward proof");
 
         bytes32 reward_identifier = keccak256(abi.encodePacked(
             channel_identifier,
