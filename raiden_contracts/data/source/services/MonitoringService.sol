@@ -98,6 +98,7 @@ contract MonitoringService is Utils {
         uint256 reward_amount,
         uint256 nonce,
         address monitoring_service_address,
+        bytes memory non_closing_signature,
         bytes memory reward_proof_signature
     )
         internal
@@ -109,15 +110,13 @@ contract MonitoringService is Utils {
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            token_network.chain_id(),
             address(this),
-            nonce,
+            token_network.chain_id(),
+            non_closing_signature,
+            reward_amount,
             reward_proof_signature
         );
-        require(raiden_node_address == non_closing_participant);
+        require(raiden_node_address == non_closing_participant, 'Bad reward proof');
 
         bytes32 reward_identifier = keccak256(abi.encodePacked(
             channel_identifier,
@@ -173,6 +172,7 @@ contract MonitoringService is Utils {
             reward_amount,
             nonce,
             msg.sender,
+            non_closing_signature,
             reward_proof_signature
         );
 
@@ -331,12 +331,10 @@ contract MonitoringService is Utils {
     }
 
     function recoverAddressFromRewardProof(
-        uint256 channel_identifier,
-        uint256 reward_amount,
-        address token_network_address,
-        uint256 chain_id,
         address monitoring_service_contract_address,
-        uint256 nonce,
+        uint256 chain_id,
+        bytes memory non_closing_signature,
+        uint256 reward_amount,
         bytes memory signature
     )
         internal
@@ -344,14 +342,12 @@ contract MonitoringService is Utils {
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n200",
+            "\x19Ethereum Signed Message:\n181",  // 20 + 32 + 32 + 65 + 32
             monitoring_service_contract_address,
             chain_id,
             uint256(MessageTypeId.MSReward),
-            channel_identifier,
-            reward_amount,
-            token_network_address,
-            nonce
+            non_closing_signature,
+            reward_amount
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);

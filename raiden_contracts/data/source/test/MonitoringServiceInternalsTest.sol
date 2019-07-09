@@ -25,6 +25,7 @@ contract MonitoringServiceInternalsTest is MonitoringService {
         uint256 reward_amount,
         uint256 nonce,
         address monitoring_service_address,
+        bytes memory non_closing_signature,
         bytes memory reward_proof_signature
     )
         public
@@ -36,6 +37,7 @@ contract MonitoringServiceInternalsTest is MonitoringService {
             reward_amount,
             nonce,
             monitoring_service_address,
+            non_closing_signature,
             reward_proof_signature
         );
     }
@@ -46,5 +48,25 @@ contract MonitoringServiceInternalsTest is MonitoringService {
         returns (uint256 nonce)
     {
         return rewards[reward_identifier].nonce;
+    }
+
+    function recoverAddressFromRewardProofPublic(
+        address monitoring_service_contract_address,
+        uint256 chain_id,
+        bytes memory non_closing_signature,
+        uint256 reward_amount,
+        bytes memory signature
+    )
+        public
+        pure
+        returns (address signature_address)
+    {
+        return MonitoringService.recoverAddressFromRewardProof(
+            monitoring_service_contract_address,
+            chain_id,
+            non_closing_signature,
+            reward_amount,
+            signature
+        );
     }
 }

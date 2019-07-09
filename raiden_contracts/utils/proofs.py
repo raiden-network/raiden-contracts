@@ -104,22 +104,18 @@ def hash_withdraw_message(
     )
 
 
-def hash_reward_proof(
-    channel_identifier: int,
-    reward_amount: int,
-    token_network_address: HexAddress,
+def pack_reward_proof(
     monitoring_service_contract_address: HexAddress,
     chain_id: int,
-    nonce: int,
+    non_closing_signature: bytes,
+    reward_amount: int,
 ) -> bytes:
-    return eth_sign_hash_message(
+    return (
         Web3.toBytes(hexstr=monitoring_service_contract_address)
         + encode_single("uint256", chain_id)
         + encode_single("uint256", MessageTypeId.MSReward)
-        + encode_single("uint256", channel_identifier)
+        + non_closing_signature
         + encode_single("uint256", reward_amount)
-        + Web3.toBytes(hexstr=token_network_address)
-        + encode_single("uint256", nonce)
     )
 
 
@@ -217,22 +213,19 @@ def sign_withdraw_message(
 
 def sign_reward_proof(
     privatekey: str,
-    channel_identifier: int,
     monitoring_service_contract_address: HexAddress,
-    reward_amount: int,
-    token_network_address: HexAddress,
     chain_id: int,
-    nonce: int,
+    non_closing_signature: bytes,
+    reward_amount: int,
     v: int = 27,
 ) -> bytes:
-    message_hash = hash_reward_proof(
-        channel_identifier=channel_identifier,
-        reward_amount=reward_amount,
+    packed_data = pack_reward_proof(
         monitoring_service_contract_address=monitoring_service_contract_address,
-        token_network_address=token_network_address,
         chain_id=chain_id,
-        nonce=nonce,
+        non_closing_signature=non_closing_signature,
+        reward_amount=reward_amount,
     )
+    message_hash = eth_sign_hash_message(packed_data)
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
