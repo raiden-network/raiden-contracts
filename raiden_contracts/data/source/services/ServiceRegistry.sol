@@ -76,13 +76,17 @@ contract ServiceRegistry is Utils {
         set_price_at = now;
     }
 
+    // @notice Locks tokens and registers a service or extends the registration.
+    // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit.
+    // The call fails if the current price is higher (this is always possible
+    // when other parties have just called `deposit()`).
     function deposit(uint _limit_amount) public {
         uint256 amount = current_price();
         require(_limit_amount >= amount, "not enough limit");
 
         // Extend the service position.
         uint256 valid_till = service_valid_till[msg.sender];
-        if (valid_till < now) { // first time joiner or expired service.
+        if (valid_till < now) { // a first time joiner or an expired service.
             valid_till = now;
         }
         valid_till = valid_till + 180 days;
@@ -105,18 +109,23 @@ contract ServiceRegistry is Utils {
         emit RegisteredService(msg.sender, valid_till, amount, depo);
     }
 
-    /// Set the URL used to access a service via HTTP.
-    /// When this is called for the first time, the service's ethereum address
-    /// is also added to `service_addresses`.
+    /// @notice Sets the URL used to access a service via HTTP.
+    /// Only a currently registered service can call this successfully.
+    /// @param new_url The new URL string to be stored.
     function setURL(string memory new_url) public {
         require(now < service_valid_till[msg.sender]);
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
     }
 
+    /// The amount of time till the price decreases to roughly 1/e.
     uint constant decay_constant = 200 days; // Maybe make this configurable?
 
-    function decayed_price(uint256 set_price, uint256 time_passed) public
+    /// @notice Calculates the decreased price after a number of seconds.
+    /// @param _set_price The initial price.
+    /// @param _seconds_passed The number of seconds passed since the initial
+    /// price was set.
+    function decayed_price(uint256 _set_price, uint256 _seconds_passed) public
         view returns (uint256) {
         // We are here trying to approximate some exponential decay.
         // exp(- X / A) where
@@ -128,7 +137,7 @@ contract ServiceRegistry is Utils {
         //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
         // Note: swap P and Q, and then think about the Taylor expansion.
 
-        uint256 X = time_passed;
+        uint256 X = _seconds_passed;
 
         if (X >= 2 ** 64) { // The computation below overflows.
             return min_price;
@@ -139,7 +148,7 @@ contract ServiceRegistry is Utils {
         uint256 P = 24 * (A ** 4);
         uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
 
-        uint256 price = set_price * P / Q;
+        uint256 price = _set_price * P / Q;
 
         // Not allowing a price smaller than 1000.
         // Once it's too low it's too low forever.
@@ -150,11 +159,15 @@ contract ServiceRegistry is Utils {
 
     }
 
+    /// @notice The amount of deposits for registration or extension.
+    /// Note: the price moves quickly depending on what other addresses do.
+    /// The current price might change after you send a `deposit()` transaction
+    /// before the transaction is executed.
     function current_price() public view returns (uint256) {
         require(now >= set_price_at);
-        uint256 passed = now - set_price_at;
+        uint256 seconds_passed = now - set_price_at;
 
-        return decayed_price(set_price, passed);
+        return decayed_price(set_price, seconds_passed);
     }
 }
 
