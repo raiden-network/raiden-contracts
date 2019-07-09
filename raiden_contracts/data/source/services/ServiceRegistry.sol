@@ -33,11 +33,11 @@ contract Deposit {
     /// Only `withdrawer` can call this.
     /// @param _to The address where the withdrawn tokens should go.
     function withdraw(address _to) external returns (bool success) {
-        uint256 sent_amount = token.balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer);
         require(now >= release_at);
-        require(sent_amount > 0);
-        require(token.transfer(_to, sent_amount));
+        require(balance > 0);
+        require(token.transfer(_to, balance));
         return true;
     }
 }
