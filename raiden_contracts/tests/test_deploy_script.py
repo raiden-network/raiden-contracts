@@ -41,7 +41,10 @@ from raiden_contracts.deploy.__main__ import (
     validate_address,
     verify,
 )
-from raiden_contracts.deploy.contract_deployer import contracts_version_expects_deposit_limits
+from raiden_contracts.deploy.contract_deployer import (
+    contracts_version_expects_deposit_limits,
+    contracts_version_has_initial_service_deposit,
+)
 from raiden_contracts.deploy.contract_verifier import (
     _verify_monitoring_service_deployment,
     _verify_user_deposit_deployment,
@@ -762,6 +765,17 @@ def test_contracts_version_expects_deposit_limits() -> None:
     assert contracts_version_expects_deposit_limits(None)
     with pytest.raises(ValueError):
         contracts_version_expects_deposit_limits("not a semver string")
+
+
+def test_contracts_version_has_initial_service_deposit() -> None:
+    assert not contracts_version_has_initial_service_deposit("0.3._")
+    assert not contracts_version_has_initial_service_deposit("0.4.0")
+    assert not contracts_version_has_initial_service_deposit("0.9.0")
+    assert not contracts_version_has_initial_service_deposit("0.10.0")
+    assert not contracts_version_has_initial_service_deposit("0.10.1")
+    assert contracts_version_has_initial_service_deposit(None)
+    with pytest.raises(ValueError):
+        contracts_version_has_initial_service_deposit("not a semver string")
 
 
 def deploy_token_arguments(privkey: str) -> List[str]:
