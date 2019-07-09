@@ -13,6 +13,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     MonitoringServiceEvent,
 )
+from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
 
@@ -32,66 +33,83 @@ def ms_address(
 
 
 @pytest.fixture
-def monitor_data(
+def setup_monitor_data(
     get_accounts: Callable,
     deposit_to_udc: Callable,
     create_channel: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_reward_proof: Callable,
     token_network: Contract,
     ms_address: HexAddress,
-    monitoring_service_external: Contract,
+    get_private_key: Callable,
+) -> Callable:
+    def f(monitoring_service_contract: Contract):
+        # Create two parties and a channel between them
+        (A, B) = get_accounts(2, privkeys=["0x" + "1" * 64, "0x" + "2" * 64])
+        deposit_to_udc(B, REWARD_AMOUNT)
+        channel_identifier = create_channel(A, B)[0]
+
+        # Create balance proofs
+        balance_proof_A = create_balance_proof(
+            channel_identifier, B, transferred_amount=10, nonce=1
+        )
+        balance_proof_B = create_balance_proof(
+            channel_identifier, A, transferred_amount=20, nonce=2
+        )
+
+        # Add signatures by non_closing_participant
+        non_closing_signature_B = create_balance_proof_update_signature(
+            B, channel_identifier, *balance_proof_B
+        )
+        reward_proof_signature = sign_reward_proof(
+            privatekey=get_private_key(B),
+            monitoring_service_contract_address=monitoring_service_contract.address,
+            chain_id=token_network.functions.chain_id().call(),
+            non_closing_signature=non_closing_signature_B,
+            reward_amount=REWARD_AMOUNT,
+        )
+
+        # close channel
+        token_network.functions.closeChannel(
+            channel_identifier, B, *balance_proof_A
+        ).call_and_transact({"from": A})
+
+        # calculate when this MS is allowed to monitor
+        (settle_block_number, _) = token_network.functions.getChannelInfo(
+            channel_identifier, A, B
+        ).call()
+        first_allowed = monitoring_service_contract.functions.firstBlockAllowedToMonitor(
+            closed_at_block=settle_block_number - TEST_SETTLE_TIMEOUT_MIN,
+            settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
+            participant1=A,
+            participant2=B,
+            monitoring_service_address=ms_address,
+        ).call()
+
+        # return args for `monitor` function
+        return {
+            "participants": (A, B),
+            "balance_proof_A": balance_proof_A,
+            "balance_proof_B": balance_proof_B,
+            "non_closing_signature": non_closing_signature_B,
+            "reward_proof_signature": reward_proof_signature,
+            "channel_identifier": channel_identifier,
+            "first_allowed": first_allowed,
+        }
+
+    return f
+
+
+@pytest.fixture
+def monitor_data(setup_monitor_data: Callable, monitoring_service_external: Contract) -> Dict:
+    return setup_monitor_data(monitoring_service_external)
+
+
+@pytest.fixture
+def monitor_data_internal(
+    setup_monitor_data: Callable, monitoring_service_internals: Contract
 ) -> Dict:
-    # Create two parties and a channel between them
-    (A, B) = get_accounts(2, privkeys=["0x" + "1" * 64, "0x" + "2" * 64])
-    deposit_to_udc(B, REWARD_AMOUNT)
-    channel_identifier = create_channel(A, B)[0]
-
-    # Create balance proofs
-    balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
-    balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
-
-    # Add signatures by non_closing_participant
-    non_closing_signature_B = create_balance_proof_update_signature(
-        B, channel_identifier, *balance_proof_B
-    )
-    reward_proof = create_reward_proof(
-        signer=B,
-        channel_identifier=channel_identifier,
-        reward_amount=REWARD_AMOUNT,
-        token_network_address=token_network.address,
-        monitoring_service_contract_address=monitoring_service_external.address,
-        nonce=balance_proof_B[1],
-    )
-
-    # close channel
-    token_network.functions.closeChannel(
-        channel_identifier, B, *balance_proof_A
-    ).call_and_transact({"from": A})
-
-    # calculate when this MS is allowed to monitor
-    (settle_block_number, _) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
-    first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
-        closed_at_block=settle_block_number - TEST_SETTLE_TIMEOUT_MIN,
-        settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
-        participant1=A,
-        participant2=B,
-        monitoring_service_address=ms_address,
-    ).call()
-
-    # return args for `monitor` function
-    return {
-        "participants": (A, B),
-        "balance_proof_A": balance_proof_A,
-        "balance_proof_B": balance_proof_B,
-        "non_closing_signature": non_closing_signature_B,
-        "reward_proof_signature": reward_proof[5],
-        "channel_identifier": channel_identifier,
-        "first_allowed": first_allowed,
-    }
+    return setup_monitor_data(monitoring_service_internals)
 
 
 @pytest.mark.parametrize("with_settle", [True, False])
@@ -248,27 +266,24 @@ def test_updateReward(
     monitoring_service_internals: Contract,
     ms_address: HexAddress,
     token_network: Contract,
-    create_reward_proof: Callable,
-    monitor_data: Dict,
+    monitor_data_internal: Dict,
 ) -> None:
-    A, B = monitor_data["participants"]
+    A, B = monitor_data_internal["participants"]
     reward_identifier = Web3.sha3(
-        encode_single("uint256", monitor_data["channel_identifier"])
+        encode_single("uint256", monitor_data_internal["channel_identifier"])
         + Web3.toBytes(hexstr=token_network.address)
     )
 
     def update_with_nonce(nonce: int) -> None:
-        reward_proof = create_reward_proof(
-            B,
-            monitor_data["channel_identifier"],
-            REWARD_AMOUNT,
-            token_network.address,
-            nonce=nonce,
-            monitoring_service_contract_address=monitoring_service_internals.address,
-        )
-        reward_proof_signature = reward_proof[5]
         monitoring_service_internals.functions.updateRewardPublic(
-            token_network.address, A, B, REWARD_AMOUNT, nonce, ms_address, reward_proof_signature
+            token_network.address,
+            A,
+            B,
+            REWARD_AMOUNT,
+            nonce,
+            ms_address,
+            monitor_data_internal["non_closing_signature"],
+            monitor_data_internal["reward_proof_signature"],
         ).call_and_transact({"from": ms_address})
 
     # normal first call succeeds
@@ -321,3 +336,21 @@ def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
     # transaction fail instead of giving the wrong result
     with pytest.raises(TransactionFailed):
         assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT + 1)
+
+
+def test_recoverAddressFromRewardProof(
+    monitor_data_internal, token_network, monitoring_service_internals
+) -> None:
+    _, B = monitor_data_internal["participants"]
+
+    recoverAddressFromRewardProof = (
+        monitoring_service_internals.functions.recoverAddressFromRewardProofPublic
+    )
+    recovered_address = recoverAddressFromRewardProof(
+        monitoring_service_contract_address=monitoring_service_internals.address,
+        chain_id=token_network.functions.chain_id().call(),
+        non_closing_signature=monitor_data_internal["non_closing_signature"],
+        reward_amount=REWARD_AMOUNT,
+        signature=monitor_data_internal["reward_proof_signature"],
+    ).call()
+    assert recovered_address == B
