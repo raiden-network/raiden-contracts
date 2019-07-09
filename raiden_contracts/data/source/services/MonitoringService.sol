@@ -65,9 +65,9 @@ contract MonitoringService is Utils {
     )
         public
     {
-        require(_token_address != address(0x0), "Token at address zero?");
-        require(_service_registry_address != address(0x0), "ServiceRegistry at address zero?");
-        require(_udc_address != address(0x0), "UDC at address zero?");
+        require(_token_address != address(0x0), "Token at address zero");
+        require(_service_registry_address != address(0x0), "ServiceRegistry at address zero");
+        require(_udc_address != address(0x0), "UDC at address zero");
         require(contractExists(_token_address), "token has no code");
         require(contractExists(_service_registry_address), "ServiceRegistry has no code");
         require(contractExists(_udc_address), "UDC has no code");
@@ -224,12 +224,12 @@ contract MonitoringService is Utils {
         (settle_block_number, channel_state) = token_network.getChannelInfo(
             channel_identifier, closing_participant, non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Closed, "not closed");
+        require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
 
         // We don't actually know when the channel has been closed. So we'll
         // make a guess so that assumed_close_block >= real_close_block.
         uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
-        require(settle_block_number >= assumed_settle_timeout, "weird settle block number");
+        require(settle_block_number >= assumed_settle_timeout, "too low settle block number");
         uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
         return block.number >= firstBlockAllowedToMonitor(
             assumed_close_block,
