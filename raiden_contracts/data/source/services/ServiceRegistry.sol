@@ -4,10 +4,20 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract Deposit {
+    // This contract holds ERC20 tokens as deposit until a predetemined point of time.
+
+    // The ERC20 token contract that the deposit is about.
     Token public token;
+
+    // The address that can withdraw the deposit after the release time.
     address public withdrawer;
+
+    // The timestamp after which the withdrawer can withdraw the deposit.
     uint256 public release_at;
 
+    /// @param _token The address of the ERC20 token contract where the deposit is accounted.
+    /// @param _release_at The timestap after which the withdrawer can withdraw the deposit.
+    /// @param _withdrawer The address that can withdraw the deposit after the release time.
     constructor(address _token, uint256 _release_at, address _withdrawer) public {
         token = Token(_token);
         // Don't care even if it's in the past.
@@ -15,11 +25,13 @@ contract Deposit {
         withdrawer = _withdrawer;
     }
 
-    function deposit(uint256 _amount) external returns (bool success) {
-        require(token.transferFrom(msg.sender, address(this), _amount));
-        return true;
-    }
+    // In order to make a deposit, transfer the ERC20 token into this contract.
+    // If you transfer a wrong kind of ERC20 token or ETH into this contract,
+    // these tokens will be lost forever.
 
+    /// @notice Withdraws the tokens that have been deposited.
+    /// Only `withdrawer` can call this.
+    /// @param _to The address where the withdrawn tokens should go.
     function withdraw(address _to) external returns (bool success) {
         uint256 sent_amount = token.balanceOf(address(this));
         require(msg.sender == withdrawer);
@@ -87,8 +99,7 @@ contract ServiceRegistry is Utils {
         // Move the deposit in a new Deposit contract.
         require(token.transferFrom(msg.sender, address(this), amount));
         Deposit depo = new Deposit(address(token), valid_till, msg.sender);
-        require(token.approve(address(depo), amount));
-        require(depo.deposit(amount));
+        require(token.transfer(address(depo), amount));
 
         // Fire event
         emit RegisteredService(msg.sender, valid_till, amount, depo);
