@@ -17,7 +17,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import gas_measurements
 from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
-from raiden_contracts.utils.proofs import sign_one_to_n_iou
+from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
 
 
 @pytest.mark.parametrize("version", [None])
@@ -233,11 +233,11 @@ def print_gas_monitoring_service(
     create_channel: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_reward_proof: Callable,
     service_registry: Contract,
     custom_token: Contract,
     deposit_to_udc: Callable,
     print_gas: Callable,
+    get_private_key: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of MonitoringService functions """
     # setup: two parties + MS
@@ -259,13 +259,12 @@ def print_gas_monitoring_service(
     non_closing_signature_B = create_balance_proof_update_signature(
         B, channel_identifier, *balance_proof_B
     )
-    reward_proof = create_reward_proof(
-        signer=B,
-        channel_identifier=channel_identifier,
-        reward_amount=reward_amount,
-        token_network_address=token_network.address,
-        nonce=balance_proof_B[1],
+    reward_proof_signature = sign_reward_proof(
+        privatekey=get_private_key(B),
         monitoring_service_contract_address=monitoring_service_external.address,
+        chain_id=token_network.functions.chain_id().call(),
+        reward_amount=reward_amount,
+        non_closing_signature=non_closing_signature_B,
     )
 
     # c1 closes channel
@@ -283,9 +282,9 @@ def print_gas_monitoring_service(
         balance_proof_B[2],  # additional_hash
         balance_proof_B[3],  # closing signature
         non_closing_signature_B,  # non-closing signature
-        reward_proof[1],  # reward amount
+        reward_amount,
         token_network.address,  # token network address
-        reward_proof[5],  # reward proof signature
+        reward_proof_signature,
     ).call_and_transact({"from": MS})
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
