@@ -154,6 +154,7 @@ def check_version_dependent_parameters(
 )
 @click.option(
     "--secret-registry-from-deployment-file",
+    type=click.Path(exists=True),
     help="The deployment file from which SecretRegistry should be reused",
 )
 @click.pass_context
@@ -167,15 +168,9 @@ def raiden(
     save_info: int,
     contracts_version: Optional[str],
     max_token_networks: Optional[int],
-    secret_registry_from_deployment_file: Optional[str],
+    secret_registry_from_deployment_path: Optional[Path],
 ) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
-    if secret_registry_from_deployment_file is not None:
-        secret_registry_from_deployment_path: Optional[Path] = Path(
-            secret_registry_from_deployment_file
-        )
-    else:
-        secret_registry_from_deployment_path = None
 
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj["deployer"]
