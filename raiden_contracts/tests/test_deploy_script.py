@@ -256,6 +256,13 @@ def test_deploy_script_raiden(
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
+    deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
+    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "constructor_arguments"
+    ] = []
+    with pytest.raises(RuntimeError):
+        deployer.verify_deployment_data(deployed_contracts_info_fail)
+
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
         web3=web3, private_key=get_random_privkey(), gas_limit=GAS_LIMIT, gas_price=1, wait=10
@@ -770,6 +777,7 @@ def test_contracts_version_expects_deposit_limits() -> None:
 def test_contracts_version_has_initial_service_deposit() -> None:
     assert not contracts_version_has_initial_service_deposit("0.3._")
     assert not contracts_version_has_initial_service_deposit("0.4.0")
+    assert not contracts_version_has_initial_service_deposit("0.8.0_unlimited")
     assert not contracts_version_has_initial_service_deposit("0.9.0")
     assert not contracts_version_has_initial_service_deposit("0.10.0")
     assert not contracts_version_has_initial_service_deposit("0.10.1")
