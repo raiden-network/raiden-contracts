@@ -156,7 +156,6 @@ contract ServiceRegistry is Utils {
             price = min_price;
         }
         return price;
-
     }
 
     /// @notice The amount of deposits for registration or extension.
