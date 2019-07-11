@@ -842,7 +842,7 @@ def deploy_raiden_arguments(
         arguments.extend(["--contracts-version", contracts_version])
 
     if reuse_secret_registry:
-        arguments.extend(["--secret-registry-from-deployment-file", "./old-deployment-file.json"])
+        arguments.extend(["--secret-registry-from-deployment-file", "."])
 
     return arguments
 
