@@ -168,7 +168,7 @@ def raiden(
     save_info: int,
     contracts_version: Optional[str],
     max_token_networks: Optional[int],
-    secret_registry_from_deployment_path: Optional[Path],
+    secret_registry_from_deployment_file: Optional[Path],
 ) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
 
@@ -176,7 +176,7 @@ def raiden(
     deployer = ctx.obj["deployer"]
     deployed_contracts_info = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=max_token_networks,
-        reuse_secret_registry_from_deploy_file=secret_registry_from_deployment_path,
+        reuse_secret_registry_from_deploy_file=secret_registry_from_deployment_file,
     )
     deployed_contracts = {
         contract_name: info["address"]
