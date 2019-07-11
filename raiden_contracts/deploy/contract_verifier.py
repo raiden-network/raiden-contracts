@@ -349,13 +349,13 @@ def _verify_service_registry_deployment(
     """ Check an onchain deployment of ServiceRegistry and constructor arguments """
     if to_checksum_address(service_registry.functions.token().call()) != token_address:
         raise RuntimeError("service_registry has a wrong token address")
+    if len(constructor_arguments) != 2:
+        raise RuntimeError(
+            "service_registry was deployed with a wrong number of constructor arguments"
+        )
     if token_address != constructor_arguments[0]:
         raise RuntimeError(
             f"expected token addredd {token_address} "
             f"but the constructor argument for {CONTRACT_SERVICE_REGISTRY} is "
             f"{constructor_arguments[0]}"
-        )
-    if len(constructor_arguments) != 2:
-        raise RuntimeError(
-            "service_registry was deployed with a wrong number of constructor arguments"
         )
