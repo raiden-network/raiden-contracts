@@ -171,13 +171,17 @@ def raiden(
 ) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
     if secret_registry_from_deployment_file is not None:
-        secret_registry_from_deployment_file = Path(secret_registry_from_deployment_file)
+        secret_registry_from_deployment_path: Optional[Path] = Path(
+            secret_registry_from_deployment_file
+        )
+    else:
+        secret_registry_from_deployment_path = None
 
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer = ctx.obj["deployer"]
     deployed_contracts_info = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=max_token_networks,
-        reuse_secret_registry_from_deploy_file=secret_registry_from_deployment_file,
+        reuse_secret_registry_from_deploy_file=secret_registry_from_deployment_path,
     )
     deployed_contracts = {
         contract_name: info["address"]
