@@ -7,6 +7,11 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.26.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.26.0) - 2019-07-11
+
+- [#1119](https://github.com/raiden-network/raiden-contracts/pull/1119) Changed the signature construction of monitoring reward proof so that a signature covers the whole reward proof
+- [#1108](https://github.com/raiden-network/raiden-contracts/pull/1108) Added a new event DeprecationSwitch to TokenNetwork
+
 ## [0.25.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.25.1) - 2019-07-03
 
 - [#1101](https://github.com/raiden-network/raiden-contracts/pull/1101) Add more gas measurements about CustomToken calls
