@@ -225,6 +225,7 @@ def test_deposit_wrong_state_fail(
     token_network: Contract,
     create_channel: Callable,
     assign_tokens: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ setTotalDeposit() fails on Closed or Settled channels. """
     (A, B) = get_accounts(2)
@@ -240,8 +241,17 @@ def test_deposit_wrong_state_fail(
         channel_identifier, B, vals_B.deposit, A
     ).call_and_transact({"from": B})
 
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+
     token_network.functions.closeChannel(
-        channel_identifier, B, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier=channel_identifier,
+        non_closing_participant=B,
+        closing_participant=A,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        non_closing_signature=EMPTY_SIGNATURE,
+        closing_signature=closing_sig,
     ).call_and_transact({"from": A})
 
     assign_tokens(A, 10)

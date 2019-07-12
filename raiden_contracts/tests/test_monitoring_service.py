@@ -58,6 +58,9 @@ def setup_monitor_data(
         )
 
         # Add signatures by non_closing_participant
+        closing_signature_A = create_balance_proof_update_signature(
+            A, channel_identifier, *balance_proof_A
+        )
         non_closing_signature_B = create_balance_proof_update_signature(
             B, channel_identifier, *balance_proof_B
         )
@@ -71,7 +74,7 @@ def setup_monitor_data(
 
         # close channel
         token_network.functions.closeChannel(
-            channel_identifier, B, *balance_proof_A
+            channel_identifier, B, A, *balance_proof_A, closing_signature_A
         ).call_and_transact({"from": A})
 
         # calculate when this MS is allowed to monitor

@@ -8,6 +8,9 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
 from raiden_contracts.tests.utils import (
+    EMPTY_ADDITIONAL_HASH,
+    EMPTY_BALANCE_HASH,
+    EMPTY_SIGNATURE,
     LOCKSROOT_OF_NO_LOCKS,
     NONEXISTENT_LOCKSROOT,
     ChannelValues,
@@ -199,12 +202,19 @@ def close_and_update_channel(
             participant2_values.locksroot,
             additional_hash2,
         )
+        balance_proof_close_signature_1 = create_balance_proof_update_signature(
+            participant1, channel_identifier, *balance_proof_2
+        )
         balance_proof_update_signature_2 = create_balance_proof_update_signature(
             participant2, channel_identifier, *balance_proof_1
         )
 
         token_network.functions.closeChannel(
-            channel_identifier, participant2, *balance_proof_2
+            channel_identifier,
+            participant2,
+            participant1,
+            *balance_proof_2,
+            balance_proof_close_signature_1,
         ).call_and_transact({"from": participant1})
 
         token_network.functions.updateNonClosingBalanceProof(
@@ -673,6 +683,35 @@ def create_balance_proof_update_signature(
             nonce,
             additional_hash,
             closing_signature,
+            v,
+        )
+        return non_closing_signature
+
+    return get
+
+
+@pytest.fixture(scope="session")
+def create_balance_proof_update_signature_for_no_balance_proof(
+    token_network: Contract, get_private_key: Callable
+) -> Callable:
+    def get(
+        participant: HexAddress,
+        channel_identifier: int,
+        v: int = 27,
+        other_token_network: Optional[Contract] = None,
+    ) -> bytes:
+        _token_network = other_token_network or token_network
+        private_key = get_private_key(participant)
+
+        non_closing_signature = sign_balance_proof_update_message(
+            private_key,
+            _token_network.address,
+            int(_token_network.functions.chain_id().call()),
+            channel_identifier,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
             v,
         )
         return non_closing_signature

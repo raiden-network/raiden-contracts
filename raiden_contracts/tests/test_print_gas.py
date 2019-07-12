@@ -171,10 +171,11 @@ def print_gas_channel_cycle(
     balance_proof_A = create_balance_proof(
         channel_identifier, A, 10, locked_amount1, 5, locksroot1
     )
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, locked_amount2, 3, locksroot2)
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B, channel_identifier, *balance_proof_A
     )
+    balance_proof_B = create_balance_proof(channel_identifier, B, 5, locked_amount2, 3, locksroot2)
+    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
 
     for lock in pending_transfers_tree1.unlockable:
         txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).call_and_transact(
@@ -189,7 +190,7 @@ def print_gas_channel_cycle(
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecret")
 
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, *balance_proof_B
+        channel_identifier, B, A, *balance_proof_B, closing_sig_A
     ).call_and_transact({"from": A})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".closeChannel")
 
@@ -255,6 +256,7 @@ def print_gas_monitoring_service(
 
     # create balance and reward proofs
     balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
+    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_A)
     balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
     non_closing_signature_B = create_balance_proof_update_signature(
         B, channel_identifier, *balance_proof_B
@@ -269,7 +271,7 @@ def print_gas_monitoring_service(
 
     # c1 closes channel
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, *balance_proof_A
+        channel_identifier, B, A, *balance_proof_A, closing_sig_A
     ).call_and_transact({"from": A})
     token_network.web3.testing.mine(4)
 

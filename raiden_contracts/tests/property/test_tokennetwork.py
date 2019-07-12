@@ -271,29 +271,35 @@ class TokenNetworkStateMachine(GenericStateMachine):
             with transaction_must_fail(msg):
                 self.token_network.functions.closeChannel(
                     partner_address,
+                    closer_address,
                     transfer.balance_hash(),
                     transfer.nonce,
                     transfer_hash,
-                    closer_signature,
+                    closer_signature,  # A part of the transfer data
+                    closer_signature,  # The closer wants to close it
                 ).transact()
 
         elif transfer.sender == closer_address:
             with transaction_must_fail("close with self signed transfer didnt fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
+                    closer_address,
                     transfer.balance_hash(),
                     transfer.nonce,
                     transfer_hash,
                     closer_signature,
+                    closer_signature,  # The closer wants to close it
                 ).transact()
 
         elif channel_state == 2:
             with transaction_must_fail("close called twice didnt fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
+                    closer_address,
                     transfer.balance_hash(),
                     transfer.nonce,
                     transfer_hash,
+                    closer_signature,
                     closer_signature,
                 ).transact()
 
@@ -301,9 +307,11 @@ class TokenNetworkStateMachine(GenericStateMachine):
             with transaction_must_fail("close called by a non participant didnt fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
+                    closer_address,
                     transfer.balance_hash(),
                     transfer.nonce,
                     transfer_hash,
+                    closer_signature,
                     closer_signature,
                 ).transact()
 
@@ -312,18 +320,22 @@ class TokenNetworkStateMachine(GenericStateMachine):
             with transaction_must_fail(msg):
                 self.token_network.functions.closeChannel(
                     partner_address,
+                    closer_address,
                     transfer.balance_hash(),
                     transfer.nonce,
                     transfer_hash,
+                    closer_signature,
                     closer_signature,
                 ).transact()
 
         else:
             self.token_network.functions.closeChannel(
                 partner_address,
+                closer_address,
                 transfer.balance_hash(),
                 transfer.nonce,
                 transfer_hash,
+                closer_signature,
                 closer_signature,
             ).transact()
 
