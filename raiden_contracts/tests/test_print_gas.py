@@ -8,6 +8,7 @@ from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
+    CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
@@ -37,6 +38,8 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "MonitoringService.monitor",
         "OneToN.claim",
         "SecretRegistry.registerSecret",
+        "ServiceRegistry.deposit",
+        "ServiceRegistry.setURL",
         "TokenNetwork DEPLOYMENT",
         "TokenNetwork.closeChannel",
         "TokenNetwork.openChannel",
@@ -374,6 +377,24 @@ def print_gas_user_deposit(
 
 
 @pytest.fixture
+def print_gas_service_registry(
+    get_accounts: Callable, custom_token: Contract, service_registry: Contract, print_gas: Callable
+) -> None:
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+        {"from": A}
+    )
+
+    # happy path
+    deposit_tx = service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    print_gas(deposit_tx, CONTRACT_SERVICE_REGISTRY + ".deposit")
+    url = "http://example.com"
+    set_url_tx = service_registry.functions.setURL(url).call_and_transact({"from": A})
+    print_gas(set_url_tx, CONTRACT_SERVICE_REGISTRY + ".setURL")
+
+
+@pytest.fixture
 def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: Callable) -> None:
     (A, B) = get_accounts(2)
     tx_hash = custom_token.functions.mint(100).call_and_transact({"from": A})
@@ -397,6 +418,7 @@ def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: C
     "print_gas_channel_cycle",
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
+    "print_gas_service_registry",
     "print_gas_user_deposit",
     "print_gas_token",
 )
