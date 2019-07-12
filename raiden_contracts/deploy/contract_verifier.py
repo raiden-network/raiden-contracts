@@ -132,9 +132,13 @@ class ContractVerifier:
             != secret_registry.address
         ):
             raise RuntimeError("secret_registry_address onchain has an unexpected value.")
+        if len(constructor_arguments) != 5:
+            raise RuntimeError(
+                "TokenNetworkRegistry received a wrong number of constructor arguments."
+            )
         if secret_registry.address != constructor_arguments[0]:
             raise RuntimeError(
-                "TokenNetwork's constructor received a different SecretRegistry address."
+                "TokenNetworkRegistry's constructor received a different SecretRegistry address."
             )
         if token_network_registry.functions.chain_id().call() != constructor_arguments[1]:
             raise RuntimeError("TokenNetwork remembers a wrong chain_id.")
