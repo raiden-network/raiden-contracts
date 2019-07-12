@@ -32,6 +32,7 @@ def test_settle_no_bp_success(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ The simplest settlement without any balance proofs provided """
     (A, B) = get_accounts(2)
@@ -39,10 +40,18 @@ def test_settle_no_bp_success(
     deposit_B = 6
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
 
     # Close channel with no balance proof
     token_network.functions.closeChannel(
-        channel_identifier, B, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier,
+        B,
+        A,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+        closing_sig,
     ).call_and_transact({"from": A})
 
     # Do not call updateNonClosingBalanceProof
@@ -151,6 +160,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
+    create_balance_proof_update_signature: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that called close.
@@ -174,8 +184,9 @@ def test_settle_single_direct_transfer_for_closing_party(
         1,
         LOCKSROOT_OF_NO_LOCKS,
     )
+    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
     token_network.functions.closeChannel(
-        channel_identifier, B, *balance_proof_B
+        channel_identifier, B, A, *balance_proof_B, closing_sig_A
     ).call_and_transact({"from": A})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -218,6 +229,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that did not call close.
@@ -232,8 +244,16 @@ def test_settle_single_direct_transfer_for_counterparty(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
-        channel_identifier, B, LOCKSROOT_OF_NO_LOCKS, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier,
+        B,
+        A,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+        closing_sig,
     ).call_and_transact({"from": A})
 
     balance_proof_A = create_balance_proof(
@@ -363,6 +383,7 @@ def test_settle_wrong_state_fail(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_block: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ settleChannel() fails on OPENED state and on CLOSED state before the settlement block """
     (A, B) = get_accounts(2)
@@ -379,8 +400,16 @@ def test_settle_wrong_state_fail(
     with pytest.raises(TransactionFailed):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier,
+        B,
+        A,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+        closing_sig,
     ).call_and_transact({"from": A})
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
@@ -557,9 +586,10 @@ def test_settle_channel_event(
     balance_proof_update_signature_B = create_balance_proof_update_signature(
         B, channel_identifier, *balance_proof_A
     )
+    close_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
 
     token_network.functions.closeChannel(
-        channel_identifier, B, *balance_proof_B
+        channel_identifier, B, A, *balance_proof_B, close_sig_A
     ).call_and_transact({"from": A})
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier, A, B, *balance_proof_A, balance_proof_update_signature_B

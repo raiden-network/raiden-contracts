@@ -470,66 +470,84 @@ contract TokenNetwork is Utils {
 
     }
 
-    /// @notice Close the channel defined by the two participant addresses. Only
-    /// a participant may close the channel, providing a balance proof signed by
-    /// its partner. Callable only once.
+    /// @notice Close the channel defined by the two participant addresses.
+    /// Anybody can call this function on behalf of a participant (called
+    /// the closing participant), providing a balance proof signed by
+    /// both parties. Callable only once.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place.
-    /// @param partner Channel partner of the `msg.sender`, who provided the
-    /// signature.
+    /// @param closing_participant Channel participant who closes the channel.
+    /// @param non_closing_participant Channel partner of the `closing_participant`,
+    /// who provided the balance proof.
     /// @param balance_hash Hash of (transferred_amount, locked_amount,
     /// locksroot).
     /// @param additional_hash Computed from the message. Used for message
     /// authentication.
     /// @param nonce Strictly monotonic value used to order transfers.
-    /// @param signature Partner's signature of the balance proof data.
+    /// @param non_closing_signature Non-closing participant's signature of the balance proof data.
+    /// @param closing_signature Closing participant's signature of the balance
+    /// proof data.
     function closeChannel(
         uint256 channel_identifier,
-        address partner,
+        address non_closing_participant,
+        address closing_participant,
+        // The next four arguments form a balance proof.
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes memory signature
+        bytes memory non_closing_signature,
+        bytes memory closing_signature
     )
         public
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(msg.sender, partner));
+        require(channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant), "channel id mismatch");
 
-        address recovered_partner_address;
+        address recovered_non_closing_participant_address;
 
         Channel storage channel = channels[channel_identifier];
 
         channel.state = ChannelState.Closed;
-        channel.participants[msg.sender].is_the_closer = true;
+        channel.participants[closing_participant].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
         channel.settle_block_number += uint256(block.number);
+
+        // The closing participant must have signed the balance proof.
+        address recovered_closing_participant_address = recoverAddressFromBalanceProofUpdateMessage(
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            non_closing_signature,
+            closing_signature
+        );
+        require(closing_participant == recovered_closing_participant_address, "closing sig not good");
 
         // Nonce 0 means that the closer never received a transfer, therefore
         // never received a balance proof, or he is intentionally not providing
         // the latest transfer, in which case the closing party is going to
         // lose the tokens that were transferred to him.
         if (nonce > 0) {
-            recovered_partner_address = recoverAddressFromBalanceProof(
+            recovered_non_closing_participant_address = recoverAddressFromBalanceProof(
                 channel_identifier,
                 balance_hash,
                 nonce,
                 additional_hash,
-                signature
+                non_closing_signature
             );
             // Signature must be from the channel partner
-            require(partner == recovered_partner_address);
+            require(non_closing_participant == recovered_non_closing_participant_address);
 
             updateBalanceProofData(
                 channel,
-                recovered_partner_address,
+                recovered_non_closing_participant_address,
                 nonce,
                 balance_hash
             );
         }
 
-        emit ChannelClosed(channel_identifier, msg.sender, nonce, balance_hash);
+        emit ChannelClosed(channel_identifier, closing_participant, nonce, balance_hash);
     }
 
     /// @notice Called on a closed channel, the function allows the non-closing
@@ -553,6 +571,7 @@ contract TokenNetwork is Utils {
         uint256 channel_identifier,
         address closing_participant,
         address non_closing_participant,
+        // The next four arguments form a balance proof
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,

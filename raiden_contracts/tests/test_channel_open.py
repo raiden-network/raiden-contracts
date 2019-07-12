@@ -250,7 +250,12 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     assert B_locked_amount == 0
 
 
-def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Callable) -> None:
+def test_reopen_channel(
+    web3: Web3,
+    token_network: Contract,
+    get_accounts: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+) -> None:
     """ Open a second channel after settling one """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
@@ -266,8 +271,18 @@ def test_reopen_channel(web3: Web3, token_network: Contract, get_accounts: Calla
         token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Close channel
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
+        A, channel_identifier1
+    )
     token_network.functions.closeChannel(
-        channel_identifier1, B, LOCKSROOT_OF_NO_LOCKS, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier1,
+        B,
+        A,
+        EMPTY_BALANCE_HASH,
+        0,
+        EMPTY_ADDITIONAL_HASH,
+        EMPTY_SIGNATURE,
+        closing_sig,
     ).call_and_transact({"from": A})
 
     # Reopen Channel before settlement fails

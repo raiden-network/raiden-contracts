@@ -164,6 +164,7 @@ def test_withdraw_wrong_state(
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     withdraw_channel: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ setTotalWithdraw() should fail on a closed or settled channel """
     (A, B) = get_accounts(2)
@@ -178,8 +179,16 @@ def test_withdraw_wrong_state(
     # Channel is open, withdraw must work
     withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
-        channel_identifier, B, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier=channel_identifier,
+        non_closing_participant=B,
+        closing_participant=A,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        non_closing_signature=EMPTY_SIGNATURE,
+        closing_signature=closing_sig,
     ).call_and_transact({"from": A})
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
@@ -441,6 +450,7 @@ def test_withdraw_replay_reopened_channel(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 20
@@ -455,8 +465,18 @@ def test_withdraw_replay_reopened_channel(
         channel_identifier1, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
     ).call_and_transact({"from": A})
 
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
+        B, channel_identifier1
+    )
     token_network.functions.closeChannel(
-        channel_identifier1, A, EMPTY_BALANCE_HASH, 0, EMPTY_ADDITIONAL_HASH, EMPTY_SIGNATURE
+        channel_identifier=channel_identifier1,
+        non_closing_participant=A,
+        closing_participant=B,
+        balance_hash=EMPTY_BALANCE_HASH,
+        nonce=0,
+        additional_hash=EMPTY_ADDITIONAL_HASH,
+        non_closing_signature=EMPTY_SIGNATURE,
+        closing_signature=closing_sig,
     ).call_and_transact({"from": B})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(

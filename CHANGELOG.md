@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- TokenNetwork's closeChannel() can be called by anybody on behalf of the closing participant.
 - TokenNetwork's ChannelClosed and NonClosingBalanceProofUpdated events contain balance_hash from the submitted balance proofs.
 
 ## [0.26.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.26.0) - 2019-07-11

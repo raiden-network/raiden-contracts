@@ -10,7 +10,10 @@ from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, fake_bytes
 
 
 def test_settle_timeout_inrange(
-    token_network: Contract, get_accounts: Callable, web3: Web3
+    token_network: Contract,
+    get_accounts: Callable,
+    web3: Web3,
+    create_balance_proof_update_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.
@@ -37,8 +40,16 @@ def test_settle_timeout_inrange(
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
+    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
-        channel_identifier, B, fake_bytes(32), 0, fake_bytes(32), fake_bytes(64)
+        channel_identifier=channel_identifier,
+        non_closing_participant=B,
+        closing_participant=A,
+        balance_hash=fake_bytes(32),
+        nonce=0,
+        additional_hash=fake_bytes(32),
+        non_closing_signature=fake_bytes(65),
+        closing_signature=closing_sig,
     ).call_and_transact({"from": A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
