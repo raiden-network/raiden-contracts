@@ -212,7 +212,7 @@ def raiden(
     "--initial_service_deposit",
     required=True,
     type=int,
-    help="Maximum amount of tokens deposited in UserDeposit",
+    help="Initial amount of deposit for a registration in ServiceRegistry",
 )
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.pass_context
