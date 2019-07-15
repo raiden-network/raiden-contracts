@@ -45,7 +45,6 @@ contract Deposit {
 
 contract ServiceRegistry is Utils {
     Token public token;
-    address public owner;
 
     // After a price is set to set_price at timestamp set_price_at,
     // the price decays according to decayed_price().
@@ -69,7 +68,6 @@ contract ServiceRegistry is Utils {
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "total supply zero");
-        owner = msg.sender;
 
         // Set up the price and the set price timestamp
         set_price = _initial_price;
