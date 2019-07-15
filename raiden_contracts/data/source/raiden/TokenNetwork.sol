@@ -501,7 +501,7 @@ contract TokenNetwork is Utils {
         public
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant), "channel id mismatch");
+        require(channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant));
 
         address recovered_non_closing_participant_address;
 
@@ -522,7 +522,7 @@ contract TokenNetwork is Utils {
             non_closing_signature,
             closing_signature
         );
-        require(closing_participant == recovered_closing_participant_address, "closing sig not good");
+        require(closing_participant == recovered_closing_participant_address);
 
         // Nonce 0 means that the closer never received a transfer, therefore
         // never received a balance proof, or he is intentionally not providing
