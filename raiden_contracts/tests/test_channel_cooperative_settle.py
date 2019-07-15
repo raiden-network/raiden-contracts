@@ -5,8 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
-from raiden_contracts.constants import ChannelEvent
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
+from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
 from raiden_contracts.utils.events import check_channel_settled
 
 

@@ -15,7 +15,11 @@ from eth_utils import is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
-from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK_REGISTRY
+from raiden_contracts.constants import (
+    CONTRACT_CUSTOM_TOKEN,
+    CONTRACT_TOKEN_NETWORK_REGISTRY,
+    EMPTY_ADDRESS,
+)
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.private_key import get_private_key
@@ -209,6 +213,24 @@ def raiden(
     help="Maximum amount of tokens deposited in UserDeposit",
 )
 @click.option(
+    "--service-registry-controller",
+    default=EMPTY_ADDRESS,
+    callback=validate_address,
+    help="Address of the controller that can modify the parameters of ServiceRegistry",
+)
+@click.option(
+    "--service-deposit-bump-numerator",
+    type=int,
+    required=True,
+    help="The numerator of the deposit bump after somebody makes a deposit into ServiceRegistry",
+)
+@click.option(
+    "--service-deposit-bump-denominator",
+    required=True,
+    type=int,
+    help="The denominator of the deposit bump after somebody makes a deposit into ServiceRegistry",
+)
+@click.option(
     "--initial-service-registration-price",
     required=True,
     type=int,
@@ -227,7 +249,10 @@ def services(
     save_info: bool,
     contracts_version: Optional[str],
     user_deposit_whole_limit: int,
+    service_registry_controller: HexAddress,
     initial_service_registration_price: int,
+    service_deposit_bump_numerator: int,
+    service_deposit_bump_denominator: int,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
@@ -235,7 +260,10 @@ def services(
     deployed_contracts_info = deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=user_deposit_whole_limit,
+        service_registry_controller=service_registry_controller,
         initial_service_registration_price=initial_service_registration_price,
+        service_deposit_bump_numerator=service_deposit_bump_numerator,
+        service_deposit_bump_denominator=service_deposit_bump_denominator,
     )
     deployed_contracts = {
         contract_name: info["address"]

@@ -309,7 +309,10 @@ class ContractDeployer(ContractVerifier):
         self,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        service_registry_controller: HexAddress,
         initial_service_registration_price: int,
+        service_deposit_bump_numerator: int,
+        service_deposit_bump_denominator: int,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         if not contracts_version_has_initial_service_deposit(
@@ -326,7 +329,13 @@ class ContractDeployer(ContractVerifier):
 
         self._deploy_and_remember(
             CONTRACT_SERVICE_REGISTRY,
-            [token_address, initial_service_registration_price],
+            [
+                token_address,
+                service_registry_controller,
+                initial_service_registration_price,
+                service_deposit_bump_numerator,
+                service_deposit_bump_denominator,
+            ],
             deployed_contracts,
         )
         user_deposit = self._deploy_and_remember(
