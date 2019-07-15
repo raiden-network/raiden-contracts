@@ -13,7 +13,7 @@ def test_settle_timeout_inrange(
     token_network: Contract,
     get_accounts: Callable,
     web3: Web3,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.
@@ -40,7 +40,7 @@ def test_settle_timeout_inrange(
 
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
         non_closing_participant=B,

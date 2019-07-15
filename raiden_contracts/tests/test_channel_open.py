@@ -254,7 +254,7 @@ def test_reopen_channel(
     web3: Web3,
     token_network: Contract,
     get_accounts: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Open a second channel after settling one """
     (A, B) = get_accounts(2)
@@ -271,9 +271,7 @@ def test_reopen_channel(
         token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Close channel
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
-        A, channel_identifier1
-    )
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier1)
     token_network.functions.closeChannel(
         channel_identifier1,
         B,

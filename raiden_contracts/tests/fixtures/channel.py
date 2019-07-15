@@ -691,7 +691,7 @@ def create_balance_proof_update_signature(
 
 
 @pytest.fixture(scope="session")
-def create_balance_proof_update_signature_for_no_balance_proof(
+def create_close_signature_for_no_balance_proof(
     token_network: Contract, get_private_key: Callable
 ) -> Callable:
     def get(

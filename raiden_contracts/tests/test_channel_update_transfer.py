@@ -25,13 +25,13 @@ def test_update_call(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Call updateNonClosingBalanceProof() with various wrong arguments """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 15, B)
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier,
         B,
@@ -253,7 +253,7 @@ def test_update_wrong_signatures(
     get_accounts: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should fail with wrong signatures """
     (A, B, C) = get_accounts(3)
@@ -273,7 +273,7 @@ def test_update_wrong_signatures(
     )
 
     # Close the channel so updateNonClosingBalanceProof() is possible
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier,
         B,
@@ -364,7 +364,7 @@ def test_update_channel_fail_no_offchain_transfers(
     create_channel: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Calls to updateNonClosingBalanceProof() fail with the zero nonce """
     (A, B) = get_accounts(2)
@@ -375,7 +375,7 @@ def test_update_channel_fail_no_offchain_transfers(
         B, channel_identifier, *balance_proof_A
     )
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier,
         B,
@@ -493,7 +493,7 @@ def test_update_invalid_balance_proof_arguments(
     get_accounts: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should fail on balance proofs with various wrong params """
     (A, B, C) = get_accounts(3)
@@ -502,7 +502,7 @@ def test_update_invalid_balance_proof_arguments(
     channel_identifier = create_channel(A, B, settle_timeout)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier,
         B,
@@ -703,7 +703,7 @@ def test_update_signature_on_invalid_arguments(
     get_accounts: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
 
     """ Call updateNonClosingBalanceProof with signature on invalid argument fails """
@@ -717,7 +717,7 @@ def test_update_signature_on_invalid_arguments(
     )
 
     # Close channel
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier,
         B,
@@ -842,7 +842,7 @@ def test_update_replay_reopened_channel(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_update_signature: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id """
     (A, B) = get_accounts(2)
@@ -864,9 +864,7 @@ def test_update_replay_reopened_channel(
         A, channel_identifier1, *balance_proof_B
     )
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
-        B, channel_identifier1
-    )
+    closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier1)
     token_network.functions.closeChannel(
         channel_identifier1,
         A,
@@ -904,9 +902,7 @@ def test_update_replay_reopened_channel(
     # Reopen the channel and make sure we cannot use the old balance proof
     channel_identifier2 = create_channel(A, B)[0]
     channel_deposit(channel_identifier2, B, values_B.deposit, A)
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
-        B, channel_identifier2
-    )
+    closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier2)
     token_network.functions.closeChannel(
         channel_identifier2,
         A,
