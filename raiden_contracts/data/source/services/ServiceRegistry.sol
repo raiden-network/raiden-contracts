@@ -87,7 +87,6 @@ contract ServiceRegistry is Utils {
         if (valid_till < now) { // a first time joiner or an expired service.
             valid_till = now;
         }
-        valid_till = valid_till + 180 days;
         // Check against overflow.
         require(valid_till < valid_till + 180 days);
         valid_till = valid_till + 180 days;
