@@ -164,7 +164,7 @@ def test_withdraw_wrong_state(
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     withdraw_channel: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ setTotalWithdraw() should fail on a closed or settled channel """
     (A, B) = get_accounts(2)
@@ -179,7 +179,7 @@ def test_withdraw_wrong_state(
     # Channel is open, withdraw must work
     withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
         non_closing_participant=B,
@@ -450,7 +450,7 @@ def test_withdraw_replay_reopened_channel(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 20
@@ -465,9 +465,7 @@ def test_withdraw_replay_reopened_channel(
         channel_identifier1, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
     ).call_and_transact({"from": A})
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
-        B, channel_identifier1
-    )
+    closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier1)
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier1,
         non_closing_participant=A,

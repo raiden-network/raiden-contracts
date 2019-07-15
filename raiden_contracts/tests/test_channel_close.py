@@ -48,7 +48,7 @@ def test_close_settled_channel_fail(
     create_channel: Callable,
     channel_deposit: Callable,
     get_accounts: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Test getChannelInfo and closeChannel on an already settled channel """
     (A, B) = get_accounts(2)
@@ -57,7 +57,7 @@ def test_close_settled_channel_fail(
 
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
@@ -138,14 +138,14 @@ def test_close_call_twice_fail(
     create_channel: Callable,
     channel_deposit: Callable,
     get_accounts: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ The second of two same closeChannel calls should fail """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
@@ -176,13 +176,13 @@ def test_close_different_sender(
     create_channel: Callable,
     channel_deposit: Callable,
     get_accounts: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ A closeChannel call from a different Ethereum address should succeed """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
@@ -305,13 +305,13 @@ def test_close_first_participant_can_close(
     create_channel: Callable,
     get_accounts: Callable,
     get_block: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Simplest successful closeChannel by the first participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(
+    closing_sig = create_close_signature_for_no_balance_proof(
         participant=A, channel_identifier=channel_identifier
     )
     close_tx = token_network.functions.closeChannel(
@@ -362,12 +362,12 @@ def test_close_second_participant_can_close(
     token_network: Contract,
     create_channel: Callable,
     get_accounts: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Simplest successful closeChannel by the second participant """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(B, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier)
 
     token_network.functions.closeChannel(
         channel_identifier=channel_identifier,
@@ -513,14 +513,14 @@ def test_close_channel_event_no_offchain_transfers(
     token_network: Contract,
     create_channel: Callable,
     event_handler: Callable,
-    create_balance_proof_update_signature_for_no_balance_proof: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ closeChannel succeeds and emits an event even with nonce 0 and no balance proofs """
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
     channel_identifier = create_channel(A, B)[0]
-    closing_sig = create_balance_proof_update_signature_for_no_balance_proof(A, channel_identifier)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
     # No off-chain transfers have occured
     # There is no signature data here, because it was never provided to A
