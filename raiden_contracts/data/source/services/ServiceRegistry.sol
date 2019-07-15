@@ -52,7 +52,7 @@ contract ServiceRegistry is Utils {
     uint256 public set_price;
     uint256 public set_price_at;
 
-    // Once the price is too low, 20% increase cannot not move the price upwards.
+    // Once the price is at min_price, it can't decay further.
     uint256 constant min_price = 1000;
 
     mapping(address => uint256) public service_valid_till;
