@@ -24,7 +24,7 @@ def test_update_call(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Call updateNonClosingBalanceProof() with various wrong arguments """
@@ -44,7 +44,7 @@ def test_update_call(
     ).call_and_transact({"from": A})
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
     (balance_hash, nonce, additional_hash, closing_signature) = balance_proof_A
@@ -131,7 +131,7 @@ def test_update_nonexistent_fail(
     get_accounts: Callable,
     token_network: Contract,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() on a not-yet openned channel should fail """
     (A, B, C) = get_accounts(3)
@@ -144,7 +144,7 @@ def test_update_nonexistent_fail(
     assert state == ChannelState.NONEXISTENT
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
 
@@ -160,7 +160,7 @@ def test_update_notclosed_fail(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() on an Opened channel should fail """
     (A, B, C) = get_accounts(3)
@@ -168,7 +168,7 @@ def test_update_notclosed_fail(
     channel_deposit(channel_identifier, A, 25, B)
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
 
@@ -190,7 +190,7 @@ def test_update_wrong_nonce_fail(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     update_state_tests: Callable,
 ) -> None:
     (A, B, Delegate) = get_accounts(3)
@@ -200,8 +200,8 @@ def test_update_wrong_nonce_fail(
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
     txn_hash1 = token_network.functions.closeChannel(
@@ -229,7 +229,7 @@ def test_update_wrong_nonce_fail(
         channel_identifier, A, 10, 0, 4, fake_bytes(32, "02")
     )
 
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A_lower_nonce
     )
     with pytest.raises(TransactionFailed):
@@ -252,7 +252,7 @@ def test_update_wrong_signatures(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should fail with wrong signatures """
@@ -265,10 +265,10 @@ def test_update_wrong_signatures(
         channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"), signer=C
     )
 
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
-    balance_proof_update_signature_B_fake = create_balance_proof_update_signature(
+    balance_proof_update_signature_B_fake = create_balance_proof_countersignature(
         C, channel_identifier, *balance_proof_A
     )
 
@@ -308,7 +308,7 @@ def test_update_channel_state(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     update_state_tests: Callable,
     txn_cost: Callable,
 ) -> None:
@@ -320,8 +320,8 @@ def test_update_channel_state(
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
 
@@ -363,7 +363,7 @@ def test_update_channel_fail_no_offchain_transfers(
     token_network: Contract,
     create_channel: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Calls to updateNonClosingBalanceProof() fail with the zero nonce """
@@ -371,7 +371,7 @@ def test_update_channel_fail_no_offchain_transfers(
 
     channel_identifier = create_channel(A, B)[0]
     balance_proof_A = create_balance_proof(channel_identifier, A, 0, 0, 0)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
 
@@ -411,7 +411,7 @@ def test_update_not_allowed_after_settlement_period(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     web3: Web3,
 ) -> None:
     """ updateNonClosingBalanceProof cannot be called after the settlement period. """
@@ -422,8 +422,8 @@ def test_update_not_allowed_after_settlement_period(
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
     token_network.functions.closeChannel(
@@ -442,7 +442,7 @@ def test_update_not_allowed_for_the_closing_address(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Closing address cannot call updateNonClosingBalanceProof. """
     (A, B, M) = get_accounts(3)
@@ -453,7 +453,7 @@ def test_update_not_allowed_for_the_closing_address(
 
     # Some balance proof from B
     balance_proof_B_0 = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
-    closing_sig_A_0 = create_balance_proof_update_signature(
+    closing_sig_A_0 = create_balance_proof_countersignature(
         A, channel_identifier, *balance_proof_B_0
     )
 
@@ -461,7 +461,7 @@ def test_update_not_allowed_for_the_closing_address(
     balance_proof_B_1 = create_balance_proof(channel_identifier, B, 10, 0, 4, fake_bytes(32, "02"))
 
     # B's signature on the update message is valid
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_B_1
     )
 
@@ -492,7 +492,7 @@ def test_update_invalid_balance_proof_arguments(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should fail on balance proofs with various wrong params """
@@ -524,7 +524,7 @@ def test_update_invalid_balance_proof_arguments(
     )
 
     # And a valid nonclosing_signature
-    valid_balance_proof_update_signature = create_balance_proof_update_signature(
+    valid_balance_proof_update_signature = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_valid
     )
 
@@ -543,7 +543,7 @@ def test_update_invalid_balance_proof_arguments(
         )
     )
 
-    signature_invalid_token_network = create_balance_proof_update_signature(
+    signature_invalid_token_network = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -566,7 +566,7 @@ def test_update_invalid_balance_proof_arguments(
         *create_balance_proof(channel_identifier, C, 10, 0, 2, fake_bytes(32, "02"))
     )
 
-    signature_invalid_channel_participant = create_balance_proof_update_signature(
+    signature_invalid_channel_participant = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -588,7 +588,7 @@ def test_update_invalid_balance_proof_arguments(
         *create_balance_proof(channel_identifier + 1, A, 10, 0, 2, fake_bytes(32, "02"))
     )
 
-    signature_invalid_channel_identifier = create_balance_proof_update_signature(
+    signature_invalid_channel_identifier = create_balance_proof_countersignature(
         B,
         channel_identifier + 1,
         balance_proof_valid.balance_hash,
@@ -605,7 +605,7 @@ def test_update_invalid_balance_proof_arguments(
             signature_invalid_channel_identifier,
         ).call({"from": B})
 
-    signature_invalid_balance_hash = create_balance_proof_update_signature(
+    signature_invalid_balance_hash = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash[::-1],
@@ -625,7 +625,7 @@ def test_update_invalid_balance_proof_arguments(
             signature_invalid_balance_hash,
         ).call({"from": B})
 
-    signature_invalid_nonce = create_balance_proof_update_signature(
+    signature_invalid_nonce = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -646,7 +646,7 @@ def test_update_invalid_balance_proof_arguments(
             signature_invalid_nonce,
         ).call({"from": B})
 
-    signature_invalid_additional_hash = create_balance_proof_update_signature(
+    signature_invalid_additional_hash = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -667,7 +667,7 @@ def test_update_invalid_balance_proof_arguments(
             signature_invalid_additional_hash,
         ).call({"from": B})
 
-    signature_invalid_closing_signature = create_balance_proof_update_signature(
+    signature_invalid_closing_signature = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -702,7 +702,7 @@ def test_update_signature_on_invalid_arguments(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
 
@@ -736,7 +736,7 @@ def test_update_signature_on_invalid_arguments(
         )
     )
 
-    signature_invalid_token_network_address = create_balance_proof_update_signature(
+    signature_invalid_token_network_address = create_balance_proof_countersignature(
         B,
         channel_identifier,
         *balance_proof_valid,
@@ -747,7 +747,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_token_network_address
         ).call({"from": B})
 
-    signature_invalid_participant = create_balance_proof_update_signature(
+    signature_invalid_participant = create_balance_proof_countersignature(
         C,  # invalid signer
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -760,7 +760,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_participant
         ).call({"from": B})
 
-    signature_invalid_channel_identifier = create_balance_proof_update_signature(
+    signature_invalid_channel_identifier = create_balance_proof_countersignature(
         B,
         channel_identifier + 1,  # invalid channel_identifier
         balance_proof_valid.balance_hash,
@@ -773,7 +773,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_channel_identifier
         ).call({"from": B})
 
-    signature_invalid_balance_hash = create_balance_proof_update_signature(
+    signature_invalid_balance_hash = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash[::-1],  # invalid balance_hash
@@ -786,7 +786,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_balance_hash
         ).call({"from": B})
 
-    signature_invalid_nonce = create_balance_proof_update_signature(
+    signature_invalid_nonce = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -799,7 +799,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_nonce
         ).call({"from": B})
 
-    signature_invalid_additional_hash = create_balance_proof_update_signature(
+    signature_invalid_additional_hash = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -812,7 +812,7 @@ def test_update_signature_on_invalid_arguments(
             channel_identifier, A, B, *balance_proof_valid, signature_invalid_additional_hash
         ).call({"from": B})
 
-    signature_invalid_closing_signature = create_balance_proof_update_signature(
+    signature_invalid_closing_signature = create_balance_proof_countersignature(
         B,
         channel_identifier,
         balance_proof_valid.balance_hash,
@@ -826,7 +826,7 @@ def test_update_signature_on_invalid_arguments(
         ).call({"from": B})
 
     # Call with same balance_proof and signature on valid arguments works
-    balance_proof_update_signature = create_balance_proof_update_signature(
+    balance_proof_update_signature = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_valid
     )
     token_network.functions.updateNonClosingBalanceProof(
@@ -841,7 +841,7 @@ def test_update_replay_reopened_channel(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id """
@@ -860,7 +860,7 @@ def test_update_replay_reopened_channel(
         nonce_B,
         values_B.locksroot,
     )
-    balance_proof_update_signature_A = create_balance_proof_update_signature(
+    balance_proof_update_signature_A = create_balance_proof_countersignature(
         A, channel_identifier1, *balance_proof_B
     )
 
@@ -929,7 +929,7 @@ def test_update_replay_reopened_channel(
         nonce_B,
         values_B.locksroot,
     )
-    balance_proof_update_signature_A2 = create_balance_proof_update_signature(
+    balance_proof_update_signature_A2 = create_balance_proof_countersignature(
         A, channel_identifier2, *balance_proof_B2
     )
 
@@ -944,7 +944,7 @@ def test_update_channel_event(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
     """ Successful updateNonClosingBalanceProof() emit BALANCE_PROOF_UPDATED events """
@@ -957,9 +957,9 @@ def test_update_channel_event(
     channel_deposit(channel_identifier, A, deposit_A, B)
     channel_deposit(channel_identifier, B, deposit_B, A)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3)
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 1)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
 
@@ -979,7 +979,7 @@ def test_update_channel_event(
 
     # Test event for second balance proof update
     balance_proof_A2 = create_balance_proof(channel_identifier, A, 4, 0, 2)
-    balance_proof_update_signature_B2 = create_balance_proof_update_signature(
+    balance_proof_update_signature_B2 = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A2
     )
     txn_hash = token_network.functions.updateNonClosingBalanceProof(

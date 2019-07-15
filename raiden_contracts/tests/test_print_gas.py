@@ -139,7 +139,7 @@ def print_gas_channel_cycle(
     get_accounts: Callable,
     print_gas: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
@@ -171,11 +171,11 @@ def print_gas_channel_cycle(
     balance_proof_A = create_balance_proof(
         channel_identifier, A, 10, locked_amount1, 5, locksroot1
     )
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, locked_amount2, 3, locksroot2)
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
 
     for lock in pending_transfers_tree1.unlockable:
         txn_hash = secret_registry_contract.functions.registerSecret(lock[3]).call_and_transact(
@@ -233,7 +233,7 @@ def print_gas_monitoring_service(
     get_accounts: Callable,
     create_channel: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     service_registry: Contract,
     custom_token: Contract,
     deposit_to_udc: Callable,
@@ -256,9 +256,9 @@ def print_gas_monitoring_service(
 
     # create balance and reward proofs
     balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_A)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_A)
     balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
-    non_closing_signature_B = create_balance_proof_update_signature(
+    non_closing_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_B
     )
     reward_proof_signature = sign_reward_proof(

@@ -160,7 +160,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that called close.
@@ -184,7 +184,7 @@ def test_settle_single_direct_transfer_for_closing_party(
         1,
         LOCKSROOT_OF_NO_LOCKS,
     )
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
     token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B, closing_sig_A
     ).call_and_transact({"from": A})
@@ -228,7 +228,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
@@ -265,7 +265,7 @@ def test_settle_single_direct_transfer_for_counterparty(
         LOCKSROOT_OF_NO_LOCKS,
     )
 
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
     token_network.functions.updateNonClosingBalanceProof(
@@ -569,7 +569,7 @@ def test_settle_channel_event(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
     """ A successful settleChannel() call causes a SETTLED event """
@@ -583,10 +583,10 @@ def test_settle_channel_event(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
-    balance_proof_update_signature_B = create_balance_proof_update_signature(
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_A
     )
-    close_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    close_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
 
     token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B, close_sig_A

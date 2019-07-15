@@ -170,7 +170,7 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
 def close_and_update_channel(
     token_network: Contract,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> Callable:
     def get(
         channel_identifier: int,
@@ -202,10 +202,10 @@ def close_and_update_channel(
             participant2_values.locksroot,
             additional_hash2,
         )
-        balance_proof_close_signature_1 = create_balance_proof_update_signature(
+        balance_proof_close_signature_1 = create_balance_proof_countersignature(
             participant1, channel_identifier, *balance_proof_2
         )
-        balance_proof_update_signature_2 = create_balance_proof_update_signature(
+        balance_proof_update_signature_2 = create_balance_proof_countersignature(
             participant2, channel_identifier, *balance_proof_1
         )
 
@@ -658,7 +658,7 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
 
 
 @pytest.fixture(scope="session")
-def create_balance_proof_update_signature(
+def create_balance_proof_countersignature(
     token_network: Contract, get_private_key: Callable
 ) -> Callable:
     def get(
@@ -667,7 +667,7 @@ def create_balance_proof_update_signature(
         balance_hash: bytes,
         nonce: int,
         additional_hash: bytes,
-        closing_signature: bytes,
+        original_signature: bytes,
         v: int = 27,
         other_token_network: Optional[Contract] = None,
     ) -> bytes:
@@ -682,7 +682,7 @@ def create_balance_proof_update_signature(
             balance_hash,
             nonce,
             additional_hash,
-            closing_signature,
+            original_signature,
             v,
         )
         return non_closing_signature
