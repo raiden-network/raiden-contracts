@@ -514,7 +514,7 @@ contract TokenNetwork is Utils {
         channel.settle_block_number += uint256(block.number);
 
         // The closing participant must have signed the balance proof.
-        address recovered_closing_participant_address = recoverAddressFromBalanceProofUpdateMessage(
+        address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
             channel_identifier,
             balance_hash,
             nonce,
@@ -618,7 +618,7 @@ contract TokenNetwork is Utils {
 
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
-        recovered_non_closing_participant = recoverAddressFromBalanceProofUpdateMessage(
+        recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
             channel_identifier,
             balance_hash,
             nonce,
@@ -1503,7 +1503,7 @@ contract TokenNetwork is Utils {
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
-    function recoverAddressFromBalanceProofUpdateMessage(
+    function recoverAddressFromBalanceProofCounterSignature(
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,

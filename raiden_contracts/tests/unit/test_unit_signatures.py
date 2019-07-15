@@ -146,21 +146,21 @@ def test_recover_address_from_balance_proof_update(
 
     assert (
         B
-        == other_token_network.functions.recoverAddressFromBalanceProofUpdateMessagePublic(
+        == other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             channel_identifier, *balance_proof, balance_proof_update_signature
         ).call()
     )
 
     assert (
         B
-        != other_token_network.functions.recoverAddressFromBalanceProofUpdateMessagePublic(
+        != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             channel_identifier, *balance_proof, balance_proof_update_signature_wrong_token_network
         ).call()
     )
 
     assert (
         B
-        != other_token_network.functions.recoverAddressFromBalanceProofUpdateMessagePublic(
+        != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             channel_identifier, *balance_proof, balance_proof_update_signature_wrong_signer
         ).call()
     )
