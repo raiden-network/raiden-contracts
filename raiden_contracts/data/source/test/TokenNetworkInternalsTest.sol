@@ -183,7 +183,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     }
 
-    function recoverAddressFromBalanceProofUpdateMessagePublic(
+    function recoverAddressFromBalanceProofCounterSignaturePublic(
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -195,7 +195,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return recoverAddressFromBalanceProofUpdateMessage(
+        return recoverAddressFromBalanceProofCounterSignature(
             channel_identifier,
             balance_hash,
             nonce,
