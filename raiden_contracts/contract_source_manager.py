@@ -74,6 +74,7 @@ class ContractSourceManager:
             ) from ex
         finally:
             chdir(old_working_dir)
+        check_runtime_codesize(ret)
         return ret
 
     def compile_contracts(self, target_path: Path) -> ContractManager:
@@ -175,3 +176,11 @@ def _fix_contract_key_names(d: Dict) -> Dict:
         result[name] = v
 
     return result
+
+
+def check_runtime_codesize(d: Dict) -> None:
+    """ Raises a RuntimeError if the runtime codesize exceeds the EIP-170 limit """
+    for name, compilation in d.items():
+        runtime_code_len = len(compilation["bin-runtime"]) // 2
+        if runtime_code_len > 0x6000:
+            raise RuntimeError(f"{name}'s runtime code is too big ({runtime_code_len} bytes).")
