@@ -175,7 +175,9 @@ contract TokenNetwork is Utils {
     event ChannelSettled(
         uint256 indexed channel_identifier,
         uint256 participant1_amount,
-        uint256 participant2_amount
+        bytes32 participant1_locksroot,
+        uint256 participant2_amount,
+        bytes32 participant2_locksroot
     );
 
     modifier onlyDeprecationExecutor() {
@@ -789,7 +791,9 @@ contract TokenNetwork is Utils {
         emit ChannelSettled(
             channel_identifier,
             participant1_transferred_amount,
-            participant2_transferred_amount
+            participant1_locksroot,
+            participant2_transferred_amount,
+            participant2_locksroot
         );
 
         // Do the actual token transfers
