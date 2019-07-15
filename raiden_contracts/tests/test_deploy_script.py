@@ -23,6 +23,7 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    EMPTY_ADDRESS,
 )
 from raiden_contracts.contract_manager import (
     DeployedContract,
@@ -52,7 +53,6 @@ from raiden_contracts.deploy.contract_verifier import (
 from raiden_contracts.tests.utils import FAKE_ADDRESS, get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
-    EMPTY_ADDRESS,
     FAUCET_PRIVATE_KEY,
     SERVICE_DEPOSIT,
     UINT256_MAX,
@@ -136,7 +136,10 @@ def deployed_service_info(
     return deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
         initial_service_registration_price=SERVICE_DEPOSIT // 2,
+        service_deposit_bump_numerator=6,
+        service_deposit_bump_denominator=5,
     )
 
 

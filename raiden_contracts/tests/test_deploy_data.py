@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 from eth_typing import HexAddress
 
-from raiden_contracts.constants import CONTRACTS_VERSION, DeploymentModule
+from raiden_contracts.constants import CONTRACTS_VERSION, EMPTY_ADDRESS, DeploymentModule
 from raiden_contracts.contract_manager import (
     DeployedContract,
     contracts_data_path,
@@ -12,7 +12,6 @@ from raiden_contracts.contract_manager import (
     get_contracts_deployment_info,
 )
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import (
     contracts_version_provides_services,

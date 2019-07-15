@@ -5,14 +5,13 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract, get_event_data
 
-from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE
-from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils.constants import (
+from raiden_contracts.constants import (
+    CONTRACT_SERVICE_REGISTRY,
     EMPTY_ADDRESS,
-    SECONDS_PER_DAY,
-    SERVICE_DEPOSIT,
-    UINT256_MAX,
+    EVENT_REGISTERED_SERVICE,
 )
+from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
+from raiden_contracts.tests.utils.constants import SECONDS_PER_DAY, SERVICE_DEPOSIT, UINT256_MAX
 
 
 def test_deposit_contract(

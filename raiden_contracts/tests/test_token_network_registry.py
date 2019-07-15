@@ -7,15 +7,12 @@ from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
+    EMPTY_ADDRESS,
     EVENT_TOKEN_NETWORK_CREATED,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import (
-    CONTRACT_DEPLOYER_ADDRESS,
-    EMPTY_ADDRESS,
-    FAKE_ADDRESS,
-)
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, FAKE_ADDRESS
 from raiden_contracts.utils.events import check_token_network_created
 
 

@@ -5,8 +5,12 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, FAKE_ADDRESS, UINT256_MAX
+from raiden_contracts.constants import (
+    EMPTY_ADDRESS,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
+)
+from raiden_contracts.tests.utils.constants import FAKE_ADDRESS, UINT256_MAX
 
 
 def test_constructor_call(

@@ -6,11 +6,10 @@ from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent
+from raiden_contracts.constants import EMPTY_ADDRESS, TEST_SETTLE_TIMEOUT_MIN, ChannelEvent
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
-    EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
     FAKE_ADDRESS,

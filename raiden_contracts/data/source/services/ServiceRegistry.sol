@@ -45,6 +45,7 @@ contract Deposit {
 
 contract ServiceRegistry is Utils {
     Token public token;
+    address public controller;
 
     // After a price is set to set_price at timestamp set_price_at,
     // the price decays according to decayed_price().
@@ -53,6 +54,10 @@ contract ServiceRegistry is Utils {
 
     // Once the price is at min_price, it can't decay further.
     uint256 constant min_price = 1000;
+
+    // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
+    uint256 price_bump_numerator;
+    uint256 price_bump_denominator;
 
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
@@ -64,7 +69,13 @@ contract ServiceRegistry is Utils {
     event RegisteredService(address indexed service, uint256 valid_till, uint256 deposit_amount, Deposit deposit_contract);
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
-    constructor(address _token_for_registration, uint256 _initial_price) public {
+    constructor(
+            address _token_for_registration,
+            address _controller,
+            uint256 _initial_price,
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator
+    ) public {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
         require(_initial_price >= min_price, "initial price too low");
@@ -72,11 +83,37 @@ contract ServiceRegistry is Utils {
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "total supply zero");
+        controller = _controller;
 
         // Set up the price and the set price timestamp
         set_price = _initial_price;
         set_price_at = now;
+
+        // Set the price bump ratio
+        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
     }
+
+    modifier onlyController() {
+        require(msg.sender == controller);
+        _;
+    }
+
+    function change_parameters(
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator
+    ) public onlyController {
+        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
+    }
+
+    function set_price_bump_parameters(
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator
+    ) internal {
+        require(_price_bump_denominator > 0, "divide by zero");
+        price_bump_numerator = _price_bump_numerator;
+        price_bump_denominator = _price_bump_denominator;
+    }
+
 
     // @notice Locks tokens and registers a service or extends the registration.
     // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit.
@@ -98,7 +135,7 @@ contract ServiceRegistry is Utils {
         service_valid_till[msg.sender] = valid_till;
 
         // Record the price
-        set_price = amount * 6 / 5;
+        set_price = amount * price_bump_numerator / price_bump_denominator;
         set_price_at = now;
 
         // Move the deposit in a new Deposit contract.

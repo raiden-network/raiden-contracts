@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
+from raiden_contracts.constants import EMPTY_ADDRESS
 from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_proof
 from raiden_contracts.utils.signature import sign
 

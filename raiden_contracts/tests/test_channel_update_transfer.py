@@ -6,10 +6,14 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
+from raiden_contracts.constants import (
+    EMPTY_ADDRESS,
+    TEST_SETTLE_TIMEOUT_MIN,
+    ChannelEvent,
+    ChannelState,
+)
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
-    EMPTY_ADDRESS,
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
     ChannelValues,
