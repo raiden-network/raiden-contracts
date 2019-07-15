@@ -112,7 +112,7 @@ def test_recover_address_from_balance_proof(
 def test_recover_address_from_balance_proof_update(
     token_network_test_signatures: Contract,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     get_accounts: Callable,
 ) -> None:
     """ TokenNetwork can recover the signer's address from a balance proof update
@@ -129,18 +129,18 @@ def test_recover_address_from_balance_proof_update(
     balance_proof = create_balance_proof(
         channel_identifier, A, other_token_network=other_token_network
     )
-    balance_proof_update_signature = create_balance_proof_update_signature(
+    balance_proof_update_signature = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof, other_token_network=other_token_network
     )
 
-    balance_proof_update_signature_wrong_token_network = create_balance_proof_update_signature(
+    balance_proof_update_signature_wrong_token_network = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
-    balance_proof_update_signature_wrong_signer = create_balance_proof_update_signature(
+    balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
         B, channel_identifier, *balance_proof_signed_B
     )
 

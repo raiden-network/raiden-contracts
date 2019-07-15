@@ -107,7 +107,7 @@ def test_close_wrong_signature(
     channel_deposit: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Closing a channel with a balance proof of the third party should fail """
     (A, B, C) = get_accounts(3)
@@ -123,7 +123,7 @@ def test_close_wrong_signature(
     balance_proof = create_balance_proof(
         channel_identifier, C, transferred_amount, 0, nonce, locksroot
     )
-    closing_signature_A = create_balance_proof_update_signature(
+    closing_signature_A = create_balance_proof_countersignature(
         A, channel_identifier, *balance_proof
     )
 
@@ -201,7 +201,7 @@ def test_close_nonce_zero(
     token_network: Contract,
     create_channel: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
     """ closeChannel with a balance proof with nonce zero should not change the channel state """
@@ -225,7 +225,7 @@ def test_close_nonce_zero(
         vals_B.nonce,
         vals_B.locksroot,
     )
-    close_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    close_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
 
     (
         _,
@@ -275,7 +275,7 @@ def test_close_first_argument_is_for_partner_transfer(
     create_channel: Callable,
     get_accounts: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ closeChannel fails on a self-submitted balance proof """
     (A, B) = get_accounts(2)
@@ -285,8 +285,8 @@ def test_close_first_argument_is_for_partner_transfer(
 
     # Create balance proofs
     balance_proof = create_balance_proof(channel_identifier, B)
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof)
-    closing_sig_B = create_balance_proof_update_signature(B, channel_identifier, *balance_proof)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof)
+    closing_sig_B = create_balance_proof_countersignature(B, channel_identifier, *balance_proof)
 
     # closeChannel fails, if the provided balance proof is from the same participant who closes
     with pytest.raises(TransactionFailed):
@@ -391,7 +391,7 @@ def test_close_channel_state(
     get_block: Callable,
     create_balance_proof: Callable,
     txn_cost: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Observe the effect of a successful closeChannel
 
@@ -460,7 +460,7 @@ def test_close_channel_state(
         vals_B.nonce,
         vals_B.locksroot,
     )
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier, *balance_proof_B)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier, *balance_proof_B)
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B, closing_sig_A
@@ -550,7 +550,7 @@ def test_close_replay_reopened_channel(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ The same balance proof cannot close another channel between the same participants """
     (A, B) = get_accounts(2)
@@ -568,7 +568,7 @@ def test_close_replay_reopened_channel(
         nonce,
         values_B.locksroot,
     )
-    closing_sig_A = create_balance_proof_update_signature(A, channel_identifier1, *balance_proof_B)
+    closing_sig_A = create_balance_proof_countersignature(A, channel_identifier1, *balance_proof_B)
     token_network.functions.closeChannel(
         channel_identifier1, B, A, *balance_proof_B, closing_sig_A
     ).call_and_transact({"from": A})
@@ -604,7 +604,7 @@ def test_close_replay_reopened_channel(
         nonce,
         values_B.locksroot,
     )
-    closing_sig_A2 = create_balance_proof_update_signature(
+    closing_sig_A2 = create_balance_proof_countersignature(
         A, channel_identifier2, *balance_proof_B2
     )
     token_network.functions.closeChannel(
@@ -619,7 +619,7 @@ def test_close_channel_event(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     event_handler: Callable,
-    create_balance_proof_update_signature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ A successful closeChannel call produces a CLOSED event """
     ev_handler = event_handler(token_network)
@@ -631,7 +631,7 @@ def test_close_channel_event(
     balance_proof = create_balance_proof(
         channel_identifier, B, transferred_amount=5, locked_amount=0, nonce=3
     )
-    close_sig = create_balance_proof_update_signature(A, channel_identifier, *balance_proof)
+    close_sig = create_balance_proof_countersignature(A, channel_identifier, *balance_proof)
 
     txn_hash = token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof, close_sig
