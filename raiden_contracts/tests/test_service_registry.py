@@ -7,16 +7,7 @@ from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils.constants import (
-    CONTRACT_DEPLOYER_ADDRESS,
-    EMPTY_ADDRESS,
-    SERVICE_DEPOSIT,
-)
-
-
-def test_owner_of_service_registry(service_registry: Contract) -> None:
-    """ The owner of ServiceRegistry should be the deployer """
-    assert service_registry.functions.owner().call() == CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, SERVICE_DEPOSIT
 
 
 def test_deposit_contract(
