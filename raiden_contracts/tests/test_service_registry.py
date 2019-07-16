@@ -7,7 +7,12 @@ from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
+from raiden_contracts.tests.utils.constants import (
+    EMPTY_ADDRESS,
+    SECONDS_PER_DAY,
+    SERVICE_DEPOSIT,
+    UINT256_MAX,
+)
 
 
 def test_deposit_contract(
@@ -54,10 +59,22 @@ def test_deposit(
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     assert old_balance > custom_token.functions.balanceOf(A).call() > old_balance - old_price
     assert service_registry.functions.current_price().call() > old_price
+    first_expiration = service_registry.functions.service_valid_till(A).call()
 
     # custom_token does not allow transfer of more tokens
     with pytest.raises(TransactionFailed):
         service_registry.functions.deposit(1).call({"from": A})
+
+    # More minting and approving before extending the registration
+    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+        {"from": A}
+    )
+
+    # Extending the registration
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    second_expiration = service_registry.functions.service_valid_till(A).call()
+    assert second_expiration == first_expiration + 180 * SECONDS_PER_DAY
 
 
 def test_setURL(
