@@ -136,7 +136,7 @@ contract ServiceRegistry is Utils {
 
         uint256 X = _seconds_passed;
 
-        if (X >= 2 ** 64) { // The computation below overflows.
+        if (X >= 2 ** 60) { // The computation below overflows.
             return min_price;
         }
 
