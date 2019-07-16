@@ -231,6 +231,13 @@ def raiden(
     help="The denominator of the deposit bump after somebody makes a deposit into ServiceRegistry",
 )
 @click.option(
+    "--service-deposit-decay-constant",
+    required=True,
+    type=int,
+    help="The number of seconds for the price of ServiceRegistry to become roughly 1 / 2.7 of "
+    "the original, if deposits are made.",
+)
+@click.option(
     "--initial-service-registration-price",
     required=True,
     type=int,
@@ -253,6 +260,7 @@ def services(
     initial_service_registration_price: int,
     service_deposit_bump_numerator: int,
     service_deposit_bump_denominator: int,
+    service_deposit_decay_constant: int,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
@@ -264,6 +272,7 @@ def services(
         initial_service_registration_price=initial_service_registration_price,
         service_deposit_bump_numerator=service_deposit_bump_numerator,
         service_deposit_bump_denominator=service_deposit_bump_denominator,
+        decay_constant=service_deposit_decay_constant,
     )
     deployed_contracts = {
         contract_name: info["address"]

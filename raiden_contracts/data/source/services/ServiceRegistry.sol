@@ -56,27 +56,107 @@ contract ServiceRegistryConfigurableParameters {
     uint256 public set_price;
     uint256 public set_price_at;
 
+    /// The amount of time (in seconds) till the price decreases to roughly 1/e.
+    uint256 public decay_constant = 200 days;
+
     // Once the price is at min_price, it can't decay further.
     uint256 constant min_price = 1000;
 
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
-    uint256 price_bump_numerator;
-    uint256 price_bump_denominator;
+    uint256 price_bump_numerator = 1;
+    uint256 price_bump_denominator = 1;
 
     function change_parameters(
             uint256 _price_bump_numerator,
-            uint256 _price_bump_denominator
+            uint256 _price_bump_denominator,
+            uint256 _decay_constant
     ) public onlyController {
+        change_parameters_internal(
+            _price_bump_numerator,
+            _price_bump_denominator,
+            _decay_constant
+        );
+    }
+
+    function change_parameters_internal(
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator,
+            uint256 _decay_constant
+    ) internal {
+        refresh_price();
         set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
+        set_decay_constant(_decay_constant);
+    }
+
+    // Updates set_price to be current_price() and set_price_at to be now
+    function refresh_price() private {
+        set_price = current_price();
+        set_price_at = now;
     }
 
     function set_price_bump_parameters(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator
-    ) internal {
+    ) private {
         require(_price_bump_denominator > 0, "divide by zero");
         price_bump_numerator = _price_bump_numerator;
         price_bump_denominator = _price_bump_denominator;
+    }
+
+    function set_decay_constant(uint256 _decay_constant) private {
+        require(_decay_constant > 0, "attempt to set zero decay constant");
+        require(_decay_constant < 2 ** 60, "too big decay constant");
+        decay_constant = _decay_constant;
+    }
+
+
+    /// @notice The amount of deposits for registration or extension.
+    /// Note: the price moves quickly depending on what other addresses do.
+    /// The current price might change after you send a `deposit()` transaction
+    /// before the transaction is executed.
+    function current_price() public view returns (uint256) {
+        require(now >= set_price_at, "An underflow in price computation");
+        uint256 seconds_passed = now - set_price_at;
+
+        return decayed_price(set_price, seconds_passed);
+    }
+
+
+    /// @notice Calculates the decreased price after a number of seconds.
+    /// @param _set_price The initial price.
+    /// @param _seconds_passed The number of seconds passed since the initial
+    /// price was set.
+    function decayed_price(uint256 _set_price, uint256 _seconds_passed) public
+        view returns (uint256) {
+        // We are here trying to approximate some exponential decay.
+        // exp(- X / A) where
+        //   X is the number of seconds since the last price change
+        //   A is the decay constant (A = 200 days corresponds to 0.5% decrease per day)
+
+        // exp(- X / A) ~~ P / Q where
+        //   P = 24 A^4
+        //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
+        // Note: swap P and Q, and then think about the Taylor expansion.
+
+        uint256 X = _seconds_passed;
+
+        if (X >= 2 ** 60) { // The computation below overflows.
+            return min_price;
+        }
+
+        uint256 A = decay_constant;
+
+        uint256 P = 24 * (A ** 4);
+        uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
+
+        uint256 price = _set_price * P / Q;
+
+        // Not allowing a price smaller than 1000.
+        // Once it's too low it's too low forever.
+        if (price < min_price) {  // Maybe make this configurable too?
+            price = min_price;
+        }
+        return price;
     }
 }
 
@@ -99,7 +179,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             address _controller,
             uint256 _initial_price,
             uint256 _price_bump_numerator,
-            uint256 _price_bump_denominator
+            uint256 _price_bump_denominator,
+            uint256 _decay_constant
     ) public {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
@@ -114,8 +195,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price = _initial_price;
         set_price_at = now;
 
-        // Set the price bump ratio
-        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
+        // Set the parameters
+        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant);
     }
 
     // @notice Locks tokens and registers a service or extends the registration.
@@ -159,57 +240,6 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
         return true;
-    }
-
-    /// The amount of time till the price decreases to roughly 1/e.
-    uint constant decay_constant = 200 days; // Maybe make this configurable?
-
-    /// @notice Calculates the decreased price after a number of seconds.
-    /// @param _set_price The initial price.
-    /// @param _seconds_passed The number of seconds passed since the initial
-    /// price was set.
-    function decayed_price(uint256 _set_price, uint256 _seconds_passed) public
-        view returns (uint256) {
-        // We are here trying to approximate some exponential decay.
-        // exp(- X / A) where
-        //   X is the number of seconds since the last price change
-        //   A is the decay constant (A = 200 days corresponds to 0.5% decrease per day)
-
-        // exp(- X / A) ~~ P / Q where
-        //   P = 24 A^4
-        //   Q = 24 A^4 + 24 A^3X + 12 A^2X^2 + 4 AX^3 + X^4
-        // Note: swap P and Q, and then think about the Taylor expansion.
-
-        uint256 X = _seconds_passed;
-
-        if (X >= 2 ** 60) { // The computation below overflows.
-            return min_price;
-        }
-
-        uint256 A = decay_constant;
-
-        uint256 P = 24 * (A ** 4);
-        uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
-
-        uint256 price = _set_price * P / Q;
-
-        // Not allowing a price smaller than 1000.
-        // Once it's too low it's too low forever.
-        if (price < min_price) {  // Maybe make this configurable too?
-            price = min_price;
-        }
-        return price;
-    }
-
-    /// @notice The amount of deposits for registration or extension.
-    /// Note: the price moves quickly depending on what other addresses do.
-    /// The current price might change after you send a `deposit()` transaction
-    /// before the transaction is executed.
-    function current_price() public view returns (uint256) {
-        require(now >= set_price_at, "An underflow in price computation");
-        uint256 seconds_passed = now - set_price_at;
-
-        return decayed_price(set_price, seconds_passed);
     }
 }
 
