@@ -42,6 +42,12 @@ When you write Solidity code, be aware of the distinction between ``assert(cond)
 
 ``assert(cond)`` and ``require(cond)`` both cause a failure in the EVM execution when ``cond`` evaluates to 0.  They use different EVM opcodes that cause different gas consumptions.  More importantly, a convention dictates when to use which.  Use ``assert(cond)`` only when you are confident that ``cond`` is always true.  When an ``assert`` fires, that's considered as a bug in the Solidity program (or the Solidity compiler).  For detecting invalid user inputs or invalid return values from other contracts, use ``require()``.
 
+#### Returning a Boolean Indicating Success
+
+We currently check the return values from all external function calls.  In the Solidity code, all external function calls should happen within `require(...)` unless the function returns nothing.
+
+When we implement a function that has nothing to return, we make the function always return true.  So we have a more consistent visual look without naked calls.
+
 #### Signature Convention
 
 A signature should be useful only in one context. For this purpose, we follow a convention dictating the format of signed messages. The first fields of a signed message must look like::
