@@ -57,6 +57,10 @@ contract ServiceRegistry is Utils {
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
 
+    // @param service The address of the registered service provider
+    // @param valid_till The timestamp of the moment when the registration expires
+    // @param deposit_amount The amount of deposit transferred
+    // @param deposit The address of Deposit instance where the deposit is stored.
     event RegisteredService(address indexed service, uint256 valid_till, uint256 deposit_amount, Deposit deposit_contract);
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
