@@ -43,9 +43,13 @@ contract Deposit {
 }
 
 
-contract ServiceRegistry is Utils {
-    Token public token;
+contract ServiceRegistryConfigurableParameters {
     address public controller;
+
+    modifier onlyController() {
+        require(msg.sender == controller);
+        _;
+    }
 
     // After a price is set to set_price at timestamp set_price_at,
     // the price decays according to decayed_price().
@@ -58,6 +62,27 @@ contract ServiceRegistry is Utils {
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
     uint256 price_bump_numerator;
     uint256 price_bump_denominator;
+
+    function change_parameters(
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator
+    ) public onlyController {
+        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
+    }
+
+    function set_price_bump_parameters(
+            uint256 _price_bump_numerator,
+            uint256 _price_bump_denominator
+    ) internal {
+        require(_price_bump_denominator > 0, "divide by zero");
+        price_bump_numerator = _price_bump_numerator;
+        price_bump_denominator = _price_bump_denominator;
+    }
+}
+
+
+contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
+    Token public token;
 
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
@@ -92,28 +117,6 @@ contract ServiceRegistry is Utils {
         // Set the price bump ratio
         set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
     }
-
-    modifier onlyController() {
-        require(msg.sender == controller);
-        _;
-    }
-
-    function change_parameters(
-            uint256 _price_bump_numerator,
-            uint256 _price_bump_denominator
-    ) public onlyController {
-        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
-    }
-
-    function set_price_bump_parameters(
-            uint256 _price_bump_numerator,
-            uint256 _price_bump_denominator
-    ) internal {
-        require(_price_bump_denominator > 0, "divide by zero");
-        price_bump_numerator = _price_bump_numerator;
-        price_bump_denominator = _price_bump_denominator;
-    }
-
 
     // @notice Locks tokens and registers a service or extends the registration.
     // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit.
