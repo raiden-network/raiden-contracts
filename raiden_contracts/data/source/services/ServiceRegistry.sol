@@ -127,7 +127,7 @@ contract ServiceRegistry is Utils {
         // We are here trying to approximate some exponential decay.
         // exp(- X / A) where
         //   X is the number of seconds since the last price change
-        //   A is the decay constant (A = 200 days correspnods to 0.5% decrease per day)
+        //   A is the decay constant (A = 200 days corresponds to 0.5% decrease per day)
 
         // exp(- X / A) ~~ P / Q where
         //   P = 24 A^4
