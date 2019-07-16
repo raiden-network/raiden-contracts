@@ -1038,6 +1038,10 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         100,
         "--initial-service-registration-price",
         SERVICE_DEPOSIT // 2,
+        "--service-deposit-bump-numerator",
+        6,
+        "--service-deposit-bump-denominator",
+        5,
     ]
     return common_arguments + save_info_arguments
 
