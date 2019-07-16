@@ -92,7 +92,7 @@ contract ServiceRegistry is Utils {
             valid_till = now;
         }
         // Check against overflow.
-        require(valid_till < valid_till + 180 days);
+        require(valid_till < valid_till + 180 days, "overflow during extending the registration");
         valid_till = valid_till + 180 days;
         assert(valid_till > service_valid_till[msg.sender]);
         service_valid_till[msg.sender] = valid_till;
@@ -102,9 +102,8 @@ contract ServiceRegistry is Utils {
         set_price_at = now;
 
         // Move the deposit in a new Deposit contract.
-        require(token.transferFrom(msg.sender, address(this), amount));
         Deposit depo = new Deposit(address(token), valid_till, msg.sender);
-        require(token.transfer(address(depo), amount));
+        require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
         // Fire event
         emit RegisteredService(msg.sender, valid_till, amount, depo);
@@ -114,7 +113,7 @@ contract ServiceRegistry is Utils {
     /// Only a currently registered service can call this successfully.
     /// @param new_url The new URL string to be stored.
     function setURL(string memory new_url) public {
-        require(now < service_valid_till[msg.sender]);
+        require(now < service_valid_till[msg.sender], "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
     }
@@ -164,7 +163,7 @@ contract ServiceRegistry is Utils {
     /// The current price might change after you send a `deposit()` transaction
     /// before the transaction is executed.
     function current_price() public view returns (uint256) {
-        require(now >= set_price_at);
+        require(now >= set_price_at, "An underflow in price computation");
         uint256 seconds_passed = now - set_price_at;
 
         return decayed_price(set_price, seconds_passed);
