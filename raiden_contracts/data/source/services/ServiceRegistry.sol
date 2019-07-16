@@ -82,7 +82,7 @@ contract ServiceRegistry is Utils {
     // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit.
     // The call fails if the current price is higher (this is always possible
     // when other parties have just called `deposit()`).
-    function deposit(uint _limit_amount) public {
+    function deposit(uint _limit_amount) public returns (bool _success) {
         uint256 amount = current_price();
         require(_limit_amount >= amount, "not enough limit");
 
@@ -107,15 +107,18 @@ contract ServiceRegistry is Utils {
 
         // Fire event
         emit RegisteredService(msg.sender, valid_till, amount, depo);
+
+        return true;
     }
 
     /// @notice Sets the URL used to access a service via HTTP.
     /// Only a currently registered service can call this successfully.
     /// @param new_url The new URL string to be stored.
-    function setURL(string memory new_url) public {
+    function setURL(string memory new_url) public returns (bool _success)  {
         require(now < service_valid_till[msg.sender], "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
+        return true;
     }
 
     /// The amount of time till the price decreases to roughly 1/e.
