@@ -54,6 +54,7 @@ from raiden_contracts.tests.utils import FAKE_ADDRESS, get_random_privkey
 from raiden_contracts.tests.utils.constants import (
     CONTRACT_DEPLOYER_ADDRESS,
     FAUCET_PRIVATE_KEY,
+    SECONDS_PER_DAY,
     SERVICE_DEPOSIT,
     UINT256_MAX,
 )
@@ -140,6 +141,7 @@ def deployed_service_info(
         initial_service_registration_price=SERVICE_DEPOSIT // 2,
         service_deposit_bump_numerator=6,
         service_deposit_bump_denominator=5,
+        decay_constant=200 * SECONDS_PER_DAY,
     )
 
 
@@ -1042,6 +1044,8 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         6,
         "--service-deposit-bump-denominator",
         5,
+        "--service-deposit-decay-constant",
+        200 * SECONDS_PER_DAY,
     ]
     return common_arguments + save_info_arguments
 

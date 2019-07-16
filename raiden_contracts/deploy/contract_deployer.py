@@ -313,6 +313,7 @@ class ContractDeployer(ContractVerifier):
         initial_service_registration_price: int,
         service_deposit_bump_numerator: int,
         service_deposit_bump_denominator: int,
+        decay_constant: int,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         if not contracts_version_has_initial_service_deposit(
@@ -335,6 +336,7 @@ class ContractDeployer(ContractVerifier):
                 initial_service_registration_price,
                 service_deposit_bump_numerator,
                 service_deposit_bump_denominator,
+                decay_constant,
             ],
             deployed_contracts,
         )
