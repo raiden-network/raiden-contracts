@@ -32,12 +32,13 @@ contract Deposit {
     /// @notice Withdraws the tokens that have been deposited.
     /// Only `withdrawer` can call this.
     /// @param _to The address where the withdrawn tokens should go.
-    function withdraw(address _to) external returns (bool success) {
+    function withdraw(address payable _to) external returns (bool success) {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer);
         require(now >= release_at);
         require(balance > 0);
         require(token.transfer(_to, balance));
+        selfdestruct(_to); // The contract can disappear.
         return true;
     }
 }
