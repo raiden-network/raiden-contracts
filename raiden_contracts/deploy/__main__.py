@@ -209,7 +209,7 @@ def raiden(
     help="Maximum amount of tokens deposited in UserDeposit",
 )
 @click.option(
-    "--initial_service_deposit",
+    "--initial-service-registration-price",
     required=True,
     type=int,
     help="Initial amount of deposit for a registration in ServiceRegistry",
@@ -227,7 +227,7 @@ def services(
     save_info: bool,
     contracts_version: Optional[str],
     user_deposit_whole_limit: int,
-    initial_service_deposit: int,
+    initial_service_registration_price: int,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
@@ -235,7 +235,7 @@ def services(
     deployed_contracts_info = deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=user_deposit_whole_limit,
-        initial_service_deposit=initial_service_deposit,
+        initial_service_registration_price=initial_service_registration_price,
     )
     deployed_contracts = {
         contract_name: info["address"]

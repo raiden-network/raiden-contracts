@@ -136,7 +136,7 @@ def deployed_service_info(
     return deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
-        initial_service_deposit=SERVICE_DEPOSIT // 2,
+        initial_service_registration_price=SERVICE_DEPOSIT // 2,
     )
 
 
@@ -1033,7 +1033,7 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         "rpc_provider",
         "--user-deposit-whole-limit",
         100,
-        "--initial_service_deposit",
+        "--initial-service-registration-price",
         SERVICE_DEPOSIT // 2,
     ]
     return common_arguments + save_info_arguments
