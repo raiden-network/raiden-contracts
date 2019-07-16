@@ -7,7 +7,7 @@ from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, SERVICE_DEPOSIT
+from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 
 
 def test_deposit_contract(
@@ -22,6 +22,21 @@ def test_deposit_contract(
     depo.functions.withdraw(A).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 100
     assert custom_token.functions.balanceOf(depo.address).call() == 0
+
+
+def test_deposit_contract_too_early_withdraw(
+    get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
+) -> None:
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(100).call_and_transact({"from": A})
+    depo = get_deposit_contract([custom_token.address, UINT256_MAX, A])
+    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(depo.address).call() == 100
+    with pytest.raises(TransactionFailed):
+        depo.functions.withdraw(A).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(depo.address).call() == 100
 
 
 def test_deposit(
