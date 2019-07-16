@@ -34,10 +34,10 @@ contract Deposit {
     /// @param _to The address where the withdrawn tokens should go.
     function withdraw(address payable _to) external returns (bool success) {
         uint256 balance = token.balanceOf(address(this));
-        require(msg.sender == withdrawer);
-        require(now >= release_at);
-        require(balance > 0);
-        require(token.transfer(_to, balance));
+        require(msg.sender == withdrawer, "the caller is not the withdrawer");
+        require(now >= release_at, "deposit not released yet");
+        require(balance > 0, "nothing to withdraw");
+        require(token.transfer(_to, balance), "token didn't transfer");
         selfdestruct(_to); // The contract can disappear.
         return true;
     }
