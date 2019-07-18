@@ -6,7 +6,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.tests.utils.constants import EMPTY_ADDRESS
-from raiden_contracts.utils.proofs import hash_balance_proof
+from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_proof
 from raiden_contracts.utils.signature import sign
 
 # pylint: disable=E1120
@@ -34,16 +34,26 @@ def test_verify(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
     signature = balance_proof_A[3]
-    balance_proof_hash = hash_balance_proof(
-        token_network.address, int(web3.version.network), channel_identifier, *balance_proof_A[:3]
+    balance_proof_hash = eth_sign_hash_message(
+        pack_balance_proof(
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_A[:3]
+        )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
     assert address == A
 
     balance_proof_B = create_balance_proof(channel_identifier, B, 0, 0, 0)
     signature = balance_proof_B[3]
-    balance_proof_hash = hash_balance_proof(
-        token_network.address, int(web3.version.network), channel_identifier, *balance_proof_B[:3]
+    balance_proof_hash = eth_sign_hash_message(
+        pack_balance_proof(
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_B[:3]
+        )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
     assert address == B
@@ -87,8 +97,13 @@ def test_ecrecover_output(
     r = signature[:32]
     s = signature[32:64]
     v = signature[64:]
-    balance_proof_hash = hash_balance_proof(
-        token_network.address, int(web3.version.network), channel_identifier, *balance_proof_A[:3]
+    balance_proof_hash = eth_sign_hash_message(
+        pack_balance_proof(
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_A[:3]
+        )
     )
 
     address = signature_test_contract.functions.verifyEcrecoverOutput(

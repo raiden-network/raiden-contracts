@@ -24,7 +24,7 @@ def eth_sign_hash_message(encoded_message: bytes) -> bytes:
     )
 
 
-def hash_balance_proof(
+def pack_balance_proof(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
@@ -32,7 +32,7 @@ def hash_balance_proof(
     nonce: int,
     additional_hash: bytes,
 ) -> bytes:
-    return eth_sign_hash_message(
+    return (
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
         + encode_single("uint256", MessageTypeId.BALANCE_PROOF)
@@ -43,7 +43,7 @@ def hash_balance_proof(
     )
 
 
-def hash_balance_proof_update_message(
+def pack_balance_proof_update_message(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
@@ -52,7 +52,7 @@ def hash_balance_proof_update_message(
     additional_hash: bytes,
     closing_signature: bytes,
 ) -> bytes:
-    return eth_sign_hash_message(
+    return (
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
         + encode_single("uint256", MessageTypeId.BALANCE_PROOF_UPDATE)
@@ -64,7 +64,7 @@ def hash_balance_proof_update_message(
     )
 
 
-def hash_cooperative_settle_message(
+def pack_cooperative_settle_message(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
@@ -73,7 +73,7 @@ def hash_cooperative_settle_message(
     participant2_address: HexAddress,
     participant2_balance: int,
 ) -> bytes:
-    return eth_sign_hash_message(
+    return (
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
         + encode_single("uint256", MessageTypeId.COOPERATIVE_SETTLE)
@@ -85,7 +85,7 @@ def hash_cooperative_settle_message(
     )
 
 
-def hash_withdraw_message(
+def pack_withdraw_message(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
@@ -93,7 +93,7 @@ def hash_withdraw_message(
     amount_to_withdraw: int,
     expiration_block: int,
 ) -> bytes:
-    return eth_sign_hash_message(
+    return (
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
         + encode_single("uint256", MessageTypeId.WITHDRAW)
@@ -129,13 +129,15 @@ def sign_balance_proof(
     additional_hash: bytes,
     v: int = 27,
 ) -> bytes:
-    message_hash = hash_balance_proof(
-        token_network_address=token_network_address,
-        chain_identifier=chain_identifier,
-        channel_identifier=channel_identifier,
-        balance_hash=balance_hash,
-        nonce=nonce,
-        additional_hash=additional_hash,
+    message_hash = eth_sign_hash_message(
+        pack_balance_proof(
+            token_network_address=token_network_address,
+            chain_identifier=chain_identifier,
+            channel_identifier=channel_identifier,
+            balance_hash=balance_hash,
+            nonce=nonce,
+            additional_hash=additional_hash,
+        )
     )
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
@@ -152,14 +154,16 @@ def sign_balance_proof_update_message(
     closing_signature: bytes,
     v: int = 27,
 ) -> bytes:
-    message_hash = hash_balance_proof_update_message(
-        token_network_address=token_network_address,
-        chain_identifier=chain_identifier,
-        channel_identifier=channel_identifier,
-        balance_hash=balance_hash,
-        nonce=nonce,
-        additional_hash=additional_hash,
-        closing_signature=closing_signature,
+    message_hash = eth_sign_hash_message(
+        pack_balance_proof_update_message(
+            token_network_address=token_network_address,
+            chain_identifier=chain_identifier,
+            channel_identifier=channel_identifier,
+            balance_hash=balance_hash,
+            nonce=nonce,
+            additional_hash=additional_hash,
+            closing_signature=closing_signature,
+        )
     )
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
@@ -176,14 +180,16 @@ def sign_cooperative_settle_message(
     participant2_balance: int,
     v: int = 27,
 ) -> bytes:
-    message_hash = hash_cooperative_settle_message(
-        token_network_address=token_network_address,
-        chain_identifier=chain_identifier,
-        channel_identifier=channel_identifier,
-        participant1_address=participant1_address,
-        participant1_balance=participant1_balance,
-        participant2_address=participant2_address,
-        participant2_balance=participant2_balance,
+    message_hash = eth_sign_hash_message(
+        pack_cooperative_settle_message(
+            token_network_address=token_network_address,
+            chain_identifier=chain_identifier,
+            channel_identifier=channel_identifier,
+            participant1_address=participant1_address,
+            participant1_balance=participant1_balance,
+            participant2_address=participant2_address,
+            participant2_balance=participant2_balance,
+        )
     )
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
@@ -199,13 +205,15 @@ def sign_withdraw_message(
     expiration_block: int,
     v: int = 27,
 ) -> bytes:
-    message_hash = hash_withdraw_message(
-        token_network_address=token_network_address,
-        chain_identifier=chain_identifier,
-        channel_identifier=channel_identifier,
-        participant=participant,
-        amount_to_withdraw=amount_to_withdraw,
-        expiration_block=expiration_block,
+    message_hash = eth_sign_hash_message(
+        pack_withdraw_message(
+            token_network_address=token_network_address,
+            chain_identifier=chain_identifier,
+            channel_identifier=channel_identifier,
+            participant=participant,
+            amount_to_withdraw=amount_to_withdraw,
+            expiration_block=expiration_block,
+        )
     )
 
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
