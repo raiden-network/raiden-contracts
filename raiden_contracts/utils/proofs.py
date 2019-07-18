@@ -31,11 +31,12 @@ def pack_balance_proof(
     balance_hash: bytes,
     nonce: int,
     additional_hash: bytes,
+    msg_type: MessageTypeId = MessageTypeId.BALANCE_PROOF,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=token_network_address)
         + encode_single("uint256", chain_identifier)
-        + encode_single("uint256", MessageTypeId.BALANCE_PROOF)
+        + encode_single("uint256", msg_type)
         + encode_single("uint256", channel_identifier)
         + balance_hash
         + encode_single("uint256", nonce)
@@ -53,13 +54,15 @@ def pack_balance_proof_update_message(
     closing_signature: bytes,
 ) -> bytes:
     return (
-        Web3.toBytes(hexstr=token_network_address)
-        + encode_single("uint256", chain_identifier)
-        + encode_single("uint256", MessageTypeId.BALANCE_PROOF_UPDATE)
-        + encode_single("uint256", channel_identifier)
-        + balance_hash
-        + encode_single("uint256", nonce)
-        + additional_hash
+        pack_balance_proof(
+            token_network_address=token_network_address,
+            chain_identifier=chain_identifier,
+            channel_identifier=channel_identifier,
+            balance_hash=balance_hash,
+            nonce=nonce,
+            additional_hash=additional_hash,
+            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        )
         + closing_signature
     )
 
