@@ -79,7 +79,16 @@ def test_deposit_channel_call(
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call({"from": A})
 
-    token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B)
+    token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B).call_and_transact(
+        {"from": A}
+    )
+    assert (
+        deposit_A
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
+    assert (
+        0 == token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[0]
+    )
 
 
 def test_deposit_notapproved(
@@ -103,6 +112,9 @@ def test_deposit_notapproved(
         token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B).call(
             {"from": A}
         )
+    assert (
+        0 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
 
 
 def test_null_or_negative_deposit_fail(
@@ -124,15 +136,24 @@ def test_null_or_negative_deposit_fail(
         token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call({"from": A})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})
+    assert (
+        2 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
 
 
 def test_deposit_delegate_works(
-    get_accounts: Callable, create_channel: Callable, channel_deposit: Callable
+    get_accounts: Callable,
+    create_channel: Callable,
+    channel_deposit: Callable,
+    token_network: Contract,
 ) -> None:
     """ A third party can successfully call setTokenDeposit() """
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
+    assert (
+        2 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
 
 
 def test_deposit_wrong_channel(
@@ -154,6 +175,9 @@ def test_deposit_wrong_channel(
 
     token_network.functions.setTotalDeposit(channel_identifier, A, 10, B).call_and_transact(
         {"from": A}
+    )
+    assert (
+        10 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
 
@@ -240,6 +264,14 @@ def test_deposit_wrong_state_fail(
     token_network.functions.setTotalDeposit(
         channel_identifier, B, vals_B.deposit, A
     ).call_and_transact({"from": B})
+    assert (
+        vals_A.deposit
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
+    assert (
+        vals_B.deposit
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[0]
+    )
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -295,6 +327,10 @@ def test_deposit_channel_event(
     channel_identifier = create_channel(A, B)[0]
 
     txn_hash = channel_deposit(channel_identifier, A, deposit_A, B)
+    assert (
+        deposit_A
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
+    )
 
     ev_handler.add(
         txn_hash, ChannelEvent.DEPOSIT, check_new_deposit(channel_identifier, A, deposit_A)
