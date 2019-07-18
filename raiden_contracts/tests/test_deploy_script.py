@@ -142,6 +142,7 @@ def deployed_service_info(
         service_deposit_bump_numerator=6,
         service_deposit_bump_denominator=5,
         decay_constant=200 * SECONDS_PER_DAY,
+        registration_duration=180 * SECONDS_PER_DAY,
     )
 
 

@@ -66,26 +66,33 @@ contract ServiceRegistryConfigurableParameters {
     uint256 price_bump_numerator = 1;
     uint256 price_bump_denominator = 1;
 
+    // The duration of service registration/extension in seconds
+    uint256 public registration_duration = 180 days;
+
     function change_parameters(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
-            uint256 _decay_constant
+            uint256 _decay_constant,
+            uint256 _registration_duration
     ) public onlyController {
         change_parameters_internal(
             _price_bump_numerator,
             _price_bump_denominator,
-            _decay_constant
+            _decay_constant,
+            _registration_duration
         );
     }
 
     function change_parameters_internal(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
-            uint256 _decay_constant
+            uint256 _decay_constant,
+            uint256 _registration_duration
     ) internal {
         refresh_price();
         set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
         set_decay_constant(_decay_constant);
+        set_registration_duration(_registration_duration);
     }
 
     // Updates set_price to be current_price() and set_price_at to be now
@@ -107,6 +114,11 @@ contract ServiceRegistryConfigurableParameters {
         require(_decay_constant > 0, "attempt to set zero decay constant");
         require(_decay_constant < 2 ** 60, "too big decay constant");
         decay_constant = _decay_constant;
+    }
+
+    function set_registration_duration(uint256 _registration_duration) private {
+        // No checks.  Even allowing zero (when no new registrations are possible).
+        registration_duration = _registration_duration;
     }
 
 
@@ -180,7 +192,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             uint256 _initial_price,
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
-            uint256 _decay_constant
+            uint256 _decay_constant,
+            uint256 _registration_duration
     ) public {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
@@ -196,7 +209,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price_at = now;
 
         // Set the parameters
-        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant);
+        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _registration_duration);
     }
 
     // @notice Locks tokens and registers a service or extends the registration.
@@ -213,8 +226,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             valid_till = now;
         }
         // Check against overflow.
-        require(valid_till < valid_till + 180 days, "overflow during extending the registration");
-        valid_till = valid_till + 180 days;
+        require(valid_till < valid_till + registration_duration, "overflow during extending the registration");
+        valid_till = valid_till + registration_duration;
         assert(valid_till > service_valid_till[msg.sender]);
         service_valid_till[msg.sender] = valid_till;
 

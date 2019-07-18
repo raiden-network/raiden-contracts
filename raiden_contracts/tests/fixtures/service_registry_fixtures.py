@@ -18,5 +18,6 @@ def service_registry(deploy_tester_contract: Callable, custom_token: Contract) -
             6,
             5,
             200 * SECONDS_PER_DAY,
+            180 * SECONDS_PER_DAY,
         ],
     )
