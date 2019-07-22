@@ -351,7 +351,7 @@ def _verify_service_registry_deployment(
     service_registry: Contract, constructor_arguments: List, token_address: HexAddress
 ) -> None:
     """ Check an onchain deployment of ServiceRegistry and constructor arguments """
-    if len(constructor_arguments) != 7:
+    if len(constructor_arguments) != 8:
         raise RuntimeError(
             "ServiceRegistry was deployed with a wrong number of constructor arguments"
         )

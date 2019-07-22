@@ -238,10 +238,16 @@ def raiden(
     "the original, if deposits are made.",
 )
 @click.option(
-    "--initial-service-registration-price",
+    "--initial-service-deposit-price",
     required=True,
     type=int,
     help="Initial amount of deposit for a registration in ServiceRegistry",
+)
+@click.option(
+    "--service-deposit-min-price",
+    required=True,
+    type=int,
+    help="The minimum amount of deposits, where the decay of the price stops.",
 )
 @click.option(
     "--service-registration-duration",
@@ -263,10 +269,11 @@ def services(
     contracts_version: Optional[str],
     user_deposit_whole_limit: int,
     service_registry_controller: HexAddress,
-    initial_service_registration_price: int,
+    initial_service_deposit_price: int,
     service_deposit_bump_numerator: int,
     service_deposit_bump_denominator: int,
     service_deposit_decay_constant: int,
+    service_deposit_min_price: int,
     service_registration_duration: int,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
@@ -276,10 +283,11 @@ def services(
         token_address=token_address,
         user_deposit_whole_balance_limit=user_deposit_whole_limit,
         service_registry_controller=service_registry_controller,
-        initial_service_registration_price=initial_service_registration_price,
+        initial_service_deposit_price=initial_service_deposit_price,
         service_deposit_bump_numerator=service_deposit_bump_numerator,
         service_deposit_bump_denominator=service_deposit_bump_denominator,
         decay_constant=service_deposit_decay_constant,
+        min_price=service_deposit_min_price,
         registration_duration=service_registration_duration,
     )
     deployed_contracts = {

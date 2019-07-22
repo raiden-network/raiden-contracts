@@ -17,6 +17,7 @@ from raiden_contracts.tests.utils.constants import (
     DEFAULT_BUMP_NUMERATOR,
     DEFAULT_DECAY_CONSTANT,
     DEFAULT_REGISTRATION_DURATION,
+    DEFAULT_MIN_PRICE,
     SECONDS_PER_DAY,
     SERVICE_DEPOSIT,
     UINT256_MAX,
@@ -129,6 +130,7 @@ def test_changing_duration(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=new_duration,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
     assert service_registry.functions.registration_duration().call() == new_duration
@@ -150,6 +152,7 @@ def test_changing_bump_numerator(service_registry: Contract) -> None:
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
     assert service_registry.functions.price_bump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
