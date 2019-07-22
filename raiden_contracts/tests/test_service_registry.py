@@ -207,9 +207,7 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
     assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE
 
 
-def test_parameter_change_on_no_controller(
-    service_registry_without_controller: Contract, get_accounts: Callable
-) -> None:
+def test_parameter_change_on_no_controller(service_registry_without_controller: Contract) -> None:
     """A random address's change_parameters() call should fail"""
     with pytest.raises(TransactionFailed):
         service_registry_without_controller.functions.change_parameters(
