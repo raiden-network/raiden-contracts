@@ -4,7 +4,13 @@ import pytest
 from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_SERVICE_REGISTRY
-from raiden_contracts.tests.utils import CONTRACT_DEPLOYER_ADDRESS, SECONDS_PER_DAY
+from raiden_contracts.tests.utils import (
+    CONTRACT_DEPLOYER_ADDRESS,
+    DEFAULT_BUMP_DENOMINATOR,
+    DEFAULT_BUMP_NUMERATOR,
+    DEFAULT_DECAY_CONSTANT,
+    DEFAULT_REGISTRATION_DURATION,
+)
 
 
 @pytest.fixture(scope="session")
@@ -15,9 +21,9 @@ def service_registry(deploy_tester_contract: Callable, custom_token: Contract) -
             custom_token.address,
             CONTRACT_DEPLOYER_ADDRESS,
             3000 * (10 ** 18),
-            6,
-            5,
-            200 * SECONDS_PER_DAY,
-            180 * SECONDS_PER_DAY,
+            DEFAULT_BUMP_NUMERATOR,
+            DEFAULT_BUMP_DENOMINATOR,
+            DEFAULT_DECAY_CONSTANT,
+            DEFAULT_REGISTRATION_DURATION,
         ],
     )
