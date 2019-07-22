@@ -351,15 +351,22 @@ def _verify_service_registry_deployment(
     service_registry: Contract, constructor_arguments: List, token_address: HexAddress
 ) -> None:
     """ Check an onchain deployment of ServiceRegistry and constructor arguments """
-    if to_checksum_address(service_registry.functions.token().call()) != token_address:
-        raise RuntimeError("ServiceRegistry has a wrong token address")
     if len(constructor_arguments) != 7:
         raise RuntimeError(
             "ServiceRegistry was deployed with a wrong number of constructor arguments"
         )
+    if to_checksum_address(service_registry.functions.token().call()) != token_address:
+        raise RuntimeError("ServiceRegistry has a wrong token address")
     if token_address != constructor_arguments[0]:
         raise RuntimeError(
-            f"expected token addredd {token_address} "
+            f"expected token address {token_address} "
             f"but the constructor argument for {CONTRACT_SERVICE_REGISTRY} is "
             f"{constructor_arguments[0]}"
         )
+    controller_onchain = to_checksum_address(service_registry.functions.controller().call())
+    if controller_onchain != constructor_arguments[1]:
+        raise RuntimeError(
+            f"the deployment data contains the controller address {constructor_arguments[1]} "
+            f"but the contract remembers {controller_onchain} onchain."
+        )
+    # All other parameters can change after the deployment, so the checks are omitted.
