@@ -126,8 +126,12 @@ def test_changing_duration(
 ) -> None:
     new_duration = 90 * SECONDS_PER_DAY
     service_registry.functions.change_parameters(
-        DEFAULT_BUMP_NUMERATOR, DEFAULT_BUMP_DENOMINATOR, DEFAULT_DECAY_CONSTANT, new_duration
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _registration_duration=new_duration,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.registration_duration() == 90 * SECONDS_PER_DAY
     # make sure that the duration has changed.
     (A,) = get_accounts(1)
     custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
@@ -139,3 +143,13 @@ def test_changing_duration(
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     second_expiration = service_registry.functions.service_valid_till(A).call()
     assert second_expiration == first_expiration + new_duration
+
+
+def test_changing_bump_numerator(service_registry: Contract) -> None:
+    service_registry.functions.change_parameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _registration_duration=DEFAULT_REGISTRATION_DURATION,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.price_dump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
