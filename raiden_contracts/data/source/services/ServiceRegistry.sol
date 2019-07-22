@@ -63,8 +63,8 @@ contract ServiceRegistryConfigurableParameters {
     uint256 constant min_price = 1000;
 
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
-    uint256 price_bump_numerator = 1;
-    uint256 price_bump_denominator = 1;
+    uint256 public price_bump_numerator = 1;
+    uint256 public price_bump_denominator = 1;
 
     // The duration of service registration/extension in seconds
     uint256 public registration_duration = 180 days;
