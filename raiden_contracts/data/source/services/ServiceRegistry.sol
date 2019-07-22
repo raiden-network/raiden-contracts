@@ -60,7 +60,7 @@ contract ServiceRegistryConfigurableParameters {
     uint256 public decay_constant = 200 days;
 
     // Once the price is at min_price, it can't decay further.
-    uint256 constant min_price = 1000;
+    uint256 public min_price;
 
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
     uint256 public price_bump_numerator = 1;
@@ -73,12 +73,14 @@ contract ServiceRegistryConfigurableParameters {
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
             uint256 _decay_constant,
+            uint256 _min_price,
             uint256 _registration_duration
     ) public onlyController {
         change_parameters_internal(
             _price_bump_numerator,
             _price_bump_denominator,
             _decay_constant,
+            _min_price,
             _registration_duration
         );
     }
@@ -87,10 +89,12 @@ contract ServiceRegistryConfigurableParameters {
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
             uint256 _decay_constant,
+            uint256 _min_price,
             uint256 _registration_duration
     ) internal {
         refresh_price();
         set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
+        set_min_price(_min_price);
         set_decay_constant(_decay_constant);
         set_registration_duration(_registration_duration);
     }
@@ -108,6 +112,13 @@ contract ServiceRegistryConfigurableParameters {
         require(_price_bump_denominator > 0, "divide by zero");
         price_bump_numerator = _price_bump_numerator;
         price_bump_denominator = _price_bump_denominator;
+    }
+
+    function set_min_price(uint256 _min_price) private {
+        // No checks.  Even allowing zero.
+        min_price = _min_price;
+        // No checks or modifications on set_price.
+        // Even if set_price is smaller than min_price, current_price() function returns min_price.
     }
 
     function set_decay_constant(uint256 _decay_constant) private {
@@ -193,6 +204,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
             uint256 _decay_constant,
+            uint256 _min_price,
             uint256 _registration_duration
     ) public {
         require(_token_for_registration != address(0x0), "token at address zero");
@@ -209,7 +221,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price_at = now;
 
         // Set the parameters
-        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _registration_duration);
+        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _min_price, _registration_duration);
     }
 
     // @notice Locks tokens and registers a service or extends the registration.

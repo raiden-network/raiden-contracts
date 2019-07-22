@@ -10,6 +10,7 @@ from raiden_contracts.tests.utils import (
     DEFAULT_BUMP_NUMERATOR,
     DEFAULT_DECAY_CONSTANT,
     DEFAULT_REGISTRATION_DURATION,
+    DEFAULT_MIN_PRICE,
 )
 
 
@@ -24,6 +25,7 @@ def service_registry(deploy_tester_contract: Callable, custom_token: Contract) -
             DEFAULT_BUMP_NUMERATOR,
             DEFAULT_BUMP_DENOMINATOR,
             DEFAULT_DECAY_CONSTANT,
+            DEFAULT_MIN_PRICE,
             DEFAULT_REGISTRATION_DURATION,
         ],
     )

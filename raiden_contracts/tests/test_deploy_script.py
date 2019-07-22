@@ -138,10 +138,11 @@ def deployed_service_info(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
         service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
-        initial_service_registration_price=SERVICE_DEPOSIT // 2,
+        initial_service_deposit_price=SERVICE_DEPOSIT // 2,
         service_deposit_bump_numerator=6,
         service_deposit_bump_denominator=5,
         decay_constant=200 * SECONDS_PER_DAY,
+        min_price=1000,
         registration_duration=180 * SECONDS_PER_DAY,
     )
 
@@ -1045,7 +1046,7 @@ def deploy_services_arguments(
         "rpc_provider",
         "--user-deposit-whole-limit",
         100,
-        "--initial-service-registration-price",
+        "--initial-service-deposit-price",
         SERVICE_DEPOSIT // 2,
         "--service-deposit-bump-numerator",
         6,
@@ -1053,6 +1054,8 @@ def deploy_services_arguments(
         5,
         "--service-deposit-decay-constant",
         200 * SECONDS_PER_DAY,
+        "--service-deposit-min-price",
+        1000,
         "--service-registration-duration",
         180 * SECONDS_PER_DAY,
     ]

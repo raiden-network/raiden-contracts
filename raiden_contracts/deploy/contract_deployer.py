@@ -310,10 +310,11 @@ class ContractDeployer(ContractVerifier):
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
         service_registry_controller: HexAddress,
-        initial_service_registration_price: int,
+        initial_service_deposit_price: int,
         service_deposit_bump_numerator: int,
         service_deposit_bump_denominator: int,
         decay_constant: int,
+        min_price: int,
         registration_duration: int,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
@@ -334,10 +335,11 @@ class ContractDeployer(ContractVerifier):
             [
                 token_address,
                 service_registry_controller,
-                initial_service_registration_price,
+                initial_service_deposit_price,
                 service_deposit_bump_numerator,
                 service_deposit_bump_denominator,
                 decay_constant,
+                min_price,
                 registration_duration,
             ],
             deployed_contracts,
