@@ -179,9 +179,7 @@ def test_changing_decay_constant(service_registry: Contract) -> None:
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
-    assert (
-        service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
-    )
+    assert service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
@@ -192,9 +190,7 @@ def test_changing_min_price(service_registry: Contract) -> None:
         _min_price=DEFAULT_MIN_PRICE * 2,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
-    assert (
-        service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE * 2
-    )
+    assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE * 2
 
 
 def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
@@ -208,6 +204,19 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
             _min_price=DEFAULT_MIN_PRICE * 2,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
         ).call_and_transact({"from": A})
-    assert (
-        service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE
-    )
+    assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE
+
+
+def test_parameter_change_on_no_controller(
+    service_registry_without_controller: Contract, get_accounts: Callable
+) -> None:
+    """A random address's change_parameters() call should fail"""
+    with pytest.raises(TransactionFailed):
+        service_registry_without_controller.functions.change_parameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE * 2,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry_without_controller.functions.min_price().call() == DEFAULT_MIN_PRICE
