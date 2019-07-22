@@ -195,3 +195,19 @@ def test_changing_min_price(service_registry: Contract) -> None:
     assert (
         service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE * 2
     )
+
+
+def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
+    """A random address's change_parameters() call should fail"""
+    (A,) = get_accounts(1)
+    with pytest.raises(TransactionFailed):
+        service_registry.functions.change_parameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE * 2,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": A})
+    assert (
+        service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE
+    )
