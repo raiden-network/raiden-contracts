@@ -1025,14 +1025,20 @@ def test_deploy_raiden_save_info_false(
             mock_verify.assert_called_once()
 
 
-def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
+def deploy_services_arguments(
+    privkey: str, save_info: Optional[bool], service_registry_controller: Optional[HexAddress]
+) -> List:
     if save_info is None:
-        save_info_arguments: List = []
+        arguments: List = []
     elif save_info is True:
-        save_info_arguments = ["--save-info"]
+        arguments = ["--save-info"]
     else:
-        save_info_arguments = ["--no-save-info"]
-    common_arguments: List = [
+        arguments = ["--no-save-info"]
+
+    if service_registry_controller:
+        arguments += ["--service-registry-controller", service_registry_controller]
+
+    arguments += [
         "--private-key",
         privkey,
         "--rpc-provider",
@@ -1050,7 +1056,7 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         "--service-registration-duration",
         180 * SECONDS_PER_DAY,
     ]
-    return common_arguments + save_info_arguments
+    return arguments
 
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
@@ -1070,7 +1076,38 @@ def test_deploy_services(
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                services, deploy_services_arguments(privkey=privkey_file.name, save_info=None)
+                services,
+                deploy_services_arguments(
+                    privkey=privkey_file.name, save_info=None, service_registry_controller=None
+                ),
+            )
+            assert result.exception is None
+            assert result.exit_code == 0
+            mock_deploy.assert_called_once()
+            mock_verify.assert_called_once()
+
+
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
+def test_deploy_services_with_controller(
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+) -> None:
+    """ Calling deploy raiden command """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, "ascii"))
+        privkey_file.flush()
+        with patch.object(Eth, "getBalance", return_value=1):
+            runner = CliRunner()
+            result = runner.invoke(
+                services,
+                deploy_services_arguments(
+                    privkey=privkey_file.name, save_info=None, service_registry_controller=signer
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
@@ -1095,7 +1132,10 @@ def test_deploy_services_save_info_false(
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
-                services, deploy_services_arguments(privkey=privkey_file.name, save_info=False)
+                services,
+                deploy_services_arguments(
+                    privkey=privkey_file.name, save_info=False, service_registry_controller=None
+                ),
             )
             assert result.exception is None
             assert result.exit_code == 0
