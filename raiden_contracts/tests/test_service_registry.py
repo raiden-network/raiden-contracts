@@ -169,3 +169,16 @@ def test_changing_bump_denominator(service_registry: Contract) -> None:
     assert (
         service_registry.functions.price_bump_denominator().call() == DEFAULT_BUMP_DENOMINATOR + 1
     )
+
+
+def test_changing_decay_constant(service_registry: Contract) -> None:
+    service_registry.functions.change_parameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT + 100,
+        _min_price=DEFAULT_MIN_PRICE,
+        _registration_duration=DEFAULT_REGISTRATION_DURATION,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert (
+        service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
+    )
