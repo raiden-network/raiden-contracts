@@ -243,6 +243,12 @@ def raiden(
     type=int,
     help="Initial amount of deposit for a registration in ServiceRegistry",
 )
+@click.option(
+    "--service-registration-duration",
+    required=True,
+    type=int,
+    help="The duration of service registration (seconds)",
+)
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.pass_context
 def services(
@@ -261,6 +267,7 @@ def services(
     service_deposit_bump_numerator: int,
     service_deposit_bump_denominator: int,
     service_deposit_decay_constant: int,
+    service_registration_duration: int,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
@@ -273,6 +280,7 @@ def services(
         service_deposit_bump_numerator=service_deposit_bump_numerator,
         service_deposit_bump_denominator=service_deposit_bump_denominator,
         decay_constant=service_deposit_decay_constant,
+        registration_duration=service_registration_duration,
     )
     deployed_contracts = {
         contract_name: info["address"]
