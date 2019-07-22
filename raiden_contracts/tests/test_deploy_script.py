@@ -1047,6 +1047,8 @@ def deploy_services_arguments(privkey: str, save_info: Optional[bool]) -> List:
         5,
         "--service-deposit-decay-constant",
         200 * SECONDS_PER_DAY,
+        "--service-registration-duration",
+        180 * SECONDS_PER_DAY,
     ]
     return common_arguments + save_info_arguments
 
