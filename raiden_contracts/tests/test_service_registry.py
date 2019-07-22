@@ -11,7 +11,16 @@ from raiden_contracts.constants import (
     EVENT_REGISTERED_SERVICE,
 )
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils.constants import SECONDS_PER_DAY, SERVICE_DEPOSIT, UINT256_MAX
+from raiden_contracts.tests.utils.constants import (
+    CONTRACT_DEPLOYER_ADDRESS,
+    DEFAULT_BUMP_DENOMINATOR,
+    DEFAULT_BUMP_NUMERATOR,
+    DEFAULT_DECAY_CONSTANT,
+    DEFAULT_REGISTRATION_DURATION,
+    SECONDS_PER_DAY,
+    SERVICE_DEPOSIT,
+    UINT256_MAX,
+)
 
 
 def test_deposit_contract(
@@ -73,7 +82,7 @@ def test_deposit(
     # Extending the registration
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     second_expiration = service_registry.functions.service_valid_till(A).call()
-    assert second_expiration == first_expiration + 180 * SECONDS_PER_DAY
+    assert second_expiration == first_expiration + DEFAULT_REGISTRATION_DURATION
 
 
 def test_setURL(
@@ -110,3 +119,23 @@ def test_decayed_price(service_registry: Contract) -> None:
 
     # roughly 139 days till the price halves.
     assert service_registry.functions.decayed_price(100000, 11990300).call() == 50000
+
+
+def test_changing_duration(
+    service_registry: Contract, get_accounts: Callable, custom_token: Contract
+) -> None:
+    new_duration = 90 * SECONDS_PER_DAY
+    service_registry.functions.change_parameters(
+        DEFAULT_BUMP_NUMERATOR, DEFAULT_BUMP_DENOMINATOR, DEFAULT_DECAY_CONSTANT, new_duration
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    # make sure that the duration has changed.
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(
+        service_registry.address, 2 * SERVICE_DEPOSIT
+    ).call_and_transact({"from": A})
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    first_expiration = service_registry.functions.service_valid_till(A).call()
+    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    second_expiration = service_registry.functions.service_valid_till(A).call()
+    assert second_expiration == first_expiration + new_duration
