@@ -158,6 +158,18 @@ def test_changing_bump_numerator(service_registry: Contract) -> None:
     assert service_registry.functions.price_bump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
 
 
+def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
+    """change_parameters() fails if the numerator is too big"""
+    with pytest.raises(TransactionFailed):
+        service_registry.functions.change_parameters(
+            _price_bump_numerator=2 ** 40,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+
+
 def test_changing_bump_denominator(service_registry: Contract) -> None:
     service_registry.functions.change_parameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
@@ -192,6 +204,18 @@ def test_changing_decay_constant(service_registry: Contract) -> None:
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
     assert service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
+
+
+def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
+    """change_parameters() fails if the new decay constant is too high"""
+    with pytest.raises(TransactionFailed):
+        service_registry.functions.change_parameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=2 ** 40,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
