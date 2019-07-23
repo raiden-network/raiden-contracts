@@ -175,7 +175,7 @@ def raiden(
     secret_registry_from_deployment_file: Optional[str],
 ) -> None:
     check_version_dependent_parameters(contracts_version, max_token_networks)
-    secret_registry_from_deployment_path: Option[Path] = None
+    secret_registry_from_deployment_path: Optional[Path] = None
     if secret_registry_from_deployment_file:
         secret_registry_from_deployment_path = Path(secret_registry_from_deployment_file)
 
