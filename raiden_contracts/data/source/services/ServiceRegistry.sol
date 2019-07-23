@@ -60,7 +60,7 @@ contract ServiceRegistryConfigurableParameters {
     uint256 public decay_constant = 200 days;
 
     // Once the price is at min_price, it can't decay further.
-    uint256 public min_price;
+    uint256 public min_price = 1000;
 
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
     uint256 public price_bump_numerator = 1;
@@ -180,9 +180,9 @@ contract ServiceRegistryConfigurableParameters {
         // P should be at most 24 * (2 ** 40).
         uint256 price = _set_price * P / Q;
 
-        // Not allowing a price smaller than 1000.
+        // Not allowing a price smaller than min_price.
         // Once it's too low it's too low forever.
-        if (price < min_price) {  // Maybe make this configurable too?
+        if (price < min_price) {
             price = min_price;
         }
         return price;
