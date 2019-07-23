@@ -254,3 +254,23 @@ def test_parameter_change_on_no_controller(service_registry_without_controller: 
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
         ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
     assert service_registry_without_controller.functions.min_price().call() == DEFAULT_MIN_PRICE
+
+
+def service_registry_with_high_numbers(
+    deploy_tester_contract: Callable, custom_token: Contract
+) -> Contract:
+    """See if the computation overflows with the highest allowed numbers"""
+    contract = deploy_tester_contract(
+        CONTRACT_SERVICE_REGISTRY,
+        [
+            custom_token.address,
+            EMPTY_ADDRESS,
+            2 ** 90,
+            2 ** 40 - 1,
+            1,
+            2 ** 40 - 1,
+            DEFAULT_MIN_PRICE,
+            DEFAULT_REGISTRATION_DURATION,
+        ],
+    )
+    assert contract.functions.current_price() == 2 ** 90
