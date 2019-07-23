@@ -274,3 +274,32 @@ def service_registry_with_high_numbers(
         ],
     )
     assert contract.functions.current_price() == 2 ** 90
+
+
+def test_deprecation_switch(
+    service_registry: Contract, get_accounts: Callable, custom_token: Contract
+) -> None:
+    """The controller turns on the deprecation switch and somebody tries to deposit"""
+    # The controller turns on the deprecation switch
+    assert not service_registry.functions.deprecation_switch().call()
+    service_registry.functions.set_deprecation_switch().call_and_transact(
+        {"from": CONTRACT_DEPLOYER_ADDRESS}
+    )
+    assert service_registry.functions.deprecation_switch().call()
+    # A user tries to make a deposit
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+        {"from": A}
+    )
+    with pytest.raises(TransactionFailed):
+        service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+
+
+def test_unauthorized_deprecation_switch(
+    service_registry: Contract, get_accounts: Callable
+) -> None:
+    """A random account cannot turn on the deprecation switch"""
+    (A,) = get_accounts(1)
+    with pytest.raises(TransactionFailed):
+        service_registry.functions.set_deprecation_switch().call_and_transact({"from": A})
