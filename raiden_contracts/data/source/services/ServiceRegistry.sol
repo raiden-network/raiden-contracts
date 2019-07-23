@@ -69,6 +69,14 @@ contract ServiceRegistryConfigurableParameters {
     // The duration of service registration/extension in seconds
     uint256 public registration_duration = 180 days;
 
+    // If true, new deposits are no longer accepted.
+    bool public deprecation_switch = false;
+
+    function set_deprecation_switch() public onlyController returns (bool _success) {
+        deprecation_switch = true;
+        return true;
+    }
+
     function change_parameters(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
@@ -236,6 +244,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     // The call fails if the current price is higher (this is always possible
     // when other parties have just called `deposit()`).
     function deposit(uint _limit_amount) public returns (bool _success) {
+        require(! deprecation_switch, "this contract was deprecated");
+
         uint256 amount = current_price();
         require(_limit_amount >= amount, "not enough limit");
 
