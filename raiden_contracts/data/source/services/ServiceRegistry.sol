@@ -75,7 +75,7 @@ contract ServiceRegistryConfigurableParameters {
             uint256 _decay_constant,
             uint256 _min_price,
             uint256 _registration_duration
-    ) public onlyController {
+    ) public onlyController returns (bool _success) {
         change_parameters_internal(
             _price_bump_numerator,
             _price_bump_denominator,
@@ -83,6 +83,7 @@ contract ServiceRegistryConfigurableParameters {
             _min_price,
             _registration_duration
         );
+        return true;
     }
 
     function change_parameters_internal(
