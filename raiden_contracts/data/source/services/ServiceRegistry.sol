@@ -110,6 +110,7 @@ contract ServiceRegistryConfigurableParameters {
             uint256 _price_bump_denominator
     ) private {
         require(_price_bump_denominator > 0, "divide by zero");
+        require(_price_bump_numerator >= _price_bump_denominator, "price dump instead of bump");
         price_bump_numerator = _price_bump_numerator;
         price_bump_denominator = _price_bump_denominator;
     }
