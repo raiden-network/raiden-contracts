@@ -112,6 +112,7 @@ contract ServiceRegistryConfigurableParameters {
     ) private {
         require(_price_bump_denominator > 0, "divide by zero");
         require(_price_bump_numerator >= _price_bump_denominator, "price dump instead of bump");
+        require(_price_bump_numerator < 2 ** 40, "price dump numerator is too big");
         price_bump_numerator = _price_bump_numerator;
         price_bump_denominator = _price_bump_denominator;
     }
@@ -125,7 +126,7 @@ contract ServiceRegistryConfigurableParameters {
 
     function set_decay_constant(uint256 _decay_constant) private {
         require(_decay_constant > 0, "attempt to set zero decay constant");
-        require(_decay_constant < 2 ** 60, "too big decay constant");
+        require(_decay_constant < 2 ** 40, "too big decay constant");
         decay_constant = _decay_constant;
     }
 
@@ -165,7 +166,7 @@ contract ServiceRegistryConfigurableParameters {
 
         uint256 X = _seconds_passed;
 
-        if (X >= 2 ** 60) { // The computation below overflows.
+        if (X >= 2 ** 40) { // The computation below overflows.
             return min_price;
         }
 
@@ -174,6 +175,9 @@ contract ServiceRegistryConfigurableParameters {
         uint256 P = 24 * (A ** 4);
         uint256 Q = P + 24*(A**3)*X + 12*(A**2)*(X**2) + 4*A*(X**3) + X**4;
 
+        // The multiplication below is not supposed to overflow because
+        // _set_price should be at most 2 ** 90 and
+        // P should be at most 24 * (2 ** 40).
         uint256 price = _set_price * P / Q;
 
         // Not allowing a price smaller than 1000.
@@ -212,6 +216,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         require(_token_for_registration != address(0x0), "token at address zero");
         require(contractExists(_token_for_registration), "token has no code");
         require(_initial_price >= min_price, "initial price too low");
+        require(_initial_price <= 2 ** 90, "intiial price too high");
 
         token = Token(_token_for_registration);
         // Check if the contract is indeed a token contract
@@ -247,6 +252,9 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
 
         // Record the price
         set_price = amount * price_bump_numerator / price_bump_denominator;
+        if (set_price > 2 ** 90) {
+            set_price = 2 ** 90; // Preventing overflows.
+        }
         set_price_at = now;
 
         // Move the deposit in a new Deposit contract.
