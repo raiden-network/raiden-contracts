@@ -7,9 +7,14 @@ Documents changes that result in:
 
 ## Unreleased
 
-- TokenNetwork's closeChannel() can be called by anybody on behalf of the closing participant.
-- TokenNetwork's ChannelClosed and NonClosingBalanceProofUpdated events contain balance_hash from the submitted balance proofs.
-- TokenNetwork's ChannelSettled event contains locksroots of the two sets of pending transfers.
+## [0.27.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.27.0) - 2019-07-23
+
+- [#1136](https://github.com/raiden-network/raiden-contracts/pull/1136) ServiceRegistry has a deprecation switch.
+- [#1132](https://github.com/raiden-network/raiden-contracts/pull/1132) ServiceRegistry has a controller that can change parameters.
+- [#1116](https://github.com/raiden-network/raiden-contracts/pull/1116) ServiceRegistry's required deposit changes dynamically.
+- [#1124](https://github.com/raiden-network/raiden-contracts/pull/1124) TokenNetwork's closeChannel() can be called by anybody on behalf of the closing participant.
+- [#1118](https://github.com/raiden-network/raiden-contracts/pull/1118) TokenNetwork's ChannelClosed and NonClosingBalanceProofUpdated events contain balance_hash from the submitted balance proofs.
+- [#1126](https://github.com/raiden-network/raiden-contracts/pull/1126) TokenNetwork's ChannelSettled event contains locksroots of the two sets of pending transfers.
 
 ## [0.26.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.26.0) - 2019-07-11
 
