@@ -134,7 +134,7 @@ contract ServiceRegistryConfigurableParameters {
     }
 
 
-    /// @notice The amount of deposits for registration or extension.
+    /// @notice The amount to deposit for registration or extension.
     /// Note: the price moves quickly depending on what other addresses do.
     /// The current price might change after you send a `deposit()` transaction
     /// before the transaction is executed.

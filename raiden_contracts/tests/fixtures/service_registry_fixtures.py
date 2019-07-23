@@ -21,7 +21,7 @@ def service_registry(deploy_tester_contract: Callable, custom_token: Contract) -
         [
             custom_token.address,
             CONTRACT_DEPLOYER_ADDRESS,
-            3000 * (10 ** 18),
+            int(3000e18),
             DEFAULT_BUMP_NUMERATOR,
             DEFAULT_BUMP_DENOMINATOR,
             DEFAULT_DECAY_CONSTANT,
