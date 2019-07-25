@@ -204,6 +204,10 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     mapping(address => uint256) public service_valid_till;
     mapping(address => string) public urls;  // URLs of services for HTTP access
 
+    // An append-only list of addresses that have ever made a deposit.
+    // Starting from this list, all alive registrations can be figured out.
+    address[] public ever_made_deposits;
+
     // @param service The address of the registered service provider
     // @param valid_till The timestamp of the moment when the registration expires
     // @param deposit_amount The amount of deposit transferred
@@ -249,8 +253,13 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         uint256 amount = current_price();
         require(_limit_amount >= amount, "not enough limit");
 
+        bool new_joiner = false;
+
         // Extend the service position.
         uint256 valid_till = service_valid_till[msg.sender];
+        if (valid_till == 0) { // a first time joiner
+            new_joiner = true;
+        }
         if (valid_till < now) { // a first time joiner or an expired service.
             valid_till = now;
         }
@@ -271,6 +280,11 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         Deposit depo = new Deposit(address(token), valid_till, msg.sender);
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
+        // Record the address in the ever_made_deposits list.
+        if (new_joiner) {
+            ever_made_deposits.push(msg.sender);
+        }
+
         // Fire event
         emit RegisteredService(msg.sender, valid_till, amount, depo);
 
@@ -280,11 +294,16 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     /// @notice Sets the URL used to access a service via HTTP.
     /// Only a currently registered service can call this successfully.
     /// @param new_url The new URL string to be stored.
-    function setURL(string memory new_url) public returns (bool _success)  {
+    function setURL(string memory new_url) public returns (bool _success) {
         require(now < service_valid_till[msg.sender], "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
         return true;
+    }
+
+    /// A getter function for seeing the length of ever_made_deposits array.
+    function ever_made_deposits_len() public view returns (uint256 _len) {
+        return ever_made_deposits.length;
     }
 }
 
