@@ -52,7 +52,7 @@ contract ServiceRegistryConfigurableParameters {
     }
 
     // After a price is set to set_price at timestamp set_price_at,
-    // the price decays according to decayed_price().
+    // the price decays according to decayedPrice().
     uint256 public set_price;
     uint256 public set_price_at;
 
@@ -72,19 +72,19 @@ contract ServiceRegistryConfigurableParameters {
     // If true, new deposits are no longer accepted.
     bool public deprecation_switch = false;
 
-    function set_deprecation_switch() public onlyController returns (bool _success) {
+    function setDeprecationSwitch() public onlyController returns (bool _success) {
         deprecation_switch = true;
         return true;
     }
 
-    function change_parameters(
+    function changeParameters(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
             uint256 _decay_constant,
             uint256 _min_price,
             uint256 _registration_duration
     ) public onlyController returns (bool _success) {
-        change_parameters_internal(
+        changeParametersInternal(
             _price_bump_numerator,
             _price_bump_denominator,
             _decay_constant,
@@ -94,27 +94,27 @@ contract ServiceRegistryConfigurableParameters {
         return true;
     }
 
-    function change_parameters_internal(
+    function changeParametersInternal(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator,
             uint256 _decay_constant,
             uint256 _min_price,
             uint256 _registration_duration
     ) internal {
-        refresh_price();
-        set_price_bump_parameters(_price_bump_numerator, _price_bump_denominator);
-        set_min_price(_min_price);
-        set_decay_constant(_decay_constant);
-        set_registration_duration(_registration_duration);
+        refreshPrice();
+        setPriceBumpParameters(_price_bump_numerator, _price_bump_denominator);
+        setMinPrice(_min_price);
+        setDecayConstant(_decay_constant);
+        setRegistrationDuration(_registration_duration);
     }
 
-    // Updates set_price to be current_price() and set_price_at to be now
-    function refresh_price() private {
-        set_price = current_price();
+    // Updates set_price to be currentPrice() and set_price_at to be now
+    function refreshPrice() private {
+        set_price = currentPrice();
         set_price_at = now;
     }
 
-    function set_price_bump_parameters(
+    function setPriceBumpParameters(
             uint256 _price_bump_numerator,
             uint256 _price_bump_denominator
     ) private {
@@ -125,20 +125,20 @@ contract ServiceRegistryConfigurableParameters {
         price_bump_denominator = _price_bump_denominator;
     }
 
-    function set_min_price(uint256 _min_price) private {
+    function setMinPrice(uint256 _min_price) private {
         // No checks.  Even allowing zero.
         min_price = _min_price;
         // No checks or modifications on set_price.
-        // Even if set_price is smaller than min_price, current_price() function returns min_price.
+        // Even if set_price is smaller than min_price, currentPrice() function returns min_price.
     }
 
-    function set_decay_constant(uint256 _decay_constant) private {
+    function setDecayConstant(uint256 _decay_constant) private {
         require(_decay_constant > 0, "attempt to set zero decay constant");
         require(_decay_constant < 2 ** 40, "too big decay constant");
         decay_constant = _decay_constant;
     }
 
-    function set_registration_duration(uint256 _registration_duration) private {
+    function setRegistrationDuration(uint256 _registration_duration) private {
         // No checks.  Even allowing zero (when no new registrations are possible).
         registration_duration = _registration_duration;
     }
@@ -148,11 +148,11 @@ contract ServiceRegistryConfigurableParameters {
     /// Note: the price moves quickly depending on what other addresses do.
     /// The current price might change after you send a `deposit()` transaction
     /// before the transaction is executed.
-    function current_price() public view returns (uint256) {
+    function currentPrice() public view returns (uint256) {
         require(now >= set_price_at, "An underflow in price computation");
         uint256 seconds_passed = now - set_price_at;
 
-        return decayed_price(set_price, seconds_passed);
+        return decayedPrice(set_price, seconds_passed);
     }
 
 
@@ -160,7 +160,7 @@ contract ServiceRegistryConfigurableParameters {
     /// @param _set_price The initial price.
     /// @param _seconds_passed The number of seconds passed since the initial
     /// price was set.
-    function decayed_price(uint256 _set_price, uint256 _seconds_passed) public
+    function decayedPrice(uint256 _set_price, uint256 _seconds_passed) public
         view returns (uint256) {
         // We are here trying to approximate some exponential decay.
         // exp(- X / A) where
@@ -240,7 +240,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price_at = now;
 
         // Set the parameters
-        change_parameters_internal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _min_price, _registration_duration);
+        changeParametersInternal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _min_price, _registration_duration);
     }
 
     // @notice Locks tokens and registers a service or extends the registration.
@@ -250,7 +250,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     function deposit(uint _limit_amount) public returns (bool _success) {
         require(! deprecation_switch, "this contract was deprecated");
 
-        uint256 amount = current_price();
+        uint256 amount = currentPrice();
         require(_limit_amount >= amount, "not enough limit");
 
         // Extend the service position.
@@ -288,18 +288,18 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     /// Only a currently registered service can call this successfully.
     /// @param new_url The new URL string to be stored.
     function setURL(string memory new_url) public returns (bool _success) {
-        require(has_valid_registration(msg.sender), "registration expired");
+        require(hasValidRegistration(msg.sender), "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
         return true;
     }
 
     /// A getter function for seeing the length of ever_made_deposits array.
-    function ever_made_deposits_len() public view returns (uint256 _len) {
+    function everMadeDepositsLen() public view returns (uint256 _len) {
         return ever_made_deposits.length;
     }
 
-    function has_valid_registration(address _address) public view returns (bool _has_registration) {
+    function hasValidRegistration(address _address) public view returns (bool _has_registration) {
         return now < service_valid_till[_address];
     }
 }

@@ -64,14 +64,14 @@ def test_deposit(
 
     # happy path
     old_balance = custom_token.functions.balanceOf(A).call()
-    old_price = service_registry.functions.current_price().call()
-    old_len = service_registry.functions.ever_made_deposits_len().call()
-    assert not service_registry.functions.has_valid_registration(A).call()
+    old_price = service_registry.functions.currentPrice().call()
+    old_len = service_registry.functions.everMadeDepositsLen().call()
+    assert not service_registry.functions.hasValidRegistration(A).call()
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     assert old_balance > custom_token.functions.balanceOf(A).call() > old_balance - old_price
-    assert service_registry.functions.current_price().call() > old_price
-    assert service_registry.functions.ever_made_deposits_len().call() == old_len + 1
-    assert service_registry.functions.has_valid_registration(A).call()
+    assert service_registry.functions.currentPrice().call() > old_price
+    assert service_registry.functions.everMadeDepositsLen().call() == old_len + 1
+    assert service_registry.functions.hasValidRegistration(A).call()
     first_expiration = service_registry.functions.service_valid_till(A).call()
 
     # custom_token does not allow transfer of more tokens
@@ -86,11 +86,11 @@ def test_deposit(
 
     # Extending the registration
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
-    assert service_registry.functions.has_valid_registration(A).call()
+    assert service_registry.functions.hasValidRegistration(A).call()
     second_expiration = service_registry.functions.service_valid_till(A).call()
     assert second_expiration == first_expiration + DEFAULT_REGISTRATION_DURATION
     # This time, the list of addresses that have ever made deposits should not grow
-    assert service_registry.functions.ever_made_deposits_len().call() == old_len + 1
+    assert service_registry.functions.everMadeDepositsLen().call() == old_len + 1
 
 
 def test_setURL(
@@ -120,20 +120,20 @@ def test_setURL(
 
 
 def test_decayed_price(service_registry: Contract) -> None:
-    assert service_registry.functions.decayed_price(100000, 0).call() == 100000
+    assert service_registry.functions.decayedPrice(100000, 0).call() == 100000
 
     # The minimum price is 1000
-    assert service_registry.functions.decayed_price(100, 0).call() == 1000
+    assert service_registry.functions.decayedPrice(100, 0).call() == 1000
 
     # roughly 139 days till the price halves.
-    assert service_registry.functions.decayed_price(100000, 11990300).call() == 50000
+    assert service_registry.functions.decayedPrice(100000, 11990300).call() == 50000
 
 
 def test_changing_duration(
     service_registry: Contract, get_accounts: Callable, custom_token: Contract
 ) -> None:
     new_duration = 90 * SECONDS_PER_DAY
-    service_registry.functions.change_parameters(
+    service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -155,7 +155,7 @@ def test_changing_duration(
 
 
 def test_changing_bump_numerator(service_registry: Contract) -> None:
-    service_registry.functions.change_parameters(
+    service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -166,9 +166,9 @@ def test_changing_bump_numerator(service_registry: Contract) -> None:
 
 
 def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
-    """change_parameters() fails if the numerator is too big"""
+    """changeParameters() fails if the numerator is too big"""
     with pytest.raises(TransactionFailed):
-        service_registry.functions.change_parameters(
+        service_registry.functions.changeParameters(
             _price_bump_numerator=2 ** 40,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
             _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -178,7 +178,7 @@ def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
 
 
 def test_changing_bump_denominator(service_registry: Contract) -> None:
-    service_registry.functions.change_parameters(
+    service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR + 1,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -191,9 +191,9 @@ def test_changing_bump_denominator(service_registry: Contract) -> None:
 
 
 def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> None:
-    """Change_parameters() fails if the bump numerator is smaller than the bump denominator"""
+    """changeParameters() fails if the bump numerator is smaller than the bump denominator"""
     with pytest.raises(TransactionFailed):
-        service_registry.functions.change_parameters(
+        service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_NUMERATOR + 1,
             _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -203,7 +203,7 @@ def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> Non
 
 
 def test_changing_decay_constant(service_registry: Contract) -> None:
-    service_registry.functions.change_parameters(
+    service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT + 100,
@@ -214,9 +214,9 @@ def test_changing_decay_constant(service_registry: Contract) -> None:
 
 
 def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
-    """change_parameters() fails if the new decay constant is too high"""
+    """changeParameters() fails if the new decay constant is too high"""
     with pytest.raises(TransactionFailed):
-        service_registry.functions.change_parameters(
+        service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
             _decay_constant=2 ** 40,
@@ -226,7 +226,7 @@ def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
-    service_registry.functions.change_parameters(
+    service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -237,10 +237,10 @@ def test_changing_min_price(service_registry: Contract) -> None:
 
 
 def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
-    """A random address's change_parameters() call should fail"""
+    """A random address's changeParameters() call should fail"""
     (A,) = get_accounts(1)
     with pytest.raises(TransactionFailed):
-        service_registry.functions.change_parameters(
+        service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
             _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -251,9 +251,9 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
 
 
 def test_parameter_change_on_no_controller(service_registry_without_controller: Contract) -> None:
-    """A random address's change_parameters() call should fail"""
+    """A random address's changeParameters() call should fail"""
     with pytest.raises(TransactionFailed):
-        service_registry_without_controller.functions.change_parameters(
+        service_registry_without_controller.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
             _decay_constant=DEFAULT_DECAY_CONSTANT,
@@ -280,7 +280,7 @@ def service_registry_with_high_numbers(
             DEFAULT_REGISTRATION_DURATION,
         ],
     )
-    assert contract.functions.current_price() == 2 ** 90
+    assert contract.functions.currentPrice() == 2 ** 90
 
 
 def test_deprecation_switch(
@@ -289,7 +289,7 @@ def test_deprecation_switch(
     """The controller turns on the deprecation switch and somebody tries to deposit"""
     # The controller turns on the deprecation switch
     assert not service_registry.functions.deprecation_switch().call()
-    service_registry.functions.set_deprecation_switch().call_and_transact(
+    service_registry.functions.setDeprecationSwitch().call_and_transact(
         {"from": CONTRACT_DEPLOYER_ADDRESS}
     )
     assert service_registry.functions.deprecation_switch().call()
@@ -309,4 +309,4 @@ def test_unauthorized_deprecation_switch(
     """A random account cannot turn on the deprecation switch"""
     (A,) = get_accounts(1)
     with pytest.raises(TransactionFailed):
-        service_registry.functions.set_deprecation_switch().call_and_transact({"from": A})
+        service_registry.functions.setDeprecationSwitch().call_and_transact({"from": A})
