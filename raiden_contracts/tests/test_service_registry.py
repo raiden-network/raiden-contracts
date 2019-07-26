@@ -66,10 +66,12 @@ def test_deposit(
     old_balance = custom_token.functions.balanceOf(A).call()
     old_price = service_registry.functions.current_price().call()
     old_len = service_registry.functions.ever_made_deposits_len().call()
+    assert not service_registry.functions.has_valid_registration(A).call()
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
     assert old_balance > custom_token.functions.balanceOf(A).call() > old_balance - old_price
     assert service_registry.functions.current_price().call() > old_price
     assert service_registry.functions.ever_made_deposits_len().call() == old_len + 1
+    assert service_registry.functions.has_valid_registration(A).call()
     first_expiration = service_registry.functions.service_valid_till(A).call()
 
     # custom_token does not allow transfer of more tokens
@@ -84,6 +86,7 @@ def test_deposit(
 
     # Extending the registration
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    assert service_registry.functions.has_valid_registration(A).call()
     second_expiration = service_registry.functions.service_valid_till(A).call()
     assert second_expiration == first_expiration + DEFAULT_REGISTRATION_DURATION
     # This time, the list of addresses that have ever made deposits should not grow
