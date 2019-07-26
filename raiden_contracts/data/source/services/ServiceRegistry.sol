@@ -253,12 +253,10 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         uint256 amount = current_price();
         require(_limit_amount >= amount, "not enough limit");
 
-        bool new_joiner = false;
-
         // Extend the service position.
         uint256 valid_till = service_valid_till[msg.sender];
         if (valid_till == 0) { // a first time joiner
-            new_joiner = true;
+            ever_made_deposits.push(msg.sender);
         }
         if (valid_till < now) { // a first time joiner or an expired service.
             valid_till = now;
@@ -279,11 +277,6 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         // Move the deposit in a new Deposit contract.
         Deposit depo = new Deposit(address(token), valid_till, msg.sender);
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
-
-        // Record the address in the ever_made_deposits list.
-        if (new_joiner) {
-            ever_made_deposits.push(msg.sender);
-        }
 
         // Fire event
         emit RegisteredService(msg.sender, valid_till, amount, depo);
