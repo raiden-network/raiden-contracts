@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Add ServiceRegistry.has_valid_registration() function that returns whether a given address has a valid registration.
+
 ## [0.28.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.28.0) - 2019-07-26
 
 - [#1140](https://github.com/raiden-network/raiden-contracts/pull/1140) ServiceRegistry exposes the list of addresses that have made deposits
