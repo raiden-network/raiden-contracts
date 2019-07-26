@@ -288,7 +288,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     /// Only a currently registered service can call this successfully.
     /// @param new_url The new URL string to be stored.
     function setURL(string memory new_url) public returns (bool _success) {
-        require(now < service_valid_till[msg.sender], "registration expired");
+        require(has_valid_registration(msg.sender), "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
         urls[msg.sender] = new_url;
         return true;
@@ -297,6 +297,10 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     /// A getter function for seeing the length of ever_made_deposits array.
     function ever_made_deposits_len() public view returns (uint256 _len) {
         return ever_made_deposits.length;
+    }
+
+    function has_valid_registration(address _address) public view returns (bool _has_registration) {
+        return now < service_valid_till[_address];
     }
 }
 
