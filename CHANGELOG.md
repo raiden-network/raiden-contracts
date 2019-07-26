@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.28.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.28.0) - 2019-07-26
+
+- [#1140](https://github.com/raiden-network/raiden-contracts/pull/1140) ServiceRegistry exposes the list of addresses that have made deposits
+
 ## [0.27.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.27.0) - 2019-07-23
 
 - [#1136](https://github.com/raiden-network/raiden-contracts/pull/1136) ServiceRegistry has a deprecation switch.
