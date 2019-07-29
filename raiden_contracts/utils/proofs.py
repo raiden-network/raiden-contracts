@@ -44,7 +44,7 @@ def pack_balance_proof(
     )
 
 
-def pack_balance_proof_update_message(
+def pack_balance_proof_countersign_message(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
@@ -146,7 +146,7 @@ def sign_balance_proof(
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
-def sign_balance_proof_update_message(
+def sign_balance_proof_countersign_message(
     privatekey: str,
     token_network_address: HexAddress,
     chain_identifier: int,
@@ -158,7 +158,7 @@ def sign_balance_proof_update_message(
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
-        pack_balance_proof_update_message(
+        pack_balance_proof_countersign_message(
             token_network_address=token_network_address,
             chain_identifier=chain_identifier,
             channel_identifier=channel_identifier,

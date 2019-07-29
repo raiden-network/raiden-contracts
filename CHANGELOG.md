@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- Rename `*balance_proof_update*` into `*balance_proof_countersign*`
+
 ## [0.29.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.29.0) - 2019-07-26
 
 - [#1143](https://github.com/raiden-network/raiden-contracts/pull/1143) Add ServiceRegistry.hasValidRegistration() function that returns whether a given address has a valid registration.

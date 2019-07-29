@@ -24,7 +24,7 @@ from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
-    sign_balance_proof_update_message,
+    sign_balance_proof_countersign_message,
     sign_cooperative_settle_message,
     sign_withdraw_message,
 )
@@ -674,7 +674,7 @@ def create_balance_proof_countersignature(
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
-        non_closing_signature = sign_balance_proof_update_message(
+        non_closing_signature = sign_balance_proof_countersign_message(
             private_key,
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
@@ -703,7 +703,7 @@ def create_close_signature_for_no_balance_proof(
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
-        non_closing_signature = sign_balance_proof_update_message(
+        non_closing_signature = sign_balance_proof_countersign_message(
             private_key,
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
