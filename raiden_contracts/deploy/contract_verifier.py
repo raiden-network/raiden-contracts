@@ -53,7 +53,10 @@ class ContractVerifier:
             )
 
     def verify_deployed_service_contracts_in_filesystem(
-        self, token_address: HexAddress, user_deposit_whole_balance_limit: int
+        self,
+        token_address: HexAddress,
+        user_deposit_whole_balance_limit: int,
+        token_network_registry_address: HexAddress,
     ) -> None:
         chain_id = ChainID(int(self.web3.version.network))
 
@@ -72,6 +75,7 @@ class ContractVerifier:
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
             deployed_contracts_info=deployment_data,
+            token_network_registry_address=token_network_registry_address,
         ):
             print(
                 f"Deployment info from {deployment_file_path} has been verified "
@@ -89,11 +93,13 @@ class ContractVerifier:
         deployed_contracts_info: DeployedContracts,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        token_network_registry_address: HexAddress,
     ) -> None:
         self._store_deployment_info(services=True, deployment_info=deployed_contracts_info)
         self.verify_deployed_service_contracts_in_filesystem(
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            token_network_registry_address=token_network_registry_address,
         )
 
     def _store_deployment_info(self, services: bool, deployment_info: DeployedContracts) -> None:
@@ -217,6 +223,7 @@ class ContractVerifier:
         self,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        token_network_registry_address: HexAddress,
         deployed_contracts_info: DeployedContracts,
     ) -> bool:
         chain_id = int(self.web3.version.network)
@@ -258,6 +265,7 @@ class ContractVerifier:
             token_address=token_address,
             service_registry_address=service_registry.address,
             user_deposit_address=user_deposit.address,
+            token_network_registry_address=token_network_registry_address,
         )
         _verify_one_to_n_deployment(
             one_to_n=one_to_n,
@@ -303,9 +311,10 @@ def _verify_monitoring_service_deployment(
     token_address: HexAddress,
     service_registry_address: HexAddress,
     user_deposit_address: HexAddress,
+    token_network_registry_address: HexAddress,
 ) -> None:
     """ Check an onchain deployment of MonitoringService and constructor arguments """
-    if len(constructor_arguments) != 3:
+    if len(constructor_arguments) != 4:
         raise RuntimeError("MonitoringService has a wrong number of constructor arguments.")
     if to_checksum_address(monitoring_service.functions.token().call()) != token_address:
         raise RuntimeError("MonitoringService has a wrong token address onchain.")
@@ -327,6 +336,15 @@ def _verify_monitoring_service_deployment(
     if user_deposit_address != constructor_arguments[2]:
         raise RuntimeError(
             "MonitoringService received a wrong UserDeposit address during construction."
+        )
+    if (
+        to_checksum_address(monitoring_service.functions.token_network_registry().call())
+        != token_network_registry_address
+    ):
+        raise RuntimeError("MonitoringService has a wrong TokenNetworkRegistry address onchain.")
+    if token_network_registry_address != constructor_arguments[3]:
+        raise RuntimeError(
+            "MonitoringService received a wrong TokenNetworkRegistry address during construction."
         )
 
 

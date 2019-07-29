@@ -4,6 +4,7 @@ import "lib/ECVerify.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/TokenNetwork.sol";
+import "raiden/TokenNetworkRegistry.sol";
 import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
 
@@ -14,6 +15,7 @@ contract MonitoringService is Utils {
     // Raiden Service Bundle contract to use for checking if MS has deposits
     ServiceRegistry public service_registry;
     UserDeposit public user_deposit;
+    TokenNetworkRegistry public token_network_registry;
 
     // keccak256(channel_identifier, token_network_address) => Struct
     // Keep track of the rewards per channel
@@ -58,10 +60,12 @@ contract MonitoringService is Utils {
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
     /// @param _service_registry_address The address of the ServiceRegistry contract
+    /// @param _token_network_registry_address The address of the TokenNetworkRegistry for authenticating TokenNetworks
     constructor(
         address _token_address,
         address _service_registry_address,
-        address _udc_address
+        address _udc_address,
+        address _token_network_registry_address
     )
         public
     {
@@ -71,10 +75,12 @@ contract MonitoringService is Utils {
         require(contractExists(_token_address), "token has no code");
         require(contractExists(_service_registry_address), "ServiceRegistry has no code");
         require(contractExists(_udc_address), "UDC has no code");
+        require(contractExists(_token_network_registry_address), "TokenNetworkRegistry has no code");
 
         token = Token(_token_address);
         service_registry = ServiceRegistry(_service_registry_address);
         user_deposit = UserDeposit(_udc_address);
+        token_network_registry = TokenNetworkRegistry(_token_network_registry_address);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "Token with zero total supply");
         // Check if the contract is indeed a service_registry contract
@@ -106,6 +112,12 @@ contract MonitoringService is Utils {
         internal
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
+        address token_network_token = address(token_network.token());
+        require(
+            token_network_registry.token_to_token_networks(token_network_token) ==
+            address(token_network),
+            "Unknown TokenNetwork"
+        );
         uint256 channel_identifier = token_network.getChannelIdentifier(
             closing_participant, non_closing_participant
         );

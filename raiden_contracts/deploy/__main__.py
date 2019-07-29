@@ -259,6 +259,12 @@ def raiden(
     help="The duration of service registration (seconds)",
 )
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
+@click.option(
+    "--token-network-registry-address",
+    default=None,
+    callback=validate_address,
+    help="Address of TokenNetworkRegistry that MS contract looks at",
+)
 @click.pass_context
 def services(
     ctx: Context,
@@ -278,6 +284,7 @@ def services(
     service_deposit_decay_constant: int,
     service_deposit_min_price: int,
     service_registration_duration: int,
+    token_network_registry_address: HexAddress,
 ) -> None:
     setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
     deployer: ContractDeployer = ctx.obj["deployer"]
@@ -292,6 +299,7 @@ def services(
         decay_constant=service_deposit_decay_constant,
         min_price=service_deposit_min_price,
         registration_duration=service_registration_duration,
+        token_network_registry_address=token_network_registry_address,
     )
     deployed_contracts = {
         contract_name: info["address"]
@@ -303,12 +311,14 @@ def services(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            token_network_registry_address=token_network_registry_address,
         )
     else:
         deployer.verify_service_contracts_deployment_data(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            token_network_registry_address=token_network_registry_address,
         )
 
     print(json.dumps(deployed_contracts, indent=4))
