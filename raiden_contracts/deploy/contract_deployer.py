@@ -316,6 +316,7 @@ class ContractDeployer(ContractVerifier):
         decay_constant: int,
         min_price: int,
         registration_duration: int,
+        token_network_registry_address: HexAddress,
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         if not contracts_version_has_initial_service_deposit(
@@ -354,6 +355,7 @@ class ContractDeployer(ContractVerifier):
             token_address,
             deployed_contracts["contracts"][CONTRACT_SERVICE_REGISTRY]["address"],
             deployed_contracts["contracts"][CONTRACT_USER_DEPOSIT]["address"],
+            token_network_registry_address,
         ]
         msc = self._deploy_and_remember(
             contract_name=CONTRACT_MONITORING_SERVICE,

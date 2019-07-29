@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from eth_typing import HexAddress
+from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACTS_VERSION, EMPTY_ADDRESS, DeploymentModule
 from raiden_contracts.contract_manager import (
@@ -140,7 +141,9 @@ def test_version_with_max_token_networks() -> None:
     assert not contracts_version_with_max_token_networks("0.8.0_unlimited")
 
 
-def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit: int) -> None:
+def test_verify_nonexistent_deployment(
+    user_deposit_whole_balance_limit: int, token_network_registry_address: HexAddress
+) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
     web3_mock = Mock()
     web3_mock.version.network = 1
@@ -152,10 +155,11 @@ def test_verify_nonexistent_deployment(user_deposit_whole_balance_limit: int) ->
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=EMPTY_ADDRESS,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            token_network_registry_address=token_network_registry_address,
         )
 
 
-def test_verify_existent_deployment() -> None:
+def test_verify_existent_deployment(token_network_registry_contract: Contract) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that returns a wrong block number for deployment.
@@ -171,10 +175,13 @@ def test_verify_existent_deployment() -> None:
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
 
-def test_verify_existent_deployment_with_wrong_code() -> None:
+def test_verify_existent_deployment_with_wrong_code(
+    token_network_registry_contract: Contract
+) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that does not return the correct code.
@@ -194,4 +201,5 @@ def test_verify_existent_deployment_with_wrong_code() -> None:
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
+            token_network_registry_address=token_network_registry_contract.address,
         )

@@ -13,6 +13,7 @@ from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem import FakeFilesystem
 from pyfakefs.fake_filesystem_unittest import Patcher
 from web3 import Web3
+from web3.contract import Contract
 from web3.eth import Eth
 
 import raiden_contracts
@@ -132,7 +133,9 @@ DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
 @pytest.mark.slow
 @pytest.fixture(scope="session")
 def deployed_service_info(
-    deployer: ContractDeployer, token_address: HexAddress
+    deployer: ContractDeployer,
+    token_address: HexAddress,
+    token_network_registry_contract: Contract,
 ) -> DeployedContracts:
     return deployer.deploy_service_contracts(
         token_address=token_address,
@@ -144,6 +147,7 @@ def deployed_service_info(
         decay_constant=200 * SECONDS_PER_DAY,
         min_price=1000,
         registration_duration=180 * SECONDS_PER_DAY,
+        token_network_registry_address=token_network_registry_contract.address,
     )
 
 
@@ -501,7 +505,10 @@ def test_deploy_script_register_unexpected_limits(
 
 @pytest.mark.slow
 def test_deploy_script_service(
-    web3: Web3, deployed_service_info: DeployedContracts, token_address: HexAddress
+    web3: Web3,
+    deployed_service_info: DeployedContracts,
+    token_address: HexAddress,
+    token_network_registry_contract: Contract,
 ) -> None:
     """ Run deploy_service_contracts() used in the deployment script
 
@@ -521,6 +528,7 @@ def test_deploy_script_service(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
         deployed_contracts_info=deployed_service_contracts,
+        token_network_registry_address=token_network_registry_contract.address,
     )
 
     with pytest.raises(RuntimeError):
@@ -529,6 +537,7 @@ def test_deploy_script_service(
             token_address=EMPTY_ADDRESS,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_service_contracts,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -538,6 +547,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -547,6 +557,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -558,6 +569,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -568,6 +580,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -579,6 +592,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -590,6 +604,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -604,6 +619,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -615,6 +631,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -626,6 +643,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -635,6 +653,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -644,6 +663,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)
@@ -654,6 +674,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     def test_missing_deployment(contract_name: str) -> None:
@@ -664,6 +685,7 @@ def test_deploy_script_service(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
                 deployed_contracts_info=deployed_info_fail,
+                token_network_registry_address=token_network_registry_contract.address,
             )
 
     for contract_name in [
@@ -732,6 +754,7 @@ def test_store_and_verify_services(
     deployer: ContractDeployer,
     deployed_service_info: DeployedContracts,
     token_address: HexAddress,
+    token_network_registry_contract: Contract,
 ) -> None:
     """ Store some service contract deployment information and verify them """
     fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
@@ -740,11 +763,13 @@ def test_store_and_verify_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        token_network_registry_address=token_network_registry_contract.address,
     )
     deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        token_network_registry_address=token_network_registry_contract.address,
     )
 
 
@@ -1157,7 +1182,9 @@ def test_verify_script(mock_verify: MagicMock) -> None:
         mock_verify.assert_called_once()
 
 
-def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg() -> None:
+def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg(
+    token_network_registry_contract: Contract
+) -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS
     mock_monitoring_service = MagicMock()
@@ -1169,10 +1196,13 @@ def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg()
             token_address=EMPTY_ADDRESS,
             service_registry_address=FAKE_ADDRESS,
             user_deposit_address=FAKE_ADDRESS,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
 
-def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address() -> None:
+def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address(
+    token_network_registry_contract: Contract
+) -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS
     mock_monitoring_service = MagicMock()
@@ -1184,6 +1214,7 @@ def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address()
             token_address=FAKE_ADDRESS,
             service_registry_address=EMPTY_ADDRESS,
             user_deposit_address=FAKE_ADDRESS,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
 

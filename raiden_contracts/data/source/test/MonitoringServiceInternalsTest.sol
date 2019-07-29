@@ -7,12 +7,14 @@ contract MonitoringServiceInternalsTest is MonitoringService {
     constructor(
         address _token_address,
         address _service_registry_address,
-        address _udc_address
+        address _udc_address,
+        address _token_network_registry_address
     )
         MonitoringService(
             _token_address,
             _service_registry_address,
-            _udc_address
+            _udc_address,
+            _token_network_registry_address
         )
         public
     {

@@ -10,6 +10,7 @@ def monitoring_service_external(
     custom_token: Contract,
     service_registry: Contract,
     uninitialized_user_deposit_contract: Contract,
+    token_network_registry_contract: Contract,
 ) -> Contract:
     return deploy_tester_contract(
         CONTRACT_MONITORING_SERVICE,
@@ -17,6 +18,7 @@ def monitoring_service_external(
             custom_token.address,
             service_registry.address,
             uninitialized_user_deposit_contract.address,
+            token_network_registry_contract.address,
         ],
     )
 
@@ -27,6 +29,7 @@ def monitoring_service_internals(
     service_registry: Contract,
     uninitialized_user_deposit_contract: Contract,
     deploy_tester_contract: Contract,
+    token_network_registry_contract: Contract,
 ) -> Contract:
     return deploy_tester_contract(
         "MonitoringServiceInternalsTest",
@@ -34,5 +37,6 @@ def monitoring_service_internals(
             custom_token.address,
             service_registry.address,
             uninitialized_user_deposit_contract.address,
+            token_network_registry_contract.address,
         ],
     )
