@@ -237,7 +237,7 @@ def test_create_erc20_token_network_call(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_create_erc20_token_network(
-    register_token_network: Contract,
+    register_token_network: Callable,
     token_network_registry_contract: Contract,
     custom_token: Contract,
     channel_participant_deposit_limit: int,
@@ -253,6 +253,7 @@ def test_create_erc20_token_network(
     )
 
     token_network = register_token_network(
+        token_network_registry=token_network_registry_contract,
         token_address=custom_token.address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
@@ -312,6 +313,7 @@ def test_events(
     ev_handler = event_handler(token_network_registry_contract)
 
     new_token_network = register_token_network(
+        token_network_registry=token_network_registry_contract,
         token_address=custom_token.address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
