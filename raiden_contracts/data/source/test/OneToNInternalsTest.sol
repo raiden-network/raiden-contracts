@@ -6,9 +6,10 @@ contract OneToNInternalsTest is OneToN {
 
     constructor(
         address _deposit_contract,
-        uint256 _chain_id
+        uint256 _chain_id,
+        address _service_registry_contract
     )
-        OneToN(_deposit_contract, _chain_id)
+        OneToN(_deposit_contract, _chain_id, _service_registry_contract)
         public
     {
     }
