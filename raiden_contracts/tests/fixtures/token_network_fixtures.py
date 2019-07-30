@@ -107,13 +107,10 @@ def token_network_in_another_token_network_registry(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
     token_network_registry_contract2: Contract,
-    web3: Web3,
 ) -> Contract:
     """TokenNetwork registered to a foreign TokenNetworkRegistry
 
     with which the service payments should not work."""
-    global snapshot_before_token_network
-    snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
         token_network_registry_contract2,
         custom_token.address,
