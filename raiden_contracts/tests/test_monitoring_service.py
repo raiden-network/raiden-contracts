@@ -268,6 +268,34 @@ def test_monitor(
     )
 
 
+def test_monitor_on_wrong_token_network_registry(
+    token_network_in_another_token_network_registry: Contract,
+    monitoring_service_external: Contract,
+    monitor_data: Dict,
+    ms_address: HexAddress,
+    web3: Web3,
+) -> None:
+    A, B = monitor_data["participants"]
+
+    # wait until MS is allowed to monitor
+    token_network_in_another_token_network_registry.web3.testing.mine(
+        monitor_data["first_allowed"] - web3.eth.blockNumber
+    )
+
+    # monitor() call fails because the TokenNetwork is not registered on the
+    # supposed TokenNetworkRegistry
+    with pytest.raises(TransactionFailed):
+        monitoring_service_external.functions.monitor(
+            A,
+            B,
+            *monitor_data["balance_proof_B"],
+            monitor_data["non_closing_signature"],
+            REWARD_AMOUNT,
+            token_network_in_another_token_network_registry.address,
+            monitor_data["reward_proof_signature"],
+        ).call_and_transact({"from": ms_address})
+
+
 def test_updateReward(
     monitoring_service_internals: Contract,
     ms_address: HexAddress,
