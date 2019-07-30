@@ -74,6 +74,7 @@ contract OneToN is Utils {
         public
         returns (uint)
     {
+        require(service_registry_contract.hasValidRegistration(receiver), "receiver not registered");
         require(one_to_n_address == address(this), "IOU for another OneToN address");
         require(block.number <= expiration_block, "IOU expired");
 
