@@ -1,11 +1,13 @@
 pragma solidity 0.5.4;
 
 import "raiden/Utils.sol";
+import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
 import "lib/ECVerify.sol";
 
 contract OneToN is Utils {
     UserDeposit public deposit_contract;
+    ServiceRegistry public service_registry_contract;
 
     // The signature given to claim() has to be computed with
     // this chain_id.  Otherwise the call fails.
@@ -38,14 +40,17 @@ contract OneToN is Utils {
      */
 
     /// @param _deposit_contract Address of UserDeposit contract
+    /// @param _service_registry_contract Address of ServiceRegistry contract
     constructor(
         address _deposit_contract,
-        uint256 _chain_id
+        uint256 _chain_id,
+        address _service_registry_contract
     )
         public
     {
         deposit_contract = UserDeposit(_deposit_contract);
         chain_id = _chain_id;
+        service_registry_contract = ServiceRegistry(_service_registry_contract);
     }
 
     /// @notice Submit an IOU to claim the owed amount.

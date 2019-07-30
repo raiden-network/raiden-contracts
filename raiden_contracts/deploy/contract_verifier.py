@@ -272,6 +272,7 @@ class ContractVerifier:
             constructor_arguments=one_to_n_constructor_arguments,
             user_deposit_address=user_deposit.address,
             chain_id=chain_id,
+            service_registry_address=service_registry.address,
         )
         return True
 
@@ -352,6 +353,7 @@ def _verify_one_to_n_deployment(
     one_to_n: Contract,
     constructor_arguments: List,
     user_deposit_address: HexAddress,
+    service_registry_address: HexAddress,
     chain_id: int,
 ) -> None:
     """ Check an onchain deployment of OneToN and constructor arguments """
@@ -361,7 +363,9 @@ def _verify_one_to_n_deployment(
         raise RuntimeError("OneToN received a wrong UserDeposit address during construction.")
     if chain_id != constructor_arguments[1]:
         raise RuntimeError("OneToN received a wrong chain ID during construction.")
-    if len(constructor_arguments) != 2:
+    if service_registry_address != constructor_arguments[2]:
+        raise RuntimeError("OneToN received a wrong ServiceRegistry address during construction.")
+    if len(constructor_arguments) != 3:
         raise RuntimeError("OneToN received a wrong number of constructor arguments.")
 
 

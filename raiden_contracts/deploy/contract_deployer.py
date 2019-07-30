@@ -331,7 +331,7 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        self._deploy_and_remember(
+        service_registry = self._deploy_and_remember(
             CONTRACT_SERVICE_REGISTRY,
             [
                 token_address,
@@ -365,7 +365,7 @@ class ContractDeployer(ContractVerifier):
 
         one_to_n = self._deploy_and_remember(
             contract_name=CONTRACT_ONE_TO_N,
-            arguments=[user_deposit.address, chain_id],
+            arguments=[user_deposit.address, chain_id, service_registry.address],
             deployed_contracts=deployed_contracts,
         )
 
