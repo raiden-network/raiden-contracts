@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1148](https://github.com/raiden-network/raiden-contracts/pull/1148) Add TokenNetworkRegistry's address to MonitoringService's constructor arguments
 - [#PR ID] Revert the upgrade web3.py and other dependencies
 
 ## [0.29.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.29.1) - 2019-08-13
