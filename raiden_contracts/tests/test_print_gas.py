@@ -22,7 +22,7 @@ from raiden_contracts.tests.utils.constants import (
     UINT256_MAX,
 )
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
-from raiden_contracts.utils.proofs import sign_reward_proof
+from raiden_contracts.utils.proofs import sign_reward_proof, sign_one_to_n_iou
 
 
 @pytest.mark.parametrize("version", [None])
@@ -262,6 +262,15 @@ def print_gas_monitoring_service(
     )
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": MS})
 
+    # B registers itself as a service provider
+    deposit = service_registry.functions.currentPrice().call()
+    custom_token.functions.mint(deposit).call_and_transact({"from": B})
+    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
+        {"from": B}
+    )
+    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
+    assert service_registry.functions.hasValidRegistration(B).call()
+
     # open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
 
@@ -317,13 +326,41 @@ def print_gas_one_to_n(
     get_accounts: Callable,
     print_gas: Callable,
     make_iou: Callable,
+    service_registry: Contract,
+    custom_token: Contract,
+    web3: Web3,
+    get_private_key: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of OneToN functions """
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
 
-    # single claim
-    txn_hash = one_to_n_contract.functions.claim(**make_iou(A, B)).call_and_transact({"from": A})
+    # B registers itself as a service provider
+    deposit = service_registry.functions.currentPrice().call()
+    custom_token.functions.mint(deposit).call_and_transact({"from": B})
+    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
+        {"from": B}
+    )
+    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
+    assert service_registry.functions.hasValidRegistration(B).call()
+
+    # happy case
+    chain_id = int(web3.version.network)
+    amount = 10
+    expiration = web3.eth.blockNumber + 2
+    signature = sign_one_to_n_iou(
+        get_private_key(A),
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
+    )
+    txn_hash = one_to_n_contract.functions.claim(
+        A, B, amount, expiration, one_to_n_contract.address, signature
+    ).call_and_transact({"from": A})
+
     print_gas(txn_hash, CONTRACT_ONE_TO_N + ".claim")
 
     # bulk claims gas prices
@@ -338,7 +375,7 @@ def print_gas_one_to_n(
         return result
 
     for num_ious in (1, 6):
-        ious = [make_iou(A, get_accounts(1)[0]) for i in range(num_ious)]
+        ious = [make_iou(A, get_service_address()) for i in range(num_ious)]
 
         txn_hash = one_to_n_contract.functions.bulkClaim(
             concat_iou_data(ious, "sender"),
@@ -392,13 +429,14 @@ def print_gas_service_registry(
     get_accounts: Callable, custom_token: Contract, service_registry: Contract, print_gas: Callable
 ) -> None:
     (A,) = get_accounts(1)
-    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+    deposit = service_registry.functions.currentPrice().call()
+    custom_token.functions.mint(deposit).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
         {"from": A}
     )
 
     # happy path
-    deposit_tx = service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    deposit_tx = service_registry.functions.deposit(deposit).call_and_transact({"from": A})
     print_gas(deposit_tx, CONTRACT_SERVICE_REGISTRY + ".deposit")
     url = "http://example.com"
     set_url_tx = service_registry.functions.setURL(url).call_and_transact({"from": A})
