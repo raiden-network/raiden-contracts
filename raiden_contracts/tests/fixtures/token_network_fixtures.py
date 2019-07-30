@@ -31,9 +31,7 @@ def get_token_network(deploy_tester_contract: Callable) -> Callable:
 
 
 @pytest.fixture(scope="session")
-def register_token_network(
-    web3: Web3, contracts_manager: ContractManager
-) -> Callable:
+def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Callable:
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
 
@@ -96,7 +94,9 @@ def token_network(
     snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
         token_network_registry_contract,
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     )
 
 
@@ -116,7 +116,9 @@ def token_network_in_another_token_network_registry(
     snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
         token_network_registry_contract2,
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        custom_token.address,
+        channel_participant_deposit_limit,
+        token_network_deposit_limit,
     )
 
 
