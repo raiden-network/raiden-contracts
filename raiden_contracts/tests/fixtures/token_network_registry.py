@@ -49,6 +49,18 @@ def token_network_registry_contract(
     )
 
 
+@pytest.fixture(scope="session")
+def token_network_registry_contract2(
+    deploy_tester_contract: Callable, token_network_registry_constructor_args: List
+) -> Contract:
+    """Another deployed TokenNetworkRegistry contract
+
+    to which service payment contracts should not collaborate."""
+    return deploy_tester_contract(
+        CONTRACT_TOKEN_NETWORK_REGISTRY, token_network_registry_constructor_args
+    )
+
+
 @pytest.fixture
 def token_network_registry_address(token_network_registry_contract: Contract) -> HexAddress:
     """Address of TokenNetworkRegistry contract"""

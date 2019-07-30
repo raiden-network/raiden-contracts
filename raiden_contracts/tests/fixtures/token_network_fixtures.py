@@ -32,17 +32,18 @@ def get_token_network(deploy_tester_contract: Callable) -> Callable:
 
 @pytest.fixture(scope="session")
 def register_token_network(
-    web3: Web3, token_network_registry_contract: Contract, contracts_manager: ContractManager
+    web3: Web3, contracts_manager: ContractManager
 ) -> Callable:
     """Returns a function that uses token_network_registry fixture to register
     and deploy a new token network"""
 
     def get(
+        token_network_registry: Contract,
         token_address: HexAddress,
         channel_participant_deposit_limit: int,
         token_network_deposit_limit: int,
     ) -> Contract:
-        tx_hash = token_network_registry_contract.functions.createERC20TokenNetwork(
+        tx_hash = token_network_registry.functions.createERC20TokenNetwork(
             token_address, channel_participant_deposit_limit, token_network_deposit_limit
         ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
@@ -87,12 +88,34 @@ def token_network(
     custom_token: Contract,
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
+    token_network_registry_contract: Contract,
     web3: Web3,
 ) -> Contract:
     """Register a new token network for a custom token"""
     global snapshot_before_token_network
     snapshot_before_token_network = web3.testing.snapshot()
     return register_token_network(
+        token_network_registry_contract,
+        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+    )
+
+
+@pytest.fixture(scope="session")
+def token_network_in_another_token_network_registry(
+    register_token_network: Callable,
+    custom_token: Contract,
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
+    token_network_registry_contract2: Contract,
+    web3: Web3,
+) -> Contract:
+    """TokenNetwork registered to a foreign TokenNetworkRegistry
+
+    with which the service payments should not work."""
+    global snapshot_before_token_network
+    snapshot_before_token_network = web3.testing.snapshot()
+    return register_token_network(
+        token_network_registry_contract2,
         custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
     )
 
