@@ -51,6 +51,26 @@ def get_accounts(create_account: Callable) -> Callable:
 
 
 @pytest.fixture(scope="session")
+def create_service_account(
+    create_account: Callable, service_registry: Contract, custom_token: Contract
+) -> Callable:
+    """Returns an address registered to ServiceRegistry"""
+
+    def get() -> HexAddress:
+        account = create_account()
+        deposit = service_registry.functions.currentPrice().call()
+        custom_token.functions.mint(deposit).call_and_transact({"from": account})
+        custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
+            {"from": account}
+        )
+        service_registry.functions.deposit(deposit).call_and_transact({"from": account})
+        assert service_registry.functions.hasValidRegistration(account).call()
+        return account
+
+    return get
+
+
+@pytest.fixture(scope="session")
 def get_private_key(ethereum_tester: EthereumTester) -> Callable:
     def get(account_address: HexAddress) -> str:
         keys = [

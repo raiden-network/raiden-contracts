@@ -13,25 +13,16 @@ def test_claim(
     user_deposit_contract: Contract,
     one_to_n_contract: Contract,
     deposit_to_udc: Callable,
-    get_accounts: Callable,
     web3: Web3,
     event_handler: Callable,
+    create_account: Callable,
+    create_service_account: Callable,
     make_iou: Callable,
-    service_registry: Contract,
-    custom_token: Contract,
 ) -> None:
     ev_handler = event_handler(one_to_n_contract)
-    (A, B) = get_accounts(2)
+    A = create_account()
+    B = create_service_account()
     deposit_to_udc(A, 30)
-
-    # B registers itself as a service provider
-    deposit = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(deposit).call_and_transact({"from": B})
-    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
-        {"from": B}
-    )
-    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
-    assert service_registry.functions.hasValidRegistration(B).call()
 
     # IOU expired
     with pytest.raises(TransactionFailed):
@@ -220,26 +211,17 @@ def test_claim_with_insufficient_deposit(
     user_deposit_contract: Contract,
     one_to_n_contract: Contract,
     deposit_to_udc: Callable,
-    get_accounts: Callable,
     get_private_key: Callable,
     web3: Web3,
     event_handler: Callable,
-    service_registry: Contract,
-    custom_token: Contract,
+    create_account: Callable,
+    create_service_account: Callable,
 ) -> None:
     ev_handler = event_handler(one_to_n_contract)
-    (A, B) = get_accounts(2)
+    A = create_account()
+    B = create_service_account()
     deposit_to_udc(A, 6)
     chain_id = int(web3.version.network)
-
-    # B registers itself as a service provider
-    deposit = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(deposit).call_and_transact({"from": B})
-    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
-        {"from": B}
-    )
-    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
-    assert service_registry.functions.hasValidRegistration(B).call()
 
     amount = 10
     expiration = web3.eth.blockNumber + 1

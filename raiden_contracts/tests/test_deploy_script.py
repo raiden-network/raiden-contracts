@@ -697,6 +697,7 @@ def test_deploy_script_service(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
             deployed_contracts_info=deployed_info_fail,
+            token_network_registry_address=token_network_registry_contract.address,
         )
 
     deployed_info_fail = deepcopy(deployed_service_contracts)

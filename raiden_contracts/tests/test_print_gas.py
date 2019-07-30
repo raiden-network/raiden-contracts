@@ -22,7 +22,7 @@ from raiden_contracts.tests.utils.constants import (
     UINT256_MAX,
 )
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
-from raiden_contracts.utils.proofs import sign_reward_proof, sign_one_to_n_iou
+from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
 
 
 @pytest.mark.parametrize("version", [None])
@@ -248,10 +248,12 @@ def print_gas_monitoring_service(
     deposit_to_udc: Callable,
     print_gas: Callable,
     get_private_key: Callable,
+    create_service_account: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of MonitoringService functions """
     # setup: two parties + MS
-    (A, B, MS) = get_accounts(3)
+    (A, MS) = get_accounts(2)
+    B = create_service_account()
     reward_amount = 10
     deposit_to_udc(B, reward_amount)
 
@@ -330,6 +332,7 @@ def print_gas_one_to_n(
     custom_token: Contract,
     web3: Web3,
     get_private_key: Callable,
+    create_service_account: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of OneToN functions """
     (A, B) = get_accounts(2)
@@ -375,7 +378,7 @@ def print_gas_one_to_n(
         return result
 
     for num_ious in (1, 6):
-        ious = [make_iou(A, get_service_address()) for i in range(num_ious)]
+        ious = [make_iou(A, create_service_account()) for i in range(num_ious)]
 
         txn_hash = one_to_n_contract.functions.bulkClaim(
             concat_iou_data(ious, "sender"),
