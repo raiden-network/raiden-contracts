@@ -4,6 +4,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
+from raiden_contracts.constants import MessageTypeId
 from raiden_contracts.tests.utils import fake_bytes
 
 
@@ -112,7 +113,7 @@ def test_recover_address_from_balance_proof(
 def test_recover_address_from_balance_proof_update(
     token_network_test_signatures: Contract,
     create_balance_proof: Callable,
-    create_balance_proof_countersignature: Callable,
+    create_balance_proof_updating_countersignature: Callable,
     get_accounts: Callable,
 ) -> None:
     """ TokenNetwork can recover the signer's address from a balance proof update
@@ -129,39 +130,114 @@ def test_recover_address_from_balance_proof_update(
     balance_proof = create_balance_proof(
         channel_identifier, A, other_token_network=other_token_network
     )
-    balance_proof_update_signature = create_balance_proof_countersignature(
+    balance_proof_update_signature = create_balance_proof_updating_countersignature(
         B, channel_identifier, *balance_proof, other_token_network=other_token_network
     )
 
-    balance_proof_update_signature_wrong_token_network = create_balance_proof_countersignature(
+    sig_wrong_token_network = create_balance_proof_updating_countersignature(
         B, channel_identifier, *balance_proof
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
-    balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
+    balance_proof_update_signature_wrong_signer = create_balance_proof_updating_countersignature(
         B, channel_identifier, *balance_proof_signed_B
     )
 
     assert (
         B
         == other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
-            channel_identifier, *balance_proof, balance_proof_update_signature
+            MessageTypeId.BALANCE_PROOF_UPDATE,
+            channel_identifier,
+            *balance_proof,
+            balance_proof_update_signature,
         ).call()
     )
 
     assert (
         B
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
-            channel_identifier, *balance_proof, balance_proof_update_signature_wrong_token_network
+            MessageTypeId.BALANCE_PROOF_UPDATE,
+            channel_identifier,
+            *balance_proof,
+            sig_wrong_token_network,
         ).call()
     )
 
     assert (
         B
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
-            channel_identifier, *balance_proof, balance_proof_update_signature_wrong_signer
+            MessageTypeId.BALANCE_PROOF_UPDATE,
+            channel_identifier,
+            *balance_proof,
+            balance_proof_update_signature_wrong_signer,
+        ).call()
+    )
+
+
+def test_recover_address_from_balance_proof_close(
+    token_network_test_signatures: Contract,
+    create_balance_proof: Callable,
+    create_balance_proof_closing_countersignature: Callable,
+    get_accounts: Callable,
+) -> None:
+    """ TokenNetwork can recover the signer's address from a closing proof
+
+    This test checks that the TokenNetwork contract
+    1) can recover the signer's address from a balance proof update
+    2) recovers a wrong address if the balance proof update is for a wrong token network
+    3) recovers a wrong address if the balance proof update is signed by the same secret key twice
+    """
+    (A, B) = get_accounts(2)
+    other_token_network = token_network_test_signatures
+
+    channel_identifier = 4
+    balance_proof = create_balance_proof(
+        channel_identifier, A, other_token_network=other_token_network
+    )
+    balance_proof_update_signature = create_balance_proof_closing_countersignature(
+        B, channel_identifier, *balance_proof, other_token_network=other_token_network
+    )
+
+    sig_wrong_token_network = create_balance_proof_closing_countersignature(
+        B, channel_identifier, *balance_proof
+    )
+
+    balance_proof_signed_B = create_balance_proof(
+        channel_identifier, B, other_token_network=other_token_network
+    )
+    balance_proof_update_signature_wrong_signer = create_balance_proof_closing_countersignature(
+        B, channel_identifier, *balance_proof_signed_B
+    )
+
+    assert (
+        B
+        == other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
+            MessageTypeId.BALANCE_PROOF,
+            channel_identifier,
+            *balance_proof,
+            balance_proof_update_signature,
+        ).call()
+    )
+
+    assert (
+        B
+        != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
+            MessageTypeId.BALANCE_PROOF,
+            channel_identifier,
+            *balance_proof,
+            sig_wrong_token_network,
+        ).call()
+    )
+
+    assert (
+        B
+        != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
+            MessageTypeId.BALANCE_PROOF,
+            channel_identifier,
+            *balance_proof,
+            balance_proof_update_signature_wrong_signer,
         ).call()
     )
 
