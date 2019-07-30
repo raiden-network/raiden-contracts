@@ -61,7 +61,7 @@ def pack_balance_proof_close_message(
             balance_hash=balance_hash,
             nonce=nonce,
             additional_hash=additional_hash,
-            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,  # will be changed
+            msg_type=MessageTypeId.BALANCE_PROOF,
         )
         + closing_signature
     )

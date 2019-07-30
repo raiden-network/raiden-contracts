@@ -517,6 +517,7 @@ contract TokenNetwork is Utils {
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
+            MessageTypeId.BalanceProof,
             channel_identifier,
             balance_hash,
             nonce,
@@ -621,6 +622,7 @@ contract TokenNetwork is Utils {
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
+            MessageTypeId.BalanceProofUpdate,
             channel_identifier,
             balance_hash,
             nonce,
@@ -1508,6 +1510,7 @@ contract TokenNetwork is Utils {
     }
 
     function recoverAddressFromBalanceProofCounterSignature(
+        MessageTypeId message_type_id,
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -1527,7 +1530,7 @@ contract TokenNetwork is Utils {
             message_length,
             address(this),
             chain_id,
-            uint256(MessageTypeId.BalanceProofUpdate),
+            uint256(message_type_id),
             channel_identifier,
             balance_hash,
             nonce,
