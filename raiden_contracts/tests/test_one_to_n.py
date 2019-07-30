@@ -167,6 +167,44 @@ def test_getSingleSignature(one_to_n_internals: Contract) -> None:
     )
 
 
+def test_claim_by_unregistered_service(
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    web3: Web3,
+) -> None:
+    """OneToN contract should not work for an unregistered service provider."""
+    (A, B) = get_accounts(2)
+    deposit_to_udc(A, 30)
+
+    # happy case
+    amount = 10
+    expiration = web3.eth.blockNumber + 2
+    chain_id = int(web3.version.network)
+
+    signature = sign_one_to_n_iou(
+        get_private_key(A),
+        sender=A,
+        receiver=B,
+        amount=amount,
+        expiration_block=expiration,
+        one_to_n_address=one_to_n_contract.address,
+        chain_id=chain_id,
+    )
+
+    # Doesn't work because A is not registered
+    with pytest.raises(TransactionFailed):
+        one_to_n_contract.functions.claim(
+            sender=A,
+            receiver=B,
+            amount=amount,
+            expiration_block=expiration,
+            one_to_n_address=one_to_n_contract.address,
+            signature=signature,
+        ).call_and_transact({"from": A})
+
+
 def test_claim_with_insufficient_deposit(
     user_deposit_contract: Contract,
     one_to_n_contract: Contract,
