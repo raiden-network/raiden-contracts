@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
@@ -98,6 +98,100 @@ def test_claim(
     # can't be claimed twice
     with pytest.raises(TransactionFailed):
         one_to_n_contract.functions.claim(**iou).call({"from": A})
+
+
+def test_bulk_claim_happy_path(
+    user_deposit_contract: Contract,
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    make_iou: Callable,
+) -> None:
+    (A, B, C) = get_accounts(3)
+    deposit_to_udc(A, 30)
+    deposit_to_udc(B, 30)
+
+    def bulk_claim(ious: List[dict]) -> str:
+        return one_to_n_contract.functions.bulkClaim(
+            senders=[x["sender"] for x in ious],
+            receivers=[x["receiver"] for x in ious],
+            amounts=[x["amount"] for x in ious],
+            expiration_blocks=[x["expiration_block"] for x in ious],
+            one_to_n_address=one_to_n_contract.address,
+            signatures=b"".join(x["signature"] for x in ious),
+        ).call_and_transact({"from": A})
+
+    ious = [make_iou(A, C, amount=10), make_iou(B, C, amount=20)]
+    bulk_claim(ious)
+
+    assert user_deposit_contract.functions.balances(A).call() == 20
+    assert user_deposit_contract.functions.balances(B).call() == 10
+    assert user_deposit_contract.functions.balances(C).call() == 30
+
+
+def test_bulk_claim_errors(
+    one_to_n_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    make_iou: Callable,
+) -> None:
+    (A, B, C) = get_accounts(3)
+    deposit_to_udc(A, 30)
+    deposit_to_udc(B, 30)
+
+    ious = [make_iou(A, C), make_iou(B, C)]
+    senders = [x["sender"] for x in ious]
+    receivers = [x["receiver"] for x in ious]
+    amounts = [x["amount"] for x in ious]
+    expiration_blocks = [x["expiration_block"] for x in ious]
+    signatures = b"".join(x["signature"] for x in ious)
+
+    # One value too many to `amounts`
+    with pytest.raises(TransactionFailed):
+        return one_to_n_contract.functions.bulkClaim(
+            senders=senders,
+            receivers=receivers,
+            amounts=amounts + [1],
+            expiration_blocks=expiration_blocks,
+            one_to_n_address=one_to_n_contract.address,
+            signatures=signatures,
+        ).call_and_transact({"from": A})
+
+    # One byte too few/many in `signatures`
+    for sig in [signatures + b"1", signatures[:-1]]:
+        with pytest.raises(TransactionFailed):
+            return one_to_n_contract.functions.bulkClaim(
+                senders=senders,
+                receivers=receivers,
+                amounts=amounts,
+                expiration_blocks=expiration_blocks,
+                one_to_n_address=one_to_n_contract.address,
+                signatures=sig,
+            ).call_and_transact({"from": A})
+
+    # Cause a signature mismatch by changing one amount
+    with pytest.raises(TransactionFailed):
+        return one_to_n_contract.functions.bulkClaim(
+            senders=senders,
+            receivers=receivers,
+            amounts=[amounts[0], amounts[1] + 1],
+            expiration_blocks=expiration_blocks,
+            one_to_n_address=one_to_n_contract.address,
+            signatures=signatures,
+        ).call_and_transact({"from": A})
+
+
+def test_getSingleSignature(one_to_n_contract: Contract) -> None:
+    signatures = bytes(range(65 * 3))
+    assert one_to_n_contract.functions.getSingleSignature(signatures, 0).call() == signatures[:65]
+    assert (
+        one_to_n_contract.functions.getSingleSignature(signatures, 1).call()
+        == signatures[65 : 65 * 2]
+    )
+    assert (
+        one_to_n_contract.functions.getSingleSignature(signatures, 2).call()
+        == signatures[65 * 2 : 65 * 3]
+    )
 
 
 def test_claim_with_insufficient_deposit(
