@@ -22,7 +22,7 @@ from raiden_contracts.tests.utils.constants import (
     UINT256_MAX,
 )
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
-from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
+from raiden_contracts.utils.proofs import sign_reward_proof
 
 
 @pytest.mark.parametrize("version", [None])
@@ -37,6 +37,7 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "MonitoringService.claimReward",
         "MonitoringService.monitor",
         "OneToN.claim",
+        "OneToN.bulkClaim",
         "SecretRegistry.registerSecret",
         "ServiceRegistry.deposit",
         "ServiceRegistry.setURL",
@@ -313,31 +314,28 @@ def print_gas_one_to_n(
     one_to_n_contract: Contract,
     deposit_to_udc: Callable,
     get_accounts: Callable,
-    get_private_key: Callable,
-    web3: Web3,
     print_gas: Callable,
+    make_iou: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of OneToN functions """
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
 
-    # happy case
-    chain_id = int(web3.version.network)
-    amount = 10
-    expiration = web3.eth.blockNumber + 2
-    signature = sign_one_to_n_iou(
-        get_private_key(A),
-        sender=A,
-        receiver=B,
-        amount=amount,
-        expiration_block=expiration,
-        one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
-    )
-    txn_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, one_to_n_contract.address, signature
-    ).call_and_transact({"from": A})
+    # single claim
+    txn_hash = one_to_n_contract.functions.claim(**make_iou(A, B)).call_and_transact({"from": A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + ".claim")
+
+    # bulk claim with one element
+    iou = make_iou(A, B)
+    txn_hash = one_to_n_contract.functions.bulkClaim(
+        [iou["sender"]],
+        [iou["receiver"]],
+        [iou["amount"]],
+        [iou["expiration_block"]],
+        one_to_n_contract.address,
+        iou["signature"],
+    ).call_and_transact({"from": A})
+    print_gas(txn_hash, CONTRACT_ONE_TO_N + ".bulkClaim")
 
 
 @pytest.fixture
