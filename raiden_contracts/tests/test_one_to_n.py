@@ -181,15 +181,18 @@ def test_bulk_claim_errors(
         ).call_and_transact({"from": A})
 
 
-def test_getSingleSignature(one_to_n_contract: Contract) -> None:
+def test_getSingleSignature(one_to_n_internals: Contract) -> None:
     signatures = bytes(range(65 * 3))
-    assert one_to_n_contract.functions.getSingleSignature(signatures, 0).call() == signatures[:65]
     assert (
-        one_to_n_contract.functions.getSingleSignature(signatures, 1).call()
+        one_to_n_internals.functions.getSingleSignaturePublic(signatures, 0).call()
+        == signatures[:65]
+    )
+    assert (
+        one_to_n_internals.functions.getSingleSignaturePublic(signatures, 1).call()
         == signatures[65 : 65 * 2]
     )
     assert (
-        one_to_n_contract.functions.getSingleSignature(signatures, 2).call()
+        one_to_n_internals.functions.getSingleSignaturePublic(signatures, 2).call()
         == signatures[65 * 2 : 65 * 3]
     )
 
