@@ -152,8 +152,7 @@ contract OneToN is Utils {
         bytes memory signatures,
         uint256 i
     )
-        // TODO: make internal
-        public
+        internal
         pure
         returns (bytes memory)
     {
