@@ -2,7 +2,7 @@ dist: xenial
 sudo: true
 language: python
 python:
-  - '3.6'
+  - '3.7'
 
 env:
   global:
@@ -26,7 +26,7 @@ install:
   - pip install pytest-travis-fold
   - pip install -r requirements-dev.txt
   - pip install pytest-xdist pytest-sugar codecov
-  - pipdeptree --warn fail
+  - pip check
   - make verify_contracts
 
 before_script:

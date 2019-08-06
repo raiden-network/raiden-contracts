@@ -32,7 +32,7 @@ def token_network_registry_constructor_args(
 ) -> List:
     return [
         secret_registry_contract.address,
-        int(web3.version.network),
+        web3.eth.chainId,
         TEST_SETTLE_TIMEOUT_MIN,
         TEST_SETTLE_TIMEOUT_MAX,
         1,

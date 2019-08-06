@@ -103,7 +103,7 @@ def token_network_contract(
     secret_registry_contract: Contract,
     standard_token_contract: Contract,
 ) -> Contract:
-    network_id = int(secret_registry_contract.web3.version.network)
+    network_id = int(secret_registry_contract.web3.eth.chainId)
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
         [standard_token_contract.address, secret_registry_contract.address, network_id],
@@ -123,7 +123,7 @@ def token_network_external(
         [
             custom_token.address,
             secret_registry_contract.address,
-            int(web3.version.network),
+            web3.eth.chainId,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             CONTRACT_DEPLOYER_ADDRESS,

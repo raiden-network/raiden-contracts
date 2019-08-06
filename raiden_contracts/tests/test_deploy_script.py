@@ -25,11 +25,7 @@ from raiden_contracts.constants import (
     CONTRACT_USER_DEPOSIT,
     EMPTY_ADDRESS,
 )
-from raiden_contracts.contract_manager import (
-    DeployedContract,
-    DeployedContracts,
-    contracts_precompiled_path,
-)
+from raiden_contracts.contract_manager import DeployedContracts, contracts_precompiled_path
 from raiden_contracts.deploy.__main__ import (
     ContractDeployer,
     ContractVerifier,
@@ -114,7 +110,7 @@ TOKEN_SUPPLY = 10000000
 
 
 @pytest.fixture(scope="session")
-def token_address(deployer: ContractDeployer) -> DeployedContract:
+def token_address(deployer: ContractDeployer) -> HexAddress:
     token_type = "CustomToken"
     deployed_token = deployer.deploy_token_contract(
         token_supply=TOKEN_SUPPLY,
@@ -1189,7 +1185,7 @@ def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address()
 
 def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
     """ ContractVerifier.verify_user_deposit_deployment raises on a wrong OneToN address """
-    token_addr = "0xDa12Dc74D2d0881749CCd9330ac4f0aecda5686a"
+    token_addr = HexAddress("0xDa12Dc74D2d0881749CCd9330ac4f0aecda5686a")
     user_deposit_constructor_arguments = [token_addr, UINT256_MAX]
     wrong_one_to_n_address = FAKE_ADDRESS
     user_deposit_mock = MagicMock()
@@ -1204,5 +1200,5 @@ def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
             token_address=token_addr,
             user_deposit_whole_balance_limit=UINT256_MAX,
             one_to_n_address=wrong_one_to_n_address,
-            monitoring_service_address="0xb7765972d78B6C97bB0a5a6b7529DC1fb64aA287",
+            monitoring_service_address=HexAddress("0xb7765972d78B6C97bB0a5a6b7529DC1fb64aA287"),
         )
