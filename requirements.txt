@@ -4,5 +4,7 @@ coincurve>=8.0.0
 py-solc>=3.0.0
 semver
 mypy-extensions
-web3
+web3<6.0.0,>=5.0.0
 py_ecc<=1.5.0
+eth-abi<3.0.0,>=2.0.0
+eth-utils<2.0.0,>=1.5.2

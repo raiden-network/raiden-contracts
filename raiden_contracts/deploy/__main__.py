@@ -100,8 +100,8 @@ def setup_ctx(
     logging.getLogger("urllib3").setLevel(logging.INFO)
 
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
-    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-    print("Web3 provider is", web3.providers[0])
+    web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    print("Web3 provider is", web3.provider)
     private_key_string = get_private_key(Path(private_key))
     if not private_key_string:
         raise RuntimeError("Could not access the private key.")
@@ -436,8 +436,8 @@ def register(
 @click.pass_context
 def verify(_: Any, rpc_provider: str, contracts_version: Optional[str]) -> None:
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
-    web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-    print("Web3 provider is", web3.providers[0])
+    web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    print("Web3 provider is", web3.provider)
 
     verifier = ContractVerifier(web3=web3, contracts_version=contracts_version)
     verifier.verify_deployed_contracts_in_filesystem()

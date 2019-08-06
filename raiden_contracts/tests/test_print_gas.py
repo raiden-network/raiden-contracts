@@ -71,7 +71,7 @@ def print_gas_token_network_registry(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         [
             secret_registry_contract.address,
-            int(web3.version.network),
+            web3.eth.chainId,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             10,
@@ -98,7 +98,7 @@ def print_gas_token_network_deployment(
         [
             custom_token.address,
             secret_registry_contract.address,
-            int(web3.version.network),
+            web3.eth.chainId,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             deprecation_executor,
@@ -322,7 +322,7 @@ def print_gas_one_to_n(
     deposit_to_udc(A, 30)
 
     # happy case
-    chain_id = int(web3.version.network)
+    chain_id = web3.eth.chainId
     amount = 10
     expiration = web3.eth.blockNumber + 2
     signature = sign_one_to_n_iou(

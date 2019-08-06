@@ -9,7 +9,7 @@ from raiden_contracts.constants import CONTRACT_ONE_TO_N
 def one_to_n_contract(
     deploy_tester_contract: Contract, uninitialized_user_deposit_contract: Contract, web3: Web3
 ) -> Contract:
-    chain_id = int(web3.version.network)
+    chain_id = web3.eth.chainId
     return deploy_tester_contract(
         CONTRACT_ONE_TO_N, [uninitialized_user_deposit_contract.address, chain_id]
     )

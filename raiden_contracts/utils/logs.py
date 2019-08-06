@@ -6,9 +6,9 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from click import echo
 from eth_typing.evm import HexAddress
 from web3 import Web3
-from web3.utils.events import get_event_data
-from web3.utils.filters import construct_event_filter_params
-from web3.utils.threads import Timeout
+from web3._utils.events import get_event_data
+from web3._utils.filters import construct_event_filter_params
+from web3._utils.threads import Timeout
 
 # A concrete event added in a transaction.
 LogRecorded = namedtuple("LogRecorded", "message callback count")

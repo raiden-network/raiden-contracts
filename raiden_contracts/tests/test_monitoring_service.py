@@ -306,9 +306,7 @@ def test_updateReward(
 
 
 def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
-    def call(
-        addresses: List[HexAddress], closed_at_block: int = 1000, settle_timeout: int = 100
-    ) -> int:
+    def call(addresses: List[int], closed_at_block: int = 1000, settle_timeout: int = 100) -> int:
         first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
             closed_at_block=closed_at_block,
             settle_timeout=settle_timeout,

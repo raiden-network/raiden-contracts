@@ -49,7 +49,7 @@ def test_deprecation_executor(
         json_contract["bin"],
         [
             secret_registry_contract.address,
-            int(web3.version.network),
+            web3.eth.chainId,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             1,
