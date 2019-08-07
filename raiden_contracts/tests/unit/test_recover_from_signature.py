@@ -62,12 +62,12 @@ def test_verify_fail(
     message hash, returns a different address on a wrong message hash, and
     fails on a too long signature """
     A = get_accounts(1)[0]
-    message_hash = Web3.soliditySha3(["string", "uint256"], ["hello", 5])
+    message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
     signature = sign(get_private_key(A), message_hash, v=27)
 
     assert signature_test_contract.functions.verify(message_hash, signature).call() == A
 
-    message_hash = Web3.soliditySha3(["string", "uint256"], ["hello", 6])
+    message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 6])
     assert signature_test_contract.functions.verify(message_hash, signature).call() != A
 
     signature2 = signature[:65] + bytes([2])
@@ -109,7 +109,7 @@ def test_ecrecover_output_zero(
     """ ecrecover returns 0 for an incorrect value of the v parameter """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
-    message_hash = Web3.soliditySha3(["string", "uint256"], ["hello", 5])
+    message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
     signature = sign(privatekey, message_hash, v=27)
 
     assert (
@@ -126,7 +126,7 @@ def test_ecrecover_output_fail(
     """ ecrecover detects a wrong message content and returns zero """
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
-    message_hash = Web3.soliditySha3(["string", "uint256"], ["hello", 5])
+    message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
     signature = sign(privatekey, message_hash, v=27)
 
     assert (
@@ -139,7 +139,7 @@ def test_ecrecover_output_fail(
         == A
     )
 
-    message_hash2 = Web3.soliditySha3(["string", "uint256"], ["hello", 6])
+    message_hash2 = Web3.solidityKeccak(["string", "uint256"], ["hello", 6])
     assert (
         signature_test_contract.functions.verifyEcrecoverOutput(
             message_hash2,
