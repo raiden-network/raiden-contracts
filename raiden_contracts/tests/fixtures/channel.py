@@ -6,7 +6,7 @@ from eth_typing import HexAddress
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState, MessageTypeId
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
@@ -24,8 +24,7 @@ from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
-    sign_balance_proof_close_message,
-    sign_balance_proof_update_message,
+    sign_balance_proof_message,
     sign_cooperative_settle_message,
     sign_withdraw_message,
 )
@@ -649,6 +648,7 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
             channel_identifier,
+            MessageTypeId.BALANCE_PROOF,
             balance_hash,
             nonce,
             additional_hash,
@@ -676,11 +676,12 @@ def create_balance_proof_closing_countersignature(
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
-        non_closing_signature = sign_balance_proof_close_message(
+        non_closing_signature = sign_balance_proof_message(
             private_key,
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
             channel_identifier,
+            MessageTypeId.BALANCE_PROOF,
             balance_hash,
             nonce,
             additional_hash,
@@ -709,11 +710,12 @@ def create_balance_proof_updating_countersignature(
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
-        non_closing_signature = sign_balance_proof_update_message(
+        non_closing_signature = sign_balance_proof_message(
             private_key,
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
             channel_identifier,
+            MessageTypeId.BALANCE_PROOF_UPDATE,
             balance_hash,
             nonce,
             additional_hash,
@@ -738,11 +740,12 @@ def create_close_signature_for_no_balance_proof(
         _token_network = other_token_network or token_network
         private_key = get_private_key(participant)
 
-        non_closing_signature = sign_balance_proof_close_message(
+        non_closing_signature = sign_balance_proof_message(
             private_key,
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
             channel_identifier,
+            MessageTypeId.BALANCE_PROOF,
             EMPTY_BALANCE_HASH,
             0,
             EMPTY_ADDITIONAL_HASH,
