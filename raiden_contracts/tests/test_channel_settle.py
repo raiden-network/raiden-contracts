@@ -6,7 +6,12 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ChannelState
+from raiden_contracts.constants import (
+    TEST_SETTLE_TIMEOUT_MIN,
+    ChannelEvent,
+    ChannelState,
+    MessageTypeId,
+)
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
@@ -160,7 +165,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_closing_countersignature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that called close.
@@ -184,8 +189,8 @@ def test_settle_single_direct_transfer_for_closing_party(
         1,
         LOCKSROOT_OF_NO_LOCKS,
     )
-    closing_sig_A = create_balance_proof_closing_countersignature(
-        A, channel_identifier, *balance_proof_B
+    closing_sig_A = create_balance_proof_countersignature(
+        A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_B
     )
     token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B, closing_sig_A
@@ -230,7 +235,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_updating_countersignature: Callable,
+    create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
@@ -267,8 +272,8 @@ def test_settle_single_direct_transfer_for_counterparty(
         LOCKSROOT_OF_NO_LOCKS,
     )
 
-    balance_proof_update_signature_B = create_balance_proof_updating_countersignature(
-        B, channel_identifier, *balance_proof_A
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_A
     )
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier, A, B, *balance_proof_A, balance_proof_update_signature_B
@@ -571,8 +576,7 @@ def test_settle_channel_event(
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_closing_countersignature: Callable,
-    create_balance_proof_updating_countersignature: Callable,
+    create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
     """ A successful settleChannel() call causes a SETTLED event """
@@ -586,11 +590,11 @@ def test_settle_channel_event(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
-    balance_proof_update_signature_B = create_balance_proof_updating_countersignature(
-        B, channel_identifier, *balance_proof_A
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_A
     )
-    close_sig_A = create_balance_proof_closing_countersignature(
-        A, channel_identifier, *balance_proof_B
+    close_sig_A = create_balance_proof_countersignature(
+        A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_B
     )
 
     token_network.functions.closeChannel(

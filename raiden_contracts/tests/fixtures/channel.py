@@ -170,8 +170,7 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
 def close_and_update_channel(
     token_network: Contract,
     create_balance_proof: Callable,
-    create_balance_proof_closing_countersignature: Callable,
-    create_balance_proof_updating_countersignature: Callable,
+    create_balance_proof_countersignature: Callable,
 ) -> Callable:
     def get(
         channel_identifier: int,
@@ -203,11 +202,11 @@ def close_and_update_channel(
             participant2_values.locksroot,
             additional_hash2,
         )
-        balance_proof_close_signature_1 = create_balance_proof_closing_countersignature(
-            participant1, channel_identifier, *balance_proof_2
+        balance_proof_close_signature_1 = create_balance_proof_countersignature(
+            participant1, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_2
         )
-        balance_proof_update_signature_2 = create_balance_proof_updating_countersignature(
-            participant2, channel_identifier, *balance_proof_1
+        balance_proof_update_signature_2 = create_balance_proof_countersignature(
+            participant2, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_1
         )
 
         token_network.functions.closeChannel(
@@ -660,12 +659,13 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
 
 
 @pytest.fixture(scope="session")
-def create_balance_proof_closing_countersignature(
+def create_balance_proof_countersignature(
     token_network: Contract, get_private_key: Callable
 ) -> Callable:
     def get(
         participant: HexAddress,
         channel_identifier: int,
+        msg_type: MessageTypeId,
         balance_hash: bytes,
         nonce: int,
         additional_hash: bytes,
@@ -681,41 +681,7 @@ def create_balance_proof_closing_countersignature(
             _token_network.address,
             int(_token_network.functions.chain_id().call()),
             channel_identifier,
-            MessageTypeId.BALANCE_PROOF,
-            balance_hash,
-            nonce,
-            additional_hash,
-            original_signature,
-            v,
-        )
-        return non_closing_signature
-
-    return get
-
-
-@pytest.fixture(scope="session")
-def create_balance_proof_updating_countersignature(
-    token_network: Contract, get_private_key: Callable
-) -> Callable:
-    def get(
-        participant: HexAddress,
-        channel_identifier: int,
-        balance_hash: bytes,
-        nonce: int,
-        additional_hash: bytes,
-        original_signature: bytes,
-        v: int = 27,
-        other_token_network: Optional[Contract] = None,
-    ) -> bytes:
-        _token_network = other_token_network or token_network
-        private_key = get_private_key(participant)
-
-        non_closing_signature = sign_balance_proof_message(
-            private_key,
-            _token_network.address,
-            int(_token_network.functions.chain_id().call()),
-            channel_identifier,
-            MessageTypeId.BALANCE_PROOF_UPDATE,
+            msg_type,
             balance_hash,
             nonce,
             additional_hash,
