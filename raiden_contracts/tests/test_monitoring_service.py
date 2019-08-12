@@ -11,6 +11,7 @@ from web3.contract import Contract
 from raiden_contracts.constants import (
     LOCKSROOT_OF_NO_LOCKS,
     TEST_SETTLE_TIMEOUT_MIN,
+    MessageTypeId,
     MonitoringServiceEvent,
 )
 from raiden_contracts.tests.utils import SERVICE_DEPOSIT
@@ -41,8 +42,7 @@ def setup_monitor_data(
     deposit_to_udc: Callable,
     create_channel: Callable,
     create_balance_proof: Callable,
-    create_balance_proof_closing_countersignature: Callable,
-    create_balance_proof_updating_countersignature: Callable,
+    create_balance_proof_countersignature: Callable,
     token_network: Contract,
     ms_address: HexAddress,
     get_private_key: Callable,
@@ -62,11 +62,11 @@ def setup_monitor_data(
         )
 
         # Add signatures by non_closing_participant
-        closing_signature_A = create_balance_proof_closing_countersignature(
-            A, channel_identifier, *balance_proof_A
+        closing_signature_A = create_balance_proof_countersignature(
+            A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_A
         )
-        non_closing_signature_B = create_balance_proof_updating_countersignature(
-            B, channel_identifier, *balance_proof_B
+        non_closing_signature_B = create_balance_proof_countersignature(
+            B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_B
         )
         reward_proof_signature = sign_reward_proof(
             privatekey=get_private_key(B),
