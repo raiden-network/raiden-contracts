@@ -36,10 +36,12 @@ def test_verify(
     signature = balance_proof_A[3]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address,
-            int(web3.version.network),
-            channel_identifier,
-            *balance_proof_A[:3],
+            token_network_address=token_network.address,
+            chain_identifier=int(web3.version.network),
+            channel_identifier=channel_identifier,
+            balance_hash=balance_proof_A[0],
+            nonce=balance_proof_A[1],
+            additional_hash=balance_proof_A[2],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
@@ -50,10 +52,12 @@ def test_verify(
     signature = balance_proof_B[3]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address,
-            int(web3.version.network),
-            channel_identifier,
-            *balance_proof_B[:3],
+            token_network_address=token_network.address,
+            chain_identifier=int(web3.version.network),
+            channel_identifier=channel_identifier,
+            balance_hash=balance_proof_B[0],
+            nonce=balance_proof_B[1],
+            additional_hash=balance_proof_B[2],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
@@ -101,10 +105,12 @@ def test_ecrecover_output(
     v = signature[64:]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address,
-            int(web3.version.network),
-            channel_identifier,
-            *balance_proof_A[:3],
+            token_network_address=token_network.address,
+            chain_identifier=int(web3.version.network),
+            channel_identifier=channel_identifier,
+            balance_hash=balance_proof_A[0],
+            nonce=balance_proof_A[1],
+            additional_hash=balance_proof_A[2],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
