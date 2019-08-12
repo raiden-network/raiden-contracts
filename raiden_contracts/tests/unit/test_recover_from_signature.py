@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import EMPTY_ADDRESS
+from raiden_contracts.constants import EMPTY_ADDRESS, MessageTypeId
 from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_proof
 from raiden_contracts.utils.signature import sign
 
@@ -39,7 +39,8 @@ def test_verify(
             token_network.address,
             int(web3.version.network),
             channel_identifier,
-            *balance_proof_A[:3]
+            *balance_proof_A[:3],
+            msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
@@ -52,7 +53,8 @@ def test_verify(
             token_network.address,
             int(web3.version.network),
             channel_identifier,
-            *balance_proof_B[:3]
+            *balance_proof_B[:3],
+            msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
@@ -102,7 +104,8 @@ def test_ecrecover_output(
             token_network.address,
             int(web3.version.network),
             channel_identifier,
-            *balance_proof_A[:3]
+            *balance_proof_A[:3],
+            msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
 

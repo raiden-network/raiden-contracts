@@ -31,7 +31,7 @@ def pack_balance_proof(
     balance_hash: bytes,
     nonce: int,
     additional_hash: bytes,
-    msg_type: MessageTypeId = MessageTypeId.BALANCE_PROOF,
+    msg_type: MessageTypeId,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=token_network_address)
@@ -141,6 +141,7 @@ def sign_balance_proof(
             balance_hash=balance_hash,
             nonce=nonce,
             additional_hash=additional_hash,
+            msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
 
