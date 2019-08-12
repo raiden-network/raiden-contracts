@@ -44,10 +44,11 @@ def pack_balance_proof(
     )
 
 
-def pack_balance_proof_close_message(
+def pack_balance_proof_message(
     token_network_address: HexAddress,
     chain_identifier: int,
     channel_identifier: int,
+    msg_type: MessageTypeId,
     balance_hash: bytes,
     nonce: int,
     additional_hash: bytes,
@@ -61,30 +62,7 @@ def pack_balance_proof_close_message(
             balance_hash=balance_hash,
             nonce=nonce,
             additional_hash=additional_hash,
-            msg_type=MessageTypeId.BALANCE_PROOF,
-        )
-        + closing_signature
-    )
-
-
-def pack_balance_proof_update_message(
-    token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
-    balance_hash: bytes,
-    nonce: int,
-    additional_hash: bytes,
-    closing_signature: bytes,
-) -> bytes:
-    return (
-        pack_balance_proof(
-            token_network_address=token_network_address,
-            chain_identifier=chain_identifier,
-            channel_identifier=channel_identifier,
-            balance_hash=balance_hash,
-            nonce=nonce,
-            additional_hash=additional_hash,
-            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+            msg_type=msg_type,
         )
         + closing_signature
     )
@@ -181,10 +159,11 @@ def sign_balance_proof_close_message(
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
-        pack_balance_proof_close_message(
+        pack_balance_proof_message(
             token_network_address=token_network_address,
             chain_identifier=chain_identifier,
             channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF,
             balance_hash=balance_hash,
             nonce=nonce,
             additional_hash=additional_hash,
@@ -207,10 +186,11 @@ def sign_balance_proof_update_message(
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
-        pack_balance_proof_update_message(
+        pack_balance_proof_message(
             token_network_address=token_network_address,
             chain_identifier=chain_identifier,
             channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
             balance_hash=balance_hash,
             nonce=nonce,
             additional_hash=additional_hash,
