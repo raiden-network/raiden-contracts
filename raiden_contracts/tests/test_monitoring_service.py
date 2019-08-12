@@ -147,7 +147,7 @@ def test_claimReward_with_settle_call(
     ).call_and_transact({"from": ms_address})
 
     # claiming before settlement timeout must fail
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="channel not settled yet"):
         monitoring_service_external.functions.claimReward(
             channel_identifier, token_network.address, A, B
         ).call({"from": ms_address})
@@ -226,7 +226,7 @@ def test_monitor(
         ).call({"from": B})
 
     # monitoring too early must fail
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="not allowed to monitor"):
         assert web3.eth.blockNumber < monitor_data["first_allowed"]
         txn_hash = monitoring_service_external.functions.monitor(
             A,
@@ -284,7 +284,7 @@ def test_monitor_on_wrong_token_network_registry(
 
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Unknown TokenNetwork"):
         monitoring_service_external.functions.monitor(
             A,
             B,
@@ -325,7 +325,7 @@ def test_updateReward(
     assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 2
 
     # calling again with same nonce fails
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="stale nonce"):
         update_with_nonce(2)
 
     # calling again with higher nonce succeeds
@@ -368,7 +368,7 @@ def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
 
     # Extreme settle_timeout that would cause overflows will make the
     # transaction fail instead of giving the wrong result
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="maliciously big settle timeout"):
         assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT + 1)
 
 
