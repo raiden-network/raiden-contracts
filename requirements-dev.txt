@@ -13,7 +13,7 @@ flake8-tuple>=0.2.13
 bump2version
 hypothesis==3.44.14
 requests
-mypy==0.670
+mypy==0.720
 pylint
 pylint-quotes
 requests_mock
