@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#PR ID] Revert the upgrade web3.py and other dependencies
+
 ## [0.29.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.29.1) - 2019-08-13
 
 - [#1153](https://github.com/raiden-network/raiden-contracts/pull/1153) Upgrade web3.py and other dependencies
