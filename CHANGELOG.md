@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.29.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.29.1) - 2019-08-13
+
+- [#1153](https://github.com/raiden-network/raiden-contracts/pull/1153) Upgrade web3.py and other dependencies
+
 ## [0.29.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.29.0) - 2019-07-26
 
 - [#1143](https://github.com/raiden-network/raiden-contracts/pull/1143) Add ServiceRegistry.hasValidRegistration() function that returns whether a given address has a valid registration.
