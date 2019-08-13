@@ -36,7 +36,10 @@ def test_verify(
     signature = balance_proof_A[3]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address, web3.eth.chainId, channel_identifier, *balance_proof_A[:3]
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_A[:3]
         )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
@@ -46,7 +49,10 @@ def test_verify(
     signature = balance_proof_B[3]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address, web3.eth.chainId, channel_identifier, *balance_proof_B[:3]
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_B[:3]
         )
     )
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
@@ -93,7 +99,10 @@ def test_ecrecover_output(
     v = signature[64:]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
-            token_network.address, web3.eth.chainId, channel_identifier, *balance_proof_A[:3]
+            token_network.address,
+            int(web3.version.network),
+            channel_identifier,
+            *balance_proof_A[:3]
         )
     )
 

@@ -1,7 +1,7 @@
 -r requirements.txt
 autopep8>=1.4.3
 black
-eth-tester[py-evm]>=0.2.0-beta.2
+eth-tester[py-evm]<=0.1.0b33
 pytest
 pytest-cov
 pyfakefs
@@ -13,9 +13,11 @@ flake8-tuple>=0.2.13
 bump2version
 hypothesis==3.44.14
 requests
-mypy==0.720
+mypy==0.670
 pylint
 pylint-quotes
 requests_mock
 isort
 pipdeptree
+eth-typing<2.0.0
+eth-abi<=1.2.2

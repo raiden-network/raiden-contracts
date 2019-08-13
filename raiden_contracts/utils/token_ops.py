@@ -24,9 +24,9 @@ class TokenOperations:
         assert self.private_key is not None
         self.owner = private_key_to_address(self.private_key)
         self.wait = wait
-        self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(self.private_key))
+        self.web3.middleware_stack.add(construct_sign_and_send_raw_middleware(self.private_key))
         self.web3.eth.defaultAccount = self.owner
-        self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
     def is_valid_contract(self, token_address: str) -> bool:
         return self.web3.eth.getCode(token_address, "latest") != b""

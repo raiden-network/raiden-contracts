@@ -25,7 +25,7 @@ def test_claim(
     # happy case
     amount = 10
     expiration = web3.eth.blockNumber + 2
-    chain_id = web3.eth.chainId
+    chain_id = int(web3.version.network)
 
     # IOU expired
     with pytest.raises(TransactionFailed):
@@ -131,7 +131,7 @@ def test_claim_with_insufficient_deposit(
     ev_handler = event_handler(one_to_n_contract)
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 6)
-    chain_id = web3.eth.chainId
+    chain_id = int(web3.version.network)
 
     amount = 10
     expiration = web3.eth.blockNumber + 1

@@ -27,7 +27,7 @@ def test_register_three_but_not_four(
     token_network_registry = get_token_network_registry(
         [
             secret_registry_contract.address,
-            web3.eth.chainId,
+            int(web3.version.network),
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
             3,
