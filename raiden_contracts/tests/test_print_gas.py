@@ -264,15 +264,6 @@ def print_gas_monitoring_service(
     )
     service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": MS})
 
-    # B registers itself as a service provider
-    deposit = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(deposit).call_and_transact({"from": B})
-    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
-        {"from": B}
-    )
-    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
-    assert service_registry.functions.hasValidRegistration(B).call()
-
     # open a channel (c1, c2)
     channel_identifier = create_channel(A, B)[0]
 
