@@ -8,6 +8,9 @@ compile_contracts:
 verify_contracts:
 	python setup.py verify_contracts
 
+update_gas_costs:
+	pytest raiden_contracts/tests/test_print_gas.py -k test_print_gas -s
+
 install:
 	pip install -r requirements.txt
 	pip install -e .

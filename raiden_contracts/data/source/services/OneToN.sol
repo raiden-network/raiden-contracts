@@ -111,14 +111,14 @@ contract OneToN is Utils {
     /// @param signatures Sender's signatures concatenated into a single bytes array
     /// @return Amount of transferred tokens
     function bulkClaim(
-        address[] memory senders,
-        address[] memory receivers,
-        uint256[] memory amounts,
-        uint256[] memory expiration_blocks,
+        address[] calldata senders,
+        address[] calldata receivers,
+        uint256[] calldata amounts,
+        uint256[] calldata expiration_blocks,
         address one_to_n_address,
-        bytes memory signatures
+        bytes calldata signatures
     )
-        public
+        external
         returns (uint)
     {
         uint256 transferable = 0;
@@ -144,6 +144,10 @@ contract OneToN is Utils {
         }
         return transferable;
     }
+
+    /*
+     *  Internal Functions
+     */
 
     /// @notice Get a single signature out of a byte array that contains concatenated signatures.
     /// @param signatures Multiple signatures concatenated into a single byte array
@@ -173,10 +177,6 @@ contract OneToN is Utils {
         }
         return signature;
     }
-
-    /*
-     *  Internal Functions
-     */
 
     function recoverAddressFromSignature(
         address sender,
