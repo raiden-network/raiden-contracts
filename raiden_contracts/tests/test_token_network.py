@@ -25,7 +25,7 @@ def test_constructor_call(
     """ Try to deploy TokenNetwork with various wrong arguments """
 
     (A, deprecation_executor) = get_accounts(2)
-    chain_id = web3.eth.chainId
+    chain_id = int(web3.version.network)
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
 

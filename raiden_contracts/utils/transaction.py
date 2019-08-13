@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Tuple
 
 from web3 import Web3
-from web3._utils.threads import Timeout
+from web3.utils.threads import Timeout
 
 
 def check_successful_tx(

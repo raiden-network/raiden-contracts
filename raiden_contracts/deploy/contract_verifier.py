@@ -33,7 +33,7 @@ class ContractVerifier:
         self.contract_manager = ContractManager(self.precompiled_path)
 
     def verify_deployed_contracts_in_filesystem(self) -> None:
-        chain_id = ChainID(self.web3.eth.chainId)
+        chain_id = ChainID(int(self.web3.version.network))
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -55,7 +55,7 @@ class ContractVerifier:
     def verify_deployed_service_contracts_in_filesystem(
         self, token_address: HexAddress, user_deposit_whole_balance_limit: int
     ) -> None:
-        chain_id = ChainID(self.web3.eth.chainId)
+        chain_id = ChainID(int(self.web3.version.network))
 
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
@@ -98,7 +98,7 @@ class ContractVerifier:
 
     def _store_deployment_info(self, services: bool, deployment_info: DeployedContracts) -> None:
         deployment_file_path = contracts_deployed_path(
-            chain_id=ChainID(self.web3.eth.chainId),
+            chain_id=ChainID(int(self.web3.version.network)),
             version=self.contracts_version,
             services=services,
         )
@@ -111,7 +111,7 @@ class ContractVerifier:
         )
 
     def verify_deployment_data(self, deployment_data: DeployedContracts) -> bool:
-        chain_id = self.web3.eth.chainId
+        chain_id = int(self.web3.version.network)
 
         if self.contract_manager.contracts_version != deployment_data["contracts_version"]:
             raise RuntimeError("Version string mismatch.")
@@ -219,7 +219,7 @@ class ContractVerifier:
         user_deposit_whole_balance_limit: int,
         deployed_contracts_info: DeployedContracts,
     ) -> bool:
-        chain_id = self.web3.eth.chainId
+        chain_id = int(self.web3.version.network)
         assert deployed_contracts_info is not None
 
         if self.contract_manager.contracts_version != deployed_contracts_info["contracts_version"]:

@@ -28,7 +28,7 @@ def main(rpc_url: str, private_key: Path, token_address: HexAddress, amount: int
     private_key_string: Optional[str] = get_private_key(private_key)
     assert private_key_string is not None
     owner = private_key_to_address(private_key_string)
-    web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key_string))
+    web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key_string))
     token_code = web3.eth.getCode(token_address, "latest")
     assert token_code != b""
     token_contract = ContractManager(contracts_precompiled_path()).get_contract(
