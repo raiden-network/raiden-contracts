@@ -131,6 +131,15 @@ Make sure you have `solc` installed: https://solidity.readthedocs.io/en/latest/i
     make compile_contracts
 
 
+Updating gas costs
+^^^^^^^^^^^^^^^^^^
+
+To update the gas costs run
+
+::
+    make update_gas_costs
+
+
 Testing
 ^^^^^^^
 

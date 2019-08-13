@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import pytest
 from web3 import Web3
@@ -37,7 +37,8 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "MonitoringService.claimReward",
         "MonitoringService.monitor",
         "OneToN.claim",
-        "OneToN.bulkClaim",
+        "OneToN.bulkClaim 1 ious",
+        "OneToN.bulkClaim 6 ious",
         "SecretRegistry.registerSecret",
         "ServiceRegistry.deposit",
         "ServiceRegistry.setURL",
@@ -325,17 +326,29 @@ def print_gas_one_to_n(
     txn_hash = one_to_n_contract.functions.claim(**make_iou(A, B)).call_and_transact({"from": A})
     print_gas(txn_hash, CONTRACT_ONE_TO_N + ".claim")
 
-    # bulk claim with one element
-    iou = make_iou(A, B)
-    txn_hash = one_to_n_contract.functions.bulkClaim(
-        [iou["sender"]],
-        [iou["receiver"]],
-        [iou["amount"]],
-        [iou["expiration_block"]],
-        one_to_n_contract.address,
-        iou["signature"],
-    ).call_and_transact({"from": A})
-    print_gas(txn_hash, CONTRACT_ONE_TO_N + ".bulkClaim")
+    # bulk claims gas prices
+    def concat_iou_data(ious: List[Dict], key: str) -> List:
+        return [iou[key] for iou in ious]
+
+    def concat_iou_signatures(ious: List[Dict]) -> bytes:
+        result = b""
+        for iou in ious:
+            result += iou["signature"]
+
+        return result
+
+    for num_ious in (1, 6):
+        ious = [make_iou(A, get_accounts(1)[0]) for i in range(num_ious)]
+
+        txn_hash = one_to_n_contract.functions.bulkClaim(
+            concat_iou_data(ious, "sender"),
+            concat_iou_data(ious, "receiver"),
+            concat_iou_data(ious, "amount"),
+            concat_iou_data(ious, "expiration_block"),
+            one_to_n_contract.address,
+            concat_iou_signatures(ious),
+        ).call_and_transact({"from": A})
+        print_gas(txn_hash, CONTRACT_ONE_TO_N + f".bulkClaim {num_ious} ious")
 
 
 @pytest.fixture
