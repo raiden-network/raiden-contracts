@@ -257,7 +257,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
         partner_address = private_key_to_address(partner_pkey.to_hex())
         transfer_data = transfer.to_bytes()
 
-        transfer_hash = Web3.keccak(hexstr=encode_hex(transfer_data[:-65]))
+        transfer_hash = Web3.sha3(hexstr=encode_hex(transfer_data[:-65]))
 
         if closer_address == partner_address:
             return
@@ -352,7 +352,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
         partner_address = private_key_to_address(partner_pkey.to_hex())
 
         transfer_data = transfer.to_bytes()
-        transfer_hash = Web3.keccak(hexstr=encode_hex(transfer_data[:-65]))
+        transfer_hash = Web3.sha3(hexstr=encode_hex(transfer_data[:-65]))
 
         # Sampling private keys could choose the pair
         # from the same item.

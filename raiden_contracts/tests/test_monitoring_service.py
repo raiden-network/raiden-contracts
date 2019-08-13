@@ -173,7 +173,7 @@ def test_claimReward_with_settle_call(
     ).call_and_transact({"from": ms_address})
 
     # Check REWARD_CLAIMED event
-    reward_identifier = Web3.keccak(
+    reward_identifier = Web3.sha3(
         encode_single("uint256", channel_identifier) + Web3.toBytes(hexstr=token_network.address)
     )
     ms_ev_handler = event_handler(monitoring_service_external)
@@ -275,7 +275,7 @@ def test_updateReward(
     monitor_data_internal: Dict,
 ) -> None:
     A, B = monitor_data_internal["participants"]
-    reward_identifier = Web3.keccak(
+    reward_identifier = Web3.sha3(
         encode_single("uint256", monitor_data_internal["channel_identifier"])
         + Web3.toBytes(hexstr=token_network.address)
     )
