@@ -214,18 +214,6 @@ def test_monitor(
             monitor_data["reward_proof_signature"],
         ).call({"from": ms_address})
 
-    # only registered service provicers may call `monitor`
-    with pytest.raises(TransactionFailed):
-        txn_hash = monitoring_service_external.functions.monitor(
-            A,
-            B,
-            *monitor_data["balance_proof_B"],
-            monitor_data["non_closing_signature"],
-            REWARD_AMOUNT + 1,
-            token_network.address,
-            monitor_data["reward_proof_signature"],
-        ).call({"from": B})
-
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
         assert web3.eth.blockNumber < monitor_data["first_allowed"]
@@ -267,6 +255,43 @@ def test_monitor(
             raiden_node_address=B,
         ),
     )
+
+
+def test_monitor_by_unregistered_service(
+    token_network: Contract,
+    monitoring_service_external: Contract,
+    monitor_data: Dict,
+    ms_address: HexAddress,
+    event_handler: Callable,
+    web3: Web3,
+) -> None:
+    A, B = monitor_data["participants"]
+
+    # wait until MS is allowed to monitor
+    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
+
+    # only registered service provicers may call `monitor`
+    with pytest.raises(TransactionFailed, match="service not registered"):
+        monitoring_service_external.functions.monitor(
+            A,
+            B,
+            *monitor_data["balance_proof_B"],
+            monitor_data["non_closing_signature"],
+            REWARD_AMOUNT,
+            token_network.address,
+            monitor_data["reward_proof_signature"],
+        ).call({"from": B})
+
+    # See a success to make sure the above failure is not spurious
+    monitoring_service_external.functions.monitor(
+        A,
+        B,
+        *monitor_data["balance_proof_B"],
+        monitor_data["non_closing_signature"],
+        REWARD_AMOUNT,
+        token_network.address,
+        monitor_data["reward_proof_signature"],
+    ).call_and_transact({"from": ms_address})
 
 
 def test_monitor_on_wrong_token_network_registry(
