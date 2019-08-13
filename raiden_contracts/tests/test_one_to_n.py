@@ -180,7 +180,6 @@ def test_claim_by_unregistered_service(
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
 
-    # happy case
     amount = 10
     expiration = web3.eth.blockNumber + 2
     chain_id = int(web3.version.network)
