@@ -9,7 +9,7 @@ from .signature import sign
 
 def hash_balance_data(transferred_amount: int, locked_amount: int, locksroot: bytes) -> bytes:
     # pylint: disable=E1120
-    return Web3.solidityKeccak(
+    return Web3.soliditySha3(
         abi_types=["uint256", "uint256", "bytes32"],
         values=[transferred_amount, locked_amount, locksroot],
     )
@@ -17,7 +17,7 @@ def hash_balance_data(transferred_amount: int, locked_amount: int, locksroot: by
 
 def eth_sign_hash_message(encoded_message: bytes) -> bytes:
     signature_prefix = "\x19Ethereum Signed Message:\n"
-    return Web3.keccak(
+    return Web3.sha3(
         Web3.toBytes(text=signature_prefix)
         + Web3.toBytes(text=str(len(encoded_message)))
         + encoded_message
