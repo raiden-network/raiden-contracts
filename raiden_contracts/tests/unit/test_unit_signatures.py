@@ -131,10 +131,13 @@ def test_recover_address_from_balance_proof_update(
         channel_identifier, A, other_token_network=other_token_network
     )
     balance_proof_update_signature = create_balance_proof_countersignature(
-        B,
-        channel_identifier,
-        MessageTypeId.BALANCE_PROOF_UPDATE,
-        *balance_proof,
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        balance_hash=balance_proof[0],
+        nonce=balance_proof[1],
+        additional_hash=balance_proof[2],
+        original_signature=balance_proof[3],
         other_token_network=other_token_network,
     )
 
