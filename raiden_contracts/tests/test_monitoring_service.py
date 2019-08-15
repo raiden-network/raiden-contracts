@@ -262,7 +262,6 @@ def test_monitor_by_unregistered_service(
     monitoring_service_external: Contract,
     monitor_data: Dict,
     ms_address: HexAddress,
-    event_handler: Callable,
     web3: Web3,
 ) -> None:
     A, B = monitor_data["participants"]
