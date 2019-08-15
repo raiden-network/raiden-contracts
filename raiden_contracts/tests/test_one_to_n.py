@@ -78,10 +78,12 @@ def test_bulk_claim_happy_path(
     deposit_to_udc: Callable,
     get_accounts: Callable,
     make_iou: Callable,
+    create_service_account: Callable,
 ) -> None:
-    (A, B, C) = get_accounts(3)
+    (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
     deposit_to_udc(B, 30)
+    C = create_service_account()
 
     def bulk_claim(ious: List[dict]) -> str:
         return one_to_n_contract.functions.bulkClaim(
