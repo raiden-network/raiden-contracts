@@ -231,6 +231,8 @@ contract MonitoringService is Utils {
         internal
         returns (bool)
     {
+        require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
+
         TokenNetwork.ChannelState channel_state;
         uint256 settle_block_number;
         (settle_block_number, channel_state) = token_network.getChannelInfo(
@@ -243,8 +245,6 @@ contract MonitoringService is Utils {
         uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
         require(settle_block_number >= assumed_settle_timeout, "too low settle block number");
         uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
-
-        require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
 
         return block.number >= firstBlockAllowedToMonitor(
             assumed_close_block,
