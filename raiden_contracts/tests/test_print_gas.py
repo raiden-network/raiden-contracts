@@ -316,27 +316,17 @@ def print_gas_monitoring_service(
 def print_gas_one_to_n(
     one_to_n_contract: Contract,
     deposit_to_udc: Callable,
-    get_accounts: Callable,
     print_gas: Callable,
     make_iou: Callable,
-    service_registry: Contract,
-    custom_token: Contract,
     web3: Web3,
     get_private_key: Callable,
     create_service_account: Callable,
+    create_account: Callable,
 ) -> None:
     """ Abusing pytest to print gas cost of OneToN functions """
-    (A, B) = get_accounts(2)
+    A = create_account()
+    B = create_service_account()
     deposit_to_udc(A, 30)
-
-    # B registers itself as a service provider
-    deposit = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(deposit).call_and_transact({"from": B})
-    custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
-        {"from": B}
-    )
-    service_registry.functions.deposit(deposit).call_and_transact({"from": B})
-    assert service_registry.functions.hasValidRegistration(B).call()
 
     # happy case
     chain_id = int(web3.version.network)
@@ -421,16 +411,17 @@ def print_gas_user_deposit(
 
 @pytest.fixture
 def print_gas_service_registry(
-    get_accounts: Callable, custom_token: Contract, service_registry: Contract, print_gas: Callable
+    custom_token: Contract,
+    service_registry: Contract,
+    print_gas: Callable,
+    create_account: Callable,
 ) -> None:
-    (A,) = get_accounts(1)
+    A = create_account()
     deposit = service_registry.functions.currentPrice().call()
     custom_token.functions.mint(deposit).call_and_transact({"from": A})
     custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
         {"from": A}
     )
-
-    # happy path
     deposit_tx = service_registry.functions.deposit(deposit).call_and_transact({"from": A})
     print_gas(deposit_tx, CONTRACT_SERVICE_REGISTRY + ".deposit")
     url = "http://example.com"
