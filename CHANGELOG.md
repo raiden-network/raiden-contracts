@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1150](https://github.com/raiden-network/raiden-contracts/pull/1150) Use different message ID for chnanelClose() and updateNonClosingBalanceProof()
 - [#1148](https://github.com/raiden-network/raiden-contracts/pull/1148) Add TokenNetworkRegistry's address to MonitoringService's constructor arguments
 - [#PR ID] Revert the upgrade web3.py and other dependencies
 - [#1151](https://github.com/raiden-network/raiden-contracts/pull/1151) OneToN doesn't work for service providers not registered in ServiceRegistry
