@@ -369,7 +369,8 @@ def print_gas_one_to_n(
         return result
 
     for num_ious in (1, 6):
-        ious = [make_iou(A, create_service_account()) for i in range(num_ious)]
+        receivers = [create_service_account() for i in range(num_ious)]
+        ious = [make_iou(A, r) for r in receivers]
 
         txn_hash = one_to_n_contract.functions.bulkClaim(
             concat_iou_data(ious, "sender"),
