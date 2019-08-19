@@ -295,12 +295,13 @@ def test_deprecation_switch(
     assert service_registry.functions.deprecation_switch().call()
     # A user tries to make a deposit
     (A,) = get_accounts(1)
-    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
+    minted_amount = service_registry.functions.currentPrice().call()
+    custom_token.functions.mint(minted_amount).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, minted_amount).call_and_transact(
         {"from": A}
     )
-    with pytest.raises(TransactionFailed):
-        service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    with pytest.raises(TransactionFailed, match="this contract was deprecated"):
+        service_registry.functions.deposit(minted_amount).call_and_transact({"from": A})
 
 
 def test_unauthorized_deprecation_switch(
