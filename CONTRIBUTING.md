@@ -70,13 +70,31 @@ following the usual prefix of Ethereum signatures ``\x19Ethereum Signed Message:
 
 This repository follows the same guidelines as the Raiden Client, regarding the Python code used in tests and scripts: https://github.com/raiden-network/raiden/blob/master/CONTRIBUTING.md#coding-style.
 
-## Making a Pull-Request
+## Making a Pull-Request Checklist
 
 * If you're fixing a bug or adding a feature, add an entry to CHANGELOG.md.
 * If you've changed a Solidity source, run `make compile_contracts` and add the resulting `raiden_contracts/data/contracts.json` in the PR.
 * If you're changing documentation only, add `[skip ci]` in the commit message so Travis does not waste time.
     * But, if you've changed comments in a Solidity source, do not add `[skip ci]` and let Travis check the hash of the source.
-* Add type annotations (especially on function arguments).
+* In Python, add type annotations (especially on function arguments).
+* In Python, use keyword arguments
+* Squash unnecessary commits
+* Comment commits
+* Follow naming conventions
+    * `solidityFunction`
+    * `_solidity_argument`
+    * `solidity_variable`
+    * `python_variable`
+    * `PYTHON_CONSTANT`
+* Follow the Signature Convention below
+* For each new contract
+    * The deployment script deploys the new contract.
+    * `etherscan_verify.py` runs on the new contract.
+* Bookkeep
+    * The gas cost of new functions are stored in `gas.json`.
+* Solidity specific conventions
+    * Document arguments of functions in natspec
+    * Care reentrancy problems
 
 ## Testing
 
