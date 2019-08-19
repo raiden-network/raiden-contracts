@@ -7,10 +7,11 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1163](https://github.com/raiden-network/raiden-contracts/pull/1163) MonitoringService.monitor() no longer works for service providers that are not registered in ServiceRegistry
+
 ## [0.30.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.30.0) - 2019-08-15
 
 - [#1150](https://github.com/raiden-network/raiden-contracts/pull/1150) Use different message ID for chnanelClose() and updateNonClosingBalanceProof()
-- [#1163](https://github.com/raiden-network/raiden-contracts/pull/1163) MonitoringService.monitor() no longer works for service providers that are not registered in ServiceRegistry
 - [#1148](https://github.com/raiden-network/raiden-contracts/pull/1148) Add TokenNetworkRegistry's address to MonitoringService's constructor arguments
 - [#1160](https://github.com/raiden-network/raiden-contracts/pull/1160) Revert the upgrade web3.py and other dependencies
 - [#1151](https://github.com/raiden-network/raiden-contracts/pull/1151) OneToN doesn't work for service providers not registered in ServiceRegistry
