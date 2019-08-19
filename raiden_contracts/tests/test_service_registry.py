@@ -6,6 +6,7 @@ from web3 import Web3
 from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import (
+    CONTRACT_DEPOSIT,
     CONTRACT_SERVICE_REGISTRY,
     EMPTY_ADDRESS,
     EVENT_REGISTERED_SERVICE,
@@ -301,6 +302,35 @@ def test_deprecation_switch(
     )
     with pytest.raises(TransactionFailed):
         service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+
+
+def test_deprecation_immediate_payout(
+    create_account: Callable, custom_token: Contract, service_registry: Contract, web3: Web3
+):
+    """ When the deprecation switch is on, deposits can be withdrawn immediately. """
+    # A user makes a deposit
+    A = create_account()
+    minted = service_registry.functions.currentPrice().call()
+    custom_token.functions.mint(minted).call_and_transact({"from": A})
+    custom_token.functions.approve(service_registry.address, minted).call_and_transact({"from": A})
+    deposit_tx = service_registry.functions.deposit(minted).call_and_transact({"from": A})
+    # The user obtains the deposit address
+    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_tx)
+    contract_manager = ContractManager(contracts_precompiled_path(version=None))
+    event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
+    event_data = get_event_data(event_abi, deposit_tx_receipt["logs"][-1])
+    depo_address = event_data["args"]["deposit_contract"]
+    # And obtains the Deposit contract instance
+    depo_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)
+    depo = web3.eth.contract(abi=depo_abi, address=depo_address)
+    # The controller turns on the deprecation switch
+    service_registry.functions.setDeprecationSwitch().call_and_transact(
+        {"from": CONTRACT_DEPLOYER_ADDRESS}
+    )
+    # The user successfully withdraws the deposit
+    depo.functions.withdraw(A).call_and_transact({"from": A})
+    # The user has all the balance it has minted
+    assert minted == custom_token.balanceOf(A).call()
 
 
 def test_unauthorized_deprecation_switch(
