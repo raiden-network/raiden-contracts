@@ -8,6 +8,7 @@ Documents changes that result in:
 ## Unreleased
 
 - [#1163](https://github.com/raiden-network/raiden-contracts/pull/1163) MonitoringService.monitor() no longer works for service providers that are not registered in ServiceRegistry
+- [#1177](https://github.com/raiden-network/raiden-contracts/pull/1177) When ServiceRegistry is deprecated, deposits can be immediately be withdrawn.
 
 ## [0.30.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.30.0) - 2019-08-15
 
