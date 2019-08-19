@@ -306,7 +306,7 @@ def test_deprecation_switch(
 
 def test_deprecation_immediate_payout(
     create_account: Callable, custom_token: Contract, service_registry: Contract, web3: Web3
-):
+) -> None:
     """ When the deprecation switch is on, deposits can be withdrawn immediately. """
     # A user makes a deposit
     A = create_account()
