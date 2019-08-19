@@ -30,7 +30,7 @@ def test_deposit_contract(
 ) -> None:
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
-    depo = get_deposit_contract([custom_token.address, 0, A])
+    depo = get_deposit_contract([custom_token.address, 0, A, A])
     custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
@@ -44,7 +44,7 @@ def test_deposit_contract_too_early_withdraw(
 ) -> None:
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
-    depo = get_deposit_contract([custom_token.address, UINT256_MAX, A])
+    depo = get_deposit_contract([custom_token.address, UINT256_MAX, A, A])
     custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
@@ -330,7 +330,7 @@ def test_deprecation_immediate_payout(
     # The user successfully withdraws the deposit
     depo.functions.withdraw(A).call_and_transact({"from": A})
     # The user has all the balance it has minted
-    assert minted == custom_token.balanceOf(A).call()
+    assert minted == custom_token.functions.balanceOf(A).call()
 
 
 def test_unauthorized_deprecation_switch(
