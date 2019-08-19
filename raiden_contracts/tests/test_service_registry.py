@@ -29,6 +29,7 @@ from raiden_contracts.tests.utils.constants import (
 def test_deposit_contract(
     get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
 ) -> None:
+    """Deposit contract with zero-deadline should release the deposit immediately"""
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
     depo = get_deposit_contract([custom_token.address, 0, A, A])
@@ -43,6 +44,7 @@ def test_deposit_contract(
 def test_deposit_contract_too_early_withdraw(
     get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
 ) -> None:
+    """Deposit contract with some deadline should not release the deposit immediately"""
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
     depo = get_deposit_contract([custom_token.address, UINT256_MAX, A, A])
@@ -58,6 +60,7 @@ def test_deposit_contract_too_early_withdraw(
 def test_deposit(
     service_registry: Contract, custom_token: Contract, get_accounts: Callable
 ) -> None:
+    """A service provider can make deposits to ServiceRegistry"""
     (A,) = get_accounts(1)
     custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
     custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
@@ -98,6 +101,7 @@ def test_deposit(
 def test_setURL(
     custom_token: Contract, service_registry: Contract, get_accounts: Callable, web3: Web3
 ) -> None:
+    """A ServiceRegistry allows registered service providers to set their URLs"""
     (A,) = get_accounts(1)
     url1 = "http://example.com"
     url2 = "http://raiden.example.com"
@@ -122,6 +126,7 @@ def test_setURL(
 
 
 def test_decayed_price(service_registry: Contract) -> None:
+    """Test the exponential decayedPrice() function"""
     assert service_registry.functions.decayedPrice(100000, 0).call() == 100000
 
     # The minimum price is 1000
@@ -134,6 +139,7 @@ def test_decayed_price(service_registry: Contract) -> None:
 def test_changing_duration(
     service_registry: Contract, get_accounts: Callable, custom_token: Contract
 ) -> None:
+    """The controller can change the registration period of ServiceRegistry"""
     new_duration = 90 * SECONDS_PER_DAY
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
@@ -180,6 +186,7 @@ def test_changing_duration_to_huge_value(
 
 
 def test_changing_bump_numerator(service_registry: Contract) -> None:
+    """The controller can change the price bump numerator"""
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
@@ -203,6 +210,7 @@ def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
 
 
 def test_changing_bump_denominator(service_registry: Contract) -> None:
+    """The controller can change the price dump denominator"""
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR + 1,
@@ -240,6 +248,7 @@ def test_zero_numerator_fail(service_registry: Contract) -> None:
 
 
 def test_changing_decay_constant(service_registry: Contract) -> None:
+    """The controller can change the price decay constant"""
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
@@ -287,6 +296,7 @@ def test_very_big_decay_cosntant(service_registry: Contract) -> None:
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
+    """The controller can change the min_price"""
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
