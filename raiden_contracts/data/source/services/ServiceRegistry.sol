@@ -3,46 +3,6 @@ pragma solidity 0.5.4;
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
-contract Deposit {
-    // This contract holds ERC20 tokens as deposit until a predetemined point of time.
-
-    // The ERC20 token contract that the deposit is about.
-    Token public token;
-
-    // The address that can withdraw the deposit after the release time.
-    address public withdrawer;
-
-    // The timestamp after which the withdrawer can withdraw the deposit.
-    uint256 public release_at;
-
-    /// @param _token The address of the ERC20 token contract where the deposit is accounted.
-    /// @param _release_at The timestap after which the withdrawer can withdraw the deposit.
-    /// @param _withdrawer The address that can withdraw the deposit after the release time.
-    constructor(address _token, uint256 _release_at, address _withdrawer) public {
-        token = Token(_token);
-        // Don't care even if it's in the past.
-        release_at = _release_at;
-        withdrawer = _withdrawer;
-    }
-
-    // In order to make a deposit, transfer the ERC20 token into this contract.
-    // If you transfer a wrong kind of ERC20 token or ETH into this contract,
-    // these tokens will be lost forever.
-
-    /// @notice Withdraws the tokens that have been deposited.
-    /// Only `withdrawer` can call this.
-    /// @param _to The address where the withdrawn tokens should go.
-    function withdraw(address payable _to) external {
-        uint256 balance = token.balanceOf(address(this));
-        require(msg.sender == withdrawer, "the caller is not the withdrawer");
-        require(now >= release_at, "deposit not released yet");
-        require(balance > 0, "nothing to withdraw");
-        require(token.transfer(_to, balance), "token didn't transfer");
-        selfdestruct(_to); // The contract can disappear.
-    }
-}
-
-
 contract ServiceRegistryConfigurableParameters {
     address public controller;
 
@@ -194,6 +154,46 @@ contract ServiceRegistryConfigurableParameters {
             price = min_price;
         }
         return price;
+    }
+}
+
+
+contract Deposit {
+    // This contract holds ERC20 tokens as deposit until a predetemined point of time.
+
+    // The ERC20 token contract that the deposit is about.
+    Token public token;
+
+    // The address that can withdraw the deposit after the release time.
+    address public withdrawer;
+
+    // The timestamp after which the withdrawer can withdraw the deposit.
+    uint256 public release_at;
+
+    /// @param _token The address of the ERC20 token contract where the deposit is accounted.
+    /// @param _release_at The timestap after which the withdrawer can withdraw the deposit.
+    /// @param _withdrawer The address that can withdraw the deposit after the release time.
+    constructor(address _token, uint256 _release_at, address _withdrawer) public {
+        token = Token(_token);
+        // Don't care even if it's in the past.
+        release_at = _release_at;
+        withdrawer = _withdrawer;
+    }
+
+    // In order to make a deposit, transfer the ERC20 token into this contract.
+    // If you transfer a wrong kind of ERC20 token or ETH into this contract,
+    // these tokens will be lost forever.
+
+    /// @notice Withdraws the tokens that have been deposited.
+    /// Only `withdrawer` can call this.
+    /// @param _to The address where the withdrawn tokens should go.
+    function withdraw(address payable _to) external {
+        uint256 balance = token.balanceOf(address(this));
+        require(msg.sender == withdrawer, "the caller is not the withdrawer");
+        require(now >= release_at, "deposit not released yet");
+        require(balance > 0, "nothing to withdraw");
+        require(token.transfer(_to, balance), "token didn't transfer");
+        selfdestruct(_to); // The contract can disappear.
     }
 }
 
