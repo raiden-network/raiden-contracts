@@ -164,6 +164,10 @@ contract Deposit {
     // The ERC20 token contract that the deposit is about.
     Token public token;
 
+    // The address of ServiceRegistry contract that this deposit is associated with.
+    // If the address has no code, how does the deprecation switch look?
+    ServiceRegistryConfigurableParameters service_registry;
+
     // The address that can withdraw the deposit after the release time.
     address public withdrawer;
 
@@ -173,11 +177,12 @@ contract Deposit {
     /// @param _token The address of the ERC20 token contract where the deposit is accounted.
     /// @param _release_at The timestap after which the withdrawer can withdraw the deposit.
     /// @param _withdrawer The address that can withdraw the deposit after the release time.
-    constructor(address _token, uint256 _release_at, address _withdrawer) public {
+    constructor(address _token, uint256 _release_at, address _withdrawer, address _service_registry) public {
         token = Token(_token);
         // Don't care even if it's in the past.
         release_at = _release_at;
         withdrawer = _withdrawer;
+        service_registry = ServiceRegistryConfigurableParameters(_service_registry);
     }
 
     // In order to make a deposit, transfer the ERC20 token into this contract.
@@ -190,7 +195,7 @@ contract Deposit {
     function withdraw(address payable _to) external {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer, "the caller is not the withdrawer");
-        require(now >= release_at, "deposit not released yet");
+        require(now >= release_at || service_registry.deprecation_switch(), "deposit not released yet");
         require(balance > 0, "nothing to withdraw");
         require(token.transfer(_to, balance), "token didn't transfer");
         selfdestruct(_to); // The contract can disappear.
@@ -275,7 +280,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price_at = now;
 
         // Move the deposit in a new Deposit contract.
-        Deposit depo = new Deposit(address(token), valid_till, msg.sender);
+        Deposit depo = new Deposit(address(token), valid_till, msg.sender, address(this));
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
         // Fire event
