@@ -124,7 +124,7 @@ Measure Gas Costs
 
 ::
 
-    pytest raiden_contracts/tests/test_print_gas.py
+    make update_gas_costs
 
 .. _create-new-dir
 
