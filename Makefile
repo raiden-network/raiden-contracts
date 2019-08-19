@@ -1,4 +1,4 @@
-.PHONY: all compile_contracts verify_contracts install lint isort black autopep8 format mypy clean release
+.PHONY: all compile_contracts verify_contracts install lint isort black autopep8 format mypy clean release update_gas_costs
 
 all: verify_contracts install
 
