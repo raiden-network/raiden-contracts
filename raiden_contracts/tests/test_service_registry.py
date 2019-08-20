@@ -2,6 +2,7 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, get_event_data
 
@@ -331,6 +332,8 @@ def test_deprecation_immediate_payout(
     deposit.functions.withdraw(A).call_and_transact({"from": A})
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
+    # The Deposit contract has destroyed itself
+    assert web3.eth.getCode(deposit.address) == HexBytes("0x")
 
 
 def test_unauthorized_deprecation_switch(
