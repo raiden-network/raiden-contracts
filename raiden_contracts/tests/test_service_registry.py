@@ -290,11 +290,11 @@ def test_deprecation_switch(
 ) -> None:
     """The controller turns on the deprecation switch and somebody tries to deposit"""
     # The controller turns on the deprecation switch
-    assert not service_registry.functions.deprecation_switch().call()
+    assert not service_registry.functions.deprecated().call()
     service_registry.functions.setDeprecationSwitch().call_and_transact(
         {"from": CONTRACT_DEPLOYER_ADDRESS}
     )
-    assert service_registry.functions.deprecation_switch().call()
+    assert service_registry.functions.deprecated().call()
     # A user tries to make a deposit
     (A,) = get_accounts(1)
     custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})

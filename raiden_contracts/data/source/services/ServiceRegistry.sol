@@ -30,10 +30,10 @@ contract ServiceRegistryConfigurableParameters {
     uint256 public registration_duration = 180 days;
 
     // If true, new deposits are no longer accepted.
-    bool public deprecation_switch = false;
+    bool public deprecated = false;
 
     function setDeprecationSwitch() public onlyController returns (bool _success) {
-        deprecation_switch = true;
+        deprecated = true;
         return true;
     }
 
@@ -195,7 +195,7 @@ contract Deposit {
     function withdraw(address payable _to) external {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer, "the caller is not the withdrawer");
-        require(now >= release_at || service_registry.deprecation_switch(), "deposit not released yet");
+        require(now >= release_at || service_registry.deprecated(), "deposit not released yet");
         require(balance > 0, "nothing to withdraw");
         require(token.transfer(_to, balance), "token didn't transfer");
         selfdestruct(_to); // The contract can disappear.
@@ -253,7 +253,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     // The call fails if the current price is higher (this is always possible
     // when other parties have just called `deposit()`).
     function deposit(uint _limit_amount) public returns (bool _success) {
-        require(! deprecation_switch, "this contract was deprecated");
+        require(! deprecated, "this contract was deprecated");
 
         uint256 amount = currentPrice();
         require(_limit_amount >= amount, "not enough limit");
