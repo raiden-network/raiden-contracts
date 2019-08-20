@@ -319,16 +319,16 @@ def test_deprecation_immediate_payout(
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
     event_data = get_event_data(event_abi, deposit_tx_receipt["logs"][-1])
-    depo_address = event_data["args"]["deposit_contract"]
+    deposit_address = event_data["args"]["deposit_contract"]
     # And obtains the Deposit contract instance
-    depo_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)
-    depo = web3.eth.contract(abi=depo_abi, address=depo_address)
+    deposit_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)
+    deposit = web3.eth.contract(abi=deposit_abi, address=deposit_address)
     # The controller turns on the deprecation switch
     service_registry.functions.setDeprecationSwitch().call_and_transact(
         {"from": CONTRACT_DEPLOYER_ADDRESS}
     )
     # The user successfully withdraws the deposit
-    depo.functions.withdraw(A).call_and_transact({"from": A})
+    deposit.functions.withdraw(A).call_and_transact({"from": A})
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
 
