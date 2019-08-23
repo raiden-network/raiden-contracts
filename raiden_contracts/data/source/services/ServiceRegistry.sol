@@ -7,7 +7,7 @@ contract ServiceRegistryConfigurableParameters {
     address public controller;
 
     modifier onlyController() {
-        require(msg.sender == controller);
+        require(msg.sender == controller, "caller is not the controller");
         _;
     }
 

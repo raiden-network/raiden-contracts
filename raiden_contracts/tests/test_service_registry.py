@@ -348,7 +348,7 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
 
 def test_parameter_change_on_no_controller(service_registry_without_controller: Contract) -> None:
     """A random address's changeParameters() call should fail"""
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="caller is not the controller"):
         service_registry_without_controller.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
