@@ -227,6 +227,18 @@ def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
         ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
 
 
+def test_very_big_decay_cosntant(service_registry: Contract) -> None:
+    """set a very big decay constant and see very slow price decay"""
+    service_registry.functions.changeParameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=2 ** 40 - 1,
+        _min_price=DEFAULT_MIN_PRICE,
+        _registration_duration=DEFAULT_REGISTRATION_DURATION,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.decayedPrice(100000, 11990300).call() == 99998
+
+
 def test_changing_min_price(service_registry: Contract) -> None:
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
