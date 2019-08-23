@@ -156,6 +156,29 @@ def test_changing_duration(
     assert second_expiration == first_expiration + new_duration
 
 
+def test_changing_duration_to_huge_value(
+    service_registry: Contract, get_accounts: Callable, custom_token: Contract
+) -> None:
+    """When the duration is huge and the deadline overflows, deposit fails"""
+    new_duration = 2 ** 256 - 1
+    service_registry.functions.changeParameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _min_price=DEFAULT_MIN_PRICE,
+        _registration_duration=new_duration,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.registration_duration().call() == new_duration
+    # make sure that the duration has changed.
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
+    custom_token.functions.approve(
+        service_registry.address, 2 * SERVICE_DEPOSIT
+    ).call_and_transact({"from": A})
+    with pytest.raises(TransactionFailed, match="overflow during extending the registration"):
+        service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+
+
 def test_changing_bump_numerator(service_registry: Contract) -> None:
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
