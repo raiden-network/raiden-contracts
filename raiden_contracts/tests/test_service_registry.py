@@ -295,6 +295,18 @@ def test_very_big_decay_cosntant(service_registry: Contract) -> None:
     assert service_registry.functions.decayedPrice(100000, 11990300).call() == 99998
 
 
+def test_zero_denominator_fail(service_registry: Contract) -> None:
+    """changeParameters() fails if the new bump denominator is zero"""
+    with pytest.raises(TransactionFailed, match="divide by zero"):
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=0,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+
+
 def test_changing_min_price(service_registry: Contract) -> None:
     """The controller can change the min_price"""
     service_registry.functions.changeParameters(
