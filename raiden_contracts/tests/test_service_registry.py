@@ -303,6 +303,10 @@ def test_deprecation_switch(
     )
     with pytest.raises(TransactionFailed):
         service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    # The controller can deprecate the contract again
+    service_registry.functions.setDeprecationSwitch().call_and_transact(
+        {"from": CONTRACT_DEPLOYER_ADDRESS}
+    )
 
 
 def test_deprecation_immediate_payout(
