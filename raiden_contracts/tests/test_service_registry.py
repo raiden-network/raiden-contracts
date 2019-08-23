@@ -307,6 +307,16 @@ def test_deprecation_switch(
     service_registry.functions.setDeprecationSwitch().call_and_transact(
         {"from": CONTRACT_DEPLOYER_ADDRESS}
     )
+    # The controller can still change the parameter
+    new_duration = 90 * SECONDS_PER_DAY
+    service_registry.functions.changeParameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _min_price=DEFAULT_MIN_PRICE,
+        _registration_duration=new_duration,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.registration_duration().call() == new_duration
 
 
 def test_deprecation_immediate_payout(
