@@ -204,6 +204,18 @@ def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> Non
         ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
 
 
+def test_zero_numerator_fail(service_registry: Contract) -> None:
+    """changeParameters() fails if the bump numerator is set to zero"""
+    with pytest.raises(TransactionFailed, match="price dump instead of bump"):
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=0,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+
+
 def test_changing_decay_constant(service_registry: Contract) -> None:
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
