@@ -215,6 +215,18 @@ def test_changing_decay_constant(service_registry: Contract) -> None:
     assert service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
 
 
+def test_very_small_decay_cosntant(service_registry: Contract) -> None:
+    """set a very small decay constant and see very fast price decay"""
+    service_registry.functions.changeParameters(
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=1,
+        _min_price=DEFAULT_MIN_PRICE,
+        _registration_duration=DEFAULT_REGISTRATION_DURATION,
+    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    assert service_registry.functions.decayedPrice(100000, 100).call() == DEFAULT_MIN_PRICE
+
+
 def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the new decay constant is too high"""
     with pytest.raises(TransactionFailed):
