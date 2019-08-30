@@ -5,6 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, get_event_data
+from web3.exceptions import MismatchedABI
 
 from raiden_contracts.constants import (
     CONTRACT_DEPOSIT,
@@ -237,6 +238,14 @@ def test_very_small_decay_cosntant(service_registry: Contract) -> None:
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
     assert service_registry.functions.decayedPrice(100000, 100).call() == DEFAULT_MIN_PRICE
+
+
+def test_internal_set_decay_constant(service_registry: Contract) -> None:
+    """Calling the internal setDecayConstant() must fail"""
+    with pytest.raises(MismatchedABI):
+        service_registry.functions.setDecayConstant(
+            DEFAULT_DECAY_CONSTANT + 100
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
 
 
 def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
