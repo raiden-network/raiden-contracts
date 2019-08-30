@@ -280,6 +280,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         set_price_at = now;
 
         // Move the deposit in a new Deposit contract.
+        assert(now < valid_till);
         Deposit depo = new Deposit(address(token), valid_till, msg.sender, address(this));
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
