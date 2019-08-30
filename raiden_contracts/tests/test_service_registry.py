@@ -349,6 +349,14 @@ def test_changing_min_price_above_current(service_registry: Contract) -> None:
     assert service_registry.functions.currentPrice().call() == current_price + 1
 
 
+def test_internal_min_price(service_registry: Contract) -> None:
+    """Calling the internal setMinPrice() must fail"""
+    with pytest.raises(MismatchedABI):
+        service_registry.functions.setMinPrice(DEFAULT_MIN_PRICE * 2).call_and_transact(
+            {"from": CONTRACT_DEPLOYER_ADDRESS}
+        )
+
+
 def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
     """A random address's changeParameters() call should fail"""
     (A,) = get_accounts(1)
