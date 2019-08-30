@@ -379,3 +379,23 @@ def test_unauthorized_deprecation_switch(
     (A,) = get_accounts(1)
     with pytest.raises(TransactionFailed):
         service_registry.functions.setDeprecationSwitch().call_and_transact({"from": A})
+
+
+def test_deploying_service_registry_with_denominator_zero(
+    deploy_tester_contract: Callable, custom_token: Contract
+) -> None:
+    """ServiceRegistry's constructor must fail when denominator is zero"""
+    with pytest.raises(TransactionFailed):
+        deploy_tester_contract(
+            CONTRACT_SERVICE_REGISTRY,
+            [
+                custom_token.address,
+                CONTRACT_DEPLOYER_ADDRESS,
+                int(3000e18),
+                DEFAULT_BUMP_NUMERATOR,
+                0,  # instead of DEFAULT_BUMP_DENOMINATOR
+                DEFAULT_DECAY_CONSTANT,
+                DEFAULT_MIN_PRICE,
+                DEFAULT_REGISTRATION_DURATION,
+            ],
+        )
