@@ -198,6 +198,14 @@ def test_changing_bump_numerator(service_registry: Contract) -> None:
     assert service_registry.functions.price_bump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
 
 
+def test_calling_internal_bump_paramter_change(service_registry: Contract) -> None:
+    """Calling an internal function setPriceBumpParameters() must fail"""
+    with pytest.raises(MismatchedABI):
+        service_registry.functions.setPriceBumpParameters(
+            DEFAULT_BUMP_NUMERATOR + 1, DEFAULT_BUMP_DENOMINATOR
+        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+
+
 def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the numerator is too big"""
     with pytest.raises(TransactionFailed):
