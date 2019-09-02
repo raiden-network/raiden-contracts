@@ -12,7 +12,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
-    FAKE_ADDRESS,
+    NOT_ADDRESS,
     UINT256_MAX,
     ChannelValues,
 )
@@ -48,7 +48,7 @@ def test_deposit_channel_call(
         token_network.functions.setTotalDeposit(channel_identifier, "", deposit_A, B)
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.setTotalDeposit(channel_identifier, FAKE_ADDRESS, deposit_A, B)
+        token_network.functions.setTotalDeposit(channel_identifier, NOT_ADDRESS, deposit_A, B)
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(channel_identifier, 0x0, deposit_A, B)
@@ -57,7 +57,7 @@ def test_deposit_channel_call(
         token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, "")
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, FAKE_ADDRESS)
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, NOT_ADDRESS)
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, 0x0)

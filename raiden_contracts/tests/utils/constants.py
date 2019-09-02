@@ -5,7 +5,8 @@ from eth_utils.units import units
 from raiden_contracts.utils.signature import private_key_to_address
 
 UINT256_MAX = 2 ** 256 - 1
-FAKE_ADDRESS = "0x03432"
+NOT_ADDRESS = "0xaaa"
+FAKE_ADDRESS = "0x00112233445566778899aabbccddeeff00112233"
 EMPTY_BALANCE_HASH = b"\x00" * 32
 EMPTY_ADDITIONAL_HASH = b"\x00" * 32
 EMPTY_SIGNATURE = b"\x00" * 65

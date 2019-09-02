@@ -20,9 +20,9 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
-    FAKE_ADDRESS,
     LOCKSROOT_OF_NO_LOCKS,
     NONEXISTENT_LOCKSROOT,
+    NOT_ADDRESS,
 )
 from raiden_contracts.utils.events import check_channel_opened
 
@@ -48,7 +48,7 @@ def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> N
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(FAKE_ADDRESS, B, settle_timeout)
+        token_network.functions.openChannel(NOT_ADDRESS, B, settle_timeout)
 
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
@@ -60,7 +60,7 @@ def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> N
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, FAKE_ADDRESS, settle_timeout)
+        token_network.functions.openChannel(A, NOT_ADDRESS, settle_timeout)
 
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed):

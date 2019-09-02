@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import FAKE_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.constants import NOT_ADDRESS, UINT256_MAX
 
 
 def test_constructor_call(
@@ -78,7 +78,7 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network(
             [
-                FAKE_ADDRESS,
+                NOT_ADDRESS,
                 secret_registry_contract.address,
                 chain_id,
                 settle_min,
@@ -135,7 +135,7 @@ def test_constructor_call(
         get_token_network(
             [
                 custom_token.address,
-                FAKE_ADDRESS,
+                NOT_ADDRESS,
                 chain_id,
                 settle_min,
                 settle_max,
