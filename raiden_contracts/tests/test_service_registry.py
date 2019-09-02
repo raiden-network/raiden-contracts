@@ -385,7 +385,7 @@ def test_deploying_service_registry_with_denominator_zero(
     deploy_tester_contract: Callable, custom_token: Contract
 ) -> None:
     """ServiceRegistry's constructor must fail when denominator is zero"""
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="divide by zero"):
         deploy_tester_contract(
             CONTRACT_SERVICE_REGISTRY,
             [
