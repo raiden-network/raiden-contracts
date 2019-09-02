@@ -94,6 +94,7 @@ This repository follows the same guidelines as the Raiden Client, regarding the 
 * Solidity specific conventions
     * Document arguments of functions in natspec
     * Care reentrancy problems
+* When you catch a require() failure in Solidity, look for a specific error message like `pytest.raises(TransactionFailed, match="error message"):`
 
 ## Testing
 
