@@ -12,7 +12,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, FAKE_ADDRESS
+from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, NOT_ADDRESS
 from raiden_contracts.utils.events import check_token_network_created
 
 
@@ -47,7 +47,7 @@ def test_constructor_call(
 
     # failure with an odd-length hex string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
-        get_token_network_registry([FAKE_ADDRESS, chain_id, settle_min, settle_max, 1])
+        get_token_network_registry([NOT_ADDRESS, chain_id, settle_min, settle_max, 1])
 
     # failure with the empty string instead of a chain ID
     with pytest.raises(TypeError):
@@ -194,7 +194,7 @@ def test_create_erc20_token_network_call(
         )
     with pytest.raises(ValidationError):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            FAKE_ADDRESS, channel_participant_deposit_limit, token_network_deposit_limit
+            NOT_ADDRESS, channel_participant_deposit_limit, token_network_deposit_limit
         )
 
     # failures with addresses where no Token contract can be found
