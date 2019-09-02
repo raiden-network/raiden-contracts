@@ -142,8 +142,8 @@ def test_changing_duration(
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=new_duration,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
-    assert service_registry.functions.registration_duration().call() == new_duration
     # make sure that the duration has changed.
+    assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
     custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
     custom_token.functions.approve(
@@ -168,8 +168,8 @@ def test_changing_duration_to_huge_value(
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=new_duration,
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
-    assert service_registry.functions.registration_duration().call() == new_duration
     # make sure that the duration has changed.
+    assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
     custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
     custom_token.functions.approve(
