@@ -385,7 +385,9 @@ def test_deploying_service_registry_with_denominator_zero(
     deploy_tester_contract: Callable, custom_token: Contract
 ) -> None:
     """ServiceRegistry's constructor must fail when denominator is zero"""
-    with pytest.raises(TransactionFailed, match="divide by zero"):
+    # Web3 does not expose the error message "divide by zero"
+    # when require() fails in the constructor.
+    with pytest.raises(TransactionFailed, match="deployment failed"):
         deploy_tester_contract(
             CONTRACT_SERVICE_REGISTRY,
             [
