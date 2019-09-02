@@ -239,7 +239,7 @@ def test_changing_min_price(service_registry: Contract) -> None:
 
 
 def test_changing_min_price_above_current(service_registry: Contract) -> None:
-    """Changin min_price above the current price."""
+    """Changing min_price above the current price."""
     current_price = service_registry.functions.currentPrice().call()
     service_registry.functions.changeParameters(
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
