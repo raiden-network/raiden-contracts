@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1213](https://github.com/raiden-network/raiden-contracts/pull/1213) etherscan_verify.py now fails when a source imports a nonexistent file.
+
 ## [0.31.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.31.0) - 2019-08-20
 
 - [#1163](https://github.com/raiden-network/raiden-contracts/pull/1163) MonitoringService.monitor() no longer works for service providers that are not registered in ServiceRegistry
