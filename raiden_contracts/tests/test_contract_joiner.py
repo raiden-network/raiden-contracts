@@ -5,7 +5,7 @@ import pytest
 from raiden_contracts.utils.join_contracts import ContractJoiner
 
 
-def test_contract_joiner_with_non_existent_file() -> None:
+def test_contract_joiner_with_non_existent_import() -> None:
     """ Using ContractJoiner on a source importing a nonexistent file """
     joiner = ContractJoiner()
     source_with_missing_import = """
@@ -16,3 +16,13 @@ def test_contract_joiner_with_non_existent_file() -> None:
         source_file.flush()
         with pytest.raises(FileNotFoundError):
             joiner.join(open(source_file.name))
+
+
+def test_contract_joiner_with_empty_file() -> None:
+    """ Using ContractJoiner on an empty source """
+    joiner = ContractJoiner()
+    empty_source = ""
+    with NamedTemporaryFile() as source_file:
+        source_file.write(bytearray(empty_source, "ascii"))
+        source_file.flush()
+        assert [] == joiner.join(open(source_file.name))
