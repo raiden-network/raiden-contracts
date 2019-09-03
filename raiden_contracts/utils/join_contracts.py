@@ -17,7 +17,7 @@ resolving imports.
 example usage:
 
 $ cd raiden-contracts/raiden_contracts
-$ python ./utils/join-contracts.py ./contracts/TokenNetwork.sol joined.sol
+$ python ./utils/join_contracts.py ./contracts/TokenNetwork.sol joined.sol
 
 """
 

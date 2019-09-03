@@ -65,7 +65,7 @@ api_of_chain_id = {
 
 
 def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
-    """ Use join-contracts.py to concatenate all imported Solidity files.
+    """ Use join_contracts.py to concatenate all imported Solidity files.
 
     Args:
         source_module: a module name to look up contracts_source_path()
@@ -74,7 +74,7 @@ def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
     joined_file = Path(__file__).parent.joinpath("joined.sol")
     remapping = {module: str(path) for module, path in contracts_source_path().items()}
     command = [
-        "./utils/join-contracts.py",
+        "./utils/join_contracts.py",
         "--import-map",
         json.dumps(remapping),
         str(
