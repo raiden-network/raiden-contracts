@@ -63,7 +63,7 @@ class ContractJoiner:
                     next_file = next_file.replace(prefix, path)
             if next_file:
                 if not os.path.exists(next_file):
-                    raise IOError(f"File does not exist: {next_file}")
+                    raise FileNotFoundError(f"File does not exist: {next_file}")
                 with open(next_file) as next_contract:
                     out.extend(self.join(next_contract))
 
