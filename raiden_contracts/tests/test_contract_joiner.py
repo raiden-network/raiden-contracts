@@ -21,8 +21,5 @@ def test_contract_joiner_with_non_existent_import() -> None:
 def test_contract_joiner_with_empty_file() -> None:
     """ Using ContractJoiner on an empty source """
     joiner = ContractJoiner()
-    empty_source = ""
     with NamedTemporaryFile() as source_file:
-        source_file.write(bytearray(empty_source, "ascii"))
-        source_file.flush()
         assert [] == joiner.join(open(source_file.name))
