@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import json
-import os
 import re
 import sys
 from typing import Dict, List, Set, TextIO
@@ -61,8 +60,6 @@ class ContractJoiner:
             for prefix, path in self.import_map.items():
                 if next_file.startswith(prefix):
                     next_file = next_file.replace(prefix, path)
-            if not os.path.exists(next_file):
-                raise FileNotFoundError(f"File does not exist: {next_file}")
             with open(next_file) as next_contract:
                 out.extend(self.join(next_contract))
 
