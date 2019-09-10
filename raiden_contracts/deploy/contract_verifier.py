@@ -182,7 +182,7 @@ class ContractVerifier:
         if receipt["blockNumber"] != contracts[contract_name]["block_number"]:
             raise RuntimeError(
                 f'We have block_number {contracts[contract_name]["block_number"]} in the '
-                f'deployment info, but {receipt["blockNumber"]} in the transaction receipt'
+                f'deployment info, but {receipt["blockNumber"]} in the transaction receipt '
                 "from web3."
             )
         if receipt["gasUsed"] != contracts[contract_name]["gas_cost"]:
