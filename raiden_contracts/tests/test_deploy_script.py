@@ -24,6 +24,8 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    DEPLOY_SETTLE_TIMEOUT_MAX,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
     EMPTY_ADDRESS,
 )
 from raiden_contracts.contract_manager import (
@@ -91,7 +93,10 @@ def deployer_0_4_0(web3: Web3) -> ContractDeployer:
 @pytest.fixture(scope="session")
 def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
+        max_num_of_token_networks=1,
+        reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )
 
 
@@ -99,7 +104,10 @@ def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
 @pytest.fixture(scope="session")
 def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
+        max_num_of_token_networks=1,
+        reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )
 
 
@@ -107,7 +115,10 @@ def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
 @pytest.fixture(scope="session")
 def deployed_raiden_info_0_4_0(deployer_0_4_0: ContractDeployer) -> DeployedContracts:
     return deployer_0_4_0.deploy_raiden_contracts(
-        max_num_of_token_networks=None, reuse_secret_registry_from_deploy_file=None
+        max_num_of_token_networks=None,
+        reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )
 
 
@@ -279,7 +290,12 @@ def test_deploy_script_raiden(
         web3=web3, private_key=get_random_privkey(), gas_limit=GAS_LIMIT, gas_price=1, wait=10
     )
     with pytest.raises(ValidationError):
-        deployer.deploy_raiden_contracts(1, reuse_secret_registry_from_deploy_file=None)
+        deployer.deploy_raiden_contracts(
+            1,
+            reuse_secret_registry_from_deploy_file=None,
+            settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+            settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
+        )
 
 
 def test_deploy_raiden_reuse_secret_registry(
@@ -290,7 +306,10 @@ def test_deploy_raiden_reuse_secret_registry(
         previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
         previous_deployment_file.flush()
         new_deployment = deployer.deploy_raiden_contracts(
-            1, reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name)
+            1,
+            reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name),
+            settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+            settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
         )
         assert (
             new_deployment["contracts"][CONTRACT_SECRET_REGISTRY]
@@ -819,7 +838,10 @@ def test_red_eyes_deployer(web3: Web3) -> None:
         contracts_version="0.4.0",
     )
     deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=None, reuse_secret_registry_from_deploy_file=None
+        max_num_of_token_networks=None,
+        reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )
 
 
