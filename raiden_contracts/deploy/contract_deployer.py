@@ -18,8 +18,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
-    DEPLOY_SETTLE_TIMEOUT_MAX,
-    DEPLOY_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import CompiledContract, DeployedContract, DeployedContracts
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
@@ -135,6 +133,8 @@ class ContractDeployer(ContractVerifier):
         self,
         max_num_of_token_networks: Optional[int],
         reuse_secret_registry_from_deploy_file: Optional[Path],
+        settle_timeout_min: int,
+        settle_timeout_max: int,
     ) -> DeployedContracts:
         """ Deploy all required raiden contracts and return a dict of contract_name:address
 
@@ -176,8 +176,8 @@ class ContractDeployer(ContractVerifier):
         token_network_registry_args = [
             secret_registry.address,
             deployed_contracts["chain_id"],
-            DEPLOY_SETTLE_TIMEOUT_MIN,
-            DEPLOY_SETTLE_TIMEOUT_MAX,
+            settle_timeout_min,
+            settle_timeout_max,
         ]
         if max_num_of_token_networks:
             token_network_registry_args.append(max_num_of_token_networks)
