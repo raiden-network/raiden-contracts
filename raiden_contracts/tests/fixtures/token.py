@@ -29,6 +29,12 @@ def custom_token(custom_token_factory: Callable) -> Contract:
     return custom_token_factory()
 
 
+@pytest.fixture(scope="session")
+def zero_supply_custom_token(deploy_tester_contract: Callable) -> Contract:
+    """Deploy a CustomToken contract with zero initial supply"""
+    return deploy_tester_contract(CONTRACT_CUSTOM_TOKEN, (0, 18, "ZeroToken", "ZRO"))
+
+
 @pytest.fixture()
 def human_standard_token(deploy_token_contract: Callable, token_args: List) -> Contract:
     """Deploy HumanStandardToken contract"""
