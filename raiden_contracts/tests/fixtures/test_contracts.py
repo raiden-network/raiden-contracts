@@ -11,7 +11,7 @@ from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIME
 def token_network_test_storage(
     deploy_tester_contract: Callable,
     web3: Web3,
-    custom_token: Web3,
+    custom_token: Contract,
     secret_registry_contract: Contract,
 ) -> Contract:
     return deploy_tester_contract(
