@@ -179,8 +179,13 @@ contract MonitoringService is Utils {
     )
         public
     {
-        // Call updateReward first to avoid reentrancy problems when the
-        // token_network_address belongs to a malicious contract.
+        // Here we're trying to do bookkeeping first, but updateReward() first calls
+        // token_network_address.  So reentrancy is possible.
+        // In that case, the outer frame fails and reverts the state
+        // because token_network_address is not registered in the token_network_registry.
+        //
+        // Maybe it's simpler and safer to take the token address as an argument instead,
+        // and ask the TokenNetworkRegistry for the token_network_address.
         updateReward(
             token_network_address,
             closing_participant,

@@ -1162,7 +1162,9 @@ contract TokenNetwork is Utils {
         Participant storage participant_state = channel.participants[participant];
 
         // Multiple calls to updateNonClosingBalanceProof can be made and we
-        // need to store the last known balance proof data
+        // need to store the last known balance proof data.
+        // This line prevents Monitoring Services from getting rewards
+        // again and again using the same reward proof.
         require(nonce > participant_state.nonce);
 
         participant_state.nonce = nonce;
