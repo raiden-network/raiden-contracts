@@ -111,6 +111,8 @@ def pack_withdraw_message(
 def pack_reward_proof(
     monitoring_service_contract_address: HexAddress,
     chain_id: int,
+    token_network_address: HexAddress,
+    non_closing_participant: HexAddress,
     non_closing_signature: bytes,
     reward_amount: int,
 ) -> bytes:
@@ -118,6 +120,8 @@ def pack_reward_proof(
         Web3.toBytes(hexstr=monitoring_service_contract_address)
         + encode_single("uint256", chain_id)
         + encode_single("uint256", MessageTypeId.MSReward)
+        + Web3.toBytes(hexstr=token_network_address)
+        + Web3.toBytes(hexstr=non_closing_participant)
         + non_closing_signature
         + encode_single("uint256", reward_amount)
     )
@@ -231,6 +235,8 @@ def sign_reward_proof(
     privatekey: str,
     monitoring_service_contract_address: HexAddress,
     chain_id: int,
+    token_network_address: HexAddress,
+    non_closing_participant: HexAddress,
     non_closing_signature: bytes,
     reward_amount: int,
     v: int = 27,
@@ -238,6 +244,8 @@ def sign_reward_proof(
     packed_data = pack_reward_proof(
         monitoring_service_contract_address=monitoring_service_contract_address,
         chain_id=chain_id,
+        token_network_address=token_network_address,
+        non_closing_participant=non_closing_participant,
         non_closing_signature=non_closing_signature,
         reward_amount=reward_amount,
     )

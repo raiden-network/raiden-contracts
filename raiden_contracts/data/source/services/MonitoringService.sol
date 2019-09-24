@@ -126,6 +126,8 @@ contract MonitoringService is Utils {
         address raiden_node_address = recoverAddressFromRewardProof(
             address(this),
             token_network.chain_id(),
+            token_network_address,
+            non_closing_participant,
             non_closing_signature,
             reward_amount,
             reward_proof_signature
@@ -350,6 +352,8 @@ contract MonitoringService is Utils {
     function recoverAddressFromRewardProof(
         address monitoring_service_contract_address,
         uint256 chain_id,
+        address token_network_address,
+        address non_closing_participant,
         bytes memory non_closing_signature,
         uint256 reward_amount,
         bytes memory signature
@@ -358,16 +362,29 @@ contract MonitoringService is Utils {
         pure
         returns (address signature_address)
     {
+        // This message shows the intention of the signer to pay
+        // a reward to a Monitoring Service, provided that the
+        // call of updateNonClosingBalanceProof() succeeds.
+        // The triple (non_closing_participant, non_closing_signature, token_network_address)
+        // uniquely identifies the call that's supposed to be made.
+        // (Just checking non_closing_signature is not enough because
+        // when an attacker tampers with the payload, the signature
+        // verification doesn't fail but emits a different address.)
+        // (Without a token_network, there will be some ambiguity
+        // what the payload means.)
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n181",  // 20 + 32 + 32 + 65 + 32
+            "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
             monitoring_service_contract_address,
             chain_id,
             uint256(MessageTypeId.MSReward),
+            token_network_address,
+            non_closing_participant,
             non_closing_signature,
             reward_amount
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
+        require(signature_address == non_closing_participant);
     }
 }
 

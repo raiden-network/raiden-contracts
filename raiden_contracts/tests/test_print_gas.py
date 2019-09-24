@@ -283,6 +283,8 @@ def print_gas_monitoring_service(
         privatekey=get_private_key(B),
         monitoring_service_contract_address=monitoring_service_external.address,
         chain_id=token_network.functions.chain_id().call(),
+        token_network_address=token_network.address,
+        non_closing_participant=B,
         reward_amount=reward_amount,
         non_closing_signature=non_closing_signature_B,
     )
