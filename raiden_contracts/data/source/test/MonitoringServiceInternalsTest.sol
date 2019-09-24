@@ -55,6 +55,8 @@ contract MonitoringServiceInternalsTest is MonitoringService {
     function recoverAddressFromRewardProofPublic(
         address monitoring_service_contract_address,
         uint256 chain_id,
+        address token_network_address,
+        address non_closing_participant,
         bytes memory non_closing_signature,
         uint256 reward_amount,
         bytes memory signature
@@ -66,6 +68,8 @@ contract MonitoringServiceInternalsTest is MonitoringService {
         return MonitoringService.recoverAddressFromRewardProof(
             monitoring_service_contract_address,
             chain_id,
+            token_network_address,
+            non_closing_participant,
             non_closing_signature,
             reward_amount,
             signature
