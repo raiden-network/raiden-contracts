@@ -384,7 +384,7 @@ contract MonitoringService is Utils {
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
-        require(signature_address == non_closing_participant);
+        require(signature_address == non_closing_participant, "Reward proof with wrong non_closing_participant");
     }
 }
 
