@@ -7,7 +7,13 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.32.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.31.0) - 2019-09-25
+
+- The minimum settlement window is now shorter (20 blocks) on test networks.
 - [#1213](https://github.com/raiden-network/raiden-contracts/pull/1213) etherscan_verify.py now fails when a source imports a nonexistent file.
+- Add many tests
+- [#1205](https://github.com/raiden-network/raiden-contracts/pull/1205) When ServiceRegistry creates a new Deposit, ServiceRegistry asserts that the deadline is in the future.
+- [#1238](https://github.com/raiden-network/raiden-contracts/pull/1238) Reward Proof now contains ``non_closing_address`` that goes together with ``non_closing_signature``.
 
 ## [0.31.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.31.0) - 2019-08-20
 
