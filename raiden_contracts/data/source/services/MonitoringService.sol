@@ -324,6 +324,12 @@ contract MonitoringService is Utils {
             closing_participant,
             non_closing_participant
         );
+        // We are trying to figure out when the settlement period ends.
+        // The meaning of settle_block_number is totally different depending on channel_state.
+        // When channel_state is NonExistent, settle_block_number is zero so it's not useful.
+        // When channel_state is Open, settle_block_number is the length of the settlement period.
+        // In these cases, we don't want to proceed anyway because the settlement period has not even started.
+        // We can only proceed with these other channel states.
         require(channel_state == TokenNetwork.ChannelState.Closed ||
             channel_state == TokenNetwork.ChannelState.Settled ||
             channel_state == TokenNetwork.ChannelState.Removed, "too early channel state");
