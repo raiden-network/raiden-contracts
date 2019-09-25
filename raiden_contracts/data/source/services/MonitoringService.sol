@@ -124,7 +124,6 @@ contract MonitoringService is Utils {
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
-            address(this),
             token_network.chain_id(),
             token_network_address,
             non_closing_participant,
@@ -355,7 +354,6 @@ contract MonitoringService is Utils {
     }
 
     function recoverAddressFromRewardProof(
-        address monitoring_service_contract_address,
         uint256 chain_id,
         address token_network_address,
         address non_closing_participant,
@@ -364,7 +362,7 @@ contract MonitoringService is Utils {
         bytes memory signature
     )
         internal
-        pure
+        view
         returns (address signature_address)
     {
         // This message shows the intention of the signer to pay
@@ -379,7 +377,7 @@ contract MonitoringService is Utils {
         // what the payload means.)
         bytes32 message_hash = keccak256(abi.encodePacked(
             "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
-            monitoring_service_contract_address,
+            address(this),
             chain_id,
             uint256(MessageTypeId.MSReward),
             token_network_address,

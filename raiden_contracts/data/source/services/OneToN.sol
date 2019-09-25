@@ -75,7 +75,6 @@ contract OneToN is Utils {
         returns (uint)
     {
         require(service_registry_contract.hasValidRegistration(receiver), "receiver not registered");
-        require(one_to_n_address == address(this), "IOU for another OneToN address");
         require(block.number <= expiration_block, "IOU expired");
 
         // validate signature
@@ -84,7 +83,6 @@ contract OneToN is Utils {
             receiver,
             amount,
             expiration_block,
-            one_to_n_address,
             chain_id,
             signature
         );
@@ -189,17 +187,16 @@ contract OneToN is Utils {
         address receiver,
         uint256 amount,
         uint256 expiration_block,
-        address one_to_n_address,
         uint256 chain_id,
         bytes memory signature
     )
         internal
-        pure
+        view
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
             "\x19Ethereum Signed Message:\n188",
-            one_to_n_address,
+            address(this),
             chain_id,
             uint256(MessageTypeId.IOU),
             sender,
