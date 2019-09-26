@@ -7,7 +7,7 @@ Documents changes that result in:
 
 ## Unreleased
 
-## [0.32.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.31.0) - 2019-09-25
+## [0.32.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.32.0) - 2019-09-25
 
 - The minimum settlement window is now shorter (20 blocks) on test networks.
 - [#1213](https://github.com/raiden-network/raiden-contracts/pull/1213) etherscan_verify.py now fails when a source imports a nonexistent file.
