@@ -388,6 +388,26 @@ def test_parameter_change_on_no_controller(service_registry_without_controller: 
     assert service_registry_without_controller.functions.min_price().call() == DEFAULT_MIN_PRICE
 
 
+def service_registry_with_zero_supply_token(
+    deploy_tester_contract: Callable, zero_supply_custom_token: Contract
+) -> None:
+    """Deployment of ServiceRegistry should fail with a token with zero supply"""
+    with pytest.raises(TransactionFailed, match="total supply zero"):
+        deploy_tester_contract(
+            CONTRACT_SERVICE_REGISTRY,
+            [
+                zero_supply_custom_token.address,
+                EMPTY_ADDRESS,
+                2 ** 90,
+                2 ** 40 - 1,
+                1,
+                2 ** 40 - 1,
+                DEFAULT_MIN_PRICE,
+                DEFAULT_REGISTRATION_DURATION,
+            ],
+        )
+
+
 def service_registry_with_high_numbers(
     deploy_tester_contract: Callable, custom_token: Contract
 ) -> Contract:
