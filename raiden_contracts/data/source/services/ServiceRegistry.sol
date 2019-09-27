@@ -165,7 +165,7 @@ contract Deposit {
     Token public token;
 
     // The address of ServiceRegistry contract that this deposit is associated with.
-    // If the address has no code, how does the deprecation switch look?
+    // If the address has no code, service_registry.deprecated() call will fail.
     ServiceRegistryConfigurableParameters service_registry;
 
     // The address that can withdraw the deposit after the release time.
