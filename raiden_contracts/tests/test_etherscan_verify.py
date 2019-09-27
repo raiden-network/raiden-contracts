@@ -150,7 +150,7 @@ def test_etherscan_verify_already_verified() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SedcretRegistry"],
+            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
         )
         assert result.exit_code == 0
 
@@ -269,4 +269,4 @@ def test_etherscan_verify_fail_unknown_contract() -> None:
         )
         assert result.exit_code != 0
         assert result.exception
-        assert "unknown contract name" in result.exception.message
+        assert "unknown contract name" in result.output

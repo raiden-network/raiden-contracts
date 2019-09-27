@@ -7,6 +7,7 @@ from typing import Dict, Optional
 
 import click
 import requests
+from click.exceptions import BadParameter
 from eth_abi import encode_abi
 
 from raiden_contracts.constants import CONTRACT_LIST, DeploymentModule
@@ -26,6 +27,14 @@ from raiden_contracts.utils.type_aliases import ChainID
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 
 
+def validate_contract_name(_ctx, _param, value):
+    if value is None:
+        return None
+    if value in {c.name for c in CONTRACT_LIST}:
+        return value
+    raise BadParameter(f"unknown contract name {value}")
+
+
 @click.command()
 @click.option("--chain-id", default=3, help="Chain id. E.g. --chain-id 3")
 @click.option("--apikey", required=True, help="A valid Etherscan APIKEY is required.")
@@ -37,6 +46,7 @@ CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
     default=None,
     help=f"Contract name. Options: {CONTRACT_NAMES_SEPARATED}. "
     " Default is to submit the sources of all contracts.",
+    callback=validate_contract_name,
 )
 def etherscan_verify(
     chain_id: ChainID, apikey: str, guid: Optional[str], contract_name: Optional[str]
