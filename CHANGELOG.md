@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1260](https://github.com/raiden-network/raiden-contracts/pull/1260) Simplify the usage of ContractSourceManager. Users don't need to call compute_checksums() to initialize the object.
+
 ## [0.32.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.32.0) - 2019-09-25
 
 - The minimum settlement window is now shorter (20 blocks) on test networks.
