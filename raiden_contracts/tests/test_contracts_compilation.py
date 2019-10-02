@@ -50,7 +50,6 @@ def test_verification_without_checksum() -> None:
 def test_verification_overall_checksum() -> None:
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
     manager = ContractSourceManager(contracts_source_path())
-    manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     assert manager.overall_checksum
@@ -84,7 +83,6 @@ def test_verification_overall_checksum() -> None:
 def test_verification_contracts_checksums() -> None:
     """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
     manager = ContractSourceManager(contracts_source_path())
-    manager.checksum_contracts()
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     assert manager.contracts_checksums

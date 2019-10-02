@@ -3,7 +3,7 @@ import hashlib
 import json
 from os import chdir
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 from solc import compile_files
 
@@ -30,6 +30,7 @@ class ContractSourceManager:
         if not isinstance(path, dict):
             raise TypeError("Wrong type of argument given for ContractSourceManager()")
         self.contracts_source_dirs = path
+        (self.contracts_checksums, self.overall_checksum) = self._checksum_contracts()
 
     def _compile_all_contracts(self) -> Dict:
         """
@@ -79,10 +80,7 @@ class ContractSourceManager:
 
     def compile_contracts(self, target_path: Path) -> ContractManager:
         """ Store compiled contracts JSON at `target_path`. """
-        self.checksum_contracts()
-
-        if self.overall_checksum is None:
-            raise ContractSourceManagerCompilationError("Checksumming failed.")
+        assert self.overall_checksum is not None
 
         contracts_compiled = self._compile_all_contracts()
 
@@ -104,9 +102,7 @@ class ContractSourceManager:
         return ContractManager(target_path)
 
     def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
-        """ Compare source code checksums with those from a precompiled file
-
-        Throws AttributeError if called before checksum_contracts(). """
+        """ Compare source code checksums with those from a precompiled file """
 
         # We get the precompiled file data
         contracts_precompiled = ContractManager(precompiled_path)
@@ -131,18 +127,21 @@ class ContractSourceManager:
                 f"{self.overall_checksum} != {contracts_precompiled.overall_checksum}"
             )
 
-    def checksum_contracts(self) -> None:
-        """Remember the checksum of each source, and the overall checksum."""
+    def _checksum_contracts(self) -> Tuple[Dict[str, str], str]:
+        """ Compute the checksum of each source, and the overall checksum
+
+        Returns (contracts_checksums, overall_checksum)
+        """
         checksums: Dict[str, str] = {}
         for contracts_dir in self.contracts_source_dirs.values():
             file: Path
             for file in contracts_dir.glob("*.sol"):
                 checksums[file.name] = hashlib.sha256(file.read_bytes()).hexdigest()
 
-        self.overall_checksum = hashlib.sha256(
+        overall_checksum = hashlib.sha256(
             ":".join(checksums[key] for key in sorted(checksums)).encode()
         ).hexdigest()
-        self.contracts_checksums = checksums
+        return (checksums, overall_checksum)
 
 
 def contracts_source_path() -> Dict[str, Path]:
