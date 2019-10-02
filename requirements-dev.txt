@@ -21,3 +21,4 @@ isort
 pipdeptree
 eth-typing<2.0.0
 eth-abi<=1.2.2
+six>=1.12
