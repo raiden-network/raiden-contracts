@@ -57,8 +57,6 @@ class ContractManager:
         """Params:
             path: path to a precompiled contract JSON file,
         """
-        self.overall_checksum = None
-        self.contracts_checksums: Optional[Dict[str, str]] = None
         try:
             with path.open() as precompiled_file:
                 precompiled_content = json.load(precompiled_file)
