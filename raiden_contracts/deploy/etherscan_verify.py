@@ -3,10 +3,11 @@ import pprint
 import subprocess
 from pathlib import Path
 from time import sleep
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import click
 import requests
+from click import Context
 from click.exceptions import BadParameter
 from eth_abi import encode_abi
 
@@ -27,7 +28,7 @@ from raiden_contracts.utils.type_aliases import ChainID
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 
 
-def validate_contract_name(_ctx, _param, value):
+def validate_contract_name(_ctx: Context, _param: Any, value: Optional[str]) -> Optional[str]:
     if value is None:
         return None
     if value in {c.name for c in CONTRACT_LIST}:

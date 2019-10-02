@@ -260,13 +260,12 @@ def test_etherscan_verify_success_after_a_loop() -> None:
 
 def test_etherscan_verify_fail_unknown_contract() -> None:
     """ When invoked with an unknown contract name, etherscan_verify should error """
-    with requests_mock.Mocker() as m:
-        chain_id = 3
-        runner = CliRunner()
-        result = runner.invoke(
-            etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "Unknown"],
-        )
-        assert result.exit_code != 0
-        assert result.exception
-        assert "unknown contract name" in result.output
+    chain_id = 3
+    runner = CliRunner()
+    result = runner.invoke(
+        etherscan_verify,
+        ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "Unknown"],
+    )
+    assert result.exit_code != 0
+    assert result.exception
+    assert "unknown contract name" in result.output
