@@ -26,7 +26,7 @@ class ContractSourceManager:
     """ ContractSourceManager knows how to compile contracts """
 
     def __init__(self, path: Dict[str, Path]) -> None:
-        """ Parmas: a dictionary of directories which contain solidity files to compile """
+        """ Params: path a dictionary of directories which contain solidity files to compile """
         if not isinstance(path, dict):
             raise TypeError("Wrong type of argument given for ContractSourceManager()")
         self.contracts_source_dirs = path
