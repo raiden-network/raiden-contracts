@@ -25,26 +25,26 @@ def test_claim(
     deposit_to_udc(A, 30)
 
     # IOU expired
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="IOU expired"):
         bad_expiration = web3.eth.blockNumber - 1
         one_to_n_contract.functions.claim(
             **make_iou(sender=A, receiver=B, expiration_block=bad_expiration)
         ).call({"from": A})
 
     # Wrong OneToN address
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Signature mismatch"):
         one_to_n_contract.functions.claim(
             **make_iou(sender=A, receiver=B, one_to_n_address=A)
         ).call({"from": A})
 
     # Wrong chain_id
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Signature mismatch"):
         one_to_n_contract.functions.claim(**make_iou(sender=A, receiver=B, chain_id=77)).call(
             {"from": A}
         )
 
     # bad signature
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Signature mismatch"):
         iou = make_iou(sender=A, receiver=B, amount=10)
         iou2 = make_iou(sender=A, receiver=B, amount=11)
         iou["signature"] = iou2["signature"]  # use signature for wrong amount
@@ -68,7 +68,7 @@ def test_claim(
     assert user_deposit_contract.functions.balances(B).call() == 10
 
     # can't be claimed twice
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Already settled session"):
         one_to_n_contract.functions.claim(**iou).call({"from": A})
 
 
@@ -107,9 +107,11 @@ def test_bulk_claim_errors(
     one_to_n_contract: Contract,
     deposit_to_udc: Callable,
     get_accounts: Callable,
+    create_service_account: Callable,
     make_iou: Callable,
 ) -> None:
-    (A, B, C) = get_accounts(3)
+    (A, B) = get_accounts(2)
+    C = create_service_account()
     deposit_to_udc(A, 30)
     deposit_to_udc(B, 30)
 
@@ -121,7 +123,9 @@ def test_bulk_claim_errors(
     signatures = b"".join(x["signature"] for x in ious)
 
     # One value too many to `amounts`
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(
+        TransactionFailed, match="Same number of elements required for all input parameters"
+    ):
         return one_to_n_contract.functions.bulkClaim(
             senders=senders,
             receivers=receivers,
@@ -133,7 +137,9 @@ def test_bulk_claim_errors(
 
     # One byte too few/many in `signatures`
     for sig in [signatures + b"1", signatures[:-1]]:
-        with pytest.raises(TransactionFailed):
+        with pytest.raises(
+            TransactionFailed, match="`signatures` should contain 65 bytes per IOU"
+        ):
             return one_to_n_contract.functions.bulkClaim(
                 senders=senders,
                 receivers=receivers,
@@ -144,7 +150,7 @@ def test_bulk_claim_errors(
             ).call_and_transact({"from": A})
 
     # Cause a signature mismatch by changing one amount
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Signature mismatch"):
         return one_to_n_contract.functions.bulkClaim(
             senders=senders,
             receivers=receivers,
@@ -196,8 +202,8 @@ def test_claim_by_unregistered_service(
         chain_id=chain_id,
     )
 
-    # Doesn't work because A is not registered
-    with pytest.raises(TransactionFailed):
+    # Doesn't work because B is not registered
+    with pytest.raises(TransactionFailed, match="receiver not registered"):
         one_to_n_contract.functions.claim(
             sender=A,
             receiver=B,

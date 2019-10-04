@@ -25,7 +25,7 @@ contract TokenNetworkRegistry is Utils {
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     modifier canCreateTokenNetwork() {
-        require(token_network_created < max_token_networks);
+        require(token_network_created < max_token_networks, "registry full");
         _;
     }
 

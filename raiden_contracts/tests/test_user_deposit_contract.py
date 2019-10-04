@@ -32,7 +32,7 @@ def test_deposit(
     assert custom_token.functions.balanceOf(user_deposit_contract.address).call() == 20
 
     # a deposit can't be decreased by calling deposit
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="deposit not increasing"):
         user_deposit_contract.functions.deposit(A, 19).call({"from": A})
 
     # A deposits to the benefit of B
@@ -53,7 +53,7 @@ def test_deposit(
     custom_token.functions.approve(user_deposit_contract.address, limit + 1).call_and_transact(
         {"from": A}
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="too much deposit"):
         user_deposit_contract.functions.deposit(A, limit + 1).call({"from": A})
 
 
@@ -74,7 +74,7 @@ def test_transfer(
     user_deposit_contract.functions.deposit(A, 10).call_and_transact({"from": A})
 
     # only trusted contracts can call transfer (init has not been called, yet)
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="unknown caller"):
         udc_transfer_contract.functions.transfer(A, B, 10).call()
 
     # happy case
@@ -157,12 +157,12 @@ def test_withdraw(
     # withdraw won't work before withdraw_delay elapsed
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
     web3.testing.mine(withdraw_delay - 1)
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdraw(18).call({"from": A})
 
     # can't withdraw more then planned
     web3.testing.mine(1)  # now withdraw_delay is over
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdraw(21).call({"from": A})
 
     # actually withdraw 18 tokens

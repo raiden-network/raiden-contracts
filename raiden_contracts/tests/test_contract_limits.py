@@ -47,7 +47,7 @@ def test_register_three_but_not_four(
     token_network_registry.functions.createERC20TokenNetwork(
         token2.address, channel_participant_deposit_limit, token_network_deposit_limit
     ).call_and_transact()
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             token3.address, channel_participant_deposit_limit, token_network_deposit_limit
         ).call()
