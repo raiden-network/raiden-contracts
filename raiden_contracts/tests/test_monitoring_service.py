@@ -205,7 +205,7 @@ def test_monitor(
     # parameters passed to it are handled correctly.
 
     # changing reward amount must lead to a failure during reward signature check
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Reward proof with wrong non_closing_participant"):
         txn_hash = monitoring_service_external.functions.monitor(
             A,
             B,

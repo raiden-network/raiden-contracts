@@ -81,7 +81,7 @@ def test_deposit(
     first_expiration = service_registry.functions.service_valid_till(A).call()
 
     # custom_token does not allow transfer of more tokens
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="not enough limit"):
         service_registry.functions.deposit(1).call({"from": A})
 
     # More minting and approving before extending the registration
@@ -208,7 +208,7 @@ def test_calling_internal_bump_paramter_change(service_registry: Contract) -> No
 
 def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the numerator is too big"""
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="price dump numerator is too big"):
         service_registry.functions.changeParameters(
             _price_bump_numerator=2 ** 40,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
@@ -234,7 +234,7 @@ def test_changing_bump_denominator(service_registry: Contract) -> None:
 
 def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the bump numerator is smaller than the bump denominator"""
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="price dump instead of bump"):
         service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_NUMERATOR + 1,
@@ -290,7 +290,7 @@ def test_internal_set_decay_constant(service_registry: Contract) -> None:
 
 def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the new decay constant is too high"""
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="too big decay constant"):
         service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
@@ -360,7 +360,7 @@ def test_internal_min_price(service_registry: Contract) -> None:
 def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
     """A random address's changeParameters() call should fail"""
     (A,) = get_accounts(1)
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="caller is not the controller"):
         service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
@@ -461,7 +461,7 @@ def test_unauthorized_deprecation_switch(
 ) -> None:
     """A random account cannot turn on the deprecation switch"""
     (A,) = get_accounts(1)
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="caller is not the controller"):
         service_registry.functions.setDeprecationSwitch().call_and_transact({"from": A})
 
 
