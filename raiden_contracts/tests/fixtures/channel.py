@@ -203,10 +203,16 @@ def close_and_update_channel(
             additional_hash2,
         )
         balance_proof_close_signature_1 = create_balance_proof_countersignature(
-            participant1, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_2
+            participant=participant1,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF,
+            **balance_proof_2,
         )
         balance_proof_update_signature_2 = create_balance_proof_countersignature(
-            participant2, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_1
+            participant=participant2,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+            **balance_proof_1,
         )
 
         token_network.functions.closeChannel(

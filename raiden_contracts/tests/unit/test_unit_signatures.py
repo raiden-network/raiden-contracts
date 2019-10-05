@@ -134,22 +134,25 @@ def test_recover_address_from_balance_proof_update(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        balance_hash=balance_proof["balance_hash"],
-        nonce=balance_proof["nonce"],
-        additional_hash=balance_proof["additional_hash"],
-        original_signature=balance_proof["original_signature"],
+        **balance_proof,
         other_token_network=other_token_network,
     )
 
     sig_wrong_token_network = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof,
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
     balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_signed_B
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_signed_B,
     )
 
     assert (
@@ -204,22 +207,28 @@ def test_recover_address_from_balance_proof_close(
         channel_identifier, A, other_token_network=other_token_network
     )
     balance_proof_update_signature = create_balance_proof_countersignature(
-        B,
-        channel_identifier,
-        MessageTypeId.BALANCE_PROOF,
-        *balance_proof.values(),
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
         other_token_network=other_token_network,
     )
 
     sig_wrong_token_network = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
     balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_signed_B
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_signed_B,
     )
 
     assert (
