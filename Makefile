@@ -33,7 +33,7 @@ black:
 	black $(BLACK_PARAMS)
 
 autopep8:
-	autopep8 raiden_contracts/
+	autopep8 --in-place --recursive raiden_contracts/
 
 format: autopep8 isort black
 

@@ -723,7 +723,6 @@ def test_update_signature_on_invalid_arguments(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-
     """ Call updateNonClosingBalanceProof with signature on invalid argument fails """
     (A, B, C) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
