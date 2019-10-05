@@ -190,10 +190,10 @@ def test_settle_single_direct_transfer_for_closing_party(
         LOCKSROOT_OF_NO_LOCKS,
     )
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_B
+        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
     )
     token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B, closing_sig_A
+        channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
     ).call_and_transact({"from": A})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -273,10 +273,10 @@ def test_settle_single_direct_transfer_for_counterparty(
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_A
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
     )
     token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier, A, B, *balance_proof_A, balance_proof_update_signature_B
+        channel_identifier, A, B, *balance_proof_A.values(), balance_proof_update_signature_B
     ).call_and_transact({"from": B})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -591,17 +591,17 @@ def test_settle_channel_event(
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_A
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
     )
     close_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_B
+        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
     )
 
     token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B, close_sig_A
+        channel_identifier, B, A, *balance_proof_B.values(), close_sig_A
     ).call_and_transact({"from": A})
     token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier, A, B, *balance_proof_A, balance_proof_update_signature_B
+        channel_identifier, A, B, *balance_proof_A.values(), balance_proof_update_signature_B
     ).call_and_transact({"from": B})
 
     web3.testing.mine(settle_timeout + 1)

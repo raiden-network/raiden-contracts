@@ -63,10 +63,10 @@ def setup_monitor_data(
 
         # Add signatures by non_closing_participant
         closing_signature_A = create_balance_proof_countersignature(
-            A, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_A
+            A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_A
         )
         non_closing_signature_B = create_balance_proof_countersignature(
-            B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_B
+            B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_B
         )
         reward_proof_signature = sign_reward_proof(
             privatekey=get_private_key(B),
@@ -80,7 +80,7 @@ def setup_monitor_data(
 
         # close channel
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_A, closing_signature_A
+            channel_identifier, B, A, *balance_proof_A.values(), closing_signature_A
         ).call_and_transact({"from": A})
 
         # calculate when this MS is allowed to monitor
@@ -142,7 +142,7 @@ def test_claimReward_with_settle_call(
     txn_hash = monitoring_service_external.functions.monitor(
         A,
         B,
-        *monitor_data["balance_proof_B"],
+        *monitor_data["balance_proof_B"].values(),
         monitor_data["non_closing_signature"],
         REWARD_AMOUNT,
         token_network.address,
@@ -209,7 +209,7 @@ def test_monitor(
         txn_hash = monitoring_service_external.functions.monitor(
             A,
             B,
-            *monitor_data["balance_proof_B"],
+            *monitor_data["balance_proof_B"].values(),
             monitor_data["non_closing_signature"],
             REWARD_AMOUNT + 1,
             token_network.address,
@@ -222,7 +222,7 @@ def test_monitor(
         txn_hash = monitoring_service_external.functions.monitor(
             A,
             B,
-            *monitor_data["balance_proof_B"],
+            *monitor_data["balance_proof_B"].values(),
             monitor_data["non_closing_signature"],
             REWARD_AMOUNT,
             token_network.address,
@@ -236,7 +236,7 @@ def test_monitor(
     txn_hash = monitoring_service_external.functions.monitor(
         A,
         B,
-        *monitor_data["balance_proof_B"],
+        *monitor_data["balance_proof_B"].values(),
         monitor_data["non_closing_signature"],
         REWARD_AMOUNT,
         token_network.address,
@@ -252,7 +252,7 @@ def test_monitor(
             token_network_address=token_network.address,
             channel_identifier=monitor_data["channel_identifier"],
             reward_amount=REWARD_AMOUNT,
-            nonce=monitor_data["balance_proof_B"][1],
+            nonce=monitor_data["balance_proof_B"]["nonce"],
             ms_address=ms_address,
             raiden_node_address=B,
         ),
@@ -276,7 +276,7 @@ def test_monitor_by_unregistered_service(
         monitoring_service_external.functions.monitor(
             A,
             B,
-            *monitor_data["balance_proof_B"],
+            *monitor_data["balance_proof_B"].values(),
             monitor_data["non_closing_signature"],
             REWARD_AMOUNT,
             token_network.address,
@@ -287,7 +287,7 @@ def test_monitor_by_unregistered_service(
     monitoring_service_external.functions.monitor(
         A,
         B,
-        *monitor_data["balance_proof_B"],
+        *monitor_data["balance_proof_B"].values(),
         monitor_data["non_closing_signature"],
         REWARD_AMOUNT,
         token_network.address,
@@ -315,7 +315,7 @@ def test_monitor_on_wrong_token_network_registry(
         monitoring_service_external.functions.monitor(
             A,
             B,
-            *monitor_data["balance_proof_B"],
+            *monitor_data["balance_proof_B"].values(),
             monitor_data["non_closing_signature"],
             REWARD_AMOUNT,
             token_network_in_another_token_network_registry.address,

@@ -33,15 +33,15 @@ def test_verify(
     channel_identifier = create_channel(A, B)[0]
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
-    signature = balance_proof_A[3]
+    signature = balance_proof_A["original_signature"]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
             chain_identifier=int(web3.version.network),
             channel_identifier=channel_identifier,
-            balance_hash=balance_proof_A[0],
-            nonce=balance_proof_A[1],
-            additional_hash=balance_proof_A[2],
+            balance_hash=balance_proof_A["balance_hash"],
+            nonce=balance_proof_A["nonce"],
+            additional_hash=balance_proof_A["additional_hash"],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
@@ -49,15 +49,15 @@ def test_verify(
     assert address == A
 
     balance_proof_B = create_balance_proof(channel_identifier, B, 0, 0, 0)
-    signature = balance_proof_B[3]
+    signature = balance_proof_B["original_signature"]
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
             chain_identifier=int(web3.version.network),
             channel_identifier=channel_identifier,
-            balance_hash=balance_proof_B[0],
-            nonce=balance_proof_B[1],
-            additional_hash=balance_proof_B[2],
+            balance_hash=balance_proof_B["balance_hash"],
+            nonce=balance_proof_B["nonce"],
+            additional_hash=balance_proof_B["additional_hash"],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
@@ -99,7 +99,7 @@ def test_ecrecover_output(
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
-    signature = balance_proof_A[3]
+    signature = balance_proof_A["original_signature"]
     r = signature[:32]
     s = signature[32:64]
     v = signature[64:]
@@ -108,9 +108,9 @@ def test_ecrecover_output(
             token_network_address=token_network.address,
             chain_identifier=int(web3.version.network),
             channel_identifier=channel_identifier,
-            balance_hash=balance_proof_A[0],
-            nonce=balance_proof_A[1],
-            additional_hash=balance_proof_A[2],
+            balance_hash=balance_proof_A["balance_hash"],
+            nonce=balance_proof_A["nonce"],
+            additional_hash=balance_proof_A["additional_hash"],
             msg_type=MessageTypeId.BALANCE_PROOF,
         )
     )
