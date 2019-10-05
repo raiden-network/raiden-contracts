@@ -91,21 +91,21 @@ def test_recover_address_from_balance_proof(
     assert (
         A
         == token_network_test_signatures.functions.recoverAddressFromBalanceProofPublic(
-            channel_identifier, *balance_proof
+            channel_identifier, *balance_proof.values()
         ).call()
     )
 
     assert (
         B
         == token_network_test_signatures.functions.recoverAddressFromBalanceProofPublic(
-            channel_identifier, *balance_proof_other_signer
+            channel_identifier, *balance_proof_other_signer.values()
         ).call()
     )
 
     assert (
         A
         != token_network_test_signatures.functions.recoverAddressFromBalanceProofPublic(
-            channel_identifier, *balance_proof_wrong_token_network
+            channel_identifier, *balance_proof_wrong_token_network.values()
         ).call()
     )
 
@@ -134,22 +134,22 @@ def test_recover_address_from_balance_proof_update(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        balance_hash=balance_proof[0],
-        nonce=balance_proof[1],
-        additional_hash=balance_proof[2],
-        original_signature=balance_proof[3],
+        balance_hash=balance_proof["balance_hash"],
+        nonce=balance_proof["nonce"],
+        additional_hash=balance_proof["additional_hash"],
+        original_signature=balance_proof["original_signature"],
         other_token_network=other_token_network,
     )
 
     sig_wrong_token_network = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
     balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_signed_B
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_signed_B
     )
 
     assert (
@@ -157,7 +157,7 @@ def test_recover_address_from_balance_proof_update(
         == other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF_UPDATE,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             balance_proof_update_signature,
         ).call()
     )
@@ -167,7 +167,7 @@ def test_recover_address_from_balance_proof_update(
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF_UPDATE,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             sig_wrong_token_network,
         ).call()
     )
@@ -177,7 +177,7 @@ def test_recover_address_from_balance_proof_update(
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF_UPDATE,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             balance_proof_update_signature_wrong_signer,
         ).call()
     )
@@ -207,19 +207,19 @@ def test_recover_address_from_balance_proof_close(
         B,
         channel_identifier,
         MessageTypeId.BALANCE_PROOF,
-        *balance_proof,
+        *balance_proof.values(),
         other_token_network=other_token_network,
     )
 
     sig_wrong_token_network = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
     )
 
     balance_proof_signed_B = create_balance_proof(
         channel_identifier, B, other_token_network=other_token_network
     )
     balance_proof_update_signature_wrong_signer = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_signed_B
+        B, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_signed_B
     )
 
     assert (
@@ -227,7 +227,7 @@ def test_recover_address_from_balance_proof_close(
         == other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             balance_proof_update_signature,
         ).call()
     )
@@ -237,7 +237,7 @@ def test_recover_address_from_balance_proof_close(
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             sig_wrong_token_network,
         ).call()
     )
@@ -247,7 +247,7 @@ def test_recover_address_from_balance_proof_close(
         != other_token_network.functions.recoverAddressFromBalanceProofCounterSignaturePublic(
             MessageTypeId.BALANCE_PROOF,
             channel_identifier,
-            *balance_proof,
+            *balance_proof.values(),
             balance_proof_update_signature_wrong_signer,
         ).call()
     )

@@ -1,4 +1,4 @@
-from typing import Callable, Collection, List, Optional, Tuple
+from typing import Any, Callable, Collection, Dict, List, Optional, Tuple
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
@@ -203,17 +203,17 @@ def close_and_update_channel(
             additional_hash2,
         )
         balance_proof_close_signature_1 = create_balance_proof_countersignature(
-            participant1, channel_identifier, MessageTypeId.BALANCE_PROOF, *balance_proof_2
+            participant1, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_2
         )
         balance_proof_update_signature_2 = create_balance_proof_countersignature(
-            participant2, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, *balance_proof_1
+            participant2, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_1
         )
 
         token_network.functions.closeChannel(
             channel_identifier,
             participant2,
             participant1,
-            *balance_proof_2,
+            *balance_proof_2.values(),
             balance_proof_close_signature_1,
         ).call_and_transact({"from": participant1})
 
@@ -221,7 +221,7 @@ def close_and_update_channel(
             channel_identifier,
             participant1,
             participant2,
-            *balance_proof_1,
+            *balance_proof_1.values(),
             balance_proof_update_signature_2,
         ).call_and_transact({"from": participant2})
 
@@ -375,9 +375,9 @@ def update_state_tests(token_network: Contract, get_block: Callable) -> Callable
     def get(
         channel_identifier: int,
         A: HexAddress,
-        balance_proof_A: Tuple,
+        balance_proof_A: Dict[str, Any],
         B: HexAddress,
-        balance_proof_B: Tuple,
+        balance_proof_B: Dict[str, Any],
         settle_timeout: int,
         txn_hash1: str,
     ) -> None:
@@ -398,7 +398,7 @@ def update_state_tests(token_network: Contract, get_block: Callable) -> Callable
             A_locked,
         ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
         assert A_is_the_closer is True
-        assert A_balance_hash == balance_proof_A[0]
+        assert A_balance_hash == balance_proof_A["balance_hash"]
         assert A_nonce == 5
         assert A_locksroot == NONEXISTENT_LOCKSROOT
         assert A_locked == 0
@@ -413,7 +413,7 @@ def update_state_tests(token_network: Contract, get_block: Callable) -> Callable
             B_locked,
         ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
         assert B_is_the_closer is False
-        assert B_balance_hash == balance_proof_B[0]
+        assert B_balance_hash == balance_proof_B["balance_hash"]
         assert B_nonce == 3
         assert B_locksroot == NONEXISTENT_LOCKSROOT
         assert B_locked == 0
@@ -634,7 +634,7 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
         v: int = 27,
         signer: Optional[HexAddress] = None,
         other_token_network: Optional[Contract] = None,
-    ) -> Tuple:
+    ) -> Dict[str, Any]:
         _token_network = other_token_network or token_network
         private_key = get_private_key(signer or participant)
         locksroot = locksroot or LOCKSROOT_OF_NO_LOCKS
@@ -653,7 +653,14 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
             additional_hash,
             v,
         )
-        return (balance_hash, nonce, additional_hash, signature)
+        # The keys of the dictionary correspond to the parameters of
+        # create_balance_proof_countersignature.
+        return {
+            "balance_hash": balance_hash,
+            "nonce": nonce,
+            "additional_hash": additional_hash,
+            "original_signature": signature,
+        }
 
     return get
 
