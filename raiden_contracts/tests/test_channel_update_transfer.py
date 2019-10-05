@@ -50,7 +50,10 @@ def test_update_call(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     # Failure with the zero address instead of A's address
@@ -149,7 +152,10 @@ def test_update_nonexistent_fail(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     with pytest.raises(TransactionFailed):
@@ -173,7 +179,10 @@ def test_update_notclosed_fail(
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
@@ -205,10 +214,16 @@ def test_update_wrong_nonce_fail(
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
     txn_hash1 = token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
@@ -240,7 +255,10 @@ def test_update_wrong_nonce_fail(
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A_lower_nonce
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A_lower_nonce,
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -276,10 +294,16 @@ def test_update_wrong_signatures(
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
     balance_proof_update_signature_B_fake = create_balance_proof_countersignature(
-        C, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=C,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     # Close the channel so updateNonClosingBalanceProof() is possible
@@ -339,10 +363,16 @@ def test_update_channel_state(
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     txn_hash1 = token_network.functions.closeChannel(
@@ -392,7 +422,10 @@ def test_update_channel_fail_no_offchain_transfers(
     channel_identifier = create_channel(A, B)[0]
     balance_proof_A = create_balance_proof(channel_identifier, A, 0, 0, 0)
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
@@ -443,10 +476,16 @@ def test_update_not_allowed_after_settlement_period(
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
     token_network.functions.closeChannel(
         channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
@@ -476,7 +515,10 @@ def test_update_not_allowed_for_the_closing_address(
     # Some balance proof from B
     balance_proof_B_0 = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
     closing_sig_A_0 = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B_0
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B_0,
     )
 
     # Later balance proof, higher transferred amount, higher nonce
@@ -484,7 +526,10 @@ def test_update_not_allowed_for_the_closing_address(
 
     # B's signature on the update message is valid
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_B_1
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_B_1,
     )
 
     # A closes with the first balance proof
@@ -896,7 +941,10 @@ def test_update_replay_reopened_channel(
         values_B.locksroot,
     )
     balance_proof_update_signature_A = create_balance_proof_countersignature(
-        A, channel_identifier1, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier1,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_B,
     )
 
     closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier1)
@@ -965,7 +1013,10 @@ def test_update_replay_reopened_channel(
         values_B.locksroot,
     )
     balance_proof_update_signature_A2 = create_balance_proof_countersignature(
-        A, channel_identifier2, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_B2
+        participant=A,
+        channel_identifier=channel_identifier2,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_B2,
     )
 
     token_network.functions.updateNonClosingBalanceProof(
@@ -993,11 +1044,17 @@ def test_update_channel_event(
     channel_deposit(channel_identifier, B, deposit_B, A)
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3)
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 1)
     balance_proof_update_signature_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A,
     )
 
     token_network.functions.closeChannel(
@@ -1017,7 +1074,10 @@ def test_update_channel_event(
     # Test event for second balance proof update
     balance_proof_A2 = create_balance_proof(channel_identifier, A, 4, 0, 2)
     balance_proof_update_signature_B2 = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_A2
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A2,
     )
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
         channel_identifier, A, B, *balance_proof_A2.values(), balance_proof_update_signature_B2

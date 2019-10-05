@@ -63,10 +63,16 @@ def setup_monitor_data(
 
         # Add signatures by non_closing_participant
         closing_signature_A = create_balance_proof_countersignature(
-            A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_A
+            participant=A,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF,
+            **balance_proof_A,
         )
         non_closing_signature_B = create_balance_proof_countersignature(
-            B, channel_identifier, MessageTypeId.BALANCE_PROOF_UPDATE, **balance_proof_B
+            participant=B,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+            **balance_proof_B,
         )
         reward_proof_signature = sign_reward_proof(
             privatekey=get_private_key(B),

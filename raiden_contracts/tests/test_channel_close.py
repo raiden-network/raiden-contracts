@@ -129,7 +129,10 @@ def test_close_wrong_signature(
         channel_identifier, C, transferred_amount, 0, nonce, locksroot
     )
     closing_signature_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
     )
 
     with pytest.raises(TransactionFailed):
@@ -231,7 +234,10 @@ def test_close_nonce_zero(
         vals_B.locksroot,
     )
     close_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
 
     (
@@ -298,10 +304,16 @@ def test_close_first_argument_is_for_partner_transfer(
     # Create balance proofs
     balance_proof = create_balance_proof(channel_identifier, B)
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
     )
     closing_sig_B = create_balance_proof_countersignature(
-        B, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
     )
 
     # closeChannel fails, if the provided balance proof is from the same participant who closes
@@ -477,7 +489,10 @@ def test_close_channel_state(
         vals_B.locksroot,
     )
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
 
     txn_hash = token_network.functions.closeChannel(
@@ -592,7 +607,10 @@ def test_close_replay_reopened_channel(
         values_B.locksroot,
     )
     closing_sig_A = create_balance_proof_countersignature(
-        A, channel_identifier1, MessageTypeId.BALANCE_PROOF, **balance_proof_B
+        participant=A,
+        channel_identifier=channel_identifier1,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B,
     )
     token_network.functions.closeChannel(
         channel_identifier1, B, A, *balance_proof_B.values(), closing_sig_A
@@ -630,7 +648,10 @@ def test_close_replay_reopened_channel(
         values_B.locksroot,
     )
     closing_sig_A2 = create_balance_proof_countersignature(
-        A, channel_identifier2, MessageTypeId.BALANCE_PROOF, **balance_proof_B2
+        participant=A,
+        channel_identifier=channel_identifier2,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B2,
     )
     token_network.functions.closeChannel(
         channel_identifier2, B, A, *balance_proof_B2.values(), closing_sig_A2
@@ -657,7 +678,10 @@ def test_close_channel_event(
         channel_identifier, B, transferred_amount=5, locked_amount=0, nonce=3
     )
     close_sig = create_balance_proof_countersignature(
-        A, channel_identifier, MessageTypeId.BALANCE_PROOF, **balance_proof
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof,
     )
 
     txn_hash = token_network.functions.closeChannel(
