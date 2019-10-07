@@ -37,10 +37,10 @@ contract CustomToken is StandardToken {
      *  Public functions
      */
     /// @dev Contract constructor function.
-    /// @param initial_supply Initial supply of tokens.
-    /// @param decimal_units Number of token decimals.
-    /// @param token_name Token name for display.
-    /// @param token_symbol Token symbol.
+    /// @param initial_supply Initial supply of tokens
+    /// @param decimal_units Number of token decimals
+    /// @param token_name Token name for display
+    /// @param token_symbol Token symbol
     constructor(
         uint256 initial_supply,
         uint8 decimal_units,

@@ -104,7 +104,7 @@ contract ServiceRegistryConfigurableParameters {
     }
 
 
-    /// @notice The amount to deposit for registration or extension.
+    /// @notice The amount to deposit for registration or extension
     /// Note: the price moves quickly depending on what other addresses do.
     /// The current price might change after you send a `deposit()` transaction
     /// before the transaction is executed.
@@ -116,10 +116,10 @@ contract ServiceRegistryConfigurableParameters {
     }
 
 
-    /// @notice Calculates the decreased price after a number of seconds.
-    /// @param _set_price The initial price.
+    /// @notice Calculates the decreased price after a number of seconds
+    /// @param _set_price The initial price
     /// @param _seconds_passed The number of seconds passed since the initial
-    /// price was set.
+    /// price was set
     function decayedPrice(uint256 _set_price, uint256 _seconds_passed) public
         view returns (uint256) {
         // We are here trying to approximate some exponential decay.
@@ -174,9 +174,10 @@ contract Deposit {
     // The timestamp after which the withdrawer can withdraw the deposit.
     uint256 public release_at;
 
-    /// @param _token The address of the ERC20 token contract where the deposit is accounted.
-    /// @param _release_at The timestap after which the withdrawer can withdraw the deposit.
-    /// @param _withdrawer The address that can withdraw the deposit after the release time.
+    /// @param _token The address of the ERC20 token contract where the deposit is accounted
+    /// @param _release_at The timestap after which the withdrawer can withdraw the deposit
+    /// @param _withdrawer The address that can withdraw the deposit after the release time
+    /// @param _service_registry The address of ServiceRegistry whose deprecation enables immediate withdrawals
     constructor(address _token, uint256 _release_at, address _withdrawer, address _service_registry) public {
         token = Token(_token);
         // Don't care even if it's in the past.
@@ -189,9 +190,9 @@ contract Deposit {
     // If you transfer a wrong kind of ERC20 token or ETH into this contract,
     // these tokens will be lost forever.
 
-    /// @notice Withdraws the tokens that have been deposited.
+    /// @notice Withdraws the tokens that have been deposited
     /// Only `withdrawer` can call this.
-    /// @param _to The address where the withdrawn tokens should go.
+    /// @param _to The address where the withdrawn tokens should go
     function withdraw(address payable _to) external {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer, "the caller is not the withdrawer");
@@ -216,10 +217,18 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     // @param service The address of the registered service provider
     // @param valid_till The timestamp of the moment when the registration expires
     // @param deposit_amount The amount of deposit transferred
-    // @param deposit The address of Deposit instance where the deposit is stored.
+    // @param deposit The address of Deposit instance where the deposit is stored
     event RegisteredService(address indexed service, uint256 valid_till, uint256 deposit_amount, Deposit deposit_contract);
 
     // @param _token_for_registration The address of the ERC20 token contract that services use for registration fees
+    // @param _controller The address that can change parameters and deprecate the ServiceRegistry
+    // @param _initial_price The amount of tokens needed initially for a slot
+    // @param _price_bump_numerator The ratio of price bump after deposit is made (numerator)
+    // @param _price_bump_denominator The ratio of price bump after deposit is made (denominator)
+    // @param _decay_constant The number of seconds after which the price becomes roughly 1/e
+    // @param _min_price The minimum amount of tokens needed for a slot
+    // @param _registration_duration The number of seconds (roughly, barring block time & miners'
+    // timestamp errors) of a slot gained for a successful deposit
     constructor(
             address _token_for_registration,
             address _controller,
@@ -248,10 +257,10 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         changeParametersInternal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _min_price, _registration_duration);
     }
 
-    // @notice Locks tokens and registers a service or extends the registration.
-    // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit.
+    // @notice Locks tokens and registers a service or extends the registration
+    // @param _limit_amount The biggest amount of tokens that the caller is willing to deposit
     // The call fails if the current price is higher (this is always possible
-    // when other parties have just called `deposit()`).
+    // when other parties have just called `deposit()`)
     function deposit(uint _limit_amount) public returns (bool _success) {
         require(! deprecated, "this contract was deprecated");
 
@@ -290,9 +299,9 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         return true;
     }
 
-    /// @notice Sets the URL used to access a service via HTTP.
-    /// Only a currently registered service can call this successfully.
-    /// @param new_url The new URL string to be stored.
+    /// @notice Sets the URL used to access a service via HTTP
+    /// Only a currently registered service can call this successfully
+    /// @param new_url The new URL string to be stored
     function setURL(string memory new_url) public returns (bool _success) {
         require(hasValidRegistration(msg.sender), "registration expired");
         require(bytes(new_url).length != 0, "new url is empty string");
@@ -300,7 +309,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         return true;
     }
 
-    /// A getter function for seeing the length of ever_made_deposits array.
+    /// A getter function for seeing the length of ever_made_deposits array
     function everMadeDepositsLen() public view returns (uint256 _len) {
         return ever_made_deposits.length;
     }
