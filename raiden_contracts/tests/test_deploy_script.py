@@ -791,7 +791,9 @@ def test_store_and_verify_raiden(
     deployer: ContractDeployer,
 ) -> None:
     """ Store some raiden contract deployment information and verify them """
-    fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
+    fs_reload_deployer.add_real_directory(
+        contracts_precompiled_path(version=None).parent, read_only=False
+    )
     deployed_contracts_info = deployed_raiden_info
     deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info
@@ -810,7 +812,9 @@ def test_store_and_verify_services(
     token_network_registry_contract: Contract,
 ) -> None:
     """ Store some service contract deployment information and verify them """
-    fs_reload_deployer.add_real_directory(contracts_precompiled_path(version=None).parent)
+    fs_reload_deployer.add_real_directory(
+        contracts_precompiled_path(version=None).parent, read_only=False
+    )
     deployed_contracts_info = deployed_service_info
     deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
