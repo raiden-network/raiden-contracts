@@ -155,7 +155,7 @@ contract OneToN is Utils {
 
     /// @notice Get a single signature out of a byte array that contains concatenated signatures.
     /// @param signatures Multiple signatures concatenated into a single byte array
-    /// @param i Index of the requested signature (zero based)
+    /// @param i Index of the requested signature (zero based; the caller must check ranges)
     function getSingleSignature(
         bytes memory signatures,
         uint256 i
@@ -164,6 +164,7 @@ contract OneToN is Utils {
         pure
         returns (bytes memory)
     {
+        assert(i < signatures.length);
         uint256 offset = i * 65;
         // We need only 65, but we can access only whole words, so the next usable size is 3 * 32.
         bytes memory signature = new bytes(96);
