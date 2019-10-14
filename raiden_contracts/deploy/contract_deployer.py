@@ -39,7 +39,7 @@ class ContractDeployer(ContractVerifier):
         web3: Web3,
         private_key: str,
         gas_limit: int,
-        gas_price: int = 1,
+        gas_price: int,
         wait: int = 10,
         contracts_version: Optional[str] = None,
     ):
@@ -48,8 +48,7 @@ class ContractDeployer(ContractVerifier):
         self.wait = wait
         self.owner = private_key_to_address(private_key)
         self.transaction = {"from": self.owner, "gas": gas_limit}
-        if gas_price != 0:
-            self.transaction["gasPrice"] = gas_price * int(units["gwei"])
+        self.transaction["gasPrice"] = gas_price * int(units["gwei"])
 
         self.web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key))
 
