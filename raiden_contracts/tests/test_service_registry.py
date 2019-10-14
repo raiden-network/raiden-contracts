@@ -44,10 +44,10 @@ def test_deposit_contract(
     assert custom_token.functions.balanceOf(depo.address).call() == 0
 
 
-def test_deposit_contract_too_early_withdraw(
+def test_deposit_contract_without_service_registry_code(
     get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
 ) -> None:
-    """Deposit contract with some deadline should not release the deposit immediately"""
+    """ If Deposit has no code in service registry, too early withdrawals fail """
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
     depo = get_deposit_contract(
@@ -57,6 +57,30 @@ def test_deposit_contract_too_early_withdraw(
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
     with pytest.raises(TransactionFailed):
+        depo.functions.withdraw(A).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(depo.address).call() == 100
+
+
+def test_deposit_contract_too_early_withdraw(
+    get_deposit_contract: Callable,
+    custom_token: Contract,
+    get_accounts: Callable,
+    service_registry: Contract,
+) -> None:
+    """Deposit contract with some deadline should not release the deposit immediately"""
+    (A,) = get_accounts(1)
+    custom_token.functions.mint(100).call_and_transact({"from": A})
+    depo = get_deposit_contract(
+        _token=custom_token.address,
+        _release_at=UINT256_MAX,
+        _withdrawer=A,
+        _service_registry=service_registry.address,
+    )
+    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    assert custom_token.functions.balanceOf(A).call() == 0
+    assert custom_token.functions.balanceOf(depo.address).call() == 100
+    with pytest.raises(TransactionFailed, match="deposit not released yet"):
         depo.functions.withdraw(A).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
