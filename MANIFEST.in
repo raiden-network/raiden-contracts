@@ -11,6 +11,7 @@ include raiden_contracts/data*/deployment_services_kovan.json
 include raiden_contracts/data*/deployment_services_goerli.json
 include raiden_contracts/data*/deployment_services_rinkeby.json
 include raiden_contracts/data*/deployment_services_ropsten.json
+include raiden_contracts/data*/deployment_services_mainnet.json
 include raiden_contracts/data*/gas.json
 recursive-include raiden_contracts/data*/source *
 prune raiden_contracts/contracts
