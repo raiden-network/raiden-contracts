@@ -47,13 +47,11 @@ def test_deprecation_executor(
         deprecation_executor,
         json_contract["abi"],
         json_contract["bin"],
-        [
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-            1,
-        ],
+        _secret_registry_address=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _max_token_networks=1,
     )
 
     # Make sure deployer is deprecation_executor

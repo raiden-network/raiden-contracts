@@ -329,8 +329,12 @@ def get_unlocked_amount(secret_registry: Contract, packed_locks: bytes) -> int:
 
 
 def get_participants_hash(A: HexAddress, B: HexAddress) -> bytes:
-    A = to_canonical_address(A)
-    B = to_canonical_address(B)
-    if A == B:
+    A_canonical = to_canonical_address(A)
+    B_canonical = to_canonical_address(B)
+    if A_canonical == B_canonical:
         raise ValueError("get_participants_hash got the same address twice")
-    return keccak(A + B) if A < B else keccak(B + A)
+    return (
+        keccak(A_canonical + B_canonical)
+        if A_canonical < B_canonical
+        else keccak(B_canonical + A_canonical)
+    )

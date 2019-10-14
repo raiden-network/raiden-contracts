@@ -1,4 +1,4 @@
-from typing import Callable, List
+from typing import Callable, Dict
 
 import pytest
 from eth_typing import HexAddress
@@ -24,8 +24,8 @@ snapshot_before_token_network = None
 def get_token_network(deploy_tester_contract: Callable) -> Callable:
     """Deploy a token network as a separate contract (registry is not used)"""
 
-    def get(arguments: List) -> Contract:
-        return deploy_tester_contract(CONTRACT_TOKEN_NETWORK, arguments)
+    def get(**arguments: Dict) -> Contract:
+        return deploy_tester_contract(CONTRACT_TOKEN_NETWORK, **arguments)
 
     return get
 
@@ -142,14 +142,12 @@ def token_network_external(
     token_network_deposit_limit: int,
 ) -> Contract:
     return get_token_network(
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-            CONTRACT_DEPLOYER_ADDRESS,
-            channel_participant_deposit_limit,
-            token_network_deposit_limit,
-        ]
+        _token_address=custom_token.address,
+        _secret_registry=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _deprecation_executor=CONTRACT_DEPLOYER_ADDRESS,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
     )
