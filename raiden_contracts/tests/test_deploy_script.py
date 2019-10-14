@@ -48,6 +48,7 @@ from raiden_contracts.deploy.__main__ import (
 from raiden_contracts.deploy.contract_deployer import (
     contracts_version_expects_deposit_limits,
     contracts_version_has_initial_service_deposit,
+    contracts_version_monitoring_service_takes_token_network_registry,
 )
 from raiden_contracts.deploy.contract_verifier import (
     _verify_monitoring_service_deployment,
@@ -177,6 +178,27 @@ def test_contracts_version_with_max_token_networks(
     version: Optional[str], expectation: bool
 ) -> None:
     assert contracts_version_with_max_token_networks(version) == expectation
+
+
+@pytest.mark.parametrize(
+    "version,expectation",
+    [
+        ("0.3.0", False),
+        ("0.3._", False),
+        ("0.4.0", False),
+        ("0.8.0", False),
+        ("0.8.0_unlimited", False),
+        ("0.22.0", False),
+        ("0.23.0", True),
+        (None, True),
+    ],
+)
+def test_contracts_version_monitoring_service_takes_token_network_registry(
+    version: Optional[str], expectation: bool
+) -> None:
+    assert (
+        contracts_version_monitoring_service_takes_token_network_registry(version) == expectation
+    )
 
 
 @pytest.mark.slow
