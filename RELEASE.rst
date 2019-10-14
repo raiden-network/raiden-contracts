@@ -76,7 +76,7 @@ Bump Smart Contracts Version
   * ``CONTRACTS_VERSION`` https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/constants.py#L4
   * This string will be filled in the contract templates.
 * We are currently at a ``0.*`` version. Our first ``major`` bump will be made when a stable, not-limited version will be released on the main net.
-* ``minor`` bumps (for now) are made for contract ABI changes.
+* ``minor`` bumps (for now) are made for contract ABI changes. An added or removed ``require()`` or ``assert()`` counts as ABI changes.
 * ``patch`` bumps are made for any fix that does not touch the ABI.
 
 .. _deploy-contracts:
