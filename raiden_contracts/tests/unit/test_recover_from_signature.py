@@ -182,7 +182,7 @@ def test_sign_not_32_bytes(get_private_key: Callable, get_accounts: Callable) ->
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(ValueError):
-        sign(privatekey, bytes("a" * 31, "ascii"), v=27)  # type: ignore
+        sign(privatekey, bytes("a" * 31, "ascii"), v=27)
 
 
 def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Callable) -> None:
@@ -198,4 +198,4 @@ def test_sign_wrong_v(get_private_key: Callable, get_accounts: Callable) -> None
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(ValueError):
-        sign(privatekey, bytes("a" * 32, "ascii"), v=22)  # type: ignore
+        sign(privatekey, bytes("a" * 32, "ascii"), v=22)
