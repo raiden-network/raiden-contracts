@@ -72,13 +72,11 @@ def print_gas_token_network_registry(
     """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        [
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-            10,
-        ],
+        _secret_registry_address=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _max_token_networks=10,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + " DEPLOYMENT")
 
@@ -98,16 +96,14 @@ def print_gas_token_network_deployment(
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-            deprecation_executor,
-            channel_participant_deposit_limit,
-            token_network_deposit_limit,
-        ],
+        _token_address=custom_token.address,
+        _secret_registry=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _deprecation_executor=deprecation_executor,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + " DEPLOYMENT")
 
@@ -119,10 +115,10 @@ def print_gas_token_network_create(
     get_token_network_registry: Callable,
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
-    token_network_registry_constructor_args: List,
+    token_network_registry_constructor_args: Dict,
 ) -> None:
     """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
-    registry = get_token_network_registry(token_network_registry_constructor_args)
+    registry = get_token_network_registry(**token_network_registry_constructor_args)
     txn_hash = registry.functions.createERC20TokenNetwork(
         custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
     ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})

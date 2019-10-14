@@ -19,7 +19,9 @@ def one_to_n_contract(
     chain_id = int(web3.version.network)
     return deploy_tester_contract(
         CONTRACT_ONE_TO_N,
-        [uninitialized_user_deposit_contract.address, chain_id, service_registry.address],
+        _deposit_contract=uninitialized_user_deposit_contract.address,
+        _chain_id=chain_id,
+        _service_registry_contract=service_registry.address,
     )
 
 
@@ -33,7 +35,9 @@ def one_to_n_internals(
     chain_id = int(web3.version.network)
     return deploy_tester_contract(
         "OneToNInternalsTest",
-        [uninitialized_user_deposit_contract.address, chain_id, service_registry.address],
+        _deposit_contract=uninitialized_user_deposit_contract.address,
+        _chain_id=chain_id,
+        _service_registry_contract=service_registry.address,
     )
 
 

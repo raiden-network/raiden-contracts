@@ -18,7 +18,9 @@ def uninitialized_user_deposit_contract(
     deploy_tester_contract: Callable, custom_token: Contract, user_deposit_whole_balance_limit: int
 ) -> Contract:
     return deploy_tester_contract(
-        CONTRACT_USER_DEPOSIT, [custom_token.address, user_deposit_whole_balance_limit]
+        CONTRACT_USER_DEPOSIT,
+        _token_address=custom_token.address,
+        _whole_balance_limit=user_deposit_whole_balance_limit,
     )
 
 
@@ -38,7 +40,9 @@ def user_deposit_contract(
 def udc_transfer_contract(
     deploy_tester_contract: Callable, uninitialized_user_deposit_contract: Contract
 ) -> Contract:
-    return deploy_tester_contract("UDCTransfer", [uninitialized_user_deposit_contract.address])
+    return deploy_tester_contract(
+        "UDCTransfer", udc_address=uninitialized_user_deposit_contract.address
+    )
 
 
 @pytest.fixture

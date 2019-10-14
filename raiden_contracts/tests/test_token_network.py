@@ -232,190 +232,164 @@ def test_constructor_call(
     # failures with Ethereum addresses that don't contain a Token contract
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                EMPTY_ADDRESS,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=EMPTY_ADDRESS,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                A,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=A,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                secret_registry_contract.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=secret_registry_contract.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failures with Ethereum addresses that don't contain the SecretRegistry contract
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                EMPTY_ADDRESS,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=EMPTY_ADDRESS,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                A,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=A,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with chain_id zero
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                0,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=0,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with a timeout min and max swapped
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MAX,
-                TEST_SETTLE_TIMEOUT_MIN,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MAX,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with settle_timeout_min being zero
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                0,
-                TEST_SETTLE_TIMEOUT_MIN,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=0,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with settle_timeout_max being zero
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                0,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=0,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with channel_participant_deposit_limit being zero
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                0,
-                token_network_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=0,
+            _token_network_deposit_limit=token_network_deposit_limit,
         )
 
     # failure with both limits being zero
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                0,
-                0,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=0,
+            _token_network_deposit_limit=0,
         )
 
     # failure with channel_participant_deposit_limit being bigger than
     # token_network_deposit_limit.
     with pytest.raises(TransactionFailed):
         get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                TEST_SETTLE_TIMEOUT_MIN,
-                TEST_SETTLE_TIMEOUT_MAX,
-                deprecation_executor,
-                token_network_deposit_limit,
-                channel_participant_deposit_limit,
-            ]
+            _token_address=custom_token.address,
+            _secret_registry=secret_registry_contract.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+            _deprecation_executor=deprecation_executor,
+            _channel_participant_deposit_limit=token_network_deposit_limit,
+            _token_network_deposit_limit=channel_participant_deposit_limit,
         )
 
     # see a success to make sure that the above failures are meaningful
     get_token_network(
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            chain_id,
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-            deprecation_executor,
-            channel_participant_deposit_limit,
-            token_network_deposit_limit,
-        ]
+        _token_address=custom_token.address,
+        _secret_registry=secret_registry_contract.address,
+        _chain_id=chain_id,
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _deprecation_executor=deprecation_executor,
+        _channel_participant_deposit_limit=channel_participant_deposit_limit,
+        _token_network_deposit_limit=token_network_deposit_limit,
     )
 
 

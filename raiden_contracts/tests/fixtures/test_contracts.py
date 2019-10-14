@@ -35,13 +35,11 @@ def token_network_test_signatures(
 ) -> Contract:
     return deploy_tester_contract(
         "TokenNetworkSignatureTest",
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-        ],
+        _token_address=custom_token.address,
+        _secret_registry=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )
 
 
@@ -54,11 +52,9 @@ def token_network_test_utils(
 ) -> Contract:
     return deploy_tester_contract(
         "TokenNetworkUtilsTest",
-        [
-            custom_token.address,
-            secret_registry_contract.address,
-            int(web3.version.network),
-            TEST_SETTLE_TIMEOUT_MIN,
-            TEST_SETTLE_TIMEOUT_MAX,
-        ],
+        _token_address=custom_token.address,
+        _secret_registry=secret_registry_contract.address,
+        _chain_id=int(web3.version.network),
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )

@@ -33,7 +33,9 @@ def test_deposit_contract(
     """Deposit contract with zero-deadline should release the deposit immediately"""
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
-    depo = get_deposit_contract([custom_token.address, 0, A, A])
+    depo = get_deposit_contract(
+        _token=custom_token.address, _release_at=0, _withdrawer=A, _service_registry=A
+    )
     custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
@@ -48,7 +50,9 @@ def test_deposit_contract_too_early_withdraw(
     """Deposit contract with some deadline should not release the deposit immediately"""
     (A,) = get_accounts(1)
     custom_token.functions.mint(100).call_and_transact({"from": A})
-    depo = get_deposit_contract([custom_token.address, UINT256_MAX, A, A])
+    depo = get_deposit_contract(
+        _token=custom_token.address, _release_at=UINT256_MAX, _withdrawer=A, _service_registry=A
+    )
     custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
@@ -474,14 +478,12 @@ def test_deploying_service_registry_with_denominator_zero(
     with pytest.raises(TransactionFailed, match="deployment failed"):
         deploy_tester_contract(
             CONTRACT_SERVICE_REGISTRY,
-            [
-                custom_token.address,
-                CONTRACT_DEPLOYER_ADDRESS,
-                int(3000e18),
-                DEFAULT_BUMP_NUMERATOR,
-                0,  # instead of DEFAULT_BUMP_DENOMINATOR
-                DEFAULT_DECAY_CONSTANT,
-                DEFAULT_MIN_PRICE,
-                DEFAULT_REGISTRATION_DURATION,
-            ],
+            _token_for_registration=custom_token.address,
+            _controller=CONTRACT_DEPLOYER_ADDRESS,
+            _initial_price=int(3000e18),
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=0,  # instead of DEFAULT_BUMP_DENOMINATOR
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
         )

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Collection, List
+from typing import Callable, Dict
 
 import pytest
 from eth_typing import HexAddress
@@ -20,8 +20,8 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 @pytest.fixture()
 def get_token_network_registry(deploy_tester_contract: Contract) -> Callable:
-    def get(arguments: Collection[Any]) -> Contract:
-        return deploy_tester_contract(CONTRACT_TOKEN_NETWORK_REGISTRY, arguments)
+    def get(**arguments: Dict) -> Contract:
+        return deploy_tester_contract(CONTRACT_TOKEN_NETWORK_REGISTRY, **arguments)
 
     return get
 
@@ -29,35 +29,35 @@ def get_token_network_registry(deploy_tester_contract: Contract) -> Callable:
 @pytest.fixture(scope="session")
 def token_network_registry_constructor_args(
     web3: Web3, secret_registry_contract: Contract
-) -> List:
-    return [
-        secret_registry_contract.address,
-        int(web3.version.network),
-        TEST_SETTLE_TIMEOUT_MIN,
-        TEST_SETTLE_TIMEOUT_MAX,
-        1,
-    ]
+) -> Dict:
+    return {
+        "_secret_registry_address": secret_registry_contract.address,
+        "_chain_id": int(web3.version.network),
+        "_settlement_timeout_min": TEST_SETTLE_TIMEOUT_MIN,
+        "_settlement_timeout_max": TEST_SETTLE_TIMEOUT_MAX,
+        "_max_token_networks": 1,
+    }
 
 
 @pytest.fixture(scope="session")
 def token_network_registry_contract(
-    deploy_tester_contract: Callable, token_network_registry_constructor_args: List
+    deploy_tester_contract: Callable, token_network_registry_constructor_args: Dict
 ) -> Contract:
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
-        CONTRACT_TOKEN_NETWORK_REGISTRY, token_network_registry_constructor_args
+        CONTRACT_TOKEN_NETWORK_REGISTRY, **token_network_registry_constructor_args
     )
 
 
 @pytest.fixture(scope="session")
 def token_network_registry_contract2(
-    deploy_tester_contract: Callable, token_network_registry_constructor_args: List
+    deploy_tester_contract: Callable, token_network_registry_constructor_args: Dict
 ) -> Contract:
     """Another deployed TokenNetworkRegistry contract
 
     to which service payment contracts should not collaborate."""
     return deploy_tester_contract(
-        CONTRACT_TOKEN_NETWORK_REGISTRY, token_network_registry_constructor_args
+        CONTRACT_TOKEN_NETWORK_REGISTRY, **token_network_registry_constructor_args
     )
 
 
