@@ -28,6 +28,7 @@ from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.versions import (
     contracts_version_expects_deposit_limits,
     contracts_version_has_initial_service_deposit,
+    contracts_version_monitoring_service_takes_token_network_registry,
 )
 
 LOG = getLogger(__name__)
@@ -321,6 +322,10 @@ class ContractDeployer(ContractVerifier):
             self.contract_manager.contracts_version
         ):
             raise RuntimeError("Deployment of older service contracts is not suppported.")
+        if not contracts_version_monitoring_service_takes_token_network_registry(
+            self.contract_manager.contracts_version
+        ):
+            raise RuntimeError("Deployment of older service contracts is not supported.")
 
         chain_id = int(self.web3.version.network)
         deployed_contracts: DeployedContracts = {

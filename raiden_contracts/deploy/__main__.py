@@ -285,7 +285,7 @@ def raiden(
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.option(
     "--token-network-registry-address",
-    default=None,
+    required=True,
     callback=validate_address,
     help="Address of TokenNetworkRegistry that MS contract looks at",
 )
