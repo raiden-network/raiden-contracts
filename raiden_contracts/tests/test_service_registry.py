@@ -56,8 +56,12 @@ def test_deposit_contract_without_service_registry_code(
     custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
-    with pytest.raises(TransactionFailed):
+    # The call fails because an empty account doesn't return a boolean.
+    # In this case, the message of the TransactionFailed exception is ''.
+    with pytest.raises(TransactionFailed) as ex:
         depo.functions.withdraw(A).call_and_transact({"from": A})
+    assert str(ex.value) == "b''"
+
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
 
