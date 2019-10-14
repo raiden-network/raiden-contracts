@@ -1112,7 +1112,10 @@ def test_deploy_raiden_save_info_false(
 
 
 def deploy_services_arguments(
-    privkey: str, save_info: Optional[bool], service_registry_controller: Optional[HexAddress]
+    privkey: str,
+    save_info: Optional[bool],
+    service_registry_controller: Optional[HexAddress],
+    token_network_registry_address: HexAddress,
 ) -> List:
     if save_info is None:
         arguments: List = []
@@ -1143,6 +1146,8 @@ def deploy_services_arguments(
         1000,
         "--service-registration-duration",
         180 * SECONDS_PER_DAY,
+        "--token-network-registry-address",
+        token_network_registry_address,
     ]
     return arguments
 
@@ -1166,7 +1171,10 @@ def test_deploy_services(
             result = runner.invoke(
                 services,
                 deploy_services_arguments(
-                    privkey=privkey_file.name, save_info=None, service_registry_controller=None
+                    privkey=privkey_file.name,
+                    save_info=None,
+                    service_registry_controller=None,
+                    token_network_registry_address=FAKE_ADDRESS,
                 ),
             )
             assert result.exception is None
@@ -1194,7 +1202,10 @@ def test_deploy_services_with_controller(
             result = runner.invoke(
                 services,
                 deploy_services_arguments(
-                    privkey=privkey_file.name, save_info=None, service_registry_controller=signer
+                    privkey=privkey_file.name,
+                    save_info=None,
+                    service_registry_controller=signer,
+                    token_network_registry_address=FAKE_ADDRESS,
                 ),
             )
             assert result.exception is None
@@ -1222,7 +1233,10 @@ def test_deploy_services_save_info_false(
             result = runner.invoke(
                 services,
                 deploy_services_arguments(
-                    privkey=privkey_file.name, save_info=False, service_registry_controller=None
+                    privkey=privkey_file.name,
+                    save_info=False,
+                    service_registry_controller=None,
+                    token_network_registry_address=FAKE_ADDRESS,
                 ),
             )
             assert result.exception is None
