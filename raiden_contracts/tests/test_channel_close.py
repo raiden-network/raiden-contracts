@@ -256,7 +256,12 @@ def test_close_nonce_zero(
     ev_handler.add(
         close_tx,
         ChannelEvent.CLOSED,
-        check_channel_closed(channel_identifier, A, 0, balance_proof_B[0]),
+        check_channel_closed(
+            channel_identifier=channel_identifier,
+            closing_participant=A,
+            nonce=0,
+            balance_hash=balance_proof_B[0],
+        ),
     )
     ev_handler.check()
 
@@ -551,7 +556,12 @@ def test_close_channel_event_no_offchain_transfers(
     ev_handler.add(
         txn_hash,
         ChannelEvent.CLOSED,
-        check_channel_closed(channel_identifier, A, 0, EMPTY_BALANCE_HASH),
+        check_channel_closed(
+            channel_identifier=channel_identifier,
+            closing_participant=A,
+            nonce=0,
+            balance_hash=EMPTY_BALANCE_HASH,
+        ),
     )
     ev_handler.check()
 
@@ -657,6 +667,11 @@ def test_close_channel_event(
     ev_handler.add(
         txn_hash,
         ChannelEvent.CLOSED,
-        check_channel_closed(channel_identifier, A, 3, balance_proof[0]),
+        check_channel_closed(
+            channel_identifier=channel_identifier,
+            closing_participant=A,
+            nonce=3,
+            balance_hash=balance_proof[0],
+        ),
     )
     ev_handler.check()
