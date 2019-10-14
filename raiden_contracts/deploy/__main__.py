@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import click
-from click import BadParameter, Context, Option, Parameter
+from click import BadParameter, Context, IntRange, Option, Parameter
 from eth_typing.evm import ChecksumAddress, HexAddress
 from eth_utils import is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
@@ -67,7 +67,7 @@ def common_options(func: Callable) -> Callable:
         help="Address of the Ethereum RPC provider",
     )
     @click.option("--wait", default=300, help="Max tx wait time in s.")
-    @click.option("--gas-price", default=5, type=int, help="Gas price to use in gwei")
+    @click.option("--gas-price", default=5, type=IntRange(min=1), help="Gas price to use in gwei")
     @click.option("--gas-limit", default=5_500_000)
     @click.option(
         "--contracts-version",
