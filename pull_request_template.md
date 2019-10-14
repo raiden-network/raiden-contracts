@@ -30,6 +30,10 @@ Any reviewer can check these:
 * Solidity specific conventions
     * [ ] Document arguments of functions in natspec
     * [ ] Care reentrancy problems
+    * if the PR adds or removes `require()` or `assert()`
+        * [ ] add an entry in Changelog
+        * [ ] open an issue in the client, light client, service repos so the change is reflected there
+        * Just adding a message in `require()` doesn't require these steps.
 * [ ] When you catch a require() failure in Solidity, look for a specific error message like `pytest.raises(TransactionFailed, match="error message"):`
 
 And before "merge" all checkboxes have to be checked.  If you find redundant points, remove them.
