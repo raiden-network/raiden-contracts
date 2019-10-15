@@ -47,7 +47,6 @@ from raiden_contracts.deploy.__main__ import (
 )
 from raiden_contracts.deploy.contract_deployer import (
     contracts_version_expects_deposit_limits,
-    contracts_version_has_initial_service_deposit,
     contracts_version_monitoring_service_takes_token_network_registry,
 )
 from raiden_contracts.deploy.contract_verifier import (
@@ -62,6 +61,7 @@ from raiden_contracts.tests.utils.constants import (
     SERVICE_DEPOSIT,
     UINT256_MAX,
 )
+from raiden_contracts.utils.versions import contracts_version_has_initial_service_deposit
 
 GAS_LIMIT = 5860000
 
@@ -1194,6 +1194,7 @@ def deploy_services_arguments(
     save_info: Optional[bool],
     service_registry_controller: Optional[HexAddress],
     token_network_registry_address: HexAddress,
+    contracts_version: Optional[str] = None,
 ) -> List:
     if save_info is None:
         arguments: List = []
@@ -1201,6 +1202,9 @@ def deploy_services_arguments(
         arguments = ["--save-info"]
     else:
         arguments = ["--no-save-info"]
+
+    if contracts_version is not None:
+        arguments += ["--contracts_version", contracts_version]
 
     if service_registry_controller:
         arguments += ["--service-registry-controller", service_registry_controller]
@@ -1259,6 +1263,29 @@ def test_deploy_services(
             assert result.exit_code == 0
             mock_deploy.assert_called_once()
             mock_verify.assert_called_once()
+
+
+def test_deploy_old_services(get_accounts: Callable, get_private_key: Callable) -> None:
+    """ Calling deploy raiden command """
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile() as privkey_file:
+        privkey_file.write(bytearray(priv_key, "ascii"))
+        privkey_file.flush()
+        with patch.object(Eth, "getBalance", return_value=1):
+            runner = CliRunner()
+            result = runner.invoke(
+                services,
+                deploy_services_arguments(
+                    privkey=privkey_file.name,
+                    save_info=None,
+                    service_registry_controller=None,
+                    token_network_registry_address=FAKE_ADDRESS,
+                    contracts_version="0.21.0",
+                ),
+            )
+            assert result.exception
+            assert result.exit_code == 2
 
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
