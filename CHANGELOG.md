@@ -7,7 +7,12 @@ Documents changes that result in:
 
 ## Unreleased
 
-## [0.33.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.32.0) - 2019-10-12
+## [0.33.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.1) - 2019-10-15
+
+- [#1288](https://github.com/raiden-network/raiden-contracts/pull/1288) fix MANIFEST.in
+- More keyword arguments in Python scripts
+
+## [0.33.0](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.0) - 2019-10-12
 
 - [#1260](https://github.com/raiden-network/raiden-contracts/pull/1260) Simplify the usage of ContractSourceManager. Users don't need to call compute_checksums() to initialize the object.
 - Some refactoring and typo fixes.
