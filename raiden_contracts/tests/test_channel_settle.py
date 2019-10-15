@@ -193,10 +193,10 @@ def test_settle_single_direct_transfer_for_closing_party(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
     token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
+        channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -279,10 +279,14 @@ def test_settle_single_direct_transfer_for_counterparty(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        **balance_proof_A,
+        **balance_proof_A._asdict(),
     )
     token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier, A, B, *balance_proof_A.values(), balance_proof_update_signature_B
+        channel_identifier,
+        A,
+        B,
+        *balance_proof_A._asdict().values(),
+        balance_proof_update_signature_B,
     ).call_and_transact({"from": B})
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -600,20 +604,24 @@ def test_settle_channel_event(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        **balance_proof_A,
+        **balance_proof_A._asdict(),
     )
     close_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
 
     token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B.values(), close_sig_A
+        channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
     ).call_and_transact({"from": A})
     token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier, A, B, *balance_proof_A.values(), balance_proof_update_signature_B
+        channel_identifier,
+        A,
+        B,
+        *balance_proof_A._asdict().values(),
+        balance_proof_update_signature_B,
     ).call_and_transact({"from": B})
 
     web3.testing.mine(settle_timeout + 1)

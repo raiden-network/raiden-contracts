@@ -132,12 +132,12 @@ def test_close_wrong_signature(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof,
+        **balance_proof._asdict(),
     )
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof.values(), closing_signature_A
+            channel_identifier, B, A, *balance_proof._asdict().values(), closing_signature_A
         ).call({"from": A})
 
 
@@ -237,7 +237,7 @@ def test_close_nonce_zero(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
 
     (
@@ -256,7 +256,7 @@ def test_close_nonce_zero(
     ev_handler = event_handler(token_network)
 
     close_tx = token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B.values(), close_sig_A
+        channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
     ).call_and_transact({"from": A})
 
     ev_handler.add(
@@ -266,7 +266,7 @@ def test_close_nonce_zero(
             channel_identifier=channel_identifier,
             closing_participant=A,
             nonce=0,
-            balance_hash=balance_proof_B["balance_hash"],
+            balance_hash=balance_proof_B.balance_hash,
         ),
     )
     ev_handler.check()
@@ -307,24 +307,24 @@ def test_close_first_argument_is_for_partner_transfer(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof,
+        **balance_proof._asdict(),
     )
     closing_sig_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof,
+        **balance_proof._asdict(),
     )
 
     # closeChannel fails, if the provided balance proof is from the same participant who closes
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof.values(), closing_sig_B
+            channel_identifier, B, A, *balance_proof._asdict().values(), closing_sig_B
         ).call({"from": B})
 
     # Else, closeChannel works with this balance proof
     token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof.values(), closing_sig_A
+        channel_identifier, B, A, *balance_proof._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
 
 
@@ -492,11 +492,11 @@ def test_close_channel_state(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
 
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
+        channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
 
     # Test that no balances have changed.
@@ -537,7 +537,7 @@ def test_close_channel_state(
         _,
     ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
-    assert B_balance_hash == balance_proof_B["balance_hash"]
+    assert B_balance_hash == balance_proof_B.balance_hash
     assert B_nonce == vals_B.nonce
 
 
@@ -610,10 +610,10 @@ def test_close_replay_reopened_channel(
         participant=A,
         channel_identifier=channel_identifier1,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
     token_network.functions.closeChannel(
-        channel_identifier1, B, A, *balance_proof_B.values(), closing_sig_A
+        channel_identifier1, B, A, *balance_proof_B._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
     token_network.functions.settleChannel(
@@ -635,7 +635,7 @@ def test_close_replay_reopened_channel(
     assert channel_identifier1 != channel_identifier2
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier2, B, A, *balance_proof_B.values(), closing_sig_A
+            channel_identifier2, B, A, *balance_proof_B._asdict().values(), closing_sig_A
         ).call({"from": A})
 
     # Balance proof with correct channel_identifier must work
@@ -651,10 +651,10 @@ def test_close_replay_reopened_channel(
         participant=A,
         channel_identifier=channel_identifier2,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B2,
+        **balance_proof_B2._asdict(),
     )
     token_network.functions.closeChannel(
-        channel_identifier2, B, A, *balance_proof_B2.values(), closing_sig_A2
+        channel_identifier2, B, A, *balance_proof_B2._asdict().values(), closing_sig_A2
     ).call_and_transact({"from": A})
 
 
@@ -681,11 +681,11 @@ def test_close_channel_event(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof,
+        **balance_proof._asdict(),
     )
 
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof.values(), close_sig
+        channel_identifier, B, A, *balance_proof._asdict().values(), close_sig
     ).call_and_transact({"from": A})
 
     ev_handler.add(
@@ -695,7 +695,7 @@ def test_close_channel_event(
             channel_identifier=channel_identifier,
             closing_participant=A,
             nonce=3,
-            balance_hash=balance_proof["balance_hash"],
+            balance_hash=balance_proof.balance_hash,
         ),
     )
     ev_handler.check()

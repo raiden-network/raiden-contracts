@@ -181,14 +181,14 @@ def print_gas_channel_cycle(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        **balance_proof_A,
+        **balance_proof_A._asdict(),
     )
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, locked_amount2, 3, locksroot2)
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
 
     for lock in pending_transfers_tree1.unlockable:
@@ -204,12 +204,16 @@ def print_gas_channel_cycle(
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecret")
 
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B.values(), closing_sig_A
+        channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".closeChannel")
 
     txn_hash = token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier, A, B, *balance_proof_A.values(), balance_proof_update_signature_B
+        channel_identifier,
+        A,
+        B,
+        *balance_proof_A._asdict().values(),
+        balance_proof_update_signature_B,
     ).call_and_transact({"from": B})
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".updateNonClosingBalanceProof")
 
@@ -278,14 +282,14 @@ def print_gas_monitoring_service(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_A,
+        **balance_proof_A._asdict(),
     )
     balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
     non_closing_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        **balance_proof_B,
+        **balance_proof_B._asdict(),
     )
     reward_proof_signature = sign_reward_proof(
         privatekey=get_private_key(B),
@@ -299,7 +303,7 @@ def print_gas_monitoring_service(
 
     # c1 closes channel
     txn_hash = token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_A.values(), closing_sig_A
+        channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_sig_A
     ).call_and_transact({"from": A})
     token_network.web3.testing.mine(4)
 
@@ -307,10 +311,10 @@ def print_gas_monitoring_service(
     txn_hash = monitoring_service_external.functions.monitor(
         A,
         B,
-        balance_proof_B["balance_hash"],
-        balance_proof_B["nonce"],
-        balance_proof_B["additional_hash"],
-        balance_proof_B["original_signature"],
+        balance_proof_B.balance_hash,
+        balance_proof_B.nonce,
+        balance_proof_B.additional_hash,
+        balance_proof_B.original_signature,
         non_closing_signature_B,  # non-closing signature
         reward_amount,
         token_network.address,  # token network address
