@@ -90,6 +90,18 @@ def deployer_0_4_0(web3: Web3) -> ContractDeployer:
     )
 
 
+@pytest.fixture(scope="session")
+def deployer_0_21_0(web3: Web3) -> ContractDeployer:
+    return ContractDeployer(
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
+        contracts_version="0.21.0",
+    )
+
+
 @pytest.mark.slow
 @pytest.fixture(scope="session")
 def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
@@ -161,6 +173,50 @@ def deployed_service_info(
         registration_duration=180 * SECONDS_PER_DAY,
         token_network_registry_address=token_network_registry_contract.address,
     )
+
+
+@pytest.mark.slow
+@pytest.fixture(scope="session")
+def test_deploy_service_0_4_0(
+    deployer_0_4_0: ContractDeployer,
+    token_address: HexAddress,
+    token_network_registry_contract: Contract,
+) -> None:
+    with pytest.raises(RuntimeError, match="older service contracts is not supported"):
+        deployer_0_4_0.deploy_service_contracts(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+            service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
+            initial_service_deposit_price=SERVICE_DEPOSIT // 2,
+            service_deposit_bump_numerator=6,
+            service_deposit_bump_denominator=5,
+            decay_constant=200 * SECONDS_PER_DAY,
+            min_price=1000,
+            registration_duration=180 * SECONDS_PER_DAY,
+            token_network_registry_address=token_network_registry_contract.address,
+        )
+
+
+@pytest.mark.slow
+@pytest.fixture(scope="session")
+def test_deploy_service_0_21_0(
+    deployer_0_21_0: ContractDeployer,
+    token_address: HexAddress,
+    token_network_registry_contract: Contract,
+) -> None:
+    with pytest.raises(RuntimeError, match="older service contracts is not supported"):
+        deployer_0_21_0.deploy_service_contracts(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+            service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
+            initial_service_deposit_price=SERVICE_DEPOSIT // 2,
+            service_deposit_bump_numerator=6,
+            service_deposit_bump_denominator=5,
+            decay_constant=200 * SECONDS_PER_DAY,
+            min_price=1000,
+            registration_duration=180 * SECONDS_PER_DAY,
+            token_network_registry_address=token_network_registry_contract.address,
+        )
 
 
 @pytest.mark.parametrize(
