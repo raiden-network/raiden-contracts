@@ -1,4 +1,5 @@
 from enum import IntEnum
+from typing import NamedTuple
 
 from eth_utils.units import units
 
@@ -32,3 +33,10 @@ class TestLockIndex(IntEnum):
     AMOUNT = 1
     SECRETHASH = 2
     SECRET = 3
+
+
+class OnchainBalanceProof(NamedTuple):
+    balance_hash: bytes
+    nonce: int
+    additional_hash: bytes
+    original_signature: bytes
