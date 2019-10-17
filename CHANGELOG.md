@@ -10,6 +10,7 @@ Documents changes that result in:
 ## [0.33.2](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.2) - 2019-10-17
 
 - [#1296](https://github.com/raiden-network/raiden-contracts/pull/1296) re-deploy service contracts
+- [#1296](https://github.com/raiden-network/raiden-contracts/pull/1296) removed Kovan deployment files (perhaps people don't use them)
 
 ## [0.33.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.1) - 2019-10-15
 
