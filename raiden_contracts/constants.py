@@ -8,7 +8,7 @@ from eth_utils import keccak
 from raiden_contracts.utils.type_aliases import ChainID
 
 # Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
-CONTRACTS_VERSION = "0.25.1"
+CONTRACTS_VERSION = "0.25.2"
 
 PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
 
