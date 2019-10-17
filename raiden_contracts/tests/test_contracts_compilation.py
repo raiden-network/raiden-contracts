@@ -126,11 +126,9 @@ def test_current_development_version() -> None:
     # deployment files exist
     assert contracts_deployed_path(NETWORKNAME_TO_ID["rinkeby"]).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["ropsten"]).exists()
-    assert contracts_deployed_path(NETWORKNAME_TO_ID["kovan"]).exists()
     # deployment files for service contracts also exist
     assert contracts_deployed_path(NETWORKNAME_TO_ID["rinkeby"], services=True).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["ropsten"], services=True).exists()
-    assert contracts_deployed_path(NETWORKNAME_TO_ID["kovan"], services=True).exists()
 
 
 def test_red_eyes_version() -> None:
@@ -152,7 +150,6 @@ def test_red_eyes_version() -> None:
     assert contracts_deployed_path(NETWORKNAME_TO_ID["mainnet"], contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["rinkeby"], contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["ropsten"], contracts_version).exists()
-    assert contracts_deployed_path(NETWORKNAME_TO_ID["kovan"], contracts_version).exists()
 
 
 def test_pre_limits_version() -> None:
@@ -173,7 +170,6 @@ def test_pre_limits_version() -> None:
     assert contracts_precompiled_path(contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["rinkeby"], contracts_version).exists()
     assert contracts_deployed_path(NETWORKNAME_TO_ID["ropsten"], contracts_version).exists()
-    assert contracts_deployed_path(NETWORKNAME_TO_ID["kovan"], contracts_version).exists()
 
 
 def contract_manager_meta(contracts_path: Path) -> None:

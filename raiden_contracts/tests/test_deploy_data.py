@@ -34,7 +34,7 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
-@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
+@pytest.mark.parametrize("chain_id", [3, 4, 5])
 @pytest.mark.parametrize("services", [False, True])
 def test_deploy_data_file_exists(
     version: Optional[str], chain_id: ChainID, services: bool
@@ -60,7 +60,7 @@ RAIDEN_CONTRACT_NAMES = ("TokenNetworkRegistry", "SecretRegistry")
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
+@pytest.mark.parametrize("chain_id", [3, 4, 5])
 def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data
@@ -76,7 +76,7 @@ SERVICE_CONTRACT_NAMES = ("ServiceRegistry", "MonitoringService", "OneToN", "Use
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
+@pytest.mark.parametrize("chain_id", [3, 4, 5])
 def test_deploy_data_has_fields_services(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data
@@ -89,7 +89,7 @@ def test_deploy_data_has_fields_services(version: Optional[str], chain_id: Chain
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
+@pytest.mark.parametrize("chain_id", [3, 4, 5])
 def test_deploy_data_all(version: Optional[str], chain_id: ChainID) -> None:
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     data_default = get_contracts_deployment_info(chain_id, version)
