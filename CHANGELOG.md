@@ -7,6 +7,10 @@ Documents changes that result in:
 
 ## Unreleased
 
+## [0.33.2](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.2) - 2019-10-17
+
+- []() re-deploy service contracts
+
 ## [0.33.1](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.1) - 2019-10-15
 
 - [#1288](https://github.com/raiden-network/raiden-contracts/pull/1288) fix MANIFEST.in
