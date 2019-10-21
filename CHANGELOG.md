@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1299](https://github.com/raiden-network/raiden-contracts/pull/1299) fix consistency of data_0.25.2
+
 ## [0.33.2](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.2) - 2019-10-17
 
 - [#1296](https://github.com/raiden-network/raiden-contracts/pull/1296) re-deploy service contracts
