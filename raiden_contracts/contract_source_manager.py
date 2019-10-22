@@ -102,23 +102,21 @@ class ContractSourceManager:
         return ContractManager(target_path)
 
     def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
-        """ Compare source code checksums with those from a precompiled file """
+        """ Compare source code checksums with those from a precompiled file
+
+        If `contract_name` is None, all contracts checksums and the overall checksum are checked.
+        """
 
         # We get the precompiled file data
         contracts_precompiled = ContractManager(precompiled_path)
 
         # Compare each contract source code checksum with the one from the precompiled file
         for contract, checksum in self.contracts_checksums.items():
-            try:
-                # Silence mypy
-                assert contracts_precompiled.contracts_checksums is not None
-                precompiled_checksum = contracts_precompiled.contracts_checksums[contract]
-            except KeyError:
-                raise ContractSourceManagerVerificationError(f"No checksum for {contract}")
-            if precompiled_checksum != checksum:
-                raise ContractSourceManagerVerificationError(
-                    f"checksum of {contract} does not match {precompiled_checksum} != {checksum}"
-                )
+            _verify_single_precompiled_checksum(
+                checked_checksums=contracts_precompiled.contracts_checksums,
+                contract_name=contract,
+                expected_checksum=checksum,
+            )
 
         # Compare the overall source code checksum with the one from the precompiled file
         if self.overall_checksum != contracts_precompiled.overall_checksum:
@@ -184,3 +182,18 @@ def check_runtime_codesize(d: Dict) -> None:
         runtime_code_len = len(compilation["bin-runtime"]) // 2
         if runtime_code_len > 0x6000:
             raise RuntimeError(f"{name}'s runtime code is too big ({runtime_code_len} bytes).")
+
+
+def _verify_single_precompiled_checksum(
+    checked_checksums: Dict[str, str], contract_name: str, expected_checksum: str
+) -> None:
+    """ Get `checked_checksums[contract_name]` and compare it against `expected_checksum` """
+    try:
+        precompiled_checksum = checked_checksums[contract_name]
+    except KeyError:
+        raise ContractSourceManagerVerificationError(f"No checksum for {contract_name}")
+    if precompiled_checksum != expected_checksum:
+        raise ContractSourceManagerVerificationError(
+            f"checksum of {contract_name} does not match. got {precompiled_checksum} != "
+            "expected {expected_checksum}"
+        )
