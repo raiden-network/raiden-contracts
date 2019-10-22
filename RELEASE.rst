@@ -66,18 +66,11 @@ We **DO** need to manually check whether source code changes have been done sinc
 Bump Smart Contracts Version
 ----------------------------
 
-::
-
-    bumpversion --config-file ./.bumpversion_contracts.cfg [PART]
-
-``[PART]`` can be ``major``, ``minor``, ``patch``.
-
-* The script changes the version located here:
+* Edit the version located here:
   * ``CONTRACTS_VERSION`` https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/constants.py#L4
-  * This string will be filled in the contract templates.
 * We are currently at a ``0.*`` version. Our first ``major`` bump will be made when a stable, not-limited version will be released on the main net.
-* ``minor`` bumps (for now) are made for contract ABI changes. An added or removed ``require()`` or ``assert()`` counts as ABI changes.
-* ``patch`` bumps are made for any fix that does not touch the ABI.
+* ``minor`` bumps are made for any contract changes. A modified comment counts as a contract change. The new version should match the next package version.
+* ``patch`` bumps are never used.
 
 .. _deploy-contracts:
 
@@ -157,7 +150,7 @@ Before bumping the package version, ``git add`` the deployment data at ``data/de
 * The script changes the version located here:
   * ``VERSION`` https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/setup.py#L15
 * We are currently at a ``0.*`` version. Our first ``major`` bump will be made when a stable, not-limited version will be released on the main net.
-* for now, ``minor`` bumps are done if ``minor`` or ``patch`` smart contract bumps are done or when we introduce backwards incompatible changes to package deliverables (e.g. changing variable names or helper functions).
+* for now, ``minor`` bumps are done if contracts_version changes.
 * ``patch`` bumps are made for any other fix
 
 This command triggers a commit and a local tag is created. A PR must be made with the commit changes.
