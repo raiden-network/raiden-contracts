@@ -83,7 +83,9 @@ def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
         contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
     """
     joined_file = Path(__file__).parent.joinpath("joined.sol")
-    remapping = {module: str(path) for module, path in contracts_source_path().items()}
+    remapping = {
+        module: str(path) for module, path in contracts_source_path(contracts_version=None).items()
+    }
     command = [
         "./utils/join_contracts.py",
         "--import-map",

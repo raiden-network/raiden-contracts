@@ -3,12 +3,12 @@ import hashlib
 import json
 from os import chdir
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from solc import compile_files
 
 from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS, DeploymentModule
-from raiden_contracts.contract_manager import ContractManager
+from raiden_contracts.contract_manager import ContractManager, contracts_data_path
 
 _BASE = Path(__file__).parent
 
@@ -144,15 +144,16 @@ class ContractSourceManager:
         return (checksums, overall_checksum)
 
 
-def contracts_source_path() -> Dict[str, Path]:
-    return contracts_source_path_with_stem(Path("data/source"))
+def contracts_source_path(contracts_version: Optional[str]) -> Dict[str, Path]:
+    data = contracts_data_path(contracts_version)
+    return contracts_source_path_with_stem(data.joinpath("source"))
 
 
 def contracts_source_path_of_deployment_module(module: DeploymentModule) -> Path:
     if module == DeploymentModule.RAIDEN:
-        return contracts_source_path()["raiden"]
+        return contracts_source_path(contracts_version=None)["raiden"]
     elif module == DeploymentModule.SERVICES:
-        return contracts_source_path()["services"]
+        return contracts_source_path(contracts_version=None)["services"]
     else:
         raise ValueError(f"No source known for module {module}")
 
