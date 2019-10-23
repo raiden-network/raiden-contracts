@@ -22,6 +22,7 @@ from raiden_contracts.contract_source_manager import (
     ContractSourceManager,
     ContractSourceManagerVerificationError,
     contracts_source_path,
+    verify_single_precompiled_checksum_on_nonexistent_contract_name,
 )
 
 
@@ -256,3 +257,8 @@ def test_contract_source_manager_constructor_with_wrong_type() -> None:
     """ ConstructSourceManager's constructor raises TypeError on a wrong kind of argument """
     with pytest.raises(TypeError):
         ContractSourceManager(None)  # type: ignore
+
+
+def test_verify_single_precompiled_cyhecksum_on_nonexistent_contract_name() -> None:
+    with pytest.raises(ContractSourceManagerVerificationError, match="No checksum for"):
+        verify_single_precompiled_checksum_on_nonexistent_contract_name()
