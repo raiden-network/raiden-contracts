@@ -197,3 +197,10 @@ def _verify_single_precompiled_checksum(
             f"checksum of {contract_name} does not match. got {precompiled_checksum} != "
             "expected {expected_checksum}"
         )
+
+
+def verify_single_precompiled_checksum_on_nonexistent_contract_name() -> None:
+    """ A functiohn for testing the case where the contract name is not found """
+    _verify_single_precompiled_checksum(
+        checked_checksums={}, contract_name="a", expected_checksum="abc"
+    )
