@@ -9,7 +9,7 @@ from raiden_contracts.contract_source_manager import ContractSourceManager, cont
 
 @pytest.fixture(scope="session")
 def contract_source_manager() -> ContractSourceManager:
-    return ContractSourceManager(contracts_source_path())
+    return ContractSourceManager(contracts_source_path(contracts_version=None))
 
 
 @pytest.fixture(scope="session")

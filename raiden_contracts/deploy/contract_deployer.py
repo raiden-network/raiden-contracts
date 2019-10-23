@@ -55,7 +55,9 @@ class ContractDeployer(ContractVerifier):
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
         if self.contracts_version in [None, CONTRACTS_VERSION]:
-            contract_manager_source = ContractSourceManager(contracts_source_path())
+            contract_manager_source = ContractSourceManager(
+                contracts_source_path(contracts_version=contracts_version)
+            )
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
             LOG.info("Skipped checks against the source code because it is not available.")

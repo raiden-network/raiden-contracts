@@ -52,7 +52,7 @@ class VerifyContracts(Command):
             ContractSourceManager,
             contracts_source_path,
         )
-        manager = ContractSourceManager(contracts_source_path())
+        manager = ContractSourceManager(contracts_source_path(contracts_version=None))
         manager.verify_precompiled_checksums(contracts_precompiled_path())
 
 

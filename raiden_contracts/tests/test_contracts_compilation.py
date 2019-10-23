@@ -42,7 +42,7 @@ def test_nonexistent_precompiled_path() -> None:
 
 def test_verification_overall_checksum() -> None:
     """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
-    manager = ContractSourceManager(contracts_source_path())
+    manager = ContractSourceManager(contracts_source_path(contracts_version=None))
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     assert manager.overall_checksum
@@ -75,7 +75,7 @@ def test_verification_overall_checksum() -> None:
 
 def test_verification_contracts_checksums() -> None:
     """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
-    manager = ContractSourceManager(contracts_source_path())
+    manager = ContractSourceManager(contracts_source_path(contracts_version=None))
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
     assert manager.contracts_checksums
@@ -119,7 +119,7 @@ def test_current_development_version() -> None:
     assert manager.contracts_version == contracts_version
     check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
 
-    for _, source_path in contracts_source_path().items():
+    for _, source_path in contracts_source_path(contracts_version=None).items():
         assert source_path.exists()
     assert contracts_precompiled_path().exists()
 
@@ -218,13 +218,15 @@ def test_contract_manager_without_contracts() -> None:
 
 def test_contract_manager_compile() -> None:
     """ Check the ABI in the sources """
-    contract_source_manager_meta(contracts_source_path())
+    contract_source_manager_meta(contracts_source_path(contracts_version=None))
 
 
 def test_contract_manager_json(tmpdir: LocalPath) -> None:
     """ Check the ABI in contracts.json """
     precompiled_path = Path(tmpdir).joinpath("contracts.json")
-    ContractSourceManager(contracts_source_path()).compile_contracts(precompiled_path)
+    ContractSourceManager(contracts_source_path(contracts_version=None)).compile_contracts(
+        precompiled_path
+    )
     # try to load contracts from a precompiled file
     contract_manager_meta(precompiled_path)
 
