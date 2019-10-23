@@ -10,10 +10,10 @@ contract SecretRegistry {
     event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 
     /// @notice Registers a hash time lock secret and saves the block number.
-    /// This allows the lock to be unlocked after the expiration block
-    /// @param secret The secret used to lock the hash time lock
+    /// This allows the lock to be unlocked after the expiration block.
+    /// @param secret The secret used to lock the hash time lock.
     /// @return true if secret was registered, false if the secret was already
-    /// registered
+    /// registered.
     function registerSecret(bytes32 secret) public returns (bool) {
         bytes32 secrethash = sha256(abi.encodePacked(secret));
         if (secrethash_to_block[secrethash] > 0) {
@@ -25,9 +25,9 @@ contract SecretRegistry {
     }
 
     /// @notice Registers multiple hash time lock secrets and saves the block
-    /// number
-    /// @param secrets The array of secrets to be registered
-    /// @return true if all secrets could be registered, false otherwise
+    /// number.
+    /// @param secrets The array of secrets to be registered.
+    /// @return true if all secrets could be registered, false otherwise.
     function registerSecretBatch(bytes32[] memory secrets) public returns (bool) {
         bool completeSuccess = true;
         for(uint i = 0; i < secrets.length; i++) {
@@ -38,9 +38,9 @@ contract SecretRegistry {
         return completeSuccess;
     }
 
-    /// @notice Get the stored block number at which the secret was revealed
-    /// @param secrethash The hash of the registered secret `keccak256(secret)`
-    /// @return The block number at which the secret was revealed
+    /// @notice Get the stored block number at which the secret was revealed.
+    /// @param secrethash The hash of the registered secret `keccak256(secret)`.
+    /// @return The block number at which the secret was revealed.
     function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256) {
         return secrethash_to_block[secrethash];
     }
