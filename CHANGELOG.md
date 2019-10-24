@@ -7,6 +7,8 @@ Documents changes that result in:
 
 ## Unreleased
 
+- [#1318](https://github.com/raiden-network/raiden-contracts/pull/1318) add `make install-dev`.
+
 ## [0.33.3](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.3) - 2019-10-24
 
 - [#1313](https://github.com/raiden-network/raiden-contracts/pull/1313) fix deployment using --contracts-version CONTRACT_VERSION, even when ``data`` and ``data_CONTRACTS_VERSION`` contain different sources

@@ -1,4 +1,4 @@
-.PHONY: all compile_contracts verify_contracts install lint isort black autopep8 format mypy clean release update_gas_costs
+.PHONY: all compile_contracts verify_contracts install install-dev lint isort black autopep8 format mypy clean release update_gas_costs
 
 all: verify_contracts install
 
@@ -13,6 +13,10 @@ update_gas_costs:
 
 install:
 	pip install -r requirements.txt
+	pip install -e .
+
+install-dev:
+	pip install -r requirements-dev.txt
 	pip install -e .
 
 ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contracts/
