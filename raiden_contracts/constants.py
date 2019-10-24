@@ -7,7 +7,7 @@ from eth_utils import keccak
 
 from raiden_contracts.utils.type_aliases import ChainID
 
-# Do not change this, this is handled by bumpversion with .bumpversion_contracts.cfg
+# The last digit is supposed to be zero always. See `RELEASE.rst`.
 CONTRACTS_VERSION = "0.33.0"
 
 PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
