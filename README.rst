@@ -44,6 +44,7 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
     from raiden_contracts.contract_manager import (
         ContractManager,
         contracts_precompiled_path,
+        get_contracts_deployment_info,
     )
     from raiden_contracts.constants import (
         CONTRACT_TOKEN_NETWORK_REGISTRY,
