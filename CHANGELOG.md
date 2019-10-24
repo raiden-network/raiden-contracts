@@ -7,8 +7,11 @@ Documents changes that result in:
 
 ## Unreleased
 
-- [#1313](https://github.com/raiden-network/raiden-contracts/pull/1313) fix deployment using --contracts-version CONTRACT_VERSION, even when ``data`` and ``data_CONTRACTS_VERSION`` contain different sources.
+## [0.33.3](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.3) - 2019-10-24
+
+- [#1313](https://github.com/raiden-network/raiden-contracts/pull/1313) fix deployment using --contracts-version CONTRACT_VERSION, even when ``data`` and ``data_CONTRACTS_VERSION`` contain different sources
 - [#1299](https://github.com/raiden-network/raiden-contracts/pull/1299) fix consistency of data_0.25.2
+- [#1306](https://github.com/raiden-network/raiden-contracts/pull/1306) move data_0.25.2 to data_0.33.0
 
 ## [0.33.2](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.2) - 2019-10-17
 
