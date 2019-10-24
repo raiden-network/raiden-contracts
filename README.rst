@@ -109,15 +109,11 @@ If you want to test and further develop outside the officially provided source c
 
 If you want to install the package from source::
 
-    make install
+    make install-dev
 
 To verify that the precompiled ``raiden_contracts/data/contracts.json`` file corresponds to the source code of the contracts::
 
     make verify_contracts
-
-For development and testing, you have to install additional dependencies::
-
-    pip install -r requirements-dev.txt
 
 
 Compile the contracts
