@@ -48,7 +48,7 @@ class ContractVerifier:
 
         if self.verify_deployment_data(deployment_data):
             print(
-                f"Deployment info from {deployment_file_path} has been verified"
+                f"Deployment info from {deployment_file_path} has been verified "
                 "and it is CORRECT."
             )
 
