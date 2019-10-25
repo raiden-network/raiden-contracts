@@ -55,7 +55,7 @@ from raiden_contracts.deploy.contract_verifier import (
 )
 from raiden_contracts.tests.utils import FAKE_ADDRESS, get_random_privkey
 from raiden_contracts.tests.utils.constants import (
-    CONTRACT_DEPLOYER_ADDRESS,
+    DEPLOYER_ADDRESS,
     FAUCET_PRIVATE_KEY,
     SECONDS_PER_DAY,
     SERVICE_DEPOSIT,
@@ -164,7 +164,7 @@ def deployed_service_info(
     return deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
-        service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
+        service_registry_controller=DEPLOYER_ADDRESS,
         initial_service_deposit_price=SERVICE_DEPOSIT // 2,
         service_deposit_bump_numerator=6,
         service_deposit_bump_denominator=5,
@@ -186,7 +186,7 @@ def test_deploy_service_0_4_0(
         deployer_0_4_0.deploy_service_contracts(
             token_address=token_address,
             user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
-            service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
+            service_registry_controller=DEPLOYER_ADDRESS,
             initial_service_deposit_price=SERVICE_DEPOSIT // 2,
             service_deposit_bump_numerator=6,
             service_deposit_bump_denominator=5,
@@ -208,7 +208,7 @@ def test_deploy_service_0_21_0(
         deployer_0_21_0.deploy_service_contracts(
             token_address=token_address,
             user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
-            service_registry_controller=CONTRACT_DEPLOYER_ADDRESS,
+            service_registry_controller=DEPLOYER_ADDRESS,
             initial_service_deposit_price=SERVICE_DEPOSIT // 2,
             service_deposit_bump_numerator=6,
             service_deposit_bump_denominator=5,
@@ -345,14 +345,14 @@ def test_deploy_script_raiden(
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
         "constructor_arguments"
-    ][0] = CONTRACT_DEPLOYER_ADDRESS
+    ][0] = DEPLOYER_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
         "constructor_arguments"
-    ][1] = CONTRACT_DEPLOYER_ADDRESS
+    ][1] = DEPLOYER_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 
@@ -848,7 +848,7 @@ def test_validate_address_not_an_address() -> None:
 
 def test_validate_address_happy_path() -> None:
     """ validate_address(x, y, address) should return the same address checksumed """
-    address = CONTRACT_DEPLOYER_ADDRESS
+    address = DEPLOYER_ADDRESS
     assert validate_address(MagicMock(), MagicMock(), address) == to_checksum_address(address)
 
 
