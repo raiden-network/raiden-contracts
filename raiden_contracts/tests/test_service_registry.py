@@ -15,12 +15,12 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
 from raiden_contracts.tests.utils.constants import (
-    CONTRACT_DEPLOYER_ADDRESS,
     DEFAULT_BUMP_DENOMINATOR,
     DEFAULT_BUMP_NUMERATOR,
     DEFAULT_DECAY_CONSTANT,
     DEFAULT_MIN_PRICE,
     DEFAULT_REGISTRATION_DURATION,
+    DEPLOYER_ADDRESS,
     SECONDS_PER_DAY,
     SERVICE_DEPOSIT,
     UINT256_MAX,
@@ -180,7 +180,7 @@ def test_changing_duration(
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=new_duration,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     # make sure that the duration has changed.
     assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
@@ -206,7 +206,7 @@ def test_changing_duration_to_huge_value(
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=new_duration,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     # make sure that the duration has changed.
     assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
@@ -226,7 +226,7 @@ def test_changing_bump_numerator(service_registry: Contract) -> None:
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.price_bump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
 
 
@@ -235,7 +235,7 @@ def test_calling_internal_bump_paramter_change(service_registry: Contract) -> No
     with pytest.raises(MismatchedABI):
         service_registry.functions.setPriceBumpParameters(
             DEFAULT_BUMP_NUMERATOR + 1, DEFAULT_BUMP_DENOMINATOR
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
@@ -247,7 +247,7 @@ def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
             _decay_constant=DEFAULT_DECAY_CONSTANT,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_changing_bump_denominator(service_registry: Contract) -> None:
@@ -258,7 +258,7 @@ def test_changing_bump_denominator(service_registry: Contract) -> None:
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert (
         service_registry.functions.price_bump_denominator().call() == DEFAULT_BUMP_DENOMINATOR + 1
     )
@@ -273,7 +273,7 @@ def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> Non
             _decay_constant=DEFAULT_DECAY_CONSTANT,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_zero_numerator_fail(service_registry: Contract) -> None:
@@ -285,7 +285,7 @@ def test_zero_numerator_fail(service_registry: Contract) -> None:
             _decay_constant=DEFAULT_DECAY_CONSTANT,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_changing_decay_constant(service_registry: Contract) -> None:
@@ -296,7 +296,7 @@ def test_changing_decay_constant(service_registry: Contract) -> None:
         _decay_constant=DEFAULT_DECAY_CONSTANT + 100,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
 
 
@@ -308,7 +308,7 @@ def test_very_small_decay_cosntant(service_registry: Contract) -> None:
         _decay_constant=1,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.decayedPrice(100000, 100).call() == DEFAULT_MIN_PRICE
 
 
@@ -317,7 +317,7 @@ def test_internal_set_decay_constant(service_registry: Contract) -> None:
     with pytest.raises(MismatchedABI):
         service_registry.functions.setDecayConstant(
             DEFAULT_DECAY_CONSTANT + 100
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
@@ -329,7 +329,7 @@ def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
             _decay_constant=2 ** 40,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_very_big_decay_cosntant(service_registry: Contract) -> None:
@@ -340,7 +340,7 @@ def test_very_big_decay_cosntant(service_registry: Contract) -> None:
         _decay_constant=2 ** 40 - 1,
         _min_price=DEFAULT_MIN_PRICE,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.decayedPrice(100000, 11990300).call() == 99998
 
 
@@ -353,7 +353,7 @@ def test_zero_denominator_fail(service_registry: Contract) -> None:
             _decay_constant=DEFAULT_DECAY_CONSTANT,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
@@ -364,7 +364,7 @@ def test_changing_min_price(service_registry: Contract) -> None:
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=DEFAULT_MIN_PRICE * 2,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE * 2
 
 
@@ -377,7 +377,7 @@ def test_changing_min_price_above_current(service_registry: Contract) -> None:
         _decay_constant=DEFAULT_DECAY_CONSTANT,
         _min_price=current_price + 1,
         _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.currentPrice().call() == current_price + 1
 
 
@@ -385,7 +385,7 @@ def test_internal_min_price(service_registry: Contract) -> None:
     """Calling the internal setMinPrice() must fail"""
     with pytest.raises(MismatchedABI):
         service_registry.functions.setMinPrice(DEFAULT_MIN_PRICE * 2).call_and_transact(
-            {"from": CONTRACT_DEPLOYER_ADDRESS}
+            {"from": DEPLOYER_ADDRESS}
         )
 
 
@@ -412,7 +412,7 @@ def test_parameter_change_on_no_controller(service_registry_without_controller: 
             _decay_constant=DEFAULT_DECAY_CONSTANT,
             _min_price=DEFAULT_MIN_PRICE * 2,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+        ).call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry_without_controller.functions.min_price().call() == DEFAULT_MIN_PRICE
 
 
@@ -462,9 +462,7 @@ def test_deprecation_switch(
     """The controller turns on the deprecation switch and somebody tries to deposit"""
     # The controller turns on the deprecation switch
     assert not service_registry.functions.deprecated().call()
-    service_registry.functions.setDeprecationSwitch().call_and_transact(
-        {"from": CONTRACT_DEPLOYER_ADDRESS}
-    )
+    service_registry.functions.setDeprecationSwitch().call_and_transact({"from": DEPLOYER_ADDRESS})
     assert service_registry.functions.deprecated().call()
     # A user tries to make a deposit
     (A,) = get_accounts(1)
@@ -497,9 +495,7 @@ def test_deprecation_immediate_payout(
     deposit_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)
     deposit = web3.eth.contract(abi=deposit_abi, address=deposit_address)
     # The controller turns on the deprecation switch
-    service_registry.functions.setDeprecationSwitch().call_and_transact(
-        {"from": CONTRACT_DEPLOYER_ADDRESS}
-    )
+    service_registry.functions.setDeprecationSwitch().call_and_transact({"from": DEPLOYER_ADDRESS})
     # The user successfully withdraws the deposit
     deposit.functions.withdraw(A).call_and_transact({"from": A})
     # The user has all the balance it has minted
@@ -527,7 +523,7 @@ def test_deploying_service_registry_with_denominator_zero(
         deploy_tester_contract(
             CONTRACT_SERVICE_REGISTRY,
             _token_for_registration=custom_token.address,
-            _controller=CONTRACT_DEPLOYER_ADDRESS,
+            _controller=DEPLOYER_ADDRESS,
             _initial_price=int(3000e18),
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=0,  # instead of DEFAULT_BUMP_DENOMINATOR

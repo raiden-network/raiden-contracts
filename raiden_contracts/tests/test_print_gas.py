@@ -17,11 +17,7 @@ from raiden_contracts.constants import (
     MessageTypeId,
 )
 from raiden_contracts.contract_manager import gas_measurements
-from raiden_contracts.tests.utils.constants import (
-    CONTRACT_DEPLOYER_ADDRESS,
-    SERVICE_DEPOSIT,
-    UINT256_MAX,
-)
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
 
@@ -121,7 +117,7 @@ def print_gas_token_network_create(
     registry = get_token_network_registry(**token_network_registry_constructor_args)
     txn_hash = registry.functions.createERC20TokenNetwork(
         custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact({"from": CONTRACT_DEPLOYER_ADDRESS})
+    ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK_REGISTRY + " createERC20TokenNetwork")
 

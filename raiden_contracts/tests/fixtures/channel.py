@@ -20,7 +20,7 @@ from raiden_contracts.tests.utils import (
     get_participants_hash,
     get_settlement_amounts,
 )
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS, OnchainBalanceProof
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, OnchainBalanceProof
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
@@ -60,7 +60,7 @@ def create_channel(token_network: Contract, web3: Web3) -> Callable:
 @pytest.fixture()
 def assign_tokens(token_network: Contract, custom_token: Contract) -> Callable:
     def get(participant: HexAddress, deposit: int) -> None:
-        owner = CONTRACT_DEPLOYER_ADDRESS
+        owner = DEPLOYER_ADDRESS
         balance = custom_token.functions.balanceOf(participant).call()
         owner_balance = custom_token.functions.balanceOf(owner).call()
         amount = max(deposit - balance, 0)

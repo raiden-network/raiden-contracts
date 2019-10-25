@@ -8,7 +8,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.contract_manager import ContractManager
-from raiden_contracts.tests.utils.constants import CONTRACT_DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ def deploy_tester_contract(
     def f(contract_name: str, **kwargs: Dict) -> Contract:
         json_contract = contracts_manager.get_contract(contract_name)
         contract = deploy_contract(
-            web3, CONTRACT_DEPLOYER_ADDRESS, json_contract["abi"], json_contract["bin"], **kwargs
+            web3, DEPLOYER_ADDRESS, json_contract["abi"], json_contract["bin"], **kwargs
         )
         return contract
 
@@ -74,7 +74,7 @@ def deploy_tester_contract_txhash(
     def f(contract_name: str, **kwargs: Dict) -> str:
         json_contract = contracts_manager.get_contract(contract_name)
         txhash = deploy_contract_txhash(
-            web3, CONTRACT_DEPLOYER_ADDRESS, json_contract["abi"], json_contract["bin"], **kwargs
+            web3, DEPLOYER_ADDRESS, json_contract["abi"], json_contract["bin"], **kwargs
         )
         return txhash
 

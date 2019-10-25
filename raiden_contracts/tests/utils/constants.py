@@ -16,7 +16,7 @@ passphrase = "0"
 FAUCET_PRIVATE_KEY = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 FAUCET_ADDRESS = private_key_to_address(FAUCET_PRIVATE_KEY)
 FAUCET_ALLOWANCE = 100 * int(units["ether"])
-CONTRACT_DEPLOYER_ADDRESS = FAUCET_ADDRESS
+DEPLOYER_ADDRESS = FAUCET_ADDRESS
 NONEXISTENT_LOCKSROOT = b"\x00" * 32
 SECONDS_PER_DAY = 60 * 60 * 24
 
