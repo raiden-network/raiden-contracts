@@ -205,8 +205,8 @@ class ContractDeployer(ContractVerifier):
     def register_token_network(
         self,
         token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: str,
-        token_address: str,
+        token_registry_address: HexAddress,
+        token_address: HexAddress,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
     ) -> HexAddress:
@@ -232,8 +232,8 @@ class ContractDeployer(ContractVerifier):
     def _register_token_network_without_limits(
         self,
         token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: str,
-        token_address: str,
+        token_registry_address: HexAddress,
+        token_address: HexAddress,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
     ) -> HexAddress:
@@ -268,8 +268,8 @@ class ContractDeployer(ContractVerifier):
     def _register_token_network_with_limits(
         self,
         token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: str,
-        token_address: str,
+        token_registry_address: HexAddress,
+        token_address: HexAddress,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
     ) -> HexAddress:
