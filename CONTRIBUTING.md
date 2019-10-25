@@ -70,6 +70,8 @@ following the usual prefix of Ethereum signatures ``\x19Ethereum Signed Message:
 
 This repository follows the same guidelines as the Raiden Client, regarding the Python code used in tests and scripts: https://github.com/raiden-network/raiden/blob/master/CONTRIBUTING.md#coding-style.
 
+We consider it's good to have one function just doing one thing.
+
 ## Pull-Request Checklist
 
 [Moved to the PR template](./pull_request_template.md)
