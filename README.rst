@@ -295,13 +295,10 @@ Why am I seeing many version numbers?
   You are seeing a version number of the PyPI package and several version numbers of smart contract sources.  This same PyPI package provides access to multiple deployments of smart contracts. People use ``raiden-contracts`` PyPI package to interact with a mainnet deployment made a while ago, an older testnet deployment without deposit limits, or a newer testnet deployment with deposit limits and with service contracts.
 
 Why does the same package provide different versions of smart contracts?
-  Because a prominent user (``raiden``) is using a single version of this package in order to access different versions of smart contracts.
+  Because a prominent user (``raiden``) uses a single version of this package. They might one day start using multiple TokenNetwork deployments from multiple contracts versions.
 
-Are the package version and the smart contract versions related?
-  No, not much. The smart contract versions of old deployments (``XYZ`` in ``raiden_contracts/contracts/data_<XYZ>``) never change. The smart contract version of the newest deployment (found in JSON files in ``raiden_contracts/contracts/data/``) sometimes increases with the package version but not always.
-
-Why isn't the newest contract version synced with the package version?
-  Just by the historical inertia. We have been using the ``bumpversion`` command in certain ways so that the contract version and the package version go further apart.  There is a `proposal <https://github.com/raiden-network/raiden-contracts/issues/584>`__ to sync smart contract versions to the package version sometimes.
+Are the package version and the smart contracts versions related?
+  No, not much. The smart contracts versions of old deployments (``XYZ`` in ``raiden_contracts/contracts/data_<XYZ>``) never change. The smart contract version of the newest deployment (found in JSON files in ``raiden_contracts/contracts/data/``) sometimes increases with the package version but not always.
 
 How to find the addresses of deployed contracts?
   Search above for ``get_contracts_deployed`` and see the usage.
