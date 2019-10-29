@@ -425,7 +425,7 @@ def test_recoverAddressFromRewardProof(
     assert recovered_address == B
 
 
-def test_monitorin_service_deploy_with_token_address_zero(
+def test_monitoring_service_deploy_with_token_address_zero(
     deploy_tester_contract: Callable,
     service_registry: Contract,
     uninitialized_user_deposit_contract: Contract,
