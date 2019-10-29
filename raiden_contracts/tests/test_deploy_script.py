@@ -1362,7 +1362,7 @@ def test_verify_script(mock_verify: MagicMock) -> None:
 
 
 def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg(
-    token_network_registry_contract: Contract
+    token_network_registry_contract: Contract,
 ) -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS
@@ -1380,7 +1380,7 @@ def test_verify_monitoring_service_deployment_with_wrong_first_constructor_arg(
 
 
 def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address(
-    token_network_registry_contract: Contract
+    token_network_registry_contract: Contract,
 ) -> None:
     mock_token = MagicMock()
     mock_token.call.return_value = EMPTY_ADDRESS

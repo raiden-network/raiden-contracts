@@ -9,12 +9,13 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
+    CONTRACT_MONITORING_SERVICE,
     LOCKSROOT_OF_NO_LOCKS,
     TEST_SETTLE_TIMEOUT_MIN,
     MessageTypeId,
     MonitoringServiceEvent,
 )
-from raiden_contracts.tests.utils import SERVICE_DEPOSIT
+from raiden_contracts.tests.utils import EMPTY_HEXADDRESS, SERVICE_DEPOSIT
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -422,3 +423,22 @@ def test_recoverAddressFromRewardProof(
         signature=monitor_data_internal["reward_proof_signature"],
     ).call()
     assert recovered_address == B
+
+
+def test_monitorin_service_deploy_with_token_address_zero(
+    deploy_tester_contract: Callable,
+    service_registry: Contract,
+    uninitialized_user_deposit_contract: Contract,
+    token_network_registry_contract: Contract,
+) -> None:
+    # No good error message is available due to
+    # https://github.com/raiden-network/raiden-contracts/issues/1329
+    # with pytest.raises(TransactionFailed, match="Token at address zero"):
+    with pytest.raises(TransactionFailed):
+        deploy_tester_contract(
+            contract_name=CONTRACT_MONITORING_SERVICE,
+            _token_address=EMPTY_HEXADDRESS,
+            _service_registry_address=service_registry.address,
+            _udc_address=uninitialized_user_deposit_contract.address,
+            _token_network_registry_address=token_network_registry_contract.address,
+        )
