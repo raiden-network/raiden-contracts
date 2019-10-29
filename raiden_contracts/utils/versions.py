@@ -47,7 +47,7 @@ def contracts_version_has_initial_service_deposit(version: Optional[str]) -> boo
 
 
 def contracts_version_monitoring_service_takes_token_network_registry(
-    version: Optional[str]
+    version: Optional[str],
 ) -> bool:
     """ Returns true if the contracts_version's MonitoringService contracts
 

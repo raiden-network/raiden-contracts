@@ -1,6 +1,6 @@
 -r requirements.txt
 autopep8>=1.4.3
-black
+black>=19.10b0
 eth-tester[py-evm]<=0.1.0b33
 pytest
 pytest-cov
