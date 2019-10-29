@@ -180,7 +180,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
 
 
 def test_verify_existent_deployment_with_wrong_code(
-    token_network_registry_contract: Contract
+    token_network_registry_contract: Contract,
 ) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
