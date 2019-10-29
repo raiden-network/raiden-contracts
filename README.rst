@@ -298,7 +298,7 @@ Why does the same package provide different versions of smart contracts?
   Because a prominent user (``raiden``) uses a single version of this package. They might one day start using multiple TokenNetwork deployments from multiple contracts versions.
 
 Are the package version and the smart contracts versions related?
-  No, not much. The smart contracts versions of old deployments (``XYZ`` in ``raiden_contracts/contracts/data_<XYZ>``) never change. The smart contract version of the newest deployment (found in JSON files in ``raiden_contracts/contracts/data/``) sometimes increases with the package version but not always.
+  Yes, especially since package version 0.33.3. Whenever there is a new contracts version, the package version and the contracts version get a minor upgrade (Y increases in 0.Y.Z), and they look similar. When a package upgrade only contains Python changes, the package version only gets a patch upgrade (Z increases in 0.Y.Z).
 
 How to find the addresses of deployed contracts?
   Search above for ``get_contracts_deployed`` and see the usage.
