@@ -38,8 +38,7 @@ def deploy_contract_txhash() -> Callable[..., str]:
         web3: Web3, deployer_address: HexAddress, abi: List, bytecode: str, **kwargs: Dict
     ) -> str:
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
-        # Failure does not fire an exception.  Check the receipt for status.
-        return contract.constructor(**kwargs).transact({"from": deployer_address})
+        return contract.constructor(**kwargs).call_and_transact({"from": deployer_address})
 
     return fn
 
@@ -57,7 +56,7 @@ def deploy_contract(deploy_contract_txhash: Callable) -> Callable:
         web3.testing.mine(1)
 
         if web3.eth.getTransactionReceipt(txhash).status != 1:
-            raise TransactionFailed("deployment failed")
+            assert "Transaction failure must be caught in estimateGas in deploy_contract_txhash."
 
         return contract(contract_address)
 

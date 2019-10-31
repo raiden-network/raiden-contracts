@@ -4,7 +4,7 @@ from typing import Dict, Generator, Optional
 import pytest
 from eth_tester import EthereumTester, PyEVMBackend
 from web3 import Web3
-from web3.contract import ContractFunction
+from web3.contract import ContractConstructor, ContractFunction
 from web3.providers.eth_tester import EthereumTesterProvider
 
 from raiden_contracts.tests.utils.constants import (
@@ -77,12 +77,22 @@ def auto_revert_chain(web3: Web3) -> Generator:
 def _call_and_transact(
     contract_function: ContractFunction, transaction_params: Optional[Dict] = None
 ) -> str:
-    """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
-    # First 'call' might raise an exception
+    """ Executes contract_function.{call, transact}(transaction_params) and returns txhash """
+    # First 'call' might raise an exception, containing an error message from require().
     contract_function.call(transaction_params)
     return contract_function.transact(transaction_params)
+
+
+def _estimate_gas_and_transact_constructor(
+    contract_constructor: ContractConstructor, transaction_params: Optional[Dict] = None
+) -> str:
+    """ Execute contract_constructor.{estimateGas, transact}(transaction_params); return txhash """
+    # First 'estimate_gas' might raise an exception, containing an error message from require().
+    contract_constructor.estimateGas(transaction_params)
+    return contract_constructor.transact(transaction_params)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def call_and_transact() -> None:
     ContractFunction.call_and_transact = _call_and_transact
+    ContractConstructor.call_and_transact = _estimate_gas_and_transact_constructor
