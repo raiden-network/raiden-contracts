@@ -109,7 +109,7 @@ class ContractVerifier:
             services=services,
         )
         with deployment_file_path.open(mode="w") as target_file:
-            target_file.write(json.dumps(deployment_info, indent=4))
+            target_file.write(json.dumps(deployment_info, indent=2))
 
         print(
             f'Deployment information for chain id = {deployment_info["chain_id"]} '
