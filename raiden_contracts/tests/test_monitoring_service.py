@@ -469,3 +469,22 @@ def test_monitoring_service_deploy_with_service_registry_without_code(
             _udc_address=uninitialized_user_deposit_contract.address,
             _token_network_registry_address=token_network_registry_contract.address,
         )
+
+
+def test_monitoring_service_deploy_with_service_registry_zero(
+    deploy_tester_contract: Callable,
+    custom_token: Contract,
+    uninitialized_user_deposit_contract: Contract,
+    token_network_registry_contract: Contract,
+) -> None:
+    # No good error message is available due to
+    # https://github.com/raiden-network/raiden-contracts/issues/1329
+    # with pytest.raises(TransactionFailed, match="ServiceRegistry at address zero"):
+    with pytest.raises(TransactionFailed):
+        deploy_tester_contract(
+            contract_name=CONTRACT_MONITORING_SERVICE,
+            _token_address=custom_token.address,
+            _service_registry_address=EMPTY_HEXADDRESS,
+            _udc_address=uninitialized_user_deposit_contract.address,
+            _token_network_registry_address=token_network_registry_contract.address,
+        )
