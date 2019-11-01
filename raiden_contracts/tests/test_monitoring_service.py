@@ -15,7 +15,11 @@ from raiden_contracts.constants import (
     MessageTypeId,
     MonitoringServiceEvent,
 )
-from raiden_contracts.tests.utils import EMPTY_HEXADDRESS, SERVICE_DEPOSIT
+from raiden_contracts.tests.utils import (
+    CONTRACT_DEPLOYER_ADDRESS,
+    EMPTY_HEXADDRESS,
+    SERVICE_DEPOSIT,
+)
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -439,6 +443,29 @@ def test_monitoring_service_deploy_with_token_address_zero(
             contract_name=CONTRACT_MONITORING_SERVICE,
             _token_address=EMPTY_HEXADDRESS,
             _service_registry_address=service_registry.address,
+            _udc_address=uninitialized_user_deposit_contract.address,
+            _token_network_registry_address=token_network_registry_contract.address,
+        )
+
+
+def test_monitoring_service_deploy_with_service_registry_without_code(
+    deploy_tester_contract: Callable,
+    custom_token: Contract,
+    uninitialized_user_deposit_contract: Contract,
+    token_network_registry_contract: Contract,
+) -> None:
+    """ Test MonitoringService's constructor with a service_registry address
+
+    which does not contain code. This is supposed to cause a failure in one
+    of the require() statements in the constructor. """
+    # No good error message is available due to
+    # https://github.com/raiden-network/raiden-contracts/issues/1329
+    # with pytest.raises(TransactionFailed, match="ServiceRegistry has no code"):
+    with pytest.raises(TransactionFailed):
+        deploy_tester_contract(
+            contract_name=CONTRACT_MONITORING_SERVICE,
+            _token_address=custom_token.address,
+            _service_registry_address=CONTRACT_DEPLOYER_ADDRESS,  # causes error
             _udc_address=uninitialized_user_deposit_contract.address,
             _token_network_registry_address=token_network_registry_contract.address,
         )
