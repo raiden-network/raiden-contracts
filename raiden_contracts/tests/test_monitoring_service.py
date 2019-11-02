@@ -490,3 +490,28 @@ def test_monitoring_service_deploy_with_service_registry_without_code(
             _token_network_registry_address=token_network_registry_contract.address,
         )
     # See monitoring_service_external fixture for the success case.
+
+
+def test_monitoring_service_deploy_with_udc_without_code(
+    deploy_tester_contract: Callable,
+    custom_token: Contract,
+    service_registry: Contract,
+    token_network_registry_contract: Contract,
+) -> None:
+    """ Test MonitoringService's constructor with a user_deposit_contract
+
+    address which does not contain code. This is supposed to cause a failure
+    in one of the require() statements in the constructor. """
+    # No good error message is available due to
+    # https://github.com/raiden-network/raiden-contracts/issues/1329
+    # with pytest.raises(TransactionFailed, match="UDC has no code"):
+
+    with pytest.raises(TransactionFailed):
+        deploy_tester_contract(
+            contract_name=CONTRACT_MONITORING_SERVICE,
+            _token_address=custom_token.address,
+            _service_registry_address=service_registry.address,
+            _udc_address=CONTRACT_DEPLOYER_ADDRESS,  # causes error
+            _token_network_registry_address=token_network_registry_contract.address,
+        )
+    # See monitoring_service_external fixture for the success case.
