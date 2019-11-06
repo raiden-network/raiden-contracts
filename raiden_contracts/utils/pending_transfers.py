@@ -59,7 +59,7 @@ def get_pending_transfers_tree(
     pending_transfers = unlockable_locks + expired_locks
 
     hashed_pending_transfers = [
-        Web3.soliditySha3(types, transfer_data[:-1])  # pylint: disable=E1120
+        Web3.solidityKeccak(types, transfer_data[:-1])  # pylint: disable=E1120
         for transfer_data in pending_transfers
     ]
 

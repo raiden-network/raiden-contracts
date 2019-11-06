@@ -97,7 +97,7 @@ class ContractManager:
     def get_event_abi(self, contract_name: str, event_name: str) -> Dict[str, Any]:
         """ Returns the ABI for a given event. """
         # Import locally to avoid web3 dependency during installation via `compile_contracts`
-        from web3.utils.contracts import find_matching_event_abi
+        from web3._utils.contracts import find_matching_event_abi
 
         assert self.contracts, "ContractManager should have contracts compiled"
         contract_abi = self.get_contract_abi(contract_name)

@@ -72,7 +72,7 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
     manager = ContractManager(contracts_precompiled_path(contracts_version))
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
 
-    deployment_data = get_contracts_deployment_info(int(web3.version.network))
+    deployment_data = get_contracts_deployment_info(web3.eth.chainId)
     TOKEN_NETWORK_REGISTRY_ADDRESS = deployment_data['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY].address
 
     # And then use:
@@ -83,7 +83,7 @@ If you want to use the officially deployed contracts, please use the ``raiden_co
 
     # To use one of the 3rd party services contracts:
     compiled_ms_contract = manager.get_contract(CONTRACT_MONITORING_SERVICE)
-    deployed_services = get_contracts_deployed(int(web3.version.network), services=True)
+    deployed_services = get_contracts_deployed(web3.eth.chainId, services=True)
     MONITORING_SERVICE_ADDRESS = deployment_data['contracts'][CONTRACT_MONITORING_SERVICE].address
 
 Looking Up Gas Consumption

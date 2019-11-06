@@ -69,7 +69,7 @@ def print_gas_token_network_registry(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=int(web3.version.network),
+        _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=10,
@@ -94,7 +94,7 @@ def print_gas_token_network_deployment(
         CONTRACT_TOKEN_NETWORK,
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=int(web3.version.network),
+        _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _deprecation_executor=deprecation_executor,
@@ -344,7 +344,7 @@ def print_gas_one_to_n(
     deposit_to_udc(A, 30)
 
     # happy case
-    chain_id = int(web3.version.network)
+    chain_id = web3.eth.chainId
     amount = 10
     expiration = web3.eth.blockNumber + 2
     signature = sign_one_to_n_iou(
