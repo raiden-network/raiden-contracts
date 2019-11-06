@@ -20,3 +20,4 @@ pylint-quotes
 requests_mock
 isort
 pipdeptree
+six>=1.12

@@ -147,7 +147,7 @@ def test_setURL(
     tx_receipt = web3.eth.getTransactionReceipt(tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
-    event_data = get_event_data(event_abi, tx_receipt["logs"][-1])
+    event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][-1])
     assert event_data["args"]["service"] == A
     assert event_data["args"]["deposit_contract"] != EMPTY_ADDRESS
 
@@ -489,7 +489,7 @@ def test_deprecation_immediate_payout(
     deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
-    event_data = get_event_data(event_abi, deposit_tx_receipt["logs"][-1])
+    event_data = get_event_data(web3.codec, event_abi, deposit_tx_receipt["logs"][-1])
     deposit_address = event_data["args"]["deposit_contract"]
     # And obtains the Deposit contract instance
     deposit_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)

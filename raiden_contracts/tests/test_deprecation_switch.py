@@ -79,7 +79,7 @@ def test_deprecation_executor(
     event_abi = contracts_manager.get_event_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED
     )
-    event_data = get_event_data(event_abi, tx_receipt["logs"][0])
+    event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][0])
     token_network_address = event_data["args"]["token_network_address"]
     token_network = web3.eth.contract(
         abi=contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK),
@@ -105,7 +105,7 @@ def test_set_deprecation_switch(
     assert token_network.functions.safety_deprecation_switch().call() is True
     tx_receipt = web3.eth.getTransactionReceipt(tx)
     event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
-    event_data = get_event_data(event_abi, tx_receipt["logs"][0])
+    event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][0])
     assert event_data["args"]["new_value"]
 
     # We should not be able to call it again
