@@ -162,9 +162,12 @@ class LogFilter:
         filters = filters if filters else {}
 
         data_filter_set, filter_params = construct_event_filter_params(
-            event_abi=self.event_abi, argument_filters=filters, **filter_kwargs
+            event_abi=self.event_abi,
+            abi_codec=web3.codec,
+            argument_filters=filters,
+            **filter_kwargs,
         )
-        log_data_extract_fn = functools.partial(get_event_data, event_abi)
+        log_data_extract_fn = functools.partial(get_event_data, web3.codec, event_abi)
 
         self.filter = web3.eth.filter(filter_params)
         self.filter.set_data_filters(data_filter_set)
@@ -187,7 +190,9 @@ class LogFilter:
         return formatted_logs
 
     def set_log_data(self, log: Dict[str, Any]) -> Dict[str, Any]:
-        log["args"] = get_event_data(event_abi=self.event_abi, log_entry=log)["args"]
+        log["args"] = get_event_data(
+            abi_codec=self.web3.codec, event_abi=self.event_abi, log_entry=log
+        )["args"]
         log["event"] = self.event_name
         return log
 

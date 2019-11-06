@@ -3,8 +3,7 @@ from typing import Callable, Dict
 import pytest
 from eth_typing import HexAddress
 from web3 import Web3
-from web3._utils.events import get_event_data
-from web3.contract import Contract
+from web3.contract import Contract, get_event_data
 
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
@@ -49,7 +48,9 @@ def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Ca
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED
         )
-        event_data = get_event_data(event_abi, tx_receipt["logs"][0])
+        event_data = get_event_data(
+            abi_codec=web3.codec, event_abi=event_abi, log_entry=tx_receipt["logs"][0]
+        )
         contract_address = event_data["args"]["token_network_address"]
         contract = web3.eth.contract(
             abi=contracts_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK),
