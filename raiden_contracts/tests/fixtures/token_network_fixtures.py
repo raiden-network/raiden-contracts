@@ -3,7 +3,8 @@ from typing import Callable, Dict
 import pytest
 from eth_typing import HexAddress
 from web3 import Web3
-from web3.contract import Contract, get_event_data
+from web3._utils.events import get_event_data
+from web3.contract import Contract
 
 from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
@@ -144,7 +145,7 @@ def token_network_external(
     return get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=int(web3.version.network),
+        _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _deprecation_executor=DEPLOYER_ADDRESS,

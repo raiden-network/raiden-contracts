@@ -19,7 +19,7 @@ def token_network_test_storage(
         [
             custom_token.address,
             secret_registry_contract.address,
-            int(web3.version.network),
+            web3.eth.chainId,
             TEST_SETTLE_TIMEOUT_MIN,
             TEST_SETTLE_TIMEOUT_MAX,
         ],
@@ -37,7 +37,7 @@ def token_network_test_signatures(
         "TokenNetworkSignatureTest",
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=int(web3.version.network),
+        _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )
@@ -54,7 +54,7 @@ def token_network_test_utils(
         "TokenNetworkUtilsTest",
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=int(web3.version.network),
+        _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )

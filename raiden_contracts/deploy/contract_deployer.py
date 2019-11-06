@@ -50,7 +50,7 @@ class ContractDeployer(ContractVerifier):
         self.transaction = {"from": self.owner, "gas": gas_limit}
         self.transaction["gasPrice"] = gas_price * int(units["gwei"])
 
-        self.web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key))
+        self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
         # Check that the precompiled data matches the source code
         # Only for current version, because this is the only one with source code
@@ -146,7 +146,7 @@ class ContractDeployer(ContractVerifier):
 
         deployed_contracts: DeployedContracts = {
             "contracts_version": self.contract_manager.contracts_version,
-            "chain_id": int(self.web3.version.network),
+            "chain_id": self.web3.eth.chainId,
             "contracts": {},
         }
 
@@ -261,7 +261,7 @@ class ContractDeployer(ContractVerifier):
         ):
             raise RuntimeError("Deployment of older service contracts is not suppported.")
 
-        chain_id = int(self.web3.version.network)
+        chain_id = self.web3.eth.chainId
         deployed_contracts: DeployedContracts = {
             "contracts_version": self.contract_manager.contracts_version,
             "chain_id": chain_id,

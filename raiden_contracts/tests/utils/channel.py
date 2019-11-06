@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Tuple
 
 from eth_typing import HexAddress
-from eth_utils import keccak, to_canonical_address
+from eth_utils import encode_hex, keccak, to_canonical_address
 from web3.contract import Contract
 
 from raiden_contracts.constants import LOCKSROOT_OF_NO_LOCKS
@@ -54,7 +54,8 @@ class ChannelValues:
             f"transferred:{self.transferred} claimable_"
             f"locked:{self.locked_amounts.claimable_locked} "
             f"unclaimable_locked:{self.locked_amounts.unclaimable_locked} "
-            f"locked:{self.locked_amounts.locked} locksroot:{self.locksroot} "
+            f"locked:{self.locked_amounts.locked} "
+            f"locksroot:{encode_hex(self.locksroot)}"
         )
 
 

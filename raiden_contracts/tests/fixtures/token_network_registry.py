@@ -32,7 +32,7 @@ def token_network_registry_constructor_args(
 ) -> Dict:
     return {
         "_secret_registry_address": secret_registry_contract.address,
-        "_chain_id": int(web3.version.network),
+        "_chain_id": web3.eth.chainId,
         "_settlement_timeout_min": TEST_SETTLE_TIMEOUT_MIN,
         "_settlement_timeout_max": TEST_SETTLE_TIMEOUT_MAX,
         "_max_token_networks": 1,
