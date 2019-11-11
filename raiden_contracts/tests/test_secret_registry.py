@@ -25,8 +25,12 @@ def test_register_secret_call(secret_registry_contract: Contract) -> None:
 
     # For interoperability with other SHA256-based hashlocks, even 0x0000..00 needs to be accepted.
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32)).call() is True
-    assert secret_registry_contract.functions.registerSecret(fake_bytes(10, "02")).call() is True
     assert secret_registry_contract.functions.registerSecret(fake_bytes(32, "02")).call() is True
+
+    with pytest.raises(ValidationError):
+        assert (
+            secret_registry_contract.functions.registerSecret(fake_bytes(10, "02")).call() is True
+        )
 
 
 def test_register_secret_return_value(
