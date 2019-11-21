@@ -15,11 +15,7 @@ from raiden_contracts.constants import (
     MessageTypeId,
     MonitoringServiceEvent,
 )
-from raiden_contracts.tests.utils import (
-    CONTRACT_DEPLOYER_ADDRESS,
-    EMPTY_HEXADDRESS,
-    SERVICE_DEPOSIT,
-)
+from raiden_contracts.tests.utils import DEPLOYER_ADDRESS, EMPTY_HEXADDRESS, SERVICE_DEPOSIT
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -460,7 +456,7 @@ def test_monitoring_service_deploy_with_token_address_without_code(
     with pytest.raises(TransactionFailed):
         deploy_tester_contract(
             contract_name=CONTRACT_MONITORING_SERVICE,
-            _token_address=CONTRACT_DEPLOYER_ADDRESS,  # causes error
+            _token_address=DEPLOYER_ADDRESS,  # causes error
             _service_registry_address=service_registry.address,
             _udc_address=uninitialized_user_deposit_contract.address,
             _token_network_registry_address=token_network_registry_contract.address,
@@ -485,7 +481,7 @@ def test_monitoring_service_deploy_with_service_registry_without_code(
         deploy_tester_contract(
             contract_name=CONTRACT_MONITORING_SERVICE,
             _token_address=custom_token.address,
-            _service_registry_address=CONTRACT_DEPLOYER_ADDRESS,  # causes error
+            _service_registry_address=DEPLOYER_ADDRESS,  # causes error
             _udc_address=uninitialized_user_deposit_contract.address,
             _token_network_registry_address=token_network_registry_contract.address,
         )
