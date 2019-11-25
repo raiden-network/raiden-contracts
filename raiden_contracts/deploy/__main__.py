@@ -84,7 +84,7 @@ def common_options(func: Callable) -> Callable:
 # pylint: disable=R0913
 def setup_ctx(
     ctx: click.Context,
-    private_key: Optional[str],
+    private_key: str,
     rpc_provider: str,
     wait: int,
     gas_price: int,
@@ -95,8 +95,6 @@ def setup_ctx(
     subcommands).
     """
 
-    if private_key is None:
-        return
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger("web3").setLevel(logging.INFO)
     logging.getLogger("urllib3").setLevel(logging.INFO)
@@ -156,7 +154,7 @@ def check_version_dependent_parameters(
 @common_options
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.option(
-    "--max-token-networks", help="The maximum number of tokens that can be registered.", type=int
+    "--max-token-networks", help="The maximum number of tokens that can be registered.", type=int,
 )
 @click.option(
     "--secret-registry-from-deployment-file",
@@ -184,7 +182,7 @@ def check_version_dependent_parameters(
 @click.pass_context
 def raiden(
     ctx: click.Context,
-    private_key: Optional[str],
+    private_key: str,
     rpc_provider: str,
     wait: int,
     gas_price: int,
@@ -292,7 +290,7 @@ def raiden(
 @click.pass_context
 def services(
     ctx: Context,
-    private_key: Optional[str],
+    private_key: str,
     rpc_provider: str,
     wait: int,
     gas_price: int,
@@ -362,7 +360,7 @@ def services(
 @click.pass_context
 def token(
     ctx: click.Context,
-    private_key: Optional[str],
+    private_key: str,
     rpc_provider: str,
     wait: int,
     gas_price: int,
@@ -377,7 +375,7 @@ def token(
     deployer = ctx.obj["deployer"]
     token_supply *= 10 ** token_decimals
     deployed_token = deployer.deploy_token_contract(
-        token_supply, token_decimals, token_name, token_symbol, token_type=ctx.obj["token_type"]
+        token_supply, token_decimals, token_name, token_symbol, token_type=ctx.obj["token_type"],
     )
     print(json.dumps(deployed_token, indent=4))
     ctx.obj["deployed_contracts"].update(deployed_token)
@@ -461,7 +459,7 @@ def register(
 
 @main.command()
 @click.option(
-    "--rpc-provider", default="http://127.0.0.1:8545", help="Address of the Ethereum RPC provider"
+    "--rpc-provider", default="http://127.0.0.1:8545", help="Address of the Ethereum RPC provider",
 )
 @click.option(
     "--contracts-version",
