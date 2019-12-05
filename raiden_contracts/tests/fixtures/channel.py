@@ -31,7 +31,7 @@ from raiden_contracts.utils.proofs import (
 
 
 @pytest.fixture(scope="session")
-def create_channel(token_network: Contract, web3: Web3) -> Callable:
+def create_channel(token_network: Contract) -> Callable:
     def get(A: HexAddress, B: HexAddress, settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN) -> Tuple:
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
@@ -40,7 +40,6 @@ def create_channel(token_network: Contract, web3: Web3) -> Callable:
         txn_hash = token_network.functions.openChannel(
             participant1=A, participant2=B, settle_timeout=settle_timeout
         ).call_and_transact()
-        web3.testing.mine(1)
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
