@@ -6,3 +6,4 @@ semver
 mypy-extensions
 web3<5.0.0
 py_ecc<=1.5.0
+eth-utils==1.8.1
