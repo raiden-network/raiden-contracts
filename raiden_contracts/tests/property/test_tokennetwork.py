@@ -224,19 +224,19 @@ class TokenNetworkStateMachine(GenericStateMachine):
         deposit_amount += existing_deposit
 
         if not self.is_participant(sender_address):
-            with transaction_must_fail("deposit from non-participant didnt fail"):
+            with transaction_must_fail("deposit from non-participant didn't fail"):
                 self.token_network.functions.setTotalDeposit(
                     sender_address, deposit_amount, partner_address
                 ).transact({"from": sender_address})
 
         elif channel_state != 1:
-            with transaction_must_fail("deposit with closed channel didnt fail"):
+            with transaction_must_fail("deposit with closed channel didn't fail"):
                 self.token_network.functions.setTotalDeposit(
                     sender_address, deposit_amount, partner_address
                 ).transact({"from": sender_address})
 
         elif token_balance < deposit_amount:
-            with transaction_must_fail("having insufficient funds for a deposit didnt fail"):
+            with transaction_must_fail("having insufficient funds for a deposit didn't fail"):
                 self.token_network.functions.setTotalDeposit(
                     sender_address, deposit_amount, partner_address
                 ).transact({"from": sender_address})
@@ -267,7 +267,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
         ).call()
 
         if not self.is_participant(transfer.sender):
-            msg = "close with transfer data from a non participant didnt fail"
+            msg = "close with transfer data from a non participant didn't fail"
             with transaction_must_fail(msg):
                 self.token_network.functions.closeChannel(
                     partner_address,
@@ -280,7 +280,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif transfer.sender == closer_address:
-            with transaction_must_fail("close with self signed transfer didnt fail"):
+            with transaction_must_fail("close with self signed transfer didn't fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
                     closer_address,
@@ -292,7 +292,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif channel_state == 2:
-            with transaction_must_fail("close called twice didnt fail"):
+            with transaction_must_fail("close called twice didn't fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
                     closer_address,
@@ -304,7 +304,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif not self.is_participant(closer_address):
-            with transaction_must_fail("close called by a non participant didnt fail"):
+            with transaction_must_fail("close called by a non participant didn't fail"):
                 self.token_network.functions.closeChannel(
                     partner_address,
                     closer_address,
@@ -316,7 +316,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif transfer.channel != to_canonical_address(self.token_network.address):
-            msg = "close called with a transfer for a different channe didnt fail"
+            msg = "close called with a transfer for a different channel didn't fail"
             with transaction_must_fail(msg):
                 self.token_network.functions.closeChannel(
                     partner_address,
@@ -369,7 +369,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
         is_settlement_period_over = is_closed and settle_block_number < block_number
 
         if not self.is_participant(transfer.sender):
-            msg = "updateTransfer with transfer data from a non participant didnt fail"
+            msg = "updateTransfer with transfer data from a non participant didn't fail"
             with transaction_must_fail(msg):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
@@ -382,7 +382,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif transfer.sender == sender_address:
-            with transaction_must_fail("updateTransfer with self signed transfer didnt fail"):
+            with transaction_must_fail("updateTransfer with self signed transfer didn't fail"):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
                     partner_address,
@@ -394,7 +394,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif self.update_transfer_called:
-            with transaction_must_fail("updateTransfer called twice didnt fail"):
+            with transaction_must_fail("updateTransfer called twice didn't fail"):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
                     partner_address,
@@ -406,7 +406,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif not self.is_participant(sender_address):
-            with transaction_must_fail("updateTransfer called by a non participant didnt fail"):
+            with transaction_must_fail("updateTransfer called by a non participant didn't fail"):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
                     partner_address,
@@ -418,7 +418,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif transfer.channel != self.channel_addresses[0]:
-            msg = "updateTransfer called with a transfer for a different channel didnt fail"
+            msg = "updateTransfer called with a transfer for a different channel didn't fail"
             with transaction_must_fail(msg):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
@@ -431,7 +431,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif not is_closed:
-            with transaction_must_fail("updateTransfer called on an open channel and didnt fail"):
+            with transaction_must_fail("updateTransfer called on an open channel and didn't fail"):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
                     partner_address,
@@ -443,7 +443,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif is_settlement_period_over:
-            msg = "updateTransfer called after end of the settlement period and didnt fail"
+            msg = "updateTransfer called after end of the settlement period and didn't fail"
             with transaction_must_fail(msg):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
@@ -456,7 +456,7 @@ class TokenNetworkStateMachine(GenericStateMachine):
                 ).transact()
 
         elif sender_address == self.closing_address:
-            with transaction_must_fail("updateTransfer called by the closer and it didnt fail"):
+            with transaction_must_fail("updateTransfer called by the closer and it didn't fail"):
                 self.token_network.functions.updateNonClosingBalanceProof(
                     sender_address,
                     partner_address,

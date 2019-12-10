@@ -320,7 +320,7 @@ def test_internal_set_decay_constant(service_registry: Contract) -> None:
         ).call_and_transact({"from": DEPLOYER_ADDRESS})
 
 
-def test_too_high_decay_cosntant_fail(service_registry: Contract) -> None:
+def test_too_high_decay_constant_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the new decay constant is too high"""
     with pytest.raises(TransactionFailed, match="too big decay constant"):
         service_registry.functions.changeParameters(
