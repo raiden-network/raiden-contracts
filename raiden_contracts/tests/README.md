@@ -23,10 +23,10 @@
 Tests usually follow this order when writing them in a file:
 
 - test `TypeErrors` - make sure your function receives the intended number of arguments, of the intended type. E.g. [test_open_channel_call](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/test_channel_open.py#L25)
-- go through each line of code and see wether a test can be written to cover it. E.g. for this line `channel_counter += 1;` in [TokenNetwork.openChannel](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/contracts/TokenNetwork.sol#L267), this [test_counter](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/test_channel_open.py#L75) was added
+- go through each line of code and see whether a test can be written to cover it. E.g. for this line `channel_counter += 1;` in [TokenNetwork.openChannel](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/contracts/TokenNetwork.sol#L267), this [test_counter](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/test_channel_open.py#L75) was added
 - `test_function_name_state` - always exists and tests the contract state for when the function is successful (no `pytest.raises`, but much `assert`):
-    - pre-call tests for all contract state variables that are related, all  related getter functions
-    - post-call tests for all contract state variables that are related, all  related getter functions, comparing to the pre-call ones
+    - pre-call tests for all contract state variables that are related, all related getter functions
+    - post-call tests for all contract state variables that are related, all related getter functions, comparing to the pre-call ones
     - E.g. [test_open_channel_state](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/test_channel_open.py#L152)
     - some of these checks are written as fixtures and reused by tests. You can find them in [fixtures/channel.py](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/fixtures/channel.py) E.g. [common_settle_state_tests](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/fixtures/channel.py#L271)
 - tests for each event. E.g. [test_open_channel_event](https://github.com/raiden-network/raiden-contracts/blob/5189111e4528004b43b8090a6603e6a68de2202e/raiden_contracts/tests/test_channel_open.py#L315)

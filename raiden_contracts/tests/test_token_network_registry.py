@@ -419,7 +419,7 @@ def test_events(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ TokenNetwokRegistry should raise an event when deploying a new TokenNetwork """
+    """ TokenNetworkRegistry should raise an event when deploying a new TokenNetwork """
 
     ev_handler = event_handler(token_network_registry_contract)
 
