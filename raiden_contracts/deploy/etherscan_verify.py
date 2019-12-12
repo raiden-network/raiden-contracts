@@ -26,6 +26,7 @@ from raiden_contracts.contract_source_manager import (
 from raiden_contracts.utils.type_aliases import ChainID
 
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
+USER_AGENT = "curl/7.37.0"  # Etherscan blocks us without this user agent in some cases
 
 
 def validate_contract_name(_ctx: Context, _param: Any, value: Optional[str]) -> Optional[str]:
@@ -181,8 +182,12 @@ def etherscan_verify_contract(
             contract_manager=contract_manager,
         ),
     )
-    response = requests.post(etherscan_api, data=data)
-    content = json.loads(response.content.decode())
+    response = requests.post(etherscan_api, data=data, headers={"User-Agent": USER_AGENT})
+    try:
+        content = response.json()
+    except json.decoder.JSONDecodeError:
+        print(response.text)
+        raise
     print(content)
     print(f'Status: {content["status"]}; {content["message"]} ; GUID = {content["result"]}')
 
@@ -219,8 +224,12 @@ def etherscan_verify_contract(
 
 def guid_status(etherscan_api: str, guid: str) -> Dict:
     data = {"guid": guid, "module": "contract", "action": "checkverifystatus"}
-    r = requests.get(etherscan_api, data)
-    status_content = json.loads(r.content.decode())
+    r = requests.get(etherscan_api, data, headers={"User-Agent": USER_AGENT})
+    try:
+        status_content = json.loads(r.content.decode())
+    except json.decoder.JSONDecodeError:
+        print(r.content.decode())
+        raise
     print(status_content)
     return status_content
 
