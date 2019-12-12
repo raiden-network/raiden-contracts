@@ -17,17 +17,17 @@ contract ServiceRegistryConfigurableParameters {
     uint256 public set_price_at;
 
     /// The amount of time (in seconds) till the price decreases to roughly 1/e.
-    uint256 public decay_constant = 200 days;
+    uint256 public decay_constant;
 
     // Once the price is at min_price, it can't decay further.
-    uint256 public min_price = 1000;
+    uint256 public min_price;
 
     // Whenever a deposit comes in, the price is multiplied by numerator / denominator.
-    uint256 public price_bump_numerator = 1;
-    uint256 public price_bump_denominator = 1;
+    uint256 public price_bump_numerator;
+    uint256 public price_bump_denominator;
 
     // The duration of service registration/extension in seconds
-    uint256 public registration_duration = 180 days;
+    uint256 public registration_duration;
 
     // If true, new deposits are no longer accepted.
     bool public deprecated = false;
