@@ -46,7 +46,6 @@ from raiden_contracts.deploy.__main__ import (
     verify,
 )
 from raiden_contracts.deploy.contract_deployer import (
-    contracts_version_expects_deposit_limits,
     contracts_version_monitoring_service_takes_token_network_registry,
 )
 from raiden_contracts.deploy.contract_verifier import (
@@ -476,35 +475,6 @@ def test_deploy_script_register(
     assert isinstance(token_network_address, str)
 
 
-@pytest.mark.slow
-def test_deploy_script_register_without_limit(
-    token_address: HexAddress,
-    deployer_0_4_0: ContractDeployer,
-    deployed_raiden_info_0_4_0: DeployedContracts,
-) -> None:
-    """ Run token register function used in the deployment script
-
-    This checks if register_token_network() works correctly in the happy case for 0.4.0 version,
-    to make sure no code dependencies have been changed, affecting the deployment script.
-    This does not check however that the cli command works correctly.
-    """
-    token_registry_abi = deployer_0_4_0.contract_manager.get_contract_abi(
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    )
-    token_registry_address = deployed_raiden_info_0_4_0["contracts"][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]["address"]
-    token_network_address = deployer_0_4_0.register_token_network(
-        token_registry_abi=token_registry_abi,
-        token_registry_address=token_registry_address,
-        token_address=token_address,
-        channel_participant_deposit_limit=None,
-        token_network_deposit_limit=None,
-    )
-    assert token_network_address is not None
-    assert isinstance(token_network_address, str)
-
-
 def test_deploy_script_register_missing_limits(
     token_network_deposit_limit: int,
     channel_participant_deposit_limit: int,
@@ -557,7 +527,7 @@ def test_deploy_script_register_unexpected_limits(
 ) -> None:
     """ Run token register function used in the deployment script
 
-    without the expected channel participant deposit limit.
+    on contracts before the limits were introduced. We don't support that, anymore.
     """
     deployer = ContractDeployer(
         web3=web3,
@@ -574,23 +544,7 @@ def test_deploy_script_register_unexpected_limits(
     token_registry_address = deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
         "address"
     ]
-    with pytest.raises(ValueError):
-        deployer.register_token_network(
-            token_registry_abi=token_registry_abi,
-            token_registry_address=token_registry_address,
-            token_address=token_address,
-            channel_participant_deposit_limit=None,
-            token_network_deposit_limit=token_network_deposit_limit,
-        )
-    with pytest.raises(ValueError):
-        deployer.register_token_network(
-            token_registry_abi=token_registry_abi,
-            token_registry_address=token_registry_address,
-            token_address=token_address,
-            channel_participant_deposit_limit=channel_participant_deposit_limit,
-            token_network_deposit_limit=None,
-        )
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError, match="Can't deploy old contracts.*limits"):
         deployer.register_token_network(
             token_registry_abi=token_registry_abi,
             token_registry_address=token_registry_address,
@@ -931,17 +885,6 @@ def test_error_removed_option_raises() -> None:
     with pytest.raises(NoSuchOption):
         mock = MagicMock()
         error_removed_option("msg")(None, mock, "0xaabbcc")
-
-
-def test_contracts_version_expects_deposit_limits() -> None:
-    assert not contracts_version_expects_deposit_limits("0.3._")
-    assert not contracts_version_expects_deposit_limits("0.4.0")
-    assert contracts_version_expects_deposit_limits("0.9.0")
-    assert contracts_version_expects_deposit_limits("0.10.0")
-    assert contracts_version_expects_deposit_limits("0.10.1")
-    assert contracts_version_expects_deposit_limits(None)
-    with pytest.raises(ValueError):
-        contracts_version_expects_deposit_limits("not a semver string")
 
 
 def test_contracts_version_has_initial_service_deposit() -> None:

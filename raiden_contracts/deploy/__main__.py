@@ -403,16 +403,10 @@ def token(
     help="Address of token network registry",
 )
 @click.option(
-    "--channel-participant-deposit-limit",
-    default=None,
-    type=int,
-    help="Address of token network registry",
+    "--channel-participant-deposit-limit", type=int, help="Address of token network registry",
 )
 @click.option(
-    "--token-network-deposit-limit",
-    default=None,
-    type=int,
-    help="Address of token network registry",
+    "--token-network-deposit-limit", type=int, help="Address of token network registry",
 )
 @click.pass_context
 def register(
@@ -425,8 +419,8 @@ def register(
     contracts_version: str,
     token_address: HexAddress,
     token_network_registry_address: HexAddress,
-    channel_participant_deposit_limit: Optional[int],
-    token_network_deposit_limit: Optional[int],
+    channel_participant_deposit_limit: int,
+    token_network_deposit_limit: int,
     registry_address: Optional[HexAddress],
 ) -> None:
     assert registry_address is None  # No longer used option

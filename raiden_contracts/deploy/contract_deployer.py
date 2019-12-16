@@ -3,6 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import semver
 from eth_typing import HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
@@ -26,7 +27,6 @@ from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.versions import (
-    contracts_version_expects_deposit_limits,
     contracts_version_monitoring_service_takes_token_network_registry,
 )
 
@@ -211,73 +211,10 @@ class ContractDeployer(ContractVerifier):
         token_network_deposit_limit: Optional[int],
     ) -> HexAddress:
         """Register token with a TokenNetworkRegistry contract."""
-        with_limits = contracts_version_expects_deposit_limits(self.contracts_version)
-        if with_limits:
-            return self._register_token_network_with_limits(
-                token_registry_abi,
-                token_registry_address,
-                token_address,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            )
-        else:
-            return self._register_token_network_without_limits(
-                token_registry_abi,
-                token_registry_address,
-                token_address,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            )
+        assert (
+            self.contracts_version is None or semver.compare(self.contracts_version, "0.9.0") > -1
+        ), "Can't deploy old contracts (before limits were introduced)"
 
-    def _register_token_network_without_limits(
-        self,
-        token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: HexAddress,
-        token_address: HexAddress,
-        channel_participant_deposit_limit: Optional[int],
-        token_network_deposit_limit: Optional[int],
-    ) -> HexAddress:
-        """Register token with a TokenNetworkRegistry contract
-
-        with a contracts-version that doesn't require deposit limits in the TokenNetwork
-        constructor.
-        """
-        if channel_participant_deposit_limit:
-            raise ValueError(
-                "contracts_version below 0.9.0 does not expect "
-                "channel_participant_deposit_limit"
-            )
-        if token_network_deposit_limit:
-            raise ValueError(
-                "contracts_version below 0.9.0 does not expect token_network_deposit_limit"
-            )
-        token_network_registry = self.web3.eth.contract(
-            abi=token_registry_abi, address=token_registry_address
-        )
-
-        command = token_network_registry.functions.createERC20TokenNetwork(token_address)
-        self.transact(command)
-
-        token_network_address = token_network_registry.functions.token_to_token_networks(
-            token_address
-        ).call()
-        token_network_address = to_checksum_address(token_network_address)
-        LOG.debug(f"TokenNetwork address: {token_network_address}")
-        return token_network_address
-
-    def _register_token_network_with_limits(
-        self,
-        token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: HexAddress,
-        token_address: HexAddress,
-        channel_participant_deposit_limit: Optional[int],
-        token_network_deposit_limit: Optional[int],
-    ) -> HexAddress:
-        """Register token with a TokenNetworkRegistry contract
-
-        with a contracts-version that requires deposit limits in the TokenNetwork
-        constructor.
-        """
         if channel_participant_deposit_limit is None:
             raise ValueError(
                 "contracts_version 0.9.0 and afterwards expect "
