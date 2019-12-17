@@ -22,10 +22,10 @@ before_install:
   - ./.travis/download_solc.sh
 
 install:
-  - pip install -U pip wheel coveralls "coverage<4.4"
+  - pip install -U pip wheel
   - pip install pytest-travis-fold
   - pip install -r requirements-dev.txt
-  - pip install pytest-xdist pytest-sugar codecov
+  - pip install pytest-xdist pytest-sugar codecov coverage
   - pipdeptree --warn fail
   - make verify_contracts
 
