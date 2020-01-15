@@ -16,7 +16,7 @@ install:
 	pip install -e .
 
 install-dev:
-	pip install -r requirements-dev.txt
+	pip install -U -r requirements-dev.txt
 	pip install -e .
 
 LINT_FILES = raiden_contracts/ setup.py
