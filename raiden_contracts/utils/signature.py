@@ -1,6 +1,7 @@
 from typing import Union
 
 from coincurve import PrivateKey, PublicKey
+from eth_typing import HexStr
 from eth_utils import keccak, remove_0x_prefix, to_bytes, to_checksum_address
 from eth_utils.typing import ChecksumAddress
 
@@ -17,7 +18,7 @@ def sign(privkey: str, msg_hash: bytes, v: int = 0) -> bytes:
     if v not in {0, 27}:
         raise ValueError(f"sign(): got v = {v} expected 0 or 27.")
 
-    pk = PrivateKey.from_hex(remove_0x_prefix(privkey))
+    pk = PrivateKey.from_hex(remove_0x_prefix(HexStr(privkey)))
     sig: bytes = pk.sign_recoverable(msg_hash, hasher=None)
     assert len(sig) == 65
 

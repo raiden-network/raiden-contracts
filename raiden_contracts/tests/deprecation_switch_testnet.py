@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Optional, Tuple
 
 import click
-from eth_typing import HexAddress
+from eth_typing import HexAddress, HexStr
 from eth_utils import encode_hex
 from web3.contract import Contract
 
@@ -65,8 +65,8 @@ def deprecation_test(
 
     # Check that we can open channels and deposit on behalf of A and B
     # Some arbitrary Ethereum addresses
-    A = HexAddress("0x6AA63296FA94975017244769F00F0c64DB7d7115")
-    B = HexAddress("0xc9a4fad99B6d7D3e48D18d2585470cd8f27FA61e")
+    A = HexAddress(HexStr("0x6AA63296FA94975017244769F00F0c64DB7d7115"))
+    B = HexAddress(HexStr("0xc9a4fad99B6d7D3e48D18d2585470cd8f27FA61e"))
     channel_identifier = open_and_deposit(A=A, B=B, token_network=token_network, deployer=deployer)
     log.info("Seding transaction to activate the deprecation switch.")
 
@@ -79,8 +79,8 @@ def deprecation_test(
     log.info("Checking that channels cannot be opened anymore and no more deposits are allowed.")
 
     # Check that we cannot open more channels or deposit
-    C = HexAddress("0x5a23cedB607684118ccf7906dF3e24Efd2964719")
-    D = HexAddress("0x3827B9cDc68f061aa614F1b97E23664ef3b9220A")
+    C = HexAddress(HexStr("0x5a23cedB607684118ccf7906dF3e24Efd2964719"))
+    D = HexAddress(HexStr("0x3827B9cDc68f061aa614F1b97E23664ef3b9220A"))
     open_and_deposit(
         A=C,
         B=D,

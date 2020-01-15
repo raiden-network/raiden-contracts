@@ -1,14 +1,14 @@
 from enum import IntEnum
 from typing import NamedTuple
 
-from eth_typing import HexAddress
+from eth_typing import HexAddress, HexStr
 from eth_utils.units import units
 
 from raiden_contracts.utils.signature import private_key_to_address
 
 UINT256_MAX = 2 ** 256 - 1
 NOT_ADDRESS = "0xaaa"
-FAKE_ADDRESS = HexAddress("0x00112233445566778899aabbccddeeff00112233")
+FAKE_ADDRESS = HexAddress(HexStr("0x00112233445566778899aabbccddeeff00112233"))
 EMPTY_HEXADDRESS = "0x0000000000000000000000000000000000000000"
 EMPTY_BALANCE_HASH = b"\x00" * 32
 EMPTY_ADDITIONAL_HASH = b"\x00" * 32
