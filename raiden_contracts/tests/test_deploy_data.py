@@ -2,7 +2,7 @@ from typing import Optional
 from unittest.mock import Mock
 
 import pytest
-from eth_typing import HexAddress
+from eth_typing import HexAddress, HexStr
 from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACTS_VERSION, EMPTY_ADDRESS, DeploymentModule
@@ -173,7 +173,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address=HexAddress("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
+            token_address=HexAddress(HexStr("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -199,7 +199,7 @@ def test_verify_existent_deployment_with_wrong_code(
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address=HexAddress("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c"),
+            token_address=HexAddress(HexStr("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )
