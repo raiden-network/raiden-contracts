@@ -5,9 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## Unreleased
+## [0.34.0]
 
 - [#1318](https://github.com/raiden-network/raiden-contracts/pull/1318) add `make install-dev`.
+- [#1350](https://github.com/raiden-network/raiden-contracts/pull/1350) remove support for deploying unlimited contracts
 
 ## [0.33.3](https://github.com/raiden-network/raiden-contracts/releases/tag/v0.33.3) - 2019-10-24
 
