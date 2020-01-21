@@ -9,6 +9,7 @@ flake8>=3.7.5
 flake8-commas>=2.0.0
 flake8-tuple>=0.2.13
 flake8-bugbear>=18.2.0
+attrs>=19.2.0
 flake8-tuple>=0.2.13
 bump2version
 hypothesis==3.44.14
