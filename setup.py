@@ -26,7 +26,7 @@ def _get_single_requirement(requirements: List[str], package: str) -> List[str]:
 
 
 class BuildPyCommand(build_py):
-    def run(self):
+    def run(self) -> None:
         try:
             self.run_command('verify_contracts')
         except SystemExit:
@@ -36,15 +36,15 @@ class BuildPyCommand(build_py):
 
 class VerifyContracts(Command):
     description = 'Verify that the compiled contracts have the correct source code checksum'
-    user_options = []
+    user_options: List = []
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         pass
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         pass
 
-    def run(self):
+    def run(self) -> None:  # pylint: disable=no-self-use
         from raiden_contracts.contract_manager import (
             contracts_precompiled_path,
         )
@@ -58,22 +58,22 @@ class VerifyContracts(Command):
 
 class CompileContracts(Command):
     description = 'Compile contracts and add ABI and checksums to a json file'
-    user_options = []
+    user_options: List = []
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         pass
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         pass
 
-    def run(self):
+    def run(self) -> None:  # pylint: disable=no-self-use
         from raiden_contracts.contract_manager import contracts_precompiled_path
         from raiden_contracts.contract_source_manager import (
             ContractSourceManager,
             contracts_source_path,
         )
 
-        contract_manager = ContractSourceManager(contracts_source_path())
+        contract_manager = ContractSourceManager(contracts_source_path(contracts_version=None))
         contract_manager.compile_contracts(contracts_precompiled_path())
 
 
