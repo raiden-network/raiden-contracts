@@ -1,7 +1,7 @@
 -r requirements.txt
 autopep8>=1.4.3
 black>=19.10b0
-eth-tester[py-evm]<=0.1.0b33
+eth-tester[py-evm]==0.1.0b39
 pytest
 pytest-cov
 pyfakefs
@@ -21,5 +21,5 @@ requests_mock
 isort
 pipdeptree
 eth-typing<2.0.0
-eth-abi<=1.2.2
+eth-abi
 six>=1.12
