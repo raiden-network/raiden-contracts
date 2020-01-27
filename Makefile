@@ -19,15 +19,17 @@ install-dev:
 	pip install -r requirements-dev.txt
 	pip install -e .
 
+LINT_FILES = raiden_contracts/ setup.py
+
 ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contracts/
 
 BLACK_PARAMS = --line-length 99 raiden_contracts/
 
 lint:
 	black --check --diff $(BLACK_PARAMS)
-	flake8 raiden_contracts/
-	pylint raiden_contracts/
-	mypy raiden_contracts
+	mypy $(LINT_FILES)
+	flake8 $(LINT_FILES)
+	pylint $(LINT_FILES)
 	isort $(ISORT_PARAMS) --check-only
 
 isort:
