@@ -134,6 +134,7 @@ Updating gas costs
 To update the gas costs run
 
 ::
+
     make update_gas_costs
 
 
