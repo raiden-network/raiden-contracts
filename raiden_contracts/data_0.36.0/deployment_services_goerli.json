@@ -1,0 +1,55 @@
+{
+  "contracts_version": null,
+  "chain_id": 5,
+  "contracts": {
+    "ServiceRegistry": {
+      "address": "0x1d238cdacA8fFFD56F722B587aA010d6B438B077",
+      "transaction_hash": "0x3bdd7711721781ba977cf436d8cc77312e27b1467102927169e8aa6c3a3abdf0",
+      "block_number": 2114518,
+      "gas_cost": 1980416,
+      "constructor_arguments": [
+        "0x4074fD4d460d0c31cbEdC3f59B2D98626D063952",
+        "0x0000000000000000000000000000000000000000",
+        2000000000000000000000,
+        6,
+        5,
+        17280000,
+        1000,
+        17280000
+      ]
+    },
+    "UserDeposit": {
+      "address": "0xDd9282Ad0A36052af41c85863F8C51eEbDC68E0A",
+      "transaction_hash": "0xabb4bf75eb1946f6342c21959d6443140ab7378f33d9a5bdb1f3a039083b1214",
+      "block_number": 2114520,
+      "gas_cost": 1530254,
+      "constructor_arguments": [
+        "0x4074fD4d460d0c31cbEdC3f59B2D98626D063952",
+        115792089237316195423570985008687907853269984665640564039457584007913129639935
+      ]
+    },
+    "MonitoringService": {
+      "address": "0x850C3E4914417eC41230177c2821B9514c2e2bC9",
+      "transaction_hash": "0x2cf29dea37d02049295ffa5ea9f744cff82995c0c547f79f6bdd7f27abeae0b4",
+      "block_number": 2114521,
+      "gas_cost": 1949685,
+      "constructor_arguments": [
+        "0x4074fD4d460d0c31cbEdC3f59B2D98626D063952",
+        "0x1d238cdacA8fFFD56F722B587aA010d6B438B077",
+        "0xDd9282Ad0A36052af41c85863F8C51eEbDC68E0A",
+        "0x9b0c8C8C75904CEf5B7a8dbF59c3459Ea85c6526"
+      ]
+    },
+    "OneToN": {
+      "address": "0xe4C2C47F070152c03a564C2c681C3FbD78234156",
+      "transaction_hash": "0xe5d1fa41d7b72feeaed494c42bd98860c49c396fe1961f9f2f5567a392018816",
+      "block_number": 2114523,
+      "gas_cost": 1097569,
+      "constructor_arguments": [
+        "0xDd9282Ad0A36052af41c85863F8C51eEbDC68E0A",
+        5,
+        "0x1d238cdacA8fFFD56F722B587aA010d6B438B077"
+      ]
+    }
+  }
+}
