@@ -1,0 +1,26 @@
+{
+  "contracts_version": null,
+  "chain_id": 5,
+  "contracts": {
+    "SecretRegistry": {
+      "address": "0xfe26Dc87Fd7Ed01AC3429d7913738e2fae018BB6",
+      "transaction_hash": "0xf015b6c93951e645c45d4632dcd25de2869bd6613b5b59c53e2453c168c36447",
+      "block_number": 2114499,
+      "gas_cost": 247082,
+      "constructor_arguments": []
+    },
+    "TokenNetworkRegistry": {
+      "address": "0x9b0c8C8C75904CEf5B7a8dbF59c3459Ea85c6526",
+      "transaction_hash": "0xa77a53156131d50af579a3ab22e80af01eb3e40405292d78e80c8c4d238d4886",
+      "block_number": 2114501,
+      "gas_cost": 4001114,
+      "constructor_arguments": [
+        "0xfe26Dc87Fd7Ed01AC3429d7913738e2fae018BB6",
+        5,
+        20,
+        555428,
+        115792089237316195423570985008687907853269984665640564039457584007913129639935
+      ]
+    }
+  }
+}
