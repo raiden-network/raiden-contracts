@@ -5,6 +5,11 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.36.0]
+
+- [#1355](https://github.com/raiden-network/raiden-contracts/pull/1355) update solc version to 0.5.16
+- allow unlimited number of TokenNetworks in testnet deployment
+
 ## [0.35.0]
 
 - No code changes, just different parameters for testnet deployments than in
