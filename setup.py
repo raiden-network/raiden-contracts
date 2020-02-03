@@ -100,7 +100,7 @@ config = {
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    "entry_points": {"console_scripts": ["deploy = raiden_contracts.deploy.__main__:main"],},
+    "entry_points": {"console_scripts": ["deploy = raiden_contracts.deploy.__main__:main"]},
     "cmdclass": {
         "compile_contracts": CompileContracts,
         "verify_contracts": VerifyContracts,
