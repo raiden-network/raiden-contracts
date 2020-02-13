@@ -30,7 +30,7 @@ DEFAULT_REGISTRATION_DURATION = 180 * SECONDS_PER_DAY
 DEFAULT_MIN_PRICE = 1000
 
 
-class TestLockIndex(IntEnum):
+class LockIndex(IntEnum):
     EXPIRATION = 0
     AMOUNT = 1
     SECRETHASH = 2

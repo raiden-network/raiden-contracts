@@ -195,7 +195,7 @@ def get_contracts_deployment_info(
         module The name of the module. ALL means deployed contracts from all modules that are
         available for the version.
     """
-    if module not in DeploymentModule:
+    if not isinstance(module, DeploymentModule):
         raise ValueError(f"Unknown module {module} given to get_contracts_deployment_info()")
 
     def module_chosen(to_be_added: DeploymentModule) -> bool:

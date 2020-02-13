@@ -13,7 +13,7 @@ from raiden_contracts.tests.utils import (
     UINT256_MAX,
     ChannelValues,
     LockedAmounts,
-    TestLockIndex,
+    LockIndex,
     fake_bytes,
     get_unlocked_amount,
 )
@@ -70,11 +70,11 @@ def test_1_item_unlockable(
     )
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET]
+        pending_transfers_tree.unlockable[0][LockIndex.SECRET]
     ).call_and_transact({"from": A})
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(
-            pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH]
+            pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
         == web3.eth.blockNumber
     )
@@ -103,11 +103,11 @@ def test_get_hash_length_fail(
     pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
 
     secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][TestLockIndex.SECRET]
+        pending_transfers_tree.unlockable[0][LockIndex.SECRET]
     ).call_and_transact({"from": A})
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(
-            pending_transfers_tree.unlockable[0][TestLockIndex.SECRETHASH]
+            pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
         == web3.eth.blockNumber
     )
