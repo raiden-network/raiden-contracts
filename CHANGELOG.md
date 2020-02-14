@@ -5,6 +5,12 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.36.1]
+
+- [#1339](https://github.com/raiden-network/raiden-contracts/pull/1339) Update `web3` and related dependencies. This also enables an Istanbul compatible test chain.
+- [#1361](https://github.com/raiden-network/raiden-contracts/pull/1361) Require `--service-registry-controller` during service contracts deployment.
+- [#1360](https://github.com/raiden-network/raiden-contracts/pull/1360) Add Python 3.8 support
+
 ## [0.36.0]
 
 - [#1355](https://github.com/raiden-network/raiden-contracts/pull/1355) update solc version to 0.5.16
