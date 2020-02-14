@@ -1132,7 +1132,7 @@ def test_deploy_raiden_save_info_false(
 def deploy_services_arguments(
     privkey: str,
     save_info: Optional[bool],
-    service_registry_controller: Optional[HexAddress],
+    service_registry_controller: HexAddress,
     token_network_registry_address: HexAddress,
     contracts_version: Optional[str] = None,
 ) -> List:
@@ -1146,9 +1146,6 @@ def deploy_services_arguments(
     if contracts_version is not None:
         arguments += ["--contracts_version", contracts_version]
 
-    if service_registry_controller:
-        arguments += ["--service-registry-controller", service_registry_controller]
-
     arguments += [
         "--private-key",
         privkey,
@@ -1158,6 +1155,8 @@ def deploy_services_arguments(
         100,
         "--initial-service-deposit-price",
         SERVICE_DEPOSIT // 2,
+        "--service-registry-controller",
+        service_registry_controller,
         "--service-deposit-bump-numerator",
         6,
         "--service-deposit-bump-denominator",
@@ -1195,7 +1194,7 @@ def test_deploy_services(
                 deploy_services_arguments(
                     privkey=privkey_file.name,
                     save_info=None,
-                    service_registry_controller=None,
+                    service_registry_controller=FAKE_ADDRESS,
                     token_network_registry_address=FAKE_ADDRESS,
                 ),
             )
@@ -1219,7 +1218,7 @@ def test_deploy_old_services(get_accounts: Callable, get_private_key: Callable) 
                 deploy_services_arguments(
                     privkey=privkey_file.name,
                     save_info=None,
-                    service_registry_controller=None,
+                    service_registry_controller=FAKE_ADDRESS,
                     token_network_registry_address=FAKE_ADDRESS,
                     contracts_version="0.21.0",
                 ),
@@ -1280,7 +1279,7 @@ def test_deploy_services_save_info_false(
                 deploy_services_arguments(
                     privkey=privkey_file.name,
                     save_info=False,
-                    service_registry_controller=None,
+                    service_registry_controller=FAKE_ADDRESS,
                     token_network_registry_address=FAKE_ADDRESS,
                 ),
             )

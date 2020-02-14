@@ -20,7 +20,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
-    EMPTY_ADDRESS,
 )
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
@@ -240,7 +239,7 @@ def raiden(
 )
 @click.option(
     "--service-registry-controller",
-    default=EMPTY_ADDRESS,
+    required=True,
     callback=validate_address,
     help="Address of the controller that can modify the parameters of ServiceRegistry",
 )
