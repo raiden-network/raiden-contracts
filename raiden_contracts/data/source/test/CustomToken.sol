@@ -1,4 +1,4 @@
-pragma solidity 0.5.16;
+pragma solidity 0.6.3;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
@@ -90,7 +90,7 @@ contract CustomToken is StandardToken {
         assert(address(this).balance == 0);
     }
 
-    function decimals() public view returns (uint8 decimals) {
+    function decimals() public override view returns (uint8 decimals) {
         return _decimals;
     }
 }

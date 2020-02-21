@@ -1,4 +1,4 @@
-pragma solidity 0.5.16;
+pragma solidity 0.6.3;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
@@ -123,7 +123,7 @@ contract UserDeposit is Utils {
     /// @param sender Account from which the amount will be deducted
     /// @param receiver Account to which the amount will be credited
     /// @param amount Amount of tokens to be transferred
-    /// @return true if transfer has been done successfully, otherwise false
+    /// @return success true if transfer has been done successfully, otherwise false
     function transfer(
         address sender,
         address receiver,
@@ -188,7 +188,7 @@ contract UserDeposit is Utils {
 
     /// @notice The owner's balance with planned withdrawals deducted
     /// @param owner Address for which the balance should be returned
-    /// @return The remaining balance after planned withdrawals
+    /// @return remaining_balance The remaining balance after planned withdrawals
     function effectiveBalance(address owner)
         external
         view
