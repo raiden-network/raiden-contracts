@@ -1,4 +1,4 @@
-pragma solidity 0.5.16;
+pragma solidity 0.6.3;
 
 import "raiden/Token.sol";
 
@@ -16,7 +16,10 @@ contract StandardToken is Token {
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) allowed;
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
+    function transfer(address _to, uint256 _value)
+        public override
+        returns (bool success)
+    {
         //Default assumes totalSupply can't be over max (2^256 - 1).
         //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
         //Replace the if with this one instead.
@@ -30,7 +33,7 @@ contract StandardToken is Token {
     }
 
     function transferFrom(address _from, address _to, uint256 _value)
-        public
+        public override
         returns (bool success)
     {
         //same as above. Replace this line with the following if you want to protect against wrapping uints.
@@ -47,21 +50,25 @@ contract StandardToken is Token {
         } else { return false; }
     }
 
-    function balanceOf(address _owner) public view returns (uint256 balance) {
+    function balanceOf(address _owner) public override view returns (uint256 balance) {
         return balances[_owner];
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool success) {
+    function approve(address _spender, uint256 _value) public override returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
-    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public override view returns (uint256 remaining) {
       return allowed[_owner][_spender];
     }
 
-    function totalSupply() public view returns (uint256 supply) {
+    function totalSupply() public override view returns (uint256 supply) {
         return _total_supply;
+    }
+
+    function decimals() public virtual override view returns (uint8 decimals) {
+        return 18;
     }
 }

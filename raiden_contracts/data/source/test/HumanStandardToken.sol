@@ -1,4 +1,4 @@
-pragma solidity 0.5.16;
+pragma solidity 0.6.3;
 
 import "test/StandardToken.sol";
 
@@ -65,9 +65,9 @@ contract HumanStandardToken is StandardToken {
         return true;
     }
 
-    function () external { revert(); }
+    fallback () external { revert(); }
 
-    function decimals() public view returns (uint8 decimals) {
+    function decimals() public override view returns (uint8 decimals) {
         return _decimals;
     }
 }
