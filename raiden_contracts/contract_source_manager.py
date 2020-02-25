@@ -152,6 +152,8 @@ def contracts_source_path_of_deployment_module(module: DeploymentModule) -> Path
         return contracts_source_path(contracts_version=None)["raiden"]
     elif module == DeploymentModule.SERVICES:
         return contracts_source_path(contracts_version=None)["services"]
+    elif module == DeploymentModule.TOKENS:
+        return contracts_source_path(contracts_version=None)["test"]
     else:
         raise ValueError(f"No source known for module {module}")
 

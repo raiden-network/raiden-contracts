@@ -133,6 +133,7 @@ class DeploymentModule(Enum):
 
     RAIDEN = "raiden"
     SERVICES = "services"
+    TOKENS = "tokens"
     ALL = "all"
 
 
@@ -162,4 +163,5 @@ CONTRACT_LIST = [
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_MONITORING_SERVICE),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_ONE_TO_N),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_USER_DEPOSIT),
+    ContractListEntry(module=DeploymentModule.TOKENS, name=CONTRACT_CUSTOM_TOKEN),
 ]

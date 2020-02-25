@@ -144,13 +144,19 @@ def gas_measurements(version: Optional[str] = None) -> Dict[str, int]:
 
 
 def contracts_deployed_path(
-    chain_id: ChainID, version: Optional[str] = None, services: bool = False
+    chain_id: ChainID, version: Optional[str] = None, services: bool = False, tokens: bool = False
 ) -> Path:
     """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
     chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else "private_net"
+    if services:
+        prefix = "services_"
+    elif tokens:
+        prefix = "tokens_"
+    else:
+        prefix = ""
 
-    return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
+    return data_path.joinpath(f"deployment_{prefix}{chain_name}.json")
 
 
 def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) -> DeployedContracts:
@@ -205,6 +211,9 @@ def get_contracts_deployment_info(
 
     if module_chosen(DeploymentModule.RAIDEN):
         files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=False))
+
+    if module_chosen(DeploymentModule.TOKENS):
+        files.append(contracts_deployed_path(chain_id=chain_id, version=version, tokens=True))
 
     if module == DeploymentModule.SERVICES and not contracts_version_provides_services(version):
         raise ValueError(
