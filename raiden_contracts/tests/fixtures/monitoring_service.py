@@ -6,7 +6,7 @@ from raiden_contracts.constants import CONTRACT_MONITORING_SERVICE
 
 @pytest.fixture(scope="session")
 def monitoring_service_external(
-    deploy_tester_contract: Contract,
+    deploy_tester_contract: Callable,
     custom_token: Contract,
     service_registry: Contract,
     uninitialized_user_deposit_contract: Contract,
@@ -26,7 +26,7 @@ def monitoring_service_internals(
     custom_token: Contract,
     service_registry: Contract,
     uninitialized_user_deposit_contract: Contract,
-    deploy_tester_contract: Contract,
+    deploy_tester_contract: Callable,
     token_network_registry_contract: Contract,
 ) -> Contract:
     return deploy_tester_contract(

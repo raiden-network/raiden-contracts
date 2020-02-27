@@ -15,7 +15,7 @@ from raiden_contracts.tests.utils.constants import NOT_ADDRESS, UINT256_MAX
 
 def test_constructor_call(
     web3: Web3,
-    get_token_network: Contract,
+    get_token_network: Callable,
     custom_token: Contract,
     secret_registry_contract: Contract,
     get_accounts: Callable,

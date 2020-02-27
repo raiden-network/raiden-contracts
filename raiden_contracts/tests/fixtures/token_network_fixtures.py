@@ -123,7 +123,7 @@ def token_network_in_another_token_network_registry(
 
 @pytest.fixture
 def token_network_contract(
-    deploy_tester_contract: Contract,
+    deploy_tester_contract: Callable,
     secret_registry_contract: Contract,
     standard_token_contract: Contract,
 ) -> Contract:

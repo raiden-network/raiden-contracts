@@ -13,7 +13,7 @@ from raiden_contracts.utils.signature import sign
 
 
 @pytest.fixture
-def signature_test_contract(deploy_tester_contract: Contract) -> Contract:
+def signature_test_contract(deploy_tester_contract: Callable) -> Contract:
     return deploy_tester_contract("SignatureVerifyTest")
 
 
