@@ -19,7 +19,7 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 
 @pytest.fixture()
-def get_token_network_registry(deploy_tester_contract: Contract) -> Callable:
+def get_token_network_registry(deploy_tester_contract: Callable) -> Callable:
     def get(**arguments: Dict) -> Contract:
         return deploy_tester_contract(CONTRACT_TOKEN_NETWORK_REGISTRY, **arguments)
 
@@ -71,7 +71,7 @@ def token_network_registry_address(token_network_registry_contract: Contract) ->
 def add_and_register_token(
     web3: Web3,
     token_network_registry_contract: Contract,
-    deploy_token_contract: Contract,
+    deploy_token_contract: Callable,
     contracts_manager: ContractManager,
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,

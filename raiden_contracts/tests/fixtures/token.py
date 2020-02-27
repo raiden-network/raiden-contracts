@@ -52,7 +52,7 @@ def human_standard_token(deploy_token_contract: Callable, token_args: Dict) -> C
 
 
 @pytest.fixture
-def deploy_token_contract(deploy_tester_contract: Contract) -> Callable:
+def deploy_token_contract(deploy_tester_contract: Callable) -> Callable:
     """Returns a function that deploys a generic HumanStandardToken contract"""
 
     def f(**args: Dict) -> Contract:

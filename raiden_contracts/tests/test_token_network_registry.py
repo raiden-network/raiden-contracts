@@ -19,7 +19,7 @@ from raiden_contracts.utils.events import check_token_network_created
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_call(
     web3: Web3,
-    get_token_network_registry: Contract,
+    get_token_network_registry: Callable,
     secret_registry_contract: Contract,
     get_accounts: Callable,
 ) -> None:
@@ -251,7 +251,7 @@ def test_constructor_call(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_call_state(
-    web3: Web3, get_token_network_registry: Contract, secret_registry_contract: Contract
+    web3: Web3, get_token_network_registry: Callable, secret_registry_contract: Contract
 ) -> None:
     """ The constructor should set the parameters into the storage of the contract """
 
@@ -412,7 +412,7 @@ def test_create_erc20_token_network_twice_fails(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_events(
-    register_token_network: Contract,
+    register_token_network: Callable,
     token_network_registry_contract: Contract,
     custom_token: Contract,
     event_handler: Callable,

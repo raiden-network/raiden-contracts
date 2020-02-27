@@ -28,7 +28,7 @@ def token_network_test_storage(
 
 @pytest.fixture()
 def token_network_test_signatures(
-    deploy_tester_contract: Contract,
+    deploy_tester_contract: Callable,
     web3: Web3,
     custom_token: Contract,
     secret_registry_contract: Contract,
@@ -45,7 +45,7 @@ def token_network_test_signatures(
 
 @pytest.fixture()
 def token_network_test_utils(
-    deploy_tester_contract: Contract,
+    deploy_tester_contract: Callable,
     web3: Web3,
     custom_token: Contract,
     secret_registry_contract: Contract,
