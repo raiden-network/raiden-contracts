@@ -3,6 +3,7 @@ from typing import Callable, Collection, List, Optional, Tuple
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from eth_typing import HexAddress
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 
@@ -101,7 +102,7 @@ def channel_deposit(token_network: Contract, assign_tokens: Callable) -> Callabl
         deposit: int,
         partner: HexAddress,
         tx_from: Optional[HexAddress] = None,
-    ) -> str:
+    ) -> HexBytes:
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
@@ -148,7 +149,7 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
         expiration_block: int,
         partner: HexAddress,
         delegate: Optional[HexAddress] = None,
-    ) -> str:
+    ) -> HexBytes:
         delegate = delegate or participant
         channel_identifier = token_network.functions.getChannelIdentifier(
             participant, partner
