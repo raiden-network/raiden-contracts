@@ -6,6 +6,7 @@ from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.events import check_channel_settled
 
 
@@ -54,17 +55,38 @@ def test_cooperative_settle_channel_call(
         )
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.cooperativeSettle(
-            channel_identifier, EMPTY_ADDRESS, balance_A, B, balance_B, signature_A, signature_B
-        ).call_and_transact({"from": C})
+        call_and_transact(
+            token_network.functions.cooperativeSettle(
+                channel_identifier,
+                EMPTY_ADDRESS,
+                balance_A,
+                B,
+                balance_B,
+                signature_A,
+                signature_B,
+            ),
+            {"from": C},
+        )
     with pytest.raises(TransactionFailed):
-        token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, EMPTY_ADDRESS, balance_B, signature_A, signature_B
-        ).call_and_transact({"from": C})
+        call_and_transact(
+            token_network.functions.cooperativeSettle(
+                channel_identifier,
+                A,
+                balance_A,
+                EMPTY_ADDRESS,
+                balance_B,
+                signature_A,
+                signature_B,
+            ),
+            {"from": C},
+        )
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
 
 @pytest.mark.skip(reason="Delayed until another milestone")
@@ -99,9 +121,12 @@ def test_cooperative_settle_channel_signatures(
             channel_identifier, A, balance_B, B, balance_A, signature_A, signature_B
         ).call({"from": C})
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
 
 @pytest.mark.skip(reason="Delayed until another milestone")
@@ -129,9 +154,12 @@ def test_cooperative_settle_channel_0(
     pre_account_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
     cooperative_settle_state_tests(
         channel_identifier,
@@ -170,9 +198,12 @@ def test_cooperative_settle_channel_00(
     pre_account_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
     cooperative_settle_state_tests(
         channel_identifier,
@@ -212,9 +243,12 @@ def test_cooperative_settle_channel_state(
     pre_account_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
     cooperative_settle_state_tests(
         channel_identifier,
@@ -259,9 +293,12 @@ def test_cooperative_settle_channel_state_withdraw(
     pre_account_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
     cooperative_settle_state_tests(
         channel_identifier,
@@ -357,9 +394,12 @@ def test_cooperative_settle_channel_wrong_balances(
             signature_B_fail2,
         ).call({"from": C})
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+        ),
+        {"from": C},
+    )
 
 
 @pytest.mark.skip(reason="Delayed until another milestone")
@@ -384,9 +424,12 @@ def test_cooperative_close_replay_reopened_channel(
         [A, B], channel_identifier1, B, balance_B, A, balance_A
     )
 
-    token_network.functions.cooperativeSettle(
-        channel_identifier1, B, balance_B, A, balance_A, signature_B, signature_A
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier1, B, balance_B, A, balance_A, signature_B, signature_A
+        ),
+        {"from": B},
+    )
 
     # Reopen the channel and make sure we cannot use the old balance proof
     channel_identifier2 = create_channel(A, B)[0]
@@ -403,9 +446,12 @@ def test_cooperative_close_replay_reopened_channel(
     (signature_A2, signature_B2) = create_cooperative_settle_signatures(
         [A, B], channel_identifier2, B, balance_B, A, balance_A
     )
-    token_network.functions.cooperativeSettle(
-        channel_identifier2, B, balance_B, A, balance_A, signature_B2, signature_A2
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier2, B, balance_B, A, balance_A, signature_B2, signature_A2
+        ),
+        {"from": B},
+    )
 
 
 @pytest.mark.skip(reason="Delayed until another milestone")
@@ -429,9 +475,12 @@ def test_cooperative_settle_channel_event(
         [A, B], channel_identifier, B, balance_B, A, balance_A
     )
 
-    txn_hash = token_network.functions.cooperativeSettle(
-        channel_identifier, B, balance_B, A, balance_A, signature_B, signature_A
-    ).call_and_transact({"from": B})
+    txn_hash = call_and_transact(
+        token_network.functions.cooperativeSettle(
+            channel_identifier, B, balance_B, A, balance_A, signature_B, signature_A
+        ),
+        {"from": B},
+    )
 
     ev_handler.add(
         txn_hash,

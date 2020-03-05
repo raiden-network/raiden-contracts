@@ -13,6 +13,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
     ParticipantInfoIndex,
 )
+from raiden_contracts.tests.utils import call_and_transact
 
 
 def test_register_three_but_not_four(
@@ -36,15 +37,21 @@ def test_register_three_but_not_four(
     token1 = custom_token_factory()
     token2 = custom_token_factory()
     token3 = custom_token_factory()
-    token_network_registry.functions.createERC20TokenNetwork(
-        token0.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact()
-    token_network_registry.functions.createERC20TokenNetwork(
-        token1.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact()
-    token_network_registry.functions.createERC20TokenNetwork(
-        token2.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact()
+    call_and_transact(
+        token_network_registry.functions.createERC20TokenNetwork(
+            token0.address, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+    )
+    call_and_transact(
+        token_network_registry.functions.createERC20TokenNetwork(
+            token1.address, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+    )
+    call_and_transact(
+        token_network_registry.functions.createERC20TokenNetwork(
+            token2.address, channel_participant_deposit_limit, token_network_deposit_limit
+        )
+    )
     with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             token3.address, channel_participant_deposit_limit, token_network_deposit_limit
@@ -87,15 +94,15 @@ def test_participant_deposit_limit(
         ).call({"from": B})
 
     # Deposit some tokens, under the limit
-    token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B).call_and_transact(
-        {"from": A}
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B), {"from": A}
     )
     info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert info_A[ParticipantInfoIndex.DEPOSIT] == deposit_A
 
-    info_B = token_network.functions.setTotalDeposit(
-        channel_identifier, B, deposit_B, A
-    ).call_and_transact({"from": B})
+    info_B = call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, B, deposit_B, A), {"from": B}
+    )
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.DEPOSIT] == deposit_B
 
@@ -108,12 +115,18 @@ def test_participant_deposit_limit(
             channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
         ).call({"from": B})
 
-    token_network.functions.setTotalDeposit(
-        channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT, B
-    ).call_and_transact({"from": A})
-    token_network.functions.setTotalDeposit(
-        channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT, A
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.setTotalDeposit(
+            channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT, B
+        ),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.setTotalDeposit(
+            channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT, A
+        ),
+        {"from": B},
+    )
 
 
 @pytest.mark.skip(reason="Only for local testing, otherwise it takes too much time to run.")
@@ -142,9 +155,12 @@ def test_network_deposit_limit(
     ) -> None:
         remaining_to_reach_limit = remaining()
         assign_tokens(participant1, remaining_to_reach_limit)
-        token_network.functions.setTotalDeposit(
-            channel_identifier, participant1, remaining_to_reach_limit, participant2
-        ).call_and_transact({"from": participant1})
+        call_and_transact(
+            token_network.functions.setTotalDeposit(
+                channel_identifier, participant1, remaining_to_reach_limit, participant2
+            ),
+            {"from": participant1},
+        )
 
     remaining_to_reach_limit = remaining()
     while remaining_to_reach_limit > 0:
@@ -155,17 +171,23 @@ def test_network_deposit_limit(
         channel_identifier = create_channel(A, B)[0]
 
         try:
-            token_network.functions.setTotalDeposit(
-                channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT, B
-            ).call_and_transact({"from": A})
+            call_and_transact(
+                token_network.functions.setTotalDeposit(
+                    channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT, B
+                ),
+                {"from": A},
+            )
         except TransactionFailed:
             send_remaining(channel_identifier, A, B)
             break
 
         try:
-            token_network.functions.setTotalDeposit(
-                channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT, A
-            ).call_and_transact({"from": B})
+            call_and_transact(
+                token_network.functions.setTotalDeposit(
+                    channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT, A
+                ),
+                {"from": B},
+            )
         except TransactionFailed:
             send_remaining(channel_identifier, B, A)
             break
@@ -183,9 +205,10 @@ def test_network_deposit_limit(
     assign_tokens(A, last_deposit + 10)
     channel_identifier = create_channel(A, B)[0]
 
-    token_network.functions.setTotalDeposit(
-        channel_identifier, A, last_deposit, B
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, A, last_deposit, B),
+        {"from": A},
+    )
 
     # After token network limit is reached, we cannot deposit anymore tokens in existent channels
     with pytest.raises(TransactionFailed):

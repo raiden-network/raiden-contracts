@@ -15,7 +15,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.fixtures.channel import call_settle
-from raiden_contracts.tests.utils import ChannelValues, LockedAmounts
+from raiden_contracts.tests.utils import ChannelValues, LockedAmounts, call_and_transact
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
 )
@@ -60,9 +60,12 @@ def test_deprecation_executor(
 
     # We can only deploy one TokenNetwork contract
     # It can be deployed by anyone
-    tx_hash = token_network_registry.functions.createERC20TokenNetwork(
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact({"from": B})
+    tx_hash = call_and_transact(
+        token_network_registry.functions.createERC20TokenNetwork(
+            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        ),
+        {"from": B},
+    )
     assert token_network_registry.functions.token_network_created().call() == 1
 
     # No other TokenNetworks can be deployed now
@@ -101,7 +104,7 @@ def test_set_deprecation_switch(
     with pytest.raises(TransactionFailed):
         token_network.functions.deprecate().call({"from": A})
 
-    tx = token_network.functions.deprecate().call_and_transact({"from": deprecation_executor})
+    tx = call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
     tx_receipt = web3.eth.getTransactionReceipt(tx)
     event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
@@ -130,7 +133,7 @@ def test_deprecation_switch(
     channel_deposit(channel_identifier, A, deposit, B)
     channel_deposit(channel_identifier, B, deposit, A)
 
-    token_network.functions.deprecate().call_and_transact({"from": deprecation_executor})
+    call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # Now we cannot deposit in existent channels
@@ -203,7 +206,7 @@ def test_deprecation_switch_settle(
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
     # Set the deprecation switch to true
-    token_network.functions.deprecate().call_and_transact({"from": deprecation_executor})
+    call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # We need to make sure we can still close, settle & unlock the channels
@@ -213,14 +216,18 @@ def test_deprecation_switch_settle(
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Unlock B's pending transfers that were sent to A
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
+        )
+    )
 
     # Unlock A's pending transfers that were sent to B
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
 
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 107
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 93

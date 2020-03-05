@@ -3,6 +3,7 @@ from eth_utils.address import to_checksum_address
 from web3 import Web3
 from web3.contract import Contract
 
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.logs import LogFilter
 
 
@@ -24,6 +25,6 @@ def test_call_and_transact_does_not_mine(web3: Web3, custom_token: Contract) -> 
     """ See call_and_transact() does not mine a block """
 
     before = web3.eth.blockNumber
-    custom_token.functions.multiplier().call_and_transact()
+    call_and_transact(custom_token.functions.multiplier())
     after = web3.eth.blockNumber
     assert before + 1 == after

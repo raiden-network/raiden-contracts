@@ -21,6 +21,7 @@ from raiden_contracts.tests.utils import (
     UINT256_MAX,
     ChannelValues,
     LockedAmounts,
+    call_and_transact,
     fake_bytes,
     get_onchain_settlement_amounts,
     get_settlement_amounts,
@@ -48,16 +49,19 @@ def test_settle_no_bp_success(
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
     # Close channel with no balance proof
-    token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        A,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-        closing_sig,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier,
+            B,
+            A,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            closing_sig,
+        ),
+        {"from": A},
+    )
 
     # Do not call updateNonClosingBalanceProof
 
@@ -65,17 +69,20 @@ def test_settle_no_bp_success(
     web3.testing.mine(settle_timeout + 1)
 
     # Settling the channel should work with no balance proofs
-    token_network.functions.settleChannel(
-        channel_identifier=channel_identifier,
-        participant1=A,
-        participant1_transferred_amount=0,
-        participant1_locked_amount=0,
-        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-        participant2=B,
-        participant2_transferred_amount=0,
-        participant2_locked_amount=0,
-        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier=channel_identifier,
+            participant1=A,
+            participant1_transferred_amount=0,
+            participant1_locked_amount=0,
+            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2=B,
+            participant2_transferred_amount=0,
+            participant2_locked_amount=0,
+            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+        ),
+        {"from": A},
+    )
 
     assert custom_token.functions.balanceOf(A).call() == deposit_A
     assert custom_token.functions.balanceOf(B).call() == deposit_B
@@ -195,26 +202,32 @@ def test_settle_single_direct_transfer_for_closing_party(
         msg_type=MessageTypeId.BALANCE_PROOF,
         **balance_proof_B._asdict(),
     )
-    token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+        ),
+        {"from": A},
+    )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     web3.testing.mine(settle_timeout + 1)
-    token_network.functions.settleChannel(
-        channel_identifier=channel_identifier,
-        participant1=A,
-        participant1_transferred_amount=0,
-        participant1_locked_amount=0,
-        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-        participant2=B,
-        participant2_transferred_amount=vals_B.transferred,
-        participant2_locked_amount=0,
-        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier=channel_identifier,
+            participant1=A,
+            participant1_transferred_amount=0,
+            participant1_locked_amount=0,
+            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2=B,
+            participant2_transferred_amount=vals_B.transferred,
+            participant2_locked_amount=0,
+            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+        ),
+        {"from": A},
+    )
 
     # Calculate how much A and B should receive
     expected_settlement = get_settlement_amounts(vals_A, vals_B)
@@ -255,16 +268,19 @@ def test_settle_single_direct_transfer_for_counterparty(
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
-    token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        A,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-        closing_sig,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier,
+            B,
+            A,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            closing_sig,
+        ),
+        {"from": A},
+    )
 
     balance_proof_A = create_balance_proof(
         channel_identifier,
@@ -281,30 +297,36 @@ def test_settle_single_direct_transfer_for_counterparty(
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
         **balance_proof_A._asdict(),
     )
-    token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier,
-        A,
-        B,
-        *balance_proof_A._asdict().values(),
-        balance_proof_update_signature_B,
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A._asdict().values(),
+            balance_proof_update_signature_B,
+        ),
+        {"from": B},
+    )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     web3.testing.mine(settle_timeout + 1)
-    token_network.functions.settleChannel(
-        channel_identifier=channel_identifier,
-        participant1=B,
-        participant1_transferred_amount=0,
-        participant1_locked_amount=0,
-        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-        participant2=A,
-        participant2_transferred_amount=vals_A.transferred,
-        participant2_locked_amount=0,
-        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier=channel_identifier,
+            participant1=B,
+            participant1_transferred_amount=0,
+            participant1_locked_amount=0,
+            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2=A,
+            participant2_transferred_amount=vals_A.transferred,
+            participant2_locked_amount=0,
+            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+        ),
+        {"from": B},
+    )
 
     # Calculate how much A and B should receive
     expected_settlement = get_settlement_amounts(vals_B, vals_A)
@@ -357,9 +379,10 @@ def test_settlement_with_unauthorized_token_transfer(
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # A does a transfer to the token_network without appropriate function call - tokens are lost
-    custom_token.functions.transfer(
-        token_network.address, externally_transferred_amount
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        custom_token.functions.transfer(token_network.address, externally_transferred_amount),
+        {"from": A},
+    )
     assert custom_token.functions.balanceOf(token_network.address).call() == (
         pre_balance_contract + externally_transferred_amount
     )
@@ -418,16 +441,19 @@ def test_settle_wrong_state_fail(
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
-    txn_hash = token_network.functions.closeChannel(
-        channel_identifier,
-        B,
-        A,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-        closing_sig,
-    ).call_and_transact({"from": A})
+    txn_hash = call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier,
+            B,
+            A,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            closing_sig,
+        ),
+        {"from": A},
+    )
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
@@ -613,29 +639,38 @@ def test_settle_channel_event(
         **balance_proof_B._asdict(),
     )
 
-    token_network.functions.closeChannel(
-        channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
-    ).call_and_transact({"from": A})
-    token_network.functions.updateNonClosingBalanceProof(
-        channel_identifier,
-        A,
-        B,
-        *balance_proof_A._asdict().values(),
-        balance_proof_update_signature_B,
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
+        ),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A._asdict().values(),
+            balance_proof_update_signature_B,
+        ),
+        {"from": B},
+    )
 
     web3.testing.mine(settle_timeout + 1)
-    txn_hash = token_network.functions.settleChannel(
-        channel_identifier=channel_identifier,
-        participant1=B,
-        participant1_transferred_amount=5,
-        participant1_locked_amount=0,
-        participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-        participant2=A,
-        participant2_transferred_amount=10,
-        participant2_locked_amount=0,
-        participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-    ).call_and_transact({"from": A})
+    txn_hash = call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier=channel_identifier,
+            participant1=B,
+            participant1_transferred_amount=5,
+            participant1_locked_amount=0,
+            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2=A,
+            participant2_transferred_amount=10,
+            participant2_locked_amount=0,
+            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+        ),
+        {"from": A},
+    )
 
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))
     ev_handler.check()

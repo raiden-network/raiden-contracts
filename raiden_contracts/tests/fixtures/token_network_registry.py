@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 from raiden_contracts.utils.transaction import check_successful_tx
 
@@ -80,9 +81,14 @@ def add_and_register_token(
 
     def f(initial_amount: int, decimals: int, token_name: str, token_symbol: str) -> Contract:
         token_contract = deploy_token_contract(initial_amount, decimals, token_name, token_symbol)
-        txid = token_network_registry_contract.functions.createERC20TokenNetwork(
-            token_contract.address, channel_participant_deposit_limit, token_network_deposit_limit
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        txid = call_and_transact(
+            token_network_registry_contract.functions.createERC20TokenNetwork(
+                token_contract.address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
         (tx_receipt, _) = check_successful_tx(web3, txid)
         assert len(tx_receipt["logs"]) == 1
         event_abi = contracts_manager.get_event_abi(

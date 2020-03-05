@@ -18,6 +18,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_SIGNATURE,
     LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
+    call_and_transact,
 )
 from raiden_contracts.utils.events import check_withdraw
 
@@ -125,14 +126,17 @@ def test_withdraw_call(
             partner_signature=EMPTY_SIGNATURE,
         ).call({"from": A})
 
-    token_network.functions.setTotalWithdraw(
-        channel_identifier=channel_identifier,
-        participant=A,
-        total_withdraw=withdraw_A,
-        expiration_block=UINT256_MAX,
-        participant_signature=signature_A_for_A,
-        partner_signature=signature_B_for_A,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=withdraw_A,
+            expiration_block=UINT256_MAX,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
+        ),
+        {"from": A},
+    )
 
 
 def test_withdraw_call_near_expiration(
@@ -152,14 +156,17 @@ def test_withdraw_call_near_expiration(
         [A, B], channel_identifier, A, withdraw_A, expiration
     )
 
-    token_network.functions.setTotalWithdraw(
-        channel_identifier=channel_identifier,
-        participant=A,
-        total_withdraw=withdraw_A,
-        expiration_block=expiration,
-        participant_signature=signature_A_for_A,
-        partner_signature=signature_B_for_A,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier=channel_identifier,
+            participant=A,
+            total_withdraw=withdraw_A,
+            expiration_block=expiration,
+            participant_signature=signature_A_for_A,
+            partner_signature=signature_B_for_A,
+        ),
+        {"from": A},
+    )
 
 
 def test_withdraw_wrong_state(
@@ -184,16 +191,19 @@ def test_withdraw_wrong_state(
     withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
-    token_network.functions.closeChannel(
-        channel_identifier=channel_identifier,
-        non_closing_participant=B,
-        closing_participant=A,
-        balance_hash=EMPTY_BALANCE_HASH,
-        nonce=0,
-        additional_hash=EMPTY_ADDITIONAL_HASH,
-        non_closing_signature=EMPTY_SIGNATURE,
-        closing_signature=closing_sig,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier=channel_identifier,
+            non_closing_participant=B,
+            closing_participant=A,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            non_closing_signature=EMPTY_SIGNATURE,
+            closing_signature=closing_sig,
+        ),
+        {"from": A},
+    )
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
 
@@ -201,9 +211,12 @@ def test_withdraw_wrong_state(
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
-    token_network.functions.settleChannel(
-        channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+        ),
+        {"from": A},
+    )
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
 
@@ -259,9 +272,12 @@ def test_withdraw_wrong_signers(
             channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_C_for_A
         ).call({"from": C})
 
-    token_network.functions.setTotalWithdraw(
-        channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
+        ),
+        {"from": C},
+    )
 
 
 def test_withdraw_wrong_signature_content(
@@ -346,22 +362,31 @@ def test_withdraw_wrong_signature_content(
             signature_B_for_A_fake3,
         ).call({"from": A})
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier, A, withdraw_A, 0, signature_A_for_A, signature_B_for_A
-        ).call_and_transact({"from": A})
+        call_and_transact(
+            token_network.functions.setTotalWithdraw(
+                channel_identifier, A, withdraw_A, 0, signature_A_for_A, signature_B_for_A
+            ),
+            {"from": A},
+        )
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            A,
-            withdraw_A,
-            web3.eth.blockNumber,
-            signature_A_for_A,
-            signature_B_for_A,
-        ).call_and_transact({"from": A})
+        call_and_transact(
+            token_network.functions.setTotalWithdraw(
+                channel_identifier,
+                A,
+                withdraw_A,
+                web3.eth.blockNumber,
+                signature_A_for_A,
+                signature_B_for_A,
+            ),
+            {"from": A},
+        )
 
-    token_network.functions.setTotalWithdraw(
-        channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
+        ),
+        {"from": A},
+    )
 
 
 def test_withdraw_channel_state(
@@ -465,25 +490,34 @@ def test_withdraw_replay_reopened_channel(
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier1, A, withdraw_A, UINT256_MAX
     )
-    token_network.functions.setTotalWithdraw(
-        channel_identifier1, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier1, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
+        ),
+        {"from": A},
+    )
 
     closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier1)
-    token_network.functions.closeChannel(
-        channel_identifier=channel_identifier1,
-        non_closing_participant=A,
-        closing_participant=B,
-        balance_hash=EMPTY_BALANCE_HASH,
-        nonce=0,
-        additional_hash=EMPTY_ADDITIONAL_HASH,
-        non_closing_signature=EMPTY_SIGNATURE,
-        closing_signature=closing_sig,
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier=channel_identifier1,
+            non_closing_participant=A,
+            closing_participant=B,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            non_closing_signature=EMPTY_SIGNATURE,
+            closing_signature=closing_sig,
+        ),
+        {"from": B},
+    )
     web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
-    token_network.functions.settleChannel(
-        channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+        ),
+        {"from": A},
+    )
 
     # Reopen the channel and make sure we cannot use the old withdraw proof
     channel_identifier2 = create_channel(A, B)[0]
@@ -499,9 +533,12 @@ def test_withdraw_replay_reopened_channel(
     (signature_A_for_A2, signature_B_for_A2) = create_withdraw_signatures(
         [A, B], channel_identifier2, A, withdraw_A, UINT256_MAX
     )
-    token_network.functions.setTotalWithdraw(
-        channel_identifier2, A, withdraw_A, UINT256_MAX, signature_A_for_A2, signature_B_for_A2
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.setTotalWithdraw(
+            channel_identifier2, A, withdraw_A, UINT256_MAX, signature_A_for_A2, signature_B_for_A2
+        ),
+        {"from": A},
+    )
 
 
 def test_withdraw_event(

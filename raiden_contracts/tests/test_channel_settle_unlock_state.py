@@ -15,6 +15,7 @@ from raiden_contracts.tests.utils import (
     NONEXISTENT_LOCKSROOT,
     UINT256_MAX,
     are_balance_proofs_valid,
+    call_and_transact,
     get_expected_after_settlement_unlock_amounts,
     get_onchain_settlement_amounts,
     get_settlement_amounts,
@@ -147,9 +148,11 @@ def test_settlement_outcome(
                     channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
                 ).call()
         else:
-            token_network.functions.unlock(
-                channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
-            ).call_and_transact()
+            call_and_transact(
+                token_network.functions.unlock(
+                    channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
+                )
+            )
 
         # The locked amount should have been removed from contract storage
         info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
@@ -168,9 +171,11 @@ def test_settlement_outcome(
                     channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
                 ).call()
         else:
-            token_network.functions.unlock(
-                channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-            ).call_and_transact()
+            call_and_transact(
+                token_network.functions.unlock(
+                    channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+                )
+            )
 
         # The locked amount should have been removed from contract storage
         info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()

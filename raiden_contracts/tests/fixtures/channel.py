@@ -15,6 +15,7 @@ from raiden_contracts.tests.utils import (
     NONEXISTENT_LOCKSROOT,
     ChannelValues,
     LockedAmounts,
+    call_and_transact,
     fake_bytes,
     get_onchain_settlement_amounts,
     get_participants_hash,
@@ -37,9 +38,11 @@ def create_channel(token_network: Contract) -> Callable:
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
-        txn_hash = token_network.functions.openChannel(
-            participant1=A, participant2=B, settle_timeout=settle_timeout
-        ).call_and_transact()
+        txn_hash = call_and_transact(
+            token_network.functions.openChannel(
+                participant1=A, participant2=B, settle_timeout=settle_timeout
+            )
+        )
 
         # Get the channel identifier
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -65,18 +68,20 @@ def assign_tokens(token_network: Contract, custom_token: Contract) -> Callable:
         amount = max(deposit - balance, 0)
         transfer_from_owner = min(amount, owner_balance)
 
-        custom_token.functions.transfer(
-            _to=participant, _value=transfer_from_owner
-        ).call_and_transact({"from": owner})
+        call_and_transact(
+            custom_token.functions.transfer(_to=participant, _value=transfer_from_owner),
+            {"from": owner},
+        )
         assert custom_token.functions.balanceOf(participant).call() >= transfer_from_owner
 
         if amount > owner_balance:
             minted = amount - owner_balance
-            custom_token.functions.mint(minted).call_and_transact({"from": participant})
+            call_and_transact(custom_token.functions.mint(minted), {"from": participant})
         assert custom_token.functions.balanceOf(participant).call() >= deposit
-        custom_token.functions.approve(
-            _spender=token_network.address, _value=deposit
-        ).call_and_transact({"from": participant})
+        call_and_transact(
+            custom_token.functions.approve(_spender=token_network.address, _value=deposit),
+            {"from": participant},
+        )
         assert (
             custom_token.functions.allowance(
                 _owner=participant, _spender=token_network.address
@@ -99,12 +104,15 @@ def channel_deposit(token_network: Contract, assign_tokens: Callable) -> Callabl
         tx_from = tx_from or participant
         assign_tokens(tx_from, deposit)
 
-        txn_hash = token_network.functions.setTotalDeposit(
-            channel_identifier=channel_identifier,
-            participant=participant,
-            total_deposit=deposit,
-            partner=partner,
-        ).call_and_transact({"from": tx_from})
+        txn_hash = call_and_transact(
+            token_network.functions.setTotalDeposit(
+                channel_identifier=channel_identifier,
+                participant=participant,
+                total_deposit=deposit,
+                partner=partner,
+            ),
+            {"from": tx_from},
+        )
         return txn_hash
 
     return get
@@ -152,14 +160,17 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
             withdraw_amount,
             expiration_block,
         )
-        txn_hash = token_network.functions.setTotalWithdraw(
-            channel_identifier,
-            participant,
-            withdraw_amount,
-            expiration_block,
-            signature_participant,
-            signature_partner,
-        ).call_and_transact({"from": delegate})
+        txn_hash = call_and_transact(
+            token_network.functions.setTotalWithdraw(
+                channel_identifier,
+                participant,
+                withdraw_amount,
+                expiration_block,
+                signature_participant,
+                signature_partner,
+            ),
+            {"from": delegate},
+        )
         return txn_hash
 
     return get
@@ -214,21 +225,27 @@ def close_and_update_channel(
             **balance_proof_1._asdict(),
         )
 
-        token_network.functions.closeChannel(
-            channel_identifier,
-            participant2,
-            participant1,
-            *balance_proof_2._asdict().values(),
-            balance_proof_close_signature_1,
-        ).call_and_transact({"from": participant1})
+        call_and_transact(
+            token_network.functions.closeChannel(
+                channel_identifier,
+                participant2,
+                participant1,
+                *balance_proof_2._asdict().values(),
+                balance_proof_close_signature_1,
+            ),
+            {"from": participant1},
+        )
 
-        token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier,
-            participant1,
-            participant2,
-            *balance_proof_1._asdict().values(),
-            balance_proof_update_signature_2,
-        ).call_and_transact({"from": participant2})
+        call_and_transact(
+            token_network.functions.updateNonClosingBalanceProof(
+                channel_identifier,
+                participant1,
+                participant2,
+                *balance_proof_1._asdict().values(),
+                balance_proof_update_signature_2,
+            ),
+            {"from": participant2},
+        )
 
     return get
 
@@ -304,8 +321,8 @@ def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
     def get(tx_from: HexAddress, transfers: List[Tuple]) -> None:
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.blockNumber < expiration
-            secret_registry_contract.functions.registerSecret(secret).call_and_transact(
-                {"from": tx_from}
+            call_and_transact(
+                secret_registry_contract.functions.registerSecret(secret), {"from": tx_from}
             )
             assert (
                 secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
@@ -817,17 +834,20 @@ def call_settle(
 
     if A_total_transferred != B_total_transferred:
         with pytest.raises(TransactionFailed):
-            token_network.functions.settleChannel(
-                channel_identifier=channel_identifier,
-                participant1=B,
-                participant1_transferred_amount=vals_B.transferred,
-                participant1_locked_amount=0,
-                participant1_locksroot=vals_B.locksroot,
-                participant2=A,
-                participant2_transferred_amount=0,
-                participant2_locked_amount=0,
-                participant2_locksroot=vals_A.locksroot,
-            ).call_and_transact({"from": A})
+            call_and_transact(
+                token_network.functions.settleChannel(
+                    channel_identifier=channel_identifier,
+                    participant1=B,
+                    participant1_transferred_amount=vals_B.transferred,
+                    participant1_locked_amount=0,
+                    participant1_locksroot=vals_B.locksroot,
+                    participant2=A,
+                    participant2_transferred_amount=0,
+                    participant2_locked_amount=0,
+                    participant2_locksroot=vals_A.locksroot,
+                ),
+                {"from": A},
+            )
 
     contract_function = token_network.functions.settleChannel(
         channel_identifier,
@@ -843,4 +863,4 @@ def call_settle(
     # call() raises TransactionFailed exception
     contract_function.call({"from": A})
     # transact() changes the chain state
-    contract_function.call_and_transact({"from": A})
+    call_and_transact(contract_function, {"from": A})

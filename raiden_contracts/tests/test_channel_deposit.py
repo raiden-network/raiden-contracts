@@ -15,6 +15,7 @@ from raiden_contracts.tests.utils import (
     NOT_ADDRESS,
     UINT256_MAX,
     ChannelValues,
+    call_and_transact,
 )
 from raiden_contracts.utils.events import check_new_deposit
 
@@ -30,9 +31,11 @@ def test_deposit_channel_call(
     deposit_A = 200
     channel_identifier = create_channel(A, B)[0]
 
-    custom_token.functions.mint(deposit_A).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(deposit_A), {"from": A})
 
-    custom_token.functions.approve(token_network.address, deposit_A).call_and_transact({"from": A})
+    call_and_transact(
+        custom_token.functions.approve(token_network.address, deposit_A), {"from": A}
+    )
 
     # Validation failure with an invalid channel identifier
     with pytest.raises(ValidationError):
@@ -78,8 +81,8 @@ def test_deposit_channel_call(
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call({"from": A})
 
-    token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B).call_and_transact(
-        {"from": A}
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B), {"from": A}
     )
     assert (
         deposit_A
@@ -102,7 +105,7 @@ def test_deposit_notapproved(
     channel_identifier = create_channel(A, B)[0]
     deposit_A = 1
 
-    custom_token.functions.mint(deposit_A).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(deposit_A), {"from": A})
     web3.testing.mine(1)
     balance = custom_token.functions.balanceOf(A).call()
     assert balance >= deposit_A, f"minted {deposit_A} but the balance is still {balance}"
@@ -172,8 +175,8 @@ def test_deposit_wrong_channel(
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, 10, C).call({"from": A})
 
-    token_network.functions.setTotalDeposit(channel_identifier, A, 10, B).call_and_transact(
-        {"from": A}
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, A, 10, B), {"from": A}
     )
     assert (
         10 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
@@ -257,12 +260,14 @@ def test_deposit_wrong_state_fail(
     channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
     assign_tokens(A, vals_A.deposit)
     assign_tokens(B, vals_B.deposit)
-    token_network.functions.setTotalDeposit(
-        channel_identifier, A, vals_A.deposit, B
-    ).call_and_transact({"from": A})
-    token_network.functions.setTotalDeposit(
-        channel_identifier, B, vals_B.deposit, A
-    ).call_and_transact({"from": B})
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A),
+        {"from": B},
+    )
     assert (
         vals_A.deposit
         == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
@@ -274,16 +279,19 @@ def test_deposit_wrong_state_fail(
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
-    token_network.functions.closeChannel(
-        channel_identifier=channel_identifier,
-        non_closing_participant=B,
-        closing_participant=A,
-        balance_hash=EMPTY_BALANCE_HASH,
-        nonce=0,
-        additional_hash=EMPTY_ADDITIONAL_HASH,
-        non_closing_signature=EMPTY_SIGNATURE,
-        closing_signature=closing_sig,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier=channel_identifier,
+            non_closing_participant=B,
+            closing_participant=A,
+            balance_hash=EMPTY_BALANCE_HASH,
+            nonce=0,
+            additional_hash=EMPTY_ADDITIONAL_HASH,
+            non_closing_signature=EMPTY_SIGNATURE,
+            closing_signature=closing_sig,
+        ),
+        {"from": A},
+    )
 
     assign_tokens(A, 10)
     assign_tokens(B, 10)

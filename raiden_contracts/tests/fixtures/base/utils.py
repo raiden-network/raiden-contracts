@@ -8,11 +8,12 @@ from eth_tester.exceptions import TransactionFailed
 from eth_typing.evm import HexAddress
 from eth_utils import is_same_address
 from eth_utils.units import units
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.contract_manager import contracts_gas_path
-from raiden_contracts.tests.utils import get_random_privkey
+from raiden_contracts.tests.utils import call_and_transact, get_random_privkey
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
 
@@ -59,11 +60,11 @@ def create_service_account(
     def get() -> HexAddress:
         account = create_account()
         deposit = service_registry.functions.currentPrice().call()
-        custom_token.functions.mint(deposit).call_and_transact({"from": account})
-        custom_token.functions.approve(service_registry.address, deposit).call_and_transact(
-            {"from": account}
+        call_and_transact(custom_token.functions.mint(deposit), {"from": account})
+        call_and_transact(
+            custom_token.functions.approve(service_registry.address, deposit), {"from": account}
         )
-        service_registry.functions.deposit(deposit).call_and_transact({"from": account})
+        call_and_transact(service_registry.functions.deposit(deposit), {"from": account})
         assert service_registry.functions.hasValidRegistration(account).call()
         return account
 
@@ -157,7 +158,7 @@ def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
 
 @pytest.fixture()
 def get_block(web3: Web3) -> Callable:
-    def get(txn_hash: str) -> int:
+    def get(txn_hash: HexBytes) -> int:
         receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt["blockNumber"]
 

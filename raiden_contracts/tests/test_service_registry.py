@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     EVENT_REGISTERED_SERVICE,
 )
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import (
     DEFAULT_BUMP_DENOMINATOR,
     DEFAULT_BUMP_NUMERATOR,
@@ -32,14 +33,14 @@ def test_deposit_contract(
 ) -> None:
     """Deposit contract with zero-deadline should release the deposit immediately"""
     (A,) = get_accounts(1)
-    custom_token.functions.mint(100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
         _token=custom_token.address, _release_at=0, _withdrawer=A, _service_registry=A
     )
-    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.transfer(depo.address, 100), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
-    depo.functions.withdraw(A).call_and_transact({"from": A})
+    call_and_transact(depo.functions.withdraw(A), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 100
     assert custom_token.functions.balanceOf(depo.address).call() == 0
 
@@ -49,17 +50,17 @@ def test_deposit_contract_without_service_registry_code(
 ) -> None:
     """ If Deposit has no code in service registry, too early withdrawals fail """
     (A,) = get_accounts(1)
-    custom_token.functions.mint(100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
         _token=custom_token.address, _release_at=UINT256_MAX, _withdrawer=A, _service_registry=A
     )
-    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.transfer(depo.address, 100), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
     # The call fails because an empty account doesn't return a boolean.
     # In this case, the message of the TransactionFailed exception is ''.
     with pytest.raises(TransactionFailed) as ex:
-        depo.functions.withdraw(A).call_and_transact({"from": A})
+        call_and_transact(depo.functions.withdraw(A), {"from": A})
     assert str(ex.value) == "b''"
 
     assert custom_token.functions.balanceOf(A).call() == 0
@@ -74,18 +75,18 @@ def test_deposit_contract_too_early_withdraw(
 ) -> None:
     """Deposit contract with some deadline should not release the deposit immediately"""
     (A,) = get_accounts(1)
-    custom_token.functions.mint(100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
         _token=custom_token.address,
         _release_at=UINT256_MAX,
         _withdrawer=A,
         _service_registry=service_registry.address,
     )
-    custom_token.functions.transfer(depo.address, 100).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.transfer(depo.address, 100), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
     with pytest.raises(TransactionFailed, match="deposit not released yet"):
-        depo.functions.withdraw(A).call_and_transact({"from": A})
+        call_and_transact(depo.functions.withdraw(A), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
 
@@ -95,7 +96,7 @@ def test_deposit(
 ) -> None:
     """A service provider can make deposits to ServiceRegistry"""
     (A,) = get_accounts(1)
-    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
     custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
         {"from": A}
     )
@@ -105,7 +106,7 @@ def test_deposit(
     old_price = service_registry.functions.currentPrice().call()
     old_len = service_registry.functions.everMadeDepositsLen().call()
     assert not service_registry.functions.hasValidRegistration(A).call()
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     assert old_balance > custom_token.functions.balanceOf(A).call() > old_balance - old_price
     assert service_registry.functions.currentPrice().call() > old_price
     assert service_registry.functions.everMadeDepositsLen().call() == old_len + 1
@@ -117,13 +118,13 @@ def test_deposit(
         service_registry.functions.deposit(1).call({"from": A})
 
     # More minting and approving before extending the registration
-    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
-        {"from": A}
+    call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
     )
 
     # Extending the registration
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     assert service_registry.functions.hasValidRegistration(A).call()
     second_expiration = service_registry.functions.service_valid_till(A).call()
     assert second_expiration == first_expiration + DEFAULT_REGISTRATION_DURATION
@@ -139,11 +140,11 @@ def test_setURL(
     url1 = "http://example.com"
     url2 = "http://raiden.example.com"
 
-    custom_token.functions.mint(SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
-        {"from": A}
+    call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
     )
-    tx = service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    tx = call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     tx_receipt = web3.eth.getTransactionReceipt(tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
@@ -151,10 +152,10 @@ def test_setURL(
     assert event_data["args"]["service"] == A
     assert event_data["args"]["deposit_contract"] != EMPTY_ADDRESS
 
-    service_registry.functions.setURL(url1).call_and_transact({"from": A})
+    call_and_transact(service_registry.functions.setURL(url1), {"from": A})
     assert service_registry.functions.urls(A).call() == url1
 
-    service_registry.functions.setURL(url2).call_and_transact({"from": A})
+    call_and_transact(service_registry.functions.setURL(url2), {"from": A})
     assert service_registry.functions.urls(A).call() == url2
 
 
@@ -174,23 +175,26 @@ def test_changing_duration(
 ) -> None:
     """The controller can change the registration period of ServiceRegistry"""
     new_duration = 90 * SECONDS_PER_DAY
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=new_duration,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=new_duration,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     # make sure that the duration has changed.
     assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
-    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(
-        service_registry.address, 2 * SERVICE_DEPOSIT
-    ).call_and_transact({"from": A})
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT), {"from": A}
+    )
+    call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     first_expiration = service_registry.functions.service_valid_till(A).call()
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+    call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     second_expiration = service_registry.functions.service_valid_till(A).call()
     assert second_expiration == first_expiration + new_duration
 
@@ -200,65 +204,80 @@ def test_changing_duration_to_huge_value(
 ) -> None:
     """When the duration is huge and the deadline overflows, deposit fails"""
     new_duration = 2 ** 256 - 1
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=new_duration,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=new_duration,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     # make sure that the duration has changed.
     assert service_registry.functions.registration_duration().call() == new_duration
     (A,) = get_accounts(1)
-    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": A})
-    custom_token.functions.approve(
-        service_registry.address, 2 * SERVICE_DEPOSIT
-    ).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT), {"from": A}
+    )
     with pytest.raises(TransactionFailed, match="overflow during extending the registration"):
-        service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": A})
+        call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
 
 
 def test_changing_bump_numerator(service_registry: Contract) -> None:
     """The controller can change the price bump numerator"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR + 1,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.price_bump_numerator().call() == DEFAULT_BUMP_NUMERATOR + 1
 
 
 def test_calling_internal_bump_paramter_change(service_registry: Contract) -> None:
     """Calling an internal function setPriceBumpParameters() must fail"""
     with pytest.raises(MismatchedABI):
-        service_registry.functions.setPriceBumpParameters(
-            DEFAULT_BUMP_NUMERATOR + 1, DEFAULT_BUMP_DENOMINATOR
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.setPriceBumpParameters(
+                DEFAULT_BUMP_NUMERATOR + 1, DEFAULT_BUMP_DENOMINATOR
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the numerator is too big"""
     with pytest.raises(TransactionFailed, match="price dump numerator is too big"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=2 ** 40,
-            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=2 ** 40,
+                _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_changing_bump_denominator(service_registry: Contract) -> None:
     """The controller can change the price dump denominator"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR + 1,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR + 1,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert (
         service_registry.functions.price_bump_denominator().call() == DEFAULT_BUMP_DENOMINATOR + 1
     )
@@ -267,125 +286,154 @@ def test_changing_bump_denominator(service_registry: Contract) -> None:
 def test_changing_too_low_bump_parameter_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the bump numerator is smaller than the bump denominator"""
     with pytest.raises(TransactionFailed, match="price dump instead of bump"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-            _price_bump_denominator=DEFAULT_BUMP_NUMERATOR + 1,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+                _price_bump_denominator=DEFAULT_BUMP_NUMERATOR + 1,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_zero_numerator_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the bump numerator is set to zero"""
     with pytest.raises(TransactionFailed, match="price dump instead of bump"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=0,
-            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=0,
+                _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_changing_decay_constant(service_registry: Contract) -> None:
     """The controller can change the price decay constant"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT + 100,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT + 100,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.decay_constant().call() == DEFAULT_DECAY_CONSTANT + 100
 
 
 def test_very_small_decay_cosntant(service_registry: Contract) -> None:
     """set a very small decay constant and see very fast price decay"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=1,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=1,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.decayedPrice(100000, 100).call() == DEFAULT_MIN_PRICE
 
 
 def test_internal_set_decay_constant(service_registry: Contract) -> None:
     """Calling the internal setDecayConstant() must fail"""
     with pytest.raises(MismatchedABI):
-        service_registry.functions.setDecayConstant(
-            DEFAULT_DECAY_CONSTANT + 100
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.setDecayConstant(DEFAULT_DECAY_CONSTANT + 100),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_too_high_decay_constant_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the new decay constant is too high"""
     with pytest.raises(TransactionFailed, match="too big decay constant"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=2 ** 40,
-            _min_price=DEFAULT_MIN_PRICE,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+                _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+                _decay_constant=2 ** 40,
+                _min_price=DEFAULT_MIN_PRICE,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_very_big_decay_cosntant(service_registry: Contract) -> None:
     """set a very big decay constant and see very slow price decay"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=2 ** 40 - 1,
-        _min_price=DEFAULT_MIN_PRICE,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=2 ** 40 - 1,
+            _min_price=DEFAULT_MIN_PRICE,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.decayedPrice(100000, 11990300).call() == 99998
 
 
 def test_zero_denominator_fail(service_registry: Contract) -> None:
     """changeParameters() fails if the new bump denominator is zero"""
     with pytest.raises(TransactionFailed, match="divide by zero"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-            _price_bump_denominator=0,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+                _price_bump_denominator=0,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
 
 
 def test_changing_min_price(service_registry: Contract) -> None:
     """The controller can change the min_price"""
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=DEFAULT_MIN_PRICE * 2,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=DEFAULT_MIN_PRICE * 2,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE * 2
 
 
 def test_changing_min_price_above_current(service_registry: Contract) -> None:
     """Changing min_price above the current price."""
     current_price = service_registry.functions.currentPrice().call()
-    service_registry.functions.changeParameters(
-        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-        _decay_constant=DEFAULT_DECAY_CONSTANT,
-        _min_price=current_price + 1,
-        _registration_duration=DEFAULT_REGISTRATION_DURATION,
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.changeParameters(
+            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+            _decay_constant=DEFAULT_DECAY_CONSTANT,
+            _min_price=current_price + 1,
+            _registration_duration=DEFAULT_REGISTRATION_DURATION,
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
     assert service_registry.functions.currentPrice().call() == current_price + 1
 
 
 def test_internal_min_price(service_registry: Contract) -> None:
     """Calling the internal setMinPrice() must fail"""
     with pytest.raises(MismatchedABI):
-        service_registry.functions.setMinPrice(DEFAULT_MIN_PRICE * 2).call_and_transact(
-            {"from": DEPLOYER_ADDRESS}
+        call_and_transact(
+            service_registry.functions.setMinPrice(DEFAULT_MIN_PRICE * 2),
+            {"from": DEPLOYER_ADDRESS},
         )
 
 
@@ -393,26 +441,32 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
     """A random address's changeParameters() call should fail"""
     (A,) = get_accounts(1)
     with pytest.raises(TransactionFailed, match="caller is not the controller"):
-        service_registry.functions.changeParameters(
-            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE * 2,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": A})
+        call_and_transact(
+            service_registry.functions.changeParameters(
+                _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+                _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE * 2,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": A},
+        )
     assert service_registry.functions.min_price().call() == DEFAULT_MIN_PRICE
 
 
 def test_parameter_change_on_no_controller(service_registry_without_controller: Contract) -> None:
     """A random address's changeParameters() call should fail"""
     with pytest.raises(TransactionFailed, match="caller is not the controller"):
-        service_registry_without_controller.functions.changeParameters(
-            _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
-            _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=DEFAULT_DECAY_CONSTANT,
-            _min_price=DEFAULT_MIN_PRICE * 2,
-            _registration_duration=DEFAULT_REGISTRATION_DURATION,
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        call_and_transact(
+            service_registry_without_controller.functions.changeParameters(
+                _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+                _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+                _decay_constant=DEFAULT_DECAY_CONSTANT,
+                _min_price=DEFAULT_MIN_PRICE * 2,
+                _registration_duration=DEFAULT_REGISTRATION_DURATION,
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
     assert service_registry_without_controller.functions.min_price().call() == DEFAULT_MIN_PRICE
 
 
@@ -462,17 +516,19 @@ def test_deprecation_switch(
     """The controller turns on the deprecation switch and somebody tries to deposit"""
     # The controller turns on the deprecation switch
     assert not service_registry.functions.deprecated().call()
-    service_registry.functions.setDeprecationSwitch().call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.setDeprecationSwitch(), {"from": DEPLOYER_ADDRESS}
+    )
     assert service_registry.functions.deprecated().call()
     # A user tries to make a deposit
     (A,) = get_accounts(1)
     minted_amount = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(minted_amount).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, minted_amount).call_and_transact(
-        {"from": A}
+    call_and_transact(custom_token.functions.mint(minted_amount), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, minted_amount), {"from": A}
     )
     with pytest.raises(TransactionFailed, match="this contract was deprecated"):
-        service_registry.functions.deposit(minted_amount).call_and_transact({"from": A})
+        call_and_transact(service_registry.functions.deposit(minted_amount), {"from": A})
 
 
 def test_deprecation_immediate_payout(
@@ -482,9 +538,11 @@ def test_deprecation_immediate_payout(
     # A user makes a deposit
     A = create_account()
     minted = service_registry.functions.currentPrice().call()
-    custom_token.functions.mint(minted).call_and_transact({"from": A})
-    custom_token.functions.approve(service_registry.address, minted).call_and_transact({"from": A})
-    deposit_tx = service_registry.functions.deposit(minted).call_and_transact({"from": A})
+    call_and_transact(custom_token.functions.mint(minted), {"from": A})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, minted), {"from": A}
+    )
+    deposit_tx = call_and_transact(service_registry.functions.deposit(minted), {"from": A})
     # The user obtains the deposit address
     deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
@@ -495,9 +553,11 @@ def test_deprecation_immediate_payout(
     deposit_abi = contract_manager.get_contract_abi(CONTRACT_DEPOSIT)
     deposit = web3.eth.contract(abi=deposit_abi, address=deposit_address)
     # The controller turns on the deprecation switch
-    service_registry.functions.setDeprecationSwitch().call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        service_registry.functions.setDeprecationSwitch(), {"from": DEPLOYER_ADDRESS}
+    )
     # The user successfully withdraws the deposit
-    deposit.functions.withdraw(A).call_and_transact({"from": A})
+    call_and_transact(deposit.functions.withdraw(A), {"from": A})
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
     # The Deposit contract has destroyed itself
@@ -510,7 +570,7 @@ def test_unauthorized_deprecation_switch(
     """A random account cannot turn on the deprecation switch"""
     (A,) = get_accounts(1)
     with pytest.raises(TransactionFailed, match="caller is not the controller"):
-        service_registry.functions.setDeprecationSwitch().call_and_transact({"from": A})
+        call_and_transact(service_registry.functions.setDeprecationSwitch(), {"from": A})
 
 
 def test_deploying_service_registry_with_denominator_zero(

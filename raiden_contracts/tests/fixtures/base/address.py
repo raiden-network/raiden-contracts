@@ -6,6 +6,7 @@ from eth_utils import is_address
 from eth_utils.units import units
 from web3.contract import Contract
 
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import FAUCET_ADDRESS
 
 
@@ -18,8 +19,8 @@ def send_funds(ethereum_tester: EthereumTester, custom_token: Contract) -> Calla
         ethereum_tester.send_transaction(
             {"from": FAUCET_ADDRESS, "to": target, "gas": 21000, "value": 1 * int(units["ether"])}
         )
-        custom_token.functions.transfer(_to=target, _value=10000).call_and_transact(
-            {"from": FAUCET_ADDRESS}
+        call_and_transact(
+            custom_token.functions.transfer(_to=target, _value=10000), {"from": FAUCET_ADDRESS}
         )
 
     return f
