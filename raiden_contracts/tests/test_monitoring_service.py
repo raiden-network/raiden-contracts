@@ -21,6 +21,7 @@ from raiden_contracts.tests.utils import (
     SERVICE_DEPOSIT,
     call_and_transact,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -151,7 +152,7 @@ def test_claimReward_with_settle_call(
     channel_identifier = monitor_data["channel_identifier"]
 
     # wait until MS is allowed to monitor
-    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
 
     # MS updates closed channel on behalf of B
     txn_hash = call_and_transact(
@@ -174,7 +175,7 @@ def test_claimReward_with_settle_call(
         ).call({"from": ms_address})
 
     # Settle channel after settle_timeout elapsed
-    token_network.web3.testing.mine(4)
+    mine_blocks(web3, 4)
     if with_settle:
         call_and_transact(
             token_network.functions.settleChannel(
@@ -256,7 +257,7 @@ def test_monitor(
         )
 
     # wait until MS is allowed to monitor
-    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
 
     # successful monitor call
     txn_hash = call_and_transact(
@@ -298,7 +299,7 @@ def test_monitor_by_unregistered_service(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
 
     # only registered service provicers may call `monitor`
     with pytest.raises(TransactionFailed, match="service not registered"):
@@ -337,9 +338,7 @@ def test_monitor_on_wrong_token_network_registry(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    token_network_in_another_token_network_registry.web3.testing.mine(
-        monitor_data["first_allowed"] - web3.eth.blockNumber
-    )
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
 
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry

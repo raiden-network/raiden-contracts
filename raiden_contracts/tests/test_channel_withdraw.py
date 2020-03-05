@@ -20,6 +20,7 @@ from raiden_contracts.tests.utils import (
     UINT256_MAX,
     call_and_transact,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_withdraw
 
 
@@ -210,7 +211,7 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
@@ -511,7 +512,7 @@ def test_withdraw_replay_reopened_channel(
         ),
         {"from": B},
     )
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS

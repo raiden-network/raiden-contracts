@@ -28,6 +28,7 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_channel_opened
 
 from .utils import get_participants_hash
+from .utils.blockchain import mine_blocks
 
 
 def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> None:
@@ -292,7 +293,7 @@ def test_reopen_channel(
         token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout + 1)
+    mine_blocks(web3, settle_timeout + 1)
 
     # Settle channel
     call_and_transact(

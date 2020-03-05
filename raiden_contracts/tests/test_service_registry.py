@@ -97,8 +97,8 @@ def test_deposit(
     """A service provider can make deposits to ServiceRegistry"""
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
-        {"from": A}
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
     )
 
     # happy path

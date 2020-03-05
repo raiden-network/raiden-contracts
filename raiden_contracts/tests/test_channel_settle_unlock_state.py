@@ -24,6 +24,7 @@ from raiden_contracts.tests.utils import (
     is_balance_proof_old,
     were_balance_proofs_valid,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
 )
@@ -82,7 +83,7 @@ def test_settlement_outcome(
 
         close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-        web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN)
+        mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN)
 
         pre_balance_A = custom_token.functions.balanceOf(A).call()
         pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -390,7 +391,7 @@ def test_channel_settle_invalid_balance_proof_values(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()

@@ -18,6 +18,7 @@ from raiden_contracts.tests.utils import (
     fake_bytes,
     get_unlocked_amount,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_channel_unlocked
 from raiden_contracts.utils.pending_transfers import (
     get_locked_amount,
@@ -298,12 +299,12 @@ def test_lock_data_from_packed_locks(
     assert claimable_amount == claimable(4)
 
     # Register last secret after expiration
-    web3.testing.mine(5)
+    mine_blocks(web3, 5)
     last_lock = pending_transfers_tree.expired[-1]
     # expiration
     assert web3.eth.blockNumber > last_lock[0]
     # register secret
-    secret_registry_contract.functions.registerSecret(last_lock[3]).call_and_transact()
+    call_and_transact(secret_registry_contract.functions.registerSecret(last_lock[3]))
     # ensure registration was done
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(last_lock[2]).call()
@@ -595,7 +596,7 @@ def test_channel_unlock(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -766,7 +767,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     )
 
     # Locks expire
-    web3.testing.mine(max_lock_expiration)
+    mine_blocks(web3, max_lock_expiration)
 
     # Secrets are revealed before settlement window, but after expiration
     for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
@@ -777,7 +778,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         )
 
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
 
     # settle channel
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
@@ -837,7 +838,7 @@ def test_channel_unlock_unregistered_locks(
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     # Secret hasn't been registered before settlement timeout
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
@@ -909,7 +910,7 @@ def test_channel_unlock_before_settlement_fails(
         ).call()
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
 
     # Unlock fails before settle is called
     with pytest.raises(TransactionFailed):
@@ -1077,7 +1078,7 @@ def test_channel_unlock_both_participants(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1242,7 +1243,7 @@ def test_channel_unlock_with_a_large_expiration(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel after a "long" time
-    web3.testing.mine(settle_timeout + 50)
+    mine_blocks(web3, settle_timeout + 50)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1448,7 +1449,7 @@ def test_unlock_channel_event(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 

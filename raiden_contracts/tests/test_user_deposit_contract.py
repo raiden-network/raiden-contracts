@@ -7,6 +7,7 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import UserDepositEvent
 from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 
 
 def test_deposit(
@@ -161,12 +162,12 @@ def test_withdraw(
 
     # withdraw won't work before withdraw_delay elapsed
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.testing.mine(withdraw_delay - 1)
+    mine_blocks(web3, withdraw_delay - 1)
     with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdraw(18).call({"from": A})
 
     # can't withdraw more then planned
-    web3.testing.mine(1)  # now withdraw_delay is over
+    mine_blocks(web3, 1)  # now withdraw_delay is over
     with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdraw(21).call({"from": A})
 

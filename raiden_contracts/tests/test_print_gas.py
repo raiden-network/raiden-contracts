@@ -18,6 +18,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import gas_measurements
 from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
@@ -223,7 +224,7 @@ def print_gas_channel_cycle(
     )
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".updateNonClosingBalanceProof")
 
-    web3.testing.mine(settle_timeout)
+    mine_blocks(web3, settle_timeout)
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier, B, 5, locked_amount2, locksroot2, A, 10, locked_amount1, locksroot1
@@ -270,6 +271,7 @@ def print_gas_monitoring_service(
     print_gas: Callable,
     get_private_key: Callable,
     create_service_account: Callable,
+    web3: Web3,
 ) -> None:
     """ Abusing pytest to print gas cost of MonitoringService functions """
     # setup: two parties + MS
@@ -320,7 +322,7 @@ def print_gas_monitoring_service(
         ),
         {"from": A},
     )
-    token_network.web3.testing.mine(4)
+    mine_blocks(web3, 4)
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = call_and_transact(
@@ -340,7 +342,7 @@ def print_gas_monitoring_service(
     )
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
-    token_network.web3.testing.mine(1)
+    mine_blocks(web3, 1)
 
     # MS claims the reward
     txn_hash = call_and_transact(
@@ -450,7 +452,7 @@ def print_gas_user_deposit(
 
     # withdraw
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.testing.mine(withdraw_delay)
+    mine_blocks(web3, withdraw_delay)
     txn_hash = call_and_transact(user_deposit_contract.functions.withdraw(10), {"from": A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 
