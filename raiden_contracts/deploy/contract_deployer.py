@@ -7,6 +7,7 @@ import semver
 from eth_typing import HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -98,7 +99,7 @@ class ContractDeployer(ContractVerifier):
         (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def send_deployment_transaction(self, contract: Contract, args: List) -> str:
+    def send_deployment_transaction(self, contract: Contract, args: List) -> HexBytes:
         txhash = None
         while txhash is None:
             try:

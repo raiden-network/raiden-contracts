@@ -1,12 +1,14 @@
 from typing import Any, Dict, Optional, Tuple
 
+from hexbytes import HexBytes
 from web3 import Web3
 from web3._utils.threads import Timeout
+from web3.types import TxData, TxReceipt
 
 
 def check_successful_tx(
-    web3: Web3, txid: str, timeout: int = 180
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    web3: Web3, txid: HexBytes, timeout: int = 180
+) -> Tuple[TxReceipt, TxData]:
     """See if transaction went through (Solidity code did not throw).
     :return: Transaction receipt and transaction info
     """
@@ -23,12 +25,12 @@ def check_successful_tx(
         raise ValueError(f"Status 0 indicates failure")
     if txinfo["gas"] == receipt["gasUsed"]:
         raise ValueError(f'Gas is completely used ({txinfo["gas"]}). Failure?')
-    return (receipt, txinfo)
+    return receipt, txinfo
 
 
 def wait_for_transaction_receipt(
-    web3: Web3, txid: str, timeout: int = 180
-) -> Optional[Dict[str, Any]]:
+    web3: Web3, txid: HexBytes, timeout: int = 180
+) -> Optional[TxReceipt]:
     receipt = None
     with Timeout(timeout) as time:
         while not receipt or not receipt["blockNumber"]:  # pylint: disable=E1136
