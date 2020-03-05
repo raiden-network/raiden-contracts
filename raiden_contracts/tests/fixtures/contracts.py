@@ -8,6 +8,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.contract_manager import ContractManager
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 
 log = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def deploy_contract(deploy_contract_txhash: Callable) -> Callable:
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
         txhash = deploy_contract_txhash(web3, deployer_address, abi, bytecode, **kwargs)
         contract_address = web3.eth.getTransactionReceipt(txhash).contractAddress
-        web3.testing.mine(1)
+        mine_blocks(web3, 1)
 
         if web3.eth.getTransactionReceipt(txhash).status != 1:
             raise TransactionFailed("deployment failed")

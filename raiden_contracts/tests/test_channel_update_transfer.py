@@ -21,6 +21,7 @@ from raiden_contracts.tests.utils import (
     call_and_transact,
     fake_bytes,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_transfer_updated
 
 
@@ -549,7 +550,7 @@ def test_update_not_allowed_after_settlement_period(
         ),
         {"from": A},
     )
-    web3.testing.mine(settle_timeout + 1)
+    mine_blocks(web3, settle_timeout + 1)
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
@@ -1115,7 +1116,7 @@ def test_update_replay_reopened_channel(
         {"from": A},
     )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1,

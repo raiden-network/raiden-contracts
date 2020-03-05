@@ -22,6 +22,7 @@ from raiden_contracts.tests.utils import (
     call_and_transact,
     fake_bytes,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_channel_closed
 
 
@@ -79,7 +80,7 @@ def test_close_settled_channel_fail(
         ),
         {"from": A},
     )
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier,
@@ -647,7 +648,7 @@ def test_close_replay_reopened_channel(
         ),
         {"from": A},
     )
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier1,

@@ -17,6 +17,7 @@ from raiden_contracts.tests.utils import (
     ChannelValues,
     call_and_transact,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_new_deposit
 
 
@@ -106,7 +107,7 @@ def test_deposit_notapproved(
     deposit_A = 1
 
     call_and_transact(custom_token.functions.mint(deposit_A), {"from": A})
-    web3.testing.mine(1)
+    mine_blocks(web3, 1)
     balance = custom_token.functions.balanceOf(A).call()
     assert balance >= deposit_A, f"minted {deposit_A} but the balance is still {balance}"
 
@@ -306,7 +307,7 @@ def test_deposit_wrong_state_fail(
             {"from": B}
         )
 
-    web3.testing.mine(TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(

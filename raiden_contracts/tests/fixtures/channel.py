@@ -21,6 +21,7 @@ from raiden_contracts.tests.utils import (
     get_participants_hash,
     get_settlement_amounts,
 )
+from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, OnchainBalanceProof
 from raiden_contracts.utils.proofs import (
     hash_balance_data,
@@ -300,7 +301,7 @@ def create_settled_channel(
             participant2_values,
         )
 
-        web3.testing.mine(settle_timeout)
+        mine_blocks(web3, settle_timeout)
 
         call_settle(
             token_network,
