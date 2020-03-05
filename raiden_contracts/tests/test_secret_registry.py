@@ -6,6 +6,7 @@ from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import EVENT_SECRET_REVEALED
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.mock import fake_bytes
 from raiden_contracts.utils.events import check_secret_revealed, check_secrets_revealed
 
@@ -44,7 +45,7 @@ def test_register_secret_return_value(
     # even though this does not change the state
     assert secret_registry_contract.functions.registerSecret(secret).call({"from": A}) is True
 
-    secret_registry_contract.functions.registerSecret(secret).call_and_transact({"from": A})
+    call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
 
     # We use call here to get the return value
     assert secret_registry_contract.functions.registerSecret(secret).call({"from": A}) is False
@@ -62,8 +63,8 @@ def test_register_secret(
 
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
 
-    txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact(
-        {"from": A}
+    txn_hash = call_and_transact(
+        secret_registry_contract.functions.registerSecret(secret), {"from": A}
     )
 
     assert secret_registry_contract.functions.getSecretRevealBlockHeight(
@@ -71,7 +72,7 @@ def test_register_secret(
     ).call() == get_block(txn_hash)
 
     # A should be able to register any number of secrets
-    secret_registry_contract.functions.registerSecret(secret2).call_and_transact({"from": A})
+    call_and_transact(secret_registry_contract.functions.registerSecret(secret2), {"from": A})
 
 
 def test_register_secret_batch(
@@ -85,8 +86,8 @@ def test_register_secret_batch(
     for h in secret_hashes:
         assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == 0
 
-    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).call_and_transact(
-        {"from": A}
+    txn_hash = call_and_transact(
+        secret_registry_contract.functions.registerSecretBatch(secrets), {"from": A}
     )
     block = get_block(txn_hash)
 
@@ -106,7 +107,7 @@ def test_register_secret_batch_return_value(
     secrets[2] = fake_bytes(32, "04")
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is True
 
-    secret_registry_contract.functions.registerSecret(secrets[1]).call_and_transact({"from": A})
+    call_and_transact(secret_registry_contract.functions.registerSecret(secrets[1]), {"from": A})
     assert secret_registry_contract.functions.registerSecretBatch(secrets).call() is False
 
 
@@ -116,7 +117,7 @@ def test_events(secret_registry_contract: Contract, event_handler: Callable) -> 
     secrethash = sha256(secret).digest()
     ev_handler = event_handler(secret_registry_contract)
 
-    txn_hash = secret_registry_contract.functions.registerSecret(secret).call_and_transact()
+    txn_hash = call_and_transact(secret_registry_contract.functions.registerSecret(secret))
 
     ev_handler.add(txn_hash, EVENT_SECRET_REVEALED, check_secret_revealed(secrethash, secret))
     ev_handler.check()
@@ -131,7 +132,7 @@ def test_register_secret_batch_events(
 
     ev_handler = event_handler(secret_registry_contract)
 
-    txn_hash = secret_registry_contract.functions.registerSecretBatch(secrets).call_and_transact()
+    txn_hash = call_and_transact(secret_registry_contract.functions.registerSecretBatch(secrets))
 
     ev_handler.add(
         txn_hash, EVENT_SECRET_REVEALED, check_secrets_revealed(secret_hashes, secrets), 3

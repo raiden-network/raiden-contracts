@@ -12,6 +12,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS
 from raiden_contracts.utils.events import check_token_network_created
 
@@ -341,9 +342,12 @@ def test_create_erc20_token_network_call(
         ).call({"from": DEPLOYER_ADDRESS})
 
     # see a success to make sure above tests were meaningful
-    token_network_registry_contract.functions.createERC20TokenNetwork(
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
 
 
 @pytest.mark.usefixtures("no_token_network")
@@ -400,9 +404,12 @@ def test_create_erc20_token_network_twice_fails(
 ) -> None:
     """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
 
-    token_network_registry_contract.functions.createERC20TokenNetwork(
-        custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
-    ).call_and_transact({"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        token_network_registry_contract.functions.createERC20TokenNetwork(
+            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+        ),
+        {"from": DEPLOYER_ADDRESS},
+    )
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(

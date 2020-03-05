@@ -15,6 +15,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 
 snapshot_before_token_network = None
@@ -41,9 +42,12 @@ def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Ca
         channel_participant_deposit_limit: int,
         token_network_deposit_limit: int,
     ) -> Contract:
-        tx_hash = token_network_registry.functions.createERC20TokenNetwork(
-            token_address, channel_participant_deposit_limit, token_network_deposit_limit
-        ).call_and_transact({"from": DEPLOYER_ADDRESS})
+        tx_hash = call_and_transact(
+            token_network_registry.functions.createERC20TokenNetwork(
+                token_address, channel_participant_deposit_limit, token_network_deposit_limit
+            ),
+            {"from": DEPLOYER_ADDRESS},
+        )
         tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED

@@ -14,6 +14,7 @@ from raiden_contracts.tests.utils import (
     ChannelValues,
     LockedAmounts,
     LockIndex,
+    call_and_transact,
     fake_bytes,
     get_unlocked_amount,
 )
@@ -69,9 +70,12 @@ def test_1_item_unlockable(
         web3=web3, unlockable_amounts=[6], expired_amounts=[]
     )
 
-    secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][LockIndex.SECRET]
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        secret_registry_contract.functions.registerSecret(
+            pending_transfers_tree.unlockable[0][LockIndex.SECRET]
+        ),
+        {"from": A},
+    )
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
@@ -102,9 +106,12 @@ def test_get_hash_length_fail(
     A = get_accounts(1)[0]
     pending_transfers_tree = get_pending_transfers_tree(web3, [2, 3, 6], [5])
 
-    secret_registry_contract.functions.registerSecret(
-        pending_transfers_tree.unlockable[0][LockIndex.SECRET]
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        secret_registry_contract.functions.registerSecret(
+            pending_transfers_tree.unlockable[0][LockIndex.SECRET]
+        ),
+        {"from": A},
+    )
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
@@ -235,9 +242,11 @@ def test_locks_order(
     ).call()
     assert locksroot == pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
+        )
+    )
 
 
 def test_lock_data_from_packed_locks(
@@ -343,9 +352,11 @@ def test_unlock_wrong_locksroot(
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(channel_identifier, B, A, b"").call()
 
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
 
 
 def test_channel_unlock_bigger_locked_amount(
@@ -392,9 +403,11 @@ def test_channel_unlock_bigger_locked_amount(
 
     # This should pass, even though the locked amount in storage is bigger. The rest of the
     # tokens is sent to A, as tokens corresponding to the locks that could not be unlocked.
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
@@ -449,9 +462,11 @@ def test_channel_unlock_smaller_locked_amount(
 
     # This should pass, even though the locked amount in storage is smaller.
     # B will receive less tokens.
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -503,9 +518,11 @@ def test_channel_unlock_bigger_unlocked_amount(
     # This should pass, even though the locked amount in storage is smaller.
     # B will receive the entire locked amount, corresponding to the locks that have been unlocked
     # and A will receive nothing.
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -591,9 +608,11 @@ def test_channel_unlock(
     assert info_B[ParticipantInfoIndex.LOCKED_AMOUNT] == values_B.locked_amounts.locked
 
     # Unlock the tokens
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree.packed_transfers
+        )
+    )
 
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.LOCKSROOT] == NONEXISTENT_LOCKSROOT
@@ -633,9 +652,12 @@ def test_channel_settle_and_unlock(
         LOCKSROOT_OF_NO_LOCKS,
         settle_timeout,
     )
-    token_network.functions.unlock(
-        channel_identifier1, B, A, pending_transfers_tree_1.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier1, B, A, pending_transfers_tree_1.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # Mock pending transfers data for a reopened channel
     pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -653,9 +675,12 @@ def test_channel_settle_and_unlock(
     )
 
     # 2nd unlocks should go through
-    token_network.functions.unlock(
-        channel_identifier2, B, A, pending_transfers_tree_2.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier2, B, A, pending_transfers_tree_2.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # Edge channel life-cycle: open -> settle -> open -> settle ->  unlock1 -> unlock2
 
@@ -690,12 +715,18 @@ def test_channel_settle_and_unlock(
     )
 
     # Both old and new unlocks should go through
-    token_network.functions.unlock(
-        channel_identifier4, B, A, pending_transfers_tree_2.packed_transfers
-    ).call_and_transact({"from": A})
-    token_network.functions.unlock(
-        channel_identifier3, B, A, pending_transfers_tree_1.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier4, B, A, pending_transfers_tree_2.packed_transfers
+        ),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier3, B, A, pending_transfers_tree_1.packed_transfers
+        ),
+        {"from": A},
+    )
 
 
 def test_channel_unlock_registered_expired_lock_refunds(
@@ -739,7 +770,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
 
     # Secrets are revealed before settlement window, but after expiration
     for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
-        secret_registry_contract.functions.registerSecret(secret).call_and_transact({"from": A})
+        call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
         assert (
             secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
             == web3.eth.blockNumber
@@ -756,9 +787,11 @@ def test_channel_unlock_registered_expired_lock_refunds(
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # Unlock works after channel is settled
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -808,9 +841,12 @@ def test_channel_unlock_unregistered_locks(
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # A gets back locked tokens
     assert (
@@ -889,9 +925,11 @@ def test_channel_unlock_before_settlement_fails(
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # Unlock works after channel is settled
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -939,9 +977,12 @@ def test_unlock_fails_with_partial_locks(
             ).call({"from": A})
 
     # Unlock with full pending locks does work
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
+        ),
+        {"from": A},
+    )
 
 
 def test_unlock_tampered_proof_fails(
@@ -982,9 +1023,12 @@ def test_unlock_tampered_proof_fails(
             ).call({"from": A})
 
     # Unlock with correct pending locks does work
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
+        ),
+        {"from": A},
+    )
 
 
 def test_channel_unlock_both_participants(
@@ -1042,14 +1086,18 @@ def test_channel_unlock_both_participants(
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # A unlock's
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
+        )
+    )
 
     # B unlock's
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -1104,9 +1152,12 @@ def test_unlock_twice_fails(
         LOCKSROOT_OF_NO_LOCKS,
         settle_timeout,
     )
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # Calling unlock twice does not work
     with pytest.raises(TransactionFailed):
@@ -1140,9 +1191,12 @@ def test_unlock_no_locks(
         LOCKSROOT_OF_NO_LOCKS,
         settle_timeout,
     )
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # Calling unlock twice does not work
     with pytest.raises(TransactionFailed):
@@ -1197,9 +1251,11 @@ def test_channel_unlock_with_a_large_expiration(
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # Unlock the tokens must still work
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree.packed_transfers
+        )
+    )
 
     balance_A = custom_token.functions.balanceOf(A).call()
     balance_B = custom_token.functions.balanceOf(B).call()
@@ -1278,14 +1334,20 @@ def test_reverse_participants_unlock(
         ).call({"from": B})
 
     # Someone trying to unlock B's locksroot & locked amount on behalf of A MUST succeed
-    token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree_B.packed_transfers
+        ),
+        {"from": C},
+    )
 
     # Someone trying to unlock A's locksroot & locked amount on behalf of B MUST succeed
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
-    ).call_and_transact({"from": C})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
+        ),
+        {"from": C},
+    )
 
 
 def test_unlock_different_channel_same_participants_fail(
@@ -1334,12 +1396,18 @@ def test_unlock_different_channel_same_participants_fail(
             channel_identifier2, B, A, pending_transfers_tree_1.packed_transfers
         ).call({"from": A})
 
-    token_network.functions.unlock(
-        channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
-    ).call_and_transact({"from": A})
-    token_network.functions.unlock(
-        channel_identifier2, B, A, pending_transfers_tree_2.packed_transfers
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
+        ),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier2, B, A, pending_transfers_tree_2.packed_transfers
+        ),
+        {"from": A},
+    )
 
 
 def test_unlock_channel_event(
@@ -1387,9 +1455,11 @@ def test_unlock_channel_event(
     ev_handler = event_handler(token_network)
 
     # Unlock the tokens
-    txn_hash = token_network.functions.unlock(
-        channel_identifier, A, B, pending_transfers_tree.packed_transfers
-    ).call_and_transact()
+    txn_hash = call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier, A, B, pending_transfers_tree.packed_transfers
+        )
+    )
 
     unlocked_amount = get_unlocked_amount(
         secret_registry_contract, pending_transfers_tree.packed_transfers

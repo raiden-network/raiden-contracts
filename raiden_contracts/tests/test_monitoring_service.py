@@ -15,7 +15,12 @@ from raiden_contracts.constants import (
     MessageTypeId,
     MonitoringServiceEvent,
 )
-from raiden_contracts.tests.utils import DEPLOYER_ADDRESS, EMPTY_HEXADDRESS, SERVICE_DEPOSIT
+from raiden_contracts.tests.utils import (
+    DEPLOYER_ADDRESS,
+    EMPTY_HEXADDRESS,
+    SERVICE_DEPOSIT,
+    call_and_transact,
+)
 from raiden_contracts.utils.proofs import sign_reward_proof
 
 REWARD_AMOUNT = 10
@@ -28,11 +33,11 @@ def ms_address(
     (ms,) = get_accounts(1)
 
     # register MS in the ServiceRegistry contract
-    custom_token.functions.mint(2 * SERVICE_DEPOSIT).call_and_transact({"from": ms})
-    custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT).call_and_transact(
-        {"from": ms}
+    call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": ms})
+    call_and_transact(
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": ms}
     )
-    service_registry.functions.deposit(SERVICE_DEPOSIT).call_and_transact({"from": ms})
+    call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": ms})
 
     return ms
 
@@ -86,9 +91,12 @@ def setup_monitor_data(
         )
 
         # close channel
-        token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_signature_A
-        ).call_and_transact({"from": A})
+        call_and_transact(
+            token_network.functions.closeChannel(
+                channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_signature_A
+            ),
+            {"from": A},
+        )
 
         # calculate when this MS is allowed to monitor
         (settle_block_number, _) = token_network.functions.getChannelInfo(
@@ -146,15 +154,18 @@ def test_claimReward_with_settle_call(
     token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
 
     # MS updates closed channel on behalf of B
-    txn_hash = monitoring_service_external.functions.monitor(
-        A,
-        B,
-        *monitor_data["balance_proof_B"]._asdict().values(),
-        monitor_data["non_closing_signature"],
-        REWARD_AMOUNT,
-        token_network.address,
-        monitor_data["reward_proof_signature"],
-    ).call_and_transact({"from": ms_address})
+    txn_hash = call_and_transact(
+        monitoring_service_external.functions.monitor(
+            A,
+            B,
+            *monitor_data["balance_proof_B"]._asdict().values(),
+            monitor_data["non_closing_signature"],
+            REWARD_AMOUNT,
+            token_network.address,
+            monitor_data["reward_proof_signature"],
+        ),
+        {"from": ms_address},
+    )
 
     # claiming before settlement timeout must fail
     with pytest.raises(TransactionFailed, match="channel not settled yet"):
@@ -165,22 +176,27 @@ def test_claimReward_with_settle_call(
     # Settle channel after settle_timeout elapsed
     token_network.web3.testing.mine(4)
     if with_settle:
-        token_network.functions.settleChannel(
-            channel_identifier,
-            B,  # participant_B
-            10,  # participant_B_transferred_amount
-            0,  # participant_B_locked_amount
-            LOCKSROOT_OF_NO_LOCKS,  # participant_B_locksroot
-            A,  # participant_A
-            20,  # participant_A_transferred_amount
-            0,  # participant_A_locked_amount
-            LOCKSROOT_OF_NO_LOCKS,  # participant_A_locksroot
-        ).call_and_transact()
+        call_and_transact(
+            token_network.functions.settleChannel(
+                channel_identifier,
+                B,  # participant_B
+                10,  # participant_B_transferred_amount
+                0,  # participant_B_locked_amount
+                LOCKSROOT_OF_NO_LOCKS,  # participant_B_locksroot
+                A,  # participant_A
+                20,  # participant_A_transferred_amount
+                0,  # participant_A_locked_amount
+                LOCKSROOT_OF_NO_LOCKS,  # participant_A_locksroot
+            )
+        )
 
     # Claim reward for MS
-    monitoring_service_external.functions.claimReward(
-        channel_identifier, token_network.address, A, B
-    ).call_and_transact({"from": ms_address})
+    call_and_transact(
+        monitoring_service_external.functions.claimReward(
+            channel_identifier, token_network.address, A, B
+        ),
+        {"from": ms_address},
+    )
 
     # Check REWARD_CLAIMED event
     reward_identifier = Web3.keccak(
@@ -226,7 +242,25 @@ def test_monitor(
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
         assert web3.eth.blockNumber < monitor_data["first_allowed"]
-        txn_hash = monitoring_service_external.functions.monitor(
+        txn_hash = call_and_transact(
+            monitoring_service_external.functions.monitor(
+                A,
+                B,
+                *monitor_data["balance_proof_B"]._asdict().values(),
+                monitor_data["non_closing_signature"],
+                REWARD_AMOUNT,
+                token_network.address,
+                monitor_data["reward_proof_signature"],
+            ),
+            {"from": ms_address},
+        )
+
+    # wait until MS is allowed to monitor
+    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
+
+    # successful monitor call
+    txn_hash = call_and_transact(
+        monitoring_service_external.functions.monitor(
             A,
             B,
             *monitor_data["balance_proof_B"]._asdict().values(),
@@ -234,21 +268,9 @@ def test_monitor(
             REWARD_AMOUNT,
             token_network.address,
             monitor_data["reward_proof_signature"],
-        ).call_and_transact({"from": ms_address})
-
-    # wait until MS is allowed to monitor
-    token_network.web3.testing.mine(monitor_data["first_allowed"] - web3.eth.blockNumber)
-
-    # successful monitor call
-    txn_hash = monitoring_service_external.functions.monitor(
-        A,
-        B,
-        *monitor_data["balance_proof_B"]._asdict().values(),
-        monitor_data["non_closing_signature"],
-        REWARD_AMOUNT,
-        token_network.address,
-        monitor_data["reward_proof_signature"],
-    ).call_and_transact({"from": ms_address})
+        ),
+        {"from": ms_address},
+    )
 
     # NEW_BALANCE_PROOF_RECEIVED must get emitted
     ms_ev_handler = event_handler(monitoring_service_external)
@@ -291,15 +313,18 @@ def test_monitor_by_unregistered_service(
         ).call({"from": B})
 
     # See a success to make sure the above failure is not spurious
-    monitoring_service_external.functions.monitor(
-        A,
-        B,
-        *monitor_data["balance_proof_B"]._asdict().values(),
-        monitor_data["non_closing_signature"],
-        REWARD_AMOUNT,
-        token_network.address,
-        monitor_data["reward_proof_signature"],
-    ).call_and_transact({"from": ms_address})
+    call_and_transact(
+        monitoring_service_external.functions.monitor(
+            A,
+            B,
+            *monitor_data["balance_proof_B"]._asdict().values(),
+            monitor_data["non_closing_signature"],
+            REWARD_AMOUNT,
+            token_network.address,
+            monitor_data["reward_proof_signature"],
+        ),
+        {"from": ms_address},
+    )
 
 
 def test_monitor_on_wrong_token_network_registry(
@@ -319,15 +344,18 @@ def test_monitor_on_wrong_token_network_registry(
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry
     with pytest.raises(TransactionFailed, match="Unknown TokenNetwork"):
-        monitoring_service_external.functions.monitor(
-            A,
-            B,
-            *monitor_data["balance_proof_B"]._asdict().values(),
-            monitor_data["non_closing_signature"],
-            REWARD_AMOUNT,
-            token_network_in_another_token_network_registry.address,
-            monitor_data["reward_proof_signature"],
-        ).call_and_transact({"from": ms_address})
+        call_and_transact(
+            monitoring_service_external.functions.monitor(
+                A,
+                B,
+                *monitor_data["balance_proof_B"]._asdict().values(),
+                monitor_data["non_closing_signature"],
+                REWARD_AMOUNT,
+                token_network_in_another_token_network_registry.address,
+                monitor_data["reward_proof_signature"],
+            ),
+            {"from": ms_address},
+        )
 
 
 def test_updateReward(
@@ -343,16 +371,19 @@ def test_updateReward(
     )
 
     def update_with_nonce(nonce: int) -> None:
-        monitoring_service_internals.functions.updateRewardPublic(
-            token_network.address,
-            A,
-            B,
-            REWARD_AMOUNT,
-            nonce,
-            ms_address,
-            monitor_data_internal["non_closing_signature"],
-            monitor_data_internal["reward_proof_signature"],
-        ).call_and_transact({"from": ms_address})
+        call_and_transact(
+            monitoring_service_internals.functions.updateRewardPublic(
+                token_network.address,
+                A,
+                B,
+                REWARD_AMOUNT,
+                nonce,
+                ms_address,
+                monitor_data_internal["non_closing_signature"],
+                monitor_data_internal["reward_proof_signature"],
+            ),
+            {"from": ms_address},
+        )
 
     # normal first call succeeds
     update_with_nonce(2)

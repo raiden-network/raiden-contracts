@@ -6,6 +6,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import OneToNEvent
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
 
 
@@ -52,7 +53,7 @@ def test_claim(
 
     # happy case
     iou = make_iou(sender=A, receiver=B)
-    tx_hash = one_to_n_contract.functions.claim(**iou).call_and_transact({"from": A})
+    tx_hash = call_and_transact(one_to_n_contract.functions.claim(**iou), {"from": A})
 
     ev_handler.assert_event(
         tx_hash,
@@ -86,14 +87,17 @@ def test_bulk_claim_happy_path(
     C = create_service_account()
 
     def bulk_claim(ious: List[dict]) -> str:
-        return one_to_n_contract.functions.bulkClaim(
-            senders=[x["sender"] for x in ious],
-            receivers=[x["receiver"] for x in ious],
-            amounts=[x["amount"] for x in ious],
-            expiration_blocks=[x["expiration_block"] for x in ious],
-            one_to_n_address=one_to_n_contract.address,
-            signatures=b"".join(x["signature"] for x in ious),
-        ).call_and_transact({"from": A})
+        return call_and_transact(
+            one_to_n_contract.functions.bulkClaim(
+                senders=[x["sender"] for x in ious],
+                receivers=[x["receiver"] for x in ious],
+                amounts=[x["amount"] for x in ious],
+                expiration_blocks=[x["expiration_block"] for x in ious],
+                one_to_n_address=one_to_n_contract.address,
+                signatures=b"".join(x["signature"] for x in ious),
+            ),
+            {"from": A},
+        )
 
     ious = [make_iou(A, C, amount=10), make_iou(B, C, amount=20)]
     bulk_claim(ious)
@@ -126,39 +130,48 @@ def test_bulk_claim_errors(
     with pytest.raises(
         TransactionFailed, match="Same number of elements required for all input parameters"
     ):
-        return one_to_n_contract.functions.bulkClaim(
-            senders=senders,
-            receivers=receivers,
-            amounts=amounts + [1],
-            expiration_blocks=expiration_blocks,
-            one_to_n_address=one_to_n_contract.address,
-            signatures=signatures,
-        ).call_and_transact({"from": A})
+        return call_and_transact(
+            one_to_n_contract.functions.bulkClaim(
+                senders=senders,
+                receivers=receivers,
+                amounts=amounts + [1],
+                expiration_blocks=expiration_blocks,
+                one_to_n_address=one_to_n_contract.address,
+                signatures=signatures,
+            ),
+            {"from": A},
+        )
 
     # One byte too few/many in `signatures`
     for sig in [signatures + b"1", signatures[:-1]]:
         with pytest.raises(
             TransactionFailed, match="`signatures` should contain 65 bytes per IOU"
         ):
-            return one_to_n_contract.functions.bulkClaim(
-                senders=senders,
-                receivers=receivers,
-                amounts=amounts,
-                expiration_blocks=expiration_blocks,
-                one_to_n_address=one_to_n_contract.address,
-                signatures=sig,
-            ).call_and_transact({"from": A})
+            return call_and_transact(
+                one_to_n_contract.functions.bulkClaim(
+                    senders=senders,
+                    receivers=receivers,
+                    amounts=amounts,
+                    expiration_blocks=expiration_blocks,
+                    one_to_n_address=one_to_n_contract.address,
+                    signatures=sig,
+                ),
+                {"from": A},
+            )
 
     # Cause a signature mismatch by changing one amount
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
-        return one_to_n_contract.functions.bulkClaim(
-            senders=senders,
-            receivers=receivers,
-            amounts=[amounts[0], amounts[1] + 1],
-            expiration_blocks=expiration_blocks,
-            one_to_n_address=one_to_n_contract.address,
-            signatures=signatures,
-        ).call_and_transact({"from": A})
+        return call_and_transact(
+            one_to_n_contract.functions.bulkClaim(
+                senders=senders,
+                receivers=receivers,
+                amounts=[amounts[0], amounts[1] + 1],
+                expiration_blocks=expiration_blocks,
+                one_to_n_address=one_to_n_contract.address,
+                signatures=signatures,
+            ),
+            {"from": A},
+        )
 
 
 def test_getSingleSignature(one_to_n_internals: Contract) -> None:
@@ -204,14 +217,17 @@ def test_claim_by_unregistered_service(
 
     # Doesn't work because B is not registered
     with pytest.raises(TransactionFailed, match="receiver not registered"):
-        one_to_n_contract.functions.claim(
-            sender=A,
-            receiver=B,
-            amount=amount,
-            expiration_block=expiration,
-            one_to_n_address=one_to_n_contract.address,
-            signature=signature,
-        ).call_and_transact({"from": A})
+        call_and_transact(
+            one_to_n_contract.functions.claim(
+                sender=A,
+                receiver=B,
+                amount=amount,
+                expiration_block=expiration,
+                one_to_n_address=one_to_n_contract.address,
+                signature=signature,
+            ),
+            {"from": A},
+        )
 
 
 def test_claim_with_insufficient_deposit(
@@ -251,9 +267,12 @@ def test_claim_with_insufficient_deposit(
         == 6
     )
     # check that transaction succeeds
-    one_to_n_contract.functions.claim(
-        A, B, amount, expiration, one_to_n_contract.address, signature
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        one_to_n_contract.functions.claim(
+            A, B, amount, expiration, one_to_n_contract.address, signature
+        ),
+        {"from": A},
+    )
 
     assert user_deposit_contract.functions.balances(A).call() == 0
     assert user_deposit_contract.functions.balances(B).call() == 6
@@ -269,13 +288,19 @@ def test_claim_with_insufficient_deposit(
         one_to_n_address=one_to_n_contract.address,
         chain_id=chain_id,
     )
-    one_to_n_contract.functions.claim(
-        A, B, amount, expiration, one_to_n_contract.address, signature
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        one_to_n_contract.functions.claim(
+            A, B, amount, expiration, one_to_n_contract.address, signature
+        ),
+        {"from": A},
+    )
     deposit_to_udc(A, 6 + 4)
-    tx_hash = one_to_n_contract.functions.claim(
-        A, B, amount, expiration, one_to_n_contract.address, signature
-    ).call_and_transact({"from": A})
+    tx_hash = call_and_transact(
+        one_to_n_contract.functions.claim(
+            A, B, amount, expiration, one_to_n_contract.address, signature
+        ),
+        {"from": A},
+    )
     ev_handler.assert_event(
         tx_hash,
         OneToNEvent.CLAIMED,

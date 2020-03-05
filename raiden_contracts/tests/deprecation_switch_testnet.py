@@ -17,6 +17,7 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.deploy.__main__ import setup_ctx
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
+from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.transaction import check_successful_tx
 
 log = getLogger(__name__)
@@ -127,7 +128,7 @@ def deprecation_test_setup(
     token_contract = deployer.web3.eth.contract(abi=token_abi, address=token_address)
 
     # Mint some tokens for the owner
-    txhash = token_contract.functions.mint(token_amount).call_and_transact(deployer.transaction)
+    txhash = call_and_transact(token_contract.functions.mint(token_amount), deployer.transaction)
 
     log.debug(f"Minting tokens txHash={encode_hex(txhash)}")
     check_successful_tx(deployer.web3, txhash, deployer.wait)
@@ -150,9 +151,9 @@ def deprecation_test_setup(
         f"Registered the token and created a TokenNetwork contract at {token_network_address}."
     )
 
-    txhash = token_contract.functions.approve(
-        token_network.address, token_amount
-    ).call_and_transact(deployer.transaction)
+    txhash = call_and_transact(
+        token_contract.functions.approve(token_network.address, token_amount), deployer.transaction
+    )
     log.debug(f"Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}")
     check_successful_tx(deployer.web3, txhash, deployer.wait)
 
@@ -177,9 +178,12 @@ def open_and_deposit(
     txn_success_status: bool = True,
 ) -> int:
     try:
-        txhash = token_network.functions.openChannel(
-            participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT_MIN
-        ).call_and_transact(deployer.transaction)
+        txhash = call_and_transact(
+            token_network.functions.openChannel(
+                participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT_MIN
+            ),
+            deployer.transaction,
+        )
         log.debug(f"Opening a channel between {A} and {B} txHash={encode_hex(txhash)}")
         check_successful_tx(web3=deployer.web3, txid=txhash, timeout=deployer.wait)
 
@@ -196,12 +200,15 @@ def open_and_deposit(
 
     assert channel_identifier is not None
     try:
-        txhash = token_network.functions.setTotalDeposit(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
-            partner=B,
-        ).call_and_transact(deployer.transaction)
+        txhash = call_and_transact(
+            token_network.functions.setTotalDeposit(
+                channel_identifier=channel_identifier,
+                participant=A,
+                total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
+                partner=B,
+            ),
+            deployer.transaction,
+        )
         log.debug(
             f"Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {A} in a channel with "
             f"identifier={channel_identifier} and partner= {B} txHash={encode_hex(txhash)}"
@@ -217,12 +224,15 @@ def open_and_deposit(
     ), f"setTotalDeposit txn status is {success_status} instead of {txn_success_status}"
 
     try:
-        txhash = token_network.functions.setTotalDeposit(
-            channel_identifier=channel_identifier,
-            participant=B,
-            total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
-            partner=A,
-        ).call_and_transact(deployer.transaction)
+        txhash = call_and_transact(
+            token_network.functions.setTotalDeposit(
+                channel_identifier=channel_identifier,
+                participant=B,
+                total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
+                partner=A,
+            ),
+            deployer.transaction,
+        )
         log.debug(
             f"Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {B} in a channel with "
             f"identifier={channel_identifier} and partner= {A} txHash={encode_hex(txhash)}"

@@ -6,6 +6,7 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_USER_DEPOSIT
 from raiden_contracts.tests.fixtures.token import CUSTOM_TOKEN_TOTAL_SUPPLY
+from raiden_contracts.tests.utils import call_and_transact
 
 
 @pytest.fixture(scope="session")
@@ -30,9 +31,11 @@ def user_deposit_contract(
     monitoring_service_external: Contract,
     one_to_n_contract: Contract,
 ) -> Contract:
-    uninitialized_user_deposit_contract.functions.init(
-        monitoring_service_external.address, one_to_n_contract.address
-    ).call_and_transact()
+    call_and_transact(
+        uninitialized_user_deposit_contract.functions.init(
+            monitoring_service_external.address, one_to_n_contract.address
+        )
+    )
     return uninitialized_user_deposit_contract
 
 
@@ -53,12 +56,13 @@ def deposit_to_udc(user_deposit_contract: Contract, custom_token: Contract) -> C
         If you call it twice, only amount2 - amount1 will be deposited. More
         will be mined and approved to keep the implementation simple, though.
         """
-        custom_token.functions.mint(amount).call_and_transact({"from": receiver})
-        custom_token.functions.approve(user_deposit_contract.address, amount).call_and_transact(
-            {"from": receiver}
+        call_and_transact(custom_token.functions.mint(amount), {"from": receiver})
+        call_and_transact(
+            custom_token.functions.approve(user_deposit_contract.address, amount),
+            {"from": receiver},
         )
-        user_deposit_contract.functions.deposit(receiver, amount).call_and_transact(
-            {"from": receiver}
+        call_and_transact(
+            user_deposit_contract.functions.deposit(receiver, amount), {"from": receiver}
         )
 
     return deposit

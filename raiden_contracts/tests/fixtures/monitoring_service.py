@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytest
 from web3.contract import Contract
 

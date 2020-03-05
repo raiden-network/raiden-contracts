@@ -23,6 +23,7 @@ from raiden_contracts.tests.utils import (
     LOCKSROOT_OF_NO_LOCKS,
     NONEXISTENT_LOCKSROOT,
     NOT_ADDRESS,
+    call_and_transact,
 )
 from raiden_contracts.utils.events import check_channel_opened
 
@@ -201,7 +202,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     )
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
-    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
+    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
@@ -260,7 +261,7 @@ def test_reopen_channel(
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
-    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
+    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
         get_participants_hash(A, B)
@@ -272,16 +273,19 @@ def test_reopen_channel(
 
     # Close channel
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier1)
-    token_network.functions.closeChannel(
-        channel_identifier1,
-        B,
-        A,
-        EMPTY_BALANCE_HASH,
-        0,
-        EMPTY_ADDITIONAL_HASH,
-        EMPTY_SIGNATURE,
-        closing_sig,
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier1,
+            B,
+            A,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            closing_sig,
+        ),
+        {"from": A},
+    )
 
     # Reopen Channel before settlement fails
     with pytest.raises(TransactionFailed):
@@ -291,12 +295,15 @@ def test_reopen_channel(
     web3.testing.mine(settle_timeout + 1)
 
     # Settle channel
-    token_network.functions.settleChannel(
-        channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
-    ).call_and_transact({"from": A})
+    call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+        ),
+        {"from": A},
+    )
 
     # Reopening the channel should work iff channel is settled
-    token_network.functions.openChannel(A, B, settle_timeout).call_and_transact()
+    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
     channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
     assert channel_identifier2 != channel_identifier1
     assert (
@@ -354,9 +361,9 @@ def test_open_channel_event(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
-    txn_hash = token_network.functions.openChannel(
-        A, B, TEST_SETTLE_TIMEOUT_MIN
-    ).call_and_transact()
+    txn_hash = call_and_transact(
+        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN)
+    )
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     ev_handler.add(
