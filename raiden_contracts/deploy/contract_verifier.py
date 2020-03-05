@@ -1,5 +1,5 @@
 import json
-from typing import List, Optional
+from typing import Any, List, Optional, Tuple
 
 from eth_typing.evm import HexAddress
 from eth_utils import to_checksum_address
@@ -161,7 +161,7 @@ class ContractVerifier:
 
     def _verify_deployed_contract(
         self, deployment_data: DeployedContracts, contract_name: str
-    ) -> Contract:
+    ) -> Tuple[Contract, List[Any]]:
         """ Verify deployment info against the chain
 
         Verifies:
