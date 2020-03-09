@@ -8,6 +8,7 @@ from eth_typing import URI
 from eth_utils import to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
+from web3.types import TxReceipt
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
@@ -32,7 +33,7 @@ class TokenOperations:
     def is_valid_contract(self, token_address: str) -> bool:
         return self.web3.eth.getCode(token_address, "latest") != b""
 
-    def mint_tokens(self, token_address: str, amount: int) -> Dict[str, Any]:
+    def mint_tokens(self, token_address: str, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         assert self.is_valid_contract(
             token_address
@@ -42,10 +43,10 @@ class TokenOperations:
         )
         token_proxy = self.web3.eth.contract(address=token_address, abi=token_contract["abi"])
         txhash = token_proxy.functions.mint(amount).transact({"from": self.owner})
-        (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
+        receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def get_weth(self, token_address: str, amount: int) -> Dict[str, Any]:
+    def get_weth(self, token_address: str, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         assert (
             self.web3.eth.getBalance(self.owner) > amount
@@ -61,11 +62,11 @@ class TokenOperations:
         weth_proxy = self.web3.eth.contract(address=token_address, abi=weth_abi)
         assert weth_proxy.functions.symbol().call() == "WETH", "This contract is not a WETH token"
         txhash = weth_proxy.functions.deposit().transact({"from": self.owner, "value": amount})
-        (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
+        receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
     # Could be used for both custom token as well as WETH contracts
-    def transfer_tokens(self, token_address: str, dest: str, amount: int) -> Dict[str, Any]:
+    def transfer_tokens(self, token_address: str, dest: str, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         dest = to_checksum_address(dest)
         assert self.is_valid_contract(
@@ -79,7 +80,7 @@ class TokenOperations:
             token_proxy.functions.balanceOf(self.owner).call() >= amount
         ), "Not enough token balances"
         txhash = token_proxy.functions.transfer(dest, amount).transact({"from": self.owner})
-        (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
+        receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
     def get_balance(self, token_address: str, address: str) -> int:

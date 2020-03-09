@@ -46,7 +46,7 @@ def deploy_contract(
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(abi=json_contract["abi"], bytecode=json_contract["bin"])
     tx_hash = call_and_transact(contract.constructor(*args), {"from": deployer_address})
-    contract_address = web3.eth.getTransactionReceipt(tx_hash).contractAddress
+    contract_address = web3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
 
     return contract(contract_address)
 

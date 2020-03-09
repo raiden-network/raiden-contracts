@@ -11,6 +11,7 @@ from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
+from web3.types import TxReceipt
 
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
@@ -63,7 +64,7 @@ class ContractDeployer(ContractVerifier):
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
 
-    def deploy(self, contract_name: str, args: Optional[List] = None) -> Dict:
+    def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
             args = list()
         contract_interface: CompiledContract = self.contract_manager.get_contract(contract_name)
@@ -81,9 +82,8 @@ class ContractDeployer(ContractVerifier):
             f"Deploying {contract_name} txHash={encode_hex(txhash)}, "
             f"contracts version {self.contract_manager.contracts_version}"
         )
-        (receipt, tx) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
+        receipt, tx = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         if not receipt["contractAddress"]:  # happens with Parity
-            receipt = dict(receipt)
             receipt["contractAddress"] = tx["creates"]
         LOG.info(
             "{0} address: {1}. Gas used: {2}".format(
@@ -92,11 +92,11 @@ class ContractDeployer(ContractVerifier):
         )
         return receipt
 
-    def transact(self, contract_method: ContractFunction) -> Dict:
+    def transact(self, contract_method: ContractFunction) -> TxReceipt:
         """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
         txhash = contract_method.transact(self.transaction)
         LOG.debug(f"Sending txHash={encode_hex(txhash)}")
-        (receipt, _) = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
+        receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
     def send_deployment_transaction(self, contract: Contract, args: List) -> HexBytes:
@@ -322,7 +322,9 @@ class ContractDeployer(ContractVerifier):
         return deployed_contracts
 
 
-def _deployed_data_from_receipt(receipt: Dict, constructor_arguments: List) -> DeployedContract:
+def _deployed_data_from_receipt(
+    receipt: TxReceipt, constructor_arguments: List
+) -> DeployedContract:
     return {
         "address": to_checksum_address(receipt["contractAddress"]),
         "transaction_hash": encode_hex(receipt["transactionHash"]),
