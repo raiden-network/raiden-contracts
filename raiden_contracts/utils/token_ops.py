@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import click
 import requests
-from eth_typing import URI
+from eth_typing import URI, ChecksumAddress
 from eth_utils import to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
@@ -30,10 +30,10 @@ class TokenOperations:
         self.web3.eth.defaultAccount = self.owner
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    def is_valid_contract(self, token_address: str) -> bool:
+    def is_valid_contract(self, token_address: ChecksumAddress) -> bool:
         return self.web3.eth.getCode(token_address, "latest") != b""
 
-    def mint_tokens(self, token_address: str, amount: int) -> TxReceipt:
+    def mint_tokens(self, token_address: ChecksumAddress, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         assert self.is_valid_contract(
             token_address
@@ -46,7 +46,7 @@ class TokenOperations:
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def get_weth(self, token_address: str, amount: int) -> TxReceipt:
+    def get_weth(self, token_address: ChecksumAddress, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         assert (
             self.web3.eth.getBalance(self.owner) > amount
@@ -66,7 +66,7 @@ class TokenOperations:
         return receipt
 
     # Could be used for both custom token as well as WETH contracts
-    def transfer_tokens(self, token_address: str, dest: str, amount: int) -> TxReceipt:
+    def transfer_tokens(self, token_address: ChecksumAddress, dest: str, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         dest = to_checksum_address(dest)
         assert self.is_valid_contract(
@@ -83,7 +83,7 @@ class TokenOperations:
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def get_balance(self, token_address: str, address: str) -> int:
+    def get_balance(self, token_address: ChecksumAddress, address: str) -> int:
         token_address = to_checksum_address(token_address)
         address = to_checksum_address(address)
         assert self.is_valid_contract(
@@ -131,7 +131,12 @@ def cli() -> None:
 @cli.command()
 @common_options
 def mint(
-    private_key: str, password: str, rpc_url: URI, token_address: str, amount: int, wait: int
+    private_key: str,
+    password: str,
+    rpc_url: URI,
+    token_address: ChecksumAddress,
+    amount: int,
+    wait: int,
 ) -> None:
     password_file = Path(password) if password else None
     token_ops = TokenOperations(rpc_url, Path(private_key), password_file, wait)
@@ -147,8 +152,8 @@ def mint(
 def weth(
     private_key: str,
     password: Optional[str],
-    rpc_url: str,
-    token_address: str,
+    rpc_url: URI,
+    token_address: ChecksumAddress,
     amount: int,
     wait: int,
 ) -> None:
@@ -168,7 +173,7 @@ def transfer(
     private_key: str,
     password: str,
     rpc_url: URI,
-    token_address: str,
+    token_address: ChecksumAddress,
     amount: int,
     wait: int,
     destination: str,
