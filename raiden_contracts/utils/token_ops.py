@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import click
 import requests
+from eth_typing import URI
 from eth_utils import to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
@@ -17,7 +18,7 @@ from raiden_contracts.utils.transaction import check_successful_tx
 
 class TokenOperations:
     def __init__(
-        self, rpc_url: str, private_key: Path, password: Optional[Path] = None, wait: int = 10
+        self, rpc_url: URI, private_key: Path, password: Optional[Path] = None, wait: int = 10
     ):
         self.web3 = Web3(HTTPProvider(rpc_url))
         self.private_key = get_private_key(private_key, password)
@@ -129,7 +130,7 @@ def cli() -> None:
 @cli.command()
 @common_options
 def mint(
-    private_key: str, password: str, rpc_url: str, token_address: str, amount: int, wait: int
+    private_key: str, password: str, rpc_url: URI, token_address: str, amount: int, wait: int
 ) -> None:
     password_file = Path(password) if password else None
     token_ops = TokenOperations(rpc_url, Path(private_key), password_file, wait)
@@ -165,7 +166,7 @@ def weth(
 def transfer(
     private_key: str,
     password: str,
-    rpc_url: str,
+    rpc_url: URI,
     token_address: str,
     amount: int,
     wait: int,
@@ -191,7 +192,7 @@ def transfer(
     "--token-address", required=True, help="Address of the token contract", type=click.STRING
 )
 @click.option("--address", help="Address of account to get Balance", type=click.STRING)
-def balance(rpc_url: str, token_address: str, address: str) -> None:
+def balance(rpc_url: URI, token_address: str, address: str) -> None:
     token_address = to_checksum_address(token_address)
     address = to_checksum_address(address)
     web3 = Web3(HTTPProvider(rpc_url))

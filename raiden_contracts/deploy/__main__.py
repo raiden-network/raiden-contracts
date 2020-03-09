@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import click
 from click import BadParameter, Context, IntRange, Option, Parameter
+from eth_typing import URI
 from eth_typing.evm import ChecksumAddress, HexAddress
 from eth_utils import is_address, to_checksum_address
 from web3 import HTTPProvider, Web3
@@ -84,7 +85,7 @@ def common_options(func: Callable) -> Callable:
 def setup_ctx(
     ctx: click.Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
@@ -183,7 +184,7 @@ def check_version_dependent_parameters(
 def raiden(
     ctx: click.Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
@@ -291,7 +292,7 @@ def raiden(
 def services(
     ctx: Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
@@ -361,7 +362,7 @@ def services(
 def token(
     ctx: click.Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
@@ -412,7 +413,7 @@ def token(
 def register(
     ctx: Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
@@ -460,7 +461,7 @@ def register(
     help="Contracts version to verify. Current version will be used by default.",
 )
 @click.pass_context
-def verify(_: Any, rpc_provider: str, contracts_version: Optional[str]) -> None:
+def verify(_: Any, rpc_provider: URI, contracts_version: Optional[str]) -> None:
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     print("Web3 provider is", web3.provider)

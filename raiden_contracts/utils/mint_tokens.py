@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from eth_typing import HexAddress
+from eth_typing import URI, HexAddress
 from eth_utils import encode_hex
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -23,7 +23,7 @@ WEI_TO_ETH = 10 ** 18
 @click.option("--private-key", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option("--token-address", help="address of the token contract", required=True)
 @click.option("--amount", help="Amount of tokens to mint", required=True, type=click.INT)
-def main(rpc_url: str, private_key: Path, token_address: HexAddress, amount: int) -> None:
+def main(rpc_url: URI, private_key: Path, token_address: HexAddress, amount: int) -> None:
     web3 = Web3(HTTPProvider(rpc_url))
     private_key_string: Optional[str] = get_private_key(private_key)
     assert private_key_string is not None

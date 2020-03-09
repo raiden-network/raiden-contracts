@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Optional, Tuple
 
 import click
-from eth_typing import HexAddress, HexStr
+from eth_typing import URI, HexAddress, HexStr
 from eth_utils import encode_hex
 from web3.contract import Contract
 
@@ -35,7 +35,7 @@ log = getLogger(__name__)
 def deprecation_test(
     ctx: click.Context,
     private_key: str,
-    rpc_provider: str,
+    rpc_provider: URI,
     wait: int,
     gas_price: int,
     gas_limit: int,
