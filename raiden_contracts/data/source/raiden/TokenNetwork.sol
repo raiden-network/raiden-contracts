@@ -1,3 +1,5 @@
+/* solium-disable error-reason */
+/* solium-disable indentation */
 pragma solidity 0.6.4;
 pragma experimental ABIEncoderV2;
 
@@ -38,7 +40,7 @@ contract TokenNetwork is Utils {
     // opened channels in this contract
     uint256 public channel_counter;
 
-    string public constant signature_prefix = '\x19Ethereum Signed Message:\n';
+    string public constant signature_prefix = "\x19Ethereum Signed Message:\n";
 
     // Only for the limited Red Eyes release
     address public deprecation_executor;
@@ -1516,7 +1518,7 @@ contract TokenNetwork is Utils {
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
-        string memory message_length = '212';
+        string memory message_length = "212";
 
         bytes32 message_hash = keccak256(abi.encodePacked(
             signature_prefix,
@@ -1547,7 +1549,7 @@ contract TokenNetwork is Utils {
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
-        string memory message_length = '277';
+        string memory message_length = "277";
 
         bytes32 message_hash = keccak256(abi.encodePacked(
             signature_prefix,
@@ -1608,7 +1610,7 @@ contract TokenNetwork is Utils {
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 32
-        string memory message_length = '200';
+        string memory message_length = "200";
 
         bytes32 message_hash = keccak256(abi.encodePacked(
             signature_prefix,
@@ -1642,7 +1644,6 @@ contract TokenNetwork is Utils {
         uint256 i;
         uint256 total_unlocked_amount;
         uint256 unlocked_amount;
-        bytes32 lockhash;
         bytes32 total_hash;
 
         for (i = 32; i < length; i += 96) {
@@ -1669,7 +1670,7 @@ contract TokenNetwork is Utils {
             return 0;
         }
 
-        assembly {
+        assembly { // solium-disable-line security/no-inline-assembly
             expiration_block := mload(add(locks, offset))
             locked_amount := mload(add(locks, add(offset, 32)))
             secrethash := mload(add(locks, add(offset, 64)))

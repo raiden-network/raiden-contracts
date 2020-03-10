@@ -133,10 +133,12 @@ contract MonitoringService is Utils {
         );
         require(raiden_node_address == non_closing_participant, "Bad reward proof");
 
-        bytes32 reward_identifier = keccak256(abi.encodePacked(
-            channel_identifier,
-            token_network_address
-        ));
+        bytes32 reward_identifier = keccak256(
+            abi.encodePacked(
+                channel_identifier,
+                token_network_address
+            )
+        );
 
         // Get the Reward struct for the correct channel
         Reward storage reward = rewards[reward_identifier];
@@ -293,9 +295,9 @@ contract MonitoringService is Utils {
 
         // Offset for this specific MS within the range
         uint256 ms_offset = (
-            uint256(participant1)
-            + uint256(participant2)
-            + uint256(monitoring_service_address)
+            uint256(participant1) +
+            uint256(participant2) +
+            uint256(monitoring_service_address)
         ) % range_length;
 
         return best_case_block + ms_offset;
@@ -316,10 +318,12 @@ contract MonitoringService is Utils {
         returns (bool)
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        bytes32 reward_identifier = keccak256(abi.encodePacked(
-            channel_identifier,
-            token_network_address
-        ));
+        bytes32 reward_identifier = keccak256(
+            abi.encodePacked(
+                channel_identifier,
+                token_network_address
+            )
+        );
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
@@ -336,9 +340,11 @@ contract MonitoringService is Utils {
         // When channel_state is Open, settle_block_number is the length of the settlement period.
         // In these cases, we don't want to proceed anyway because the settlement period has not even started.
         // We can only proceed with these other channel states.
-        require(channel_state == TokenNetwork.ChannelState.Closed ||
+        require(
+            channel_state == TokenNetwork.ChannelState.Closed ||
             channel_state == TokenNetwork.ChannelState.Settled ||
-            channel_state == TokenNetwork.ChannelState.Removed, "too early channel state");
+            channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
+        );
         require(settle_block_number < block.number, "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];
@@ -347,11 +353,14 @@ contract MonitoringService is Utils {
         require(reward.reward_sender_address != address(0x0), "reward_sender is zero");
 
         // Add reward to the monitoring service's balance
-        require(user_deposit.transfer(
-            reward.reward_sender_address,
-            reward.monitoring_service_address,
-            reward.reward_amount
-        ), "UDC did not transfer");
+        require(
+            user_deposit.transfer(
+                reward.reward_sender_address,
+                reward.monitoring_service_address,
+                reward.reward_amount
+            ),
+            "UDC did not transfer"
+        );
 
         emit RewardClaimed(
             reward.monitoring_service_address,
@@ -387,16 +396,18 @@ contract MonitoringService is Utils {
         // verification doesn't fail but emits a different address.)
         // (Without a token_network, there will be some ambiguity
         // what the payload means.)
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.MSReward),
-            token_network_address,
-            non_closing_participant,
-            non_closing_signature,
-            reward_amount
-        ));
+        bytes32 message_hash = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
+                address(this),
+                chain_id,
+                uint256(MessageTypeId.MSReward),
+                token_network_address,
+                non_closing_participant,
+                non_closing_signature,
+                reward_amount
+            )
+        );
 
         signature_address = ECVerify.ecverify(message_hash, signature);
         require(signature_address == non_closing_participant, "Reward proof with wrong non_closing_participant");

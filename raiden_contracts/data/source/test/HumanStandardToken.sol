@@ -1,3 +1,4 @@
+/* solium-disable */
 pragma solidity 0.6.4;
 
 import "test/StandardToken.sol";
@@ -27,7 +28,7 @@ contract HumanStandardToken is StandardToken {
     string public name;                   //fancy name: eg Simon Bucks
     uint8 public _decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
     string public symbol;                 //An identifier: eg SBX
-    string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
+    string public version = "H0.1";       //human 0.1 standard. Just an arbitrary versioning scheme.
 
     constructor(
         uint256 _initialAmount,
@@ -64,8 +65,6 @@ contract HumanStandardToken is StandardToken {
         emit Approval(msg.sender, _spender, _value);
         return true;
     }
-
-    fallback () external { revert(); }
 
     function decimals() public override view returns (uint8 decimals) {
         return _decimals;

@@ -1,3 +1,4 @@
+/* solium-disable error-reason */
 pragma solidity 0.6.4;
 
 import "raiden/Utils.sol";
