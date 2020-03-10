@@ -21,7 +21,7 @@ contract Utils {
     function contractExists(address contract_address) public view returns (bool) {
         uint size;
 
-        assembly {
+        assembly { // solium-disable-line security/no-inline-assembly
             size := extcodesize(contract_address)
         }
 

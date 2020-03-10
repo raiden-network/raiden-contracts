@@ -1,3 +1,4 @@
+/* solium-disable error-reason */
 pragma solidity 0.6.4;
 
 /*
@@ -20,7 +21,7 @@ contract CustomToken is StandardToken {
     /*
      *  Token metadata
      */
-    string public version = 'H0.1';       //human 0.1 standard. Just an arbitrary versioning scheme.
+    string public version = "H0.1";       //human 0.1 standard. Just an arbitrary versioning scheme.
     string public name;
     string public symbol;
     uint8 public _decimals;

@@ -25,7 +25,7 @@ ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contrac
 
 BLACK_PARAMS = --line-length 99 raiden_contracts/
 
-lint: mypy
+lint: mypy solium
 	black --check --diff $(BLACK_PARAMS)
 	flake8 $(LINT_FILES)
 	pylint $(LINT_FILES)
@@ -44,6 +44,9 @@ autopep8:
 	autopep8 --in-place --recursive raiden_contracts/
 
 format: autopep8 isort black
+
+solium:
+	command -v solium > /dev/null  || { echo 'solium not installed, skipping'; exit 0; }; solium -d raiden_contracts/data/source/
 
 clean:
 	rm -rf build/ *egg-info/ dist .eggs

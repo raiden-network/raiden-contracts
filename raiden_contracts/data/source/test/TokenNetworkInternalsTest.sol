@@ -50,7 +50,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
     )
         public
     {
-       return storeUnlockData(
+        return storeUnlockData(
             channel_identifier,
             settle_input,
             partner
@@ -121,14 +121,13 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         view
         returns (uint256 total_available_deposit)
     {
-        uint256 channel_identifier = getChannelIdentifier(participant1,
-        participant2);
+        uint256 channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
         return getChannelAvailableDeposit(
-           participant1_state,
-           participant2_state
+            participant1_state,
+            participant2_state
         );
     }
 }
@@ -282,27 +281,27 @@ contract TokenNetworkUtilsTest is TokenNetwork {
         return getLockedAmountFromLock(locks, offset);
     }
 
-    function minPublic(uint256 a, uint256 b) view public returns (uint256)
+    function minPublic(uint256 a, uint256 b) public view returns (uint256)
     {
         return min(a,b);
     }
 
-    function maxPublic(uint256 a, uint256 b) view public returns (uint256)
+    function maxPublic(uint256 a, uint256 b) public view returns (uint256)
     {
         return max(a,b);
     }
 
-    function failsafe_subtractPublic(uint256 a, uint256 b) view public returns (uint256, uint256)
+    function failsafe_subtractPublic(uint256 a, uint256 b) public view returns (uint256, uint256)
     {
         return failsafe_subtract(a,b);
     }
 
-    function failsafe_additionPublic(uint256 a, uint256 b) view public returns (uint256)
+    function failsafe_additionPublic(uint256 a, uint256 b) public view returns (uint256)
     {
         return failsafe_addition(a, b);
     }
 
-    function get_max_safe_uint256() pure public returns (uint256) {
+    function get_max_safe_uint256() public pure returns (uint256) {
         return uint256(0 - 1);
     }
 }

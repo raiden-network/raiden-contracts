@@ -1,3 +1,4 @@
+/* solium-disable error-reason */
 pragma solidity 0.6.4;
 
 library ECVerify {
@@ -16,7 +17,7 @@ library ECVerify {
         // The signature format is a compact form of:
         //   {bytes32 r}{bytes32 s}{uint8 v}
         // Compact means, uint8 is not padded to 32 bytes.
-        assembly {
+        assembly { // solium-disable-line security/no-inline-assembly
             r := mload(add(signature, 32))
             s := mload(add(signature, 64))
 

@@ -129,8 +129,8 @@ contract UserDeposit is Utils {
         address receiver,
         uint256 amount
     )
-        canTransfer()
         external
+        canTransfer()
         returns (bool success)
     {
         require(sender != receiver, "sender == receiver");
@@ -201,7 +201,7 @@ contract UserDeposit is Utils {
         return balances[owner] - withdraw_plan.amount;
     }
 
-    function min(uint256 a, uint256 b) pure internal returns (uint256)
+    function min(uint256 a, uint256 b) internal pure returns (uint256)
     {
         return a > b ? b : a;
     }
