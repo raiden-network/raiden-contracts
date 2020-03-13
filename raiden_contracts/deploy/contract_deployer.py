@@ -11,7 +11,7 @@ from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import TxParams, TxReceipt, Wei
+from web3.types import ABI, TxParams, TxReceipt, Wei
 
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
@@ -211,7 +211,7 @@ class ContractDeployer(ContractVerifier):
 
     def register_token_network(
         self,
-        token_registry_abi: List[Dict[str, Any]],
+        token_registry_abi: ABI,
         token_registry_address: ChecksumAddress,
         token_address: ChecksumAddress,
         channel_participant_deposit_limit: Optional[int],

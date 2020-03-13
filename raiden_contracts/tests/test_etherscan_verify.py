@@ -2,6 +2,7 @@ from typing import Any, Dict, List
 
 import requests_mock
 from click.testing import CliRunner
+from web3.types import ABI
 
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
@@ -13,6 +14,7 @@ from raiden_contracts.constants import (
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
+    CompiledContract,
     ContractManager,
     DeployedContracts,
     contracts_precompiled_path,
@@ -36,19 +38,21 @@ def test_get_constructor_args_no_args() -> None:
     assert get_constructor_args(deploy_info, contract_name, contract_manager) == ""  # type: ignore
 
 
-def abi_with_constructor_input_types(types: List[str]) -> List[Dict]:
-    return [{"type": "constructor", "inputs": [{"type": ty} for ty in types]}]
+def abi_with_constructor_input_types(types: List[str]) -> ABI:
+    return [{"type": "constructor", "inputs": [{"type": ty} for ty in types]}]  # type: ignore
 
 
 def test_get_constructor_args_one_arg() -> None:
     """ Test get_constructor_args() on one argument """
     contract_manager = ContractManager(contracts_precompiled_path())
-    contract_manager.contracts[contract_name] = {
-        "abi": abi_with_constructor_input_types(["uint256"]),
-        "bin": "dummy",
-        "bin-runtime": "dummy",
-        "metadata": "dummy",
-    }
+    contract_manager.contracts[contract_name] = CompiledContract(
+        {
+            "abi": abi_with_constructor_input_types(["uint256"]),
+            "bin": "dummy",
+            "bin-runtime": "dummy",
+            "metadata": "dummy",
+        }
+    )
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16]}}
     }
@@ -61,12 +65,14 @@ def test_get_constructor_args_one_arg() -> None:
 def test_get_constructor_args_two_args() -> None:
     """ Test get_constructor_args() on two arguments """
     contract_manager = ContractManager(contracts_precompiled_path())
-    contract_manager.contracts[contract_name] = {
-        "abi": abi_with_constructor_input_types(["uint256", "bool"]),
-        "bin-runtime": "dummy",
-        "bin": "dummy",
-        "metadata": "dummy",
-    }
+    contract_manager.contracts[contract_name] = CompiledContract(
+        {
+            "abi": abi_with_constructor_input_types(["uint256", "bool"]),
+            "bin-runtime": "dummy",
+            "bin": "dummy",
+            "metadata": "dummy",
+        }
+    )
     deploy_info: DeployedContracts = {  # type: ignore
         "contracts": {contract_name: {"constructor_arguments": [16, True]}}
     }

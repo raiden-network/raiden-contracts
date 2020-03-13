@@ -97,7 +97,7 @@ def token_network(
 ) -> Contract:
     """Register a new token network for a custom token"""
     global snapshot_before_token_network
-    snapshot_before_token_network = web3.testing.snapshot()
+    snapshot_before_token_network = web3.testing.snapshot()  # type: ignore
     return register_token_network(
         token_network_registry_contract,
         custom_token.address,
@@ -130,11 +130,11 @@ def token_network_contract(
     deploy_tester_contract: Callable,
     secret_registry_contract: Contract,
     standard_token_contract: Contract,
+    web3: Web3,
 ) -> Contract:
-    network_id = int(secret_registry_contract.web3.version.network)
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
-        [standard_token_contract.address, secret_registry_contract.address, network_id],
+        [standard_token_contract.address, secret_registry_contract.address, web3.eth.chainId],
     )
 
 

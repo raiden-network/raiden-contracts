@@ -9,7 +9,7 @@ from eth_typing import HexStr
 from eth_typing.evm import ChecksumAddress, HexAddress
 from hexbytes import HexBytes
 from mypy_extensions import TypedDict
-from web3.types import ABIEvent
+from web3.types import ABI, ABIEvent
 
 from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
 from raiden_contracts.utils.file_ops import load_json_from_path
@@ -23,8 +23,7 @@ _BASE = Path(__file__).parent
 
 
 CompiledContract = TypedDict(
-    "CompiledContract",
-    {"abi": List[Dict[str, Any]], "bin-runtime": str, "bin": str, "metadata": str},
+    "CompiledContract", {"abi": ABI, "bin-runtime": str, "bin": str, "metadata": str},
 )
 
 
@@ -92,7 +91,7 @@ class ContractManager:
     def has_contract(self, contract_name: str) -> bool:
         return contract_name in self.contracts
 
-    def get_contract_abi(self, contract_name: str) -> List[Dict[str, Any]]:
+    def get_contract_abi(self, contract_name: str) -> ABI:
         """ Returns the ABI for a given contract. """
         assert self.contracts, "ContractManager should have contracts compiled"
         return self.contracts[contract_name]["abi"]
@@ -180,11 +179,13 @@ def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) ->
     if dict2["contracts_version"] != dict1["contracts_version"]:
         raise ValueError("Got dictionaries with different contracts_versions.")
 
-    return {
-        "contracts": common_contracts,
-        "chain_id": dict1["chain_id"],
-        "contracts_version": dict1["contracts_version"],
-    }
+    return DeployedContracts(
+        {
+            "contracts": common_contracts,
+            "chain_id": dict1["chain_id"],
+            "contracts_version": dict1["contracts_version"],
+        }
+    )
 
 
 def get_contracts_deployment_info(

@@ -4,11 +4,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 import click
 import requests
-from eth_typing import URI, ChecksumAddress
+from eth_typing import URI, ChecksumAddress, HexStr
 from eth_utils import to_checksum_address
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
-from web3.types import TxReceipt
+from web3.types import TxReceipt, Wei
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
@@ -27,11 +27,11 @@ class TokenOperations:
         self.owner = private_key_to_address(self.private_key)
         self.wait = wait
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(self.private_key))
-        self.web3.eth.defaultAccount = self.owner
+        self.web3.eth.defaultAccount = self.owner  # type: ignore
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def is_valid_contract(self, token_address: ChecksumAddress) -> bool:
-        return self.web3.eth.getCode(token_address, "latest") != b""
+        return self.web3.eth.getCode(token_address, "latest") != HexStr("")
 
     def mint_tokens(self, token_address: ChecksumAddress, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
@@ -61,7 +61,9 @@ class TokenOperations:
         weth_abi = result.json()["result"]
         weth_proxy = self.web3.eth.contract(address=token_address, abi=weth_abi)
         assert weth_proxy.functions.symbol().call() == "WETH", "This contract is not a WETH token"
-        txhash = weth_proxy.functions.deposit().transact({"from": self.owner, "value": amount})
+        txhash = weth_proxy.functions.deposit().transact(
+            {"from": self.owner, "value": Wei(amount)}
+        )
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 

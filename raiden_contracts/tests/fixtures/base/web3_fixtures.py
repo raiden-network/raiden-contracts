@@ -58,7 +58,7 @@ def web3(ethereum_tester: EthereumTester) -> Web3:
     # Enable strict type checks
     web3.enable_strict_bytes_type_checking()
 
-    yield web3
+    return web3
 
 
 @pytest.fixture(autouse=True)
