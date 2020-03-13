@@ -1,17 +1,18 @@
 import functools
 from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 from click import echo
-from eth_typing.evm import HexAddress
+from eth_typing.evm import BlockNumber, ChecksumAddress, HexAddress
+from eth_utils import to_checksum_address
 from web3 import Web3
 from web3._utils.events import get_event_data
-from web3._utils.filters import construct_event_filter_params
+from web3._utils.filters import LogFilter as Web3LogFilter, construct_event_filter_params
 from web3._utils.threads import Timeout
 
 # A concrete event added in a transaction.
-from web3.types import ABI, ABIEvent
+from web3.types import ABI, ABIEvent, BlockIdentifier
 
 LogRecorded = namedtuple("LogRecorded", "message callback count")
 
@@ -41,7 +42,7 @@ class LogHandler:
             self.event_filters[event_name] = LogFilter(
                 web3=self.web3,
                 abi=self.abi,
-                address=self.address,
+                address=to_checksum_address(self.address),
                 event_name=event_name,
                 callback=self.handle_log,
             )
@@ -139,10 +140,10 @@ class LogFilter:
         self,
         web3: Web3,
         abi: ABI,
-        address: HexAddress,
+        address: ChecksumAddress,
         event_name: str,
-        from_block: int = 0,
-        to_block: Union[int, str] = "latest",
+        from_block: BlockNumber = BlockNumber(0),
+        to_block: BlockIdentifier = "latest",
         filters: Any = None,
         callback: Optional[Callable[..., Any]] = None,
     ):
@@ -152,13 +153,11 @@ class LogFilter:
         # Callback for every registered log
         self.callback = callback
 
-        filter_kwargs = {"fromBlock": from_block, "toBlock": to_block, "address": address}
-
         event_abi = [i for i in abi if i["type"] == "event" and i["name"] == event_name]
         if len(event_abi) == 0:
             raise ValueError(f"Event of name {event_name} not found")
 
-        self.event_abi = event_abi[0]
+        self.event_abi = cast(ABIEvent, event_abi[0])
         assert self.event_abi
 
         filters = filters if filters else {}
@@ -166,13 +165,15 @@ class LogFilter:
         data_filter_set, filter_params = construct_event_filter_params(
             event_abi=self.event_abi,
             abi_codec=web3.codec,
+            contract_address=address,
             argument_filters=filters,
-            **filter_kwargs,
+            fromBlock=from_block,
+            toBlock=to_block,
         )
         log_data_extract_fn = functools.partial(get_event_data, web3.codec, event_abi)
 
-        self.filter = web3.eth.filter(filter_params)
-        self.filter.set_data_filters(data_filter_set)
+        self.filter: Web3LogFilter = web3.eth.filter(filter_params)  # type: ignore
+        self.filter.set_data_filters(data_filter_set)  # type: ignore
         self.filter.log_entry_formatter = log_data_extract_fn
         self.filter.filter_params = filter_params
 
