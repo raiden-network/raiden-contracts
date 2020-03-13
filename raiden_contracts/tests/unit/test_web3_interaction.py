@@ -1,4 +1,5 @@
 import pytest
+from eth_typing import BlockNumber
 from eth_utils.address import to_checksum_address
 from web3 import Web3
 from web3.contract import Contract
@@ -16,7 +17,7 @@ def test_logfilter_with_nonexistent_event(web3: Web3) -> None:
             abi=[],
             address=to_checksum_address("0xfake"),
             event_name="ev0",
-            from_block=0,
+            from_block=BlockNumber(0),
             to_block="latest",
         )
 
