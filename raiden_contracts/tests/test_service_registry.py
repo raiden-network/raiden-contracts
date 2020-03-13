@@ -2,6 +2,7 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from eth_typing import HexStr
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, get_event_data
@@ -490,9 +491,10 @@ def service_registry_with_zero_supply_token(
         )
 
 
+# FIXME: can be removed?
 def service_registry_with_high_numbers(
     deploy_tester_contract: Callable, custom_token: Contract
-) -> Contract:
+) -> None:
     """See if the computation overflows with the highest allowed numbers"""
     contract = deploy_tester_contract(
         CONTRACT_SERVICE_REGISTRY,
@@ -561,7 +563,7 @@ def test_deprecation_immediate_payout(
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
     # The Deposit contract has destroyed itself
-    assert web3.eth.getCode(deposit.address) == HexBytes("0x")
+    assert web3.eth.getCode(deposit.address) == HexStr("0x")
 
 
 def test_unauthorized_deprecation_switch(

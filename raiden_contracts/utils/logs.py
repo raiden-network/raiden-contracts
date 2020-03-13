@@ -11,11 +11,13 @@ from web3._utils.filters import construct_event_filter_params
 from web3._utils.threads import Timeout
 
 # A concrete event added in a transaction.
+from web3.types import ABI, ABIEvent
+
 LogRecorded = namedtuple("LogRecorded", "message callback count")
 
 
 class LogHandler:
-    def __init__(self, web3: Web3, address: HexAddress, abi: List[Any]):
+    def __init__(self, web3: Web3, address: HexAddress, abi: ABI):
         self.web3 = web3
         self.address = address
         self.abi = abi
@@ -136,7 +138,7 @@ class LogFilter:
     def __init__(
         self,
         web3: Web3,
-        abi: List[Any],
+        abi: ABI,
         address: HexAddress,
         event_name: str,
         from_block: int = 0,
@@ -183,6 +185,7 @@ class LogFilter:
             post_callback()
 
     def get_logs(self) -> List[Any]:
+        assert self.filter.filter_id is not None
         logs = self.web3.eth.getFilterLogs(self.filter.filter_id)
         formatted_logs = []
         for log in [dict(log) for log in logs]:
@@ -199,5 +202,6 @@ class LogFilter:
     def uninstall(self) -> None:
         assert self.web3 is not None
         assert self.filter is not None
+        assert self.filter.filter_id is not None
         self.web3.eth.uninstallFilter(self.filter.filter_id)
-        self.filter = None
+        del self.filter

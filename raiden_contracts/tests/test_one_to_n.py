@@ -2,6 +2,7 @@ from typing import Callable, List
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 
@@ -86,7 +87,7 @@ def test_bulk_claim_happy_path(
     deposit_to_udc(B, 30)
     C = create_service_account()
 
-    def bulk_claim(ious: List[dict]) -> str:
+    def bulk_claim(ious: List[dict]) -> HexBytes:
         return call_and_transact(
             one_to_n_contract.functions.bulkClaim(
                 senders=[x["sender"] for x in ious],
@@ -130,7 +131,7 @@ def test_bulk_claim_errors(
     with pytest.raises(
         TransactionFailed, match="Same number of elements required for all input parameters"
     ):
-        return call_and_transact(
+        call_and_transact(
             one_to_n_contract.functions.bulkClaim(
                 senders=senders,
                 receivers=receivers,
@@ -147,7 +148,7 @@ def test_bulk_claim_errors(
         with pytest.raises(
             TransactionFailed, match="`signatures` should contain 65 bytes per IOU"
         ):
-            return call_and_transact(
+            call_and_transact(
                 one_to_n_contract.functions.bulkClaim(
                     senders=senders,
                     receivers=receivers,
@@ -161,7 +162,7 @@ def test_bulk_claim_errors(
 
     # Cause a signature mismatch by changing one amount
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
-        return call_and_transact(
+        call_and_transact(
             one_to_n_contract.functions.bulkClaim(
                 senders=senders,
                 receivers=receivers,

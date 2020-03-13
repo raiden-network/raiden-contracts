@@ -5,6 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
+from web3.types import Wei
 
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
@@ -47,7 +48,7 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
             closing_signature=EMPTY_SIGNATURE,
-        ).call({"from": A, "gas": 81000})
+        ).call({"from": A, "gas": Wei(81_000)})
 
 
 def test_close_settled_channel_fail(

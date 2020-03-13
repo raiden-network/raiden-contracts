@@ -5,8 +5,11 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from eth_typing.evm import HexAddress
+from eth_typing import HexStr
+from eth_typing.evm import ChecksumAddress, HexAddress
+from hexbytes import HexBytes
 from mypy_extensions import TypedDict
+from web3.types import ABIEvent
 
 from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
 from raiden_contracts.utils.file_ops import load_json_from_path
@@ -28,8 +31,8 @@ CompiledContract = TypedDict(
 DeployedContract = TypedDict(
     "DeployedContract",
     {
-        "address": HexAddress,
-        "transaction_hash": str,
+        "address": ChecksumAddress,
+        "transaction_hash": HexStr,
         "block_number": int,
         "gas_cost": int,
         "constructor_arguments": List[Any],
@@ -94,7 +97,7 @@ class ContractManager:
         assert self.contracts, "ContractManager should have contracts compiled"
         return self.contracts[contract_name]["abi"]
 
-    def get_event_abi(self, contract_name: str, event_name: str) -> Dict[str, Any]:
+    def get_event_abi(self, contract_name: str, event_name: str) -> ABIEvent:
         """ Returns the ABI for a given event. """
         # Import locally to avoid web3 dependency during installation via `compile_contracts`
         from web3._utils.contracts import find_matching_event_abi

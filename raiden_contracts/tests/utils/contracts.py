@@ -2,11 +2,12 @@ from typing import Dict, List, Optional, Union
 
 from coincurve import PrivateKey
 from eth_tester import EthereumTester
-from eth_typing.evm import HexAddress
+from eth_typing.evm import ChecksumAddress, HexAddress
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, ContractConstructor, ContractFunction
 from web3.providers.eth_tester import EthereumTesterProvider
+from web3.types import TxParams
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_TOKEN_NETWORK
 from raiden_contracts.contract_manager import ContractManager
@@ -45,7 +46,7 @@ def deploy_contract(
     deployer_address = private_key_to_address(deployer_key.to_hex())
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(abi=json_contract["abi"], bytecode=json_contract["bin"])
-    tx_hash = call_and_transact(contract.constructor(*args), {"from": deployer_address})
+    tx_hash = call_and_transact(contract.constructor(*args), TxParams({"from": deployer_address}))
     contract_address = web3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
 
     return contract(contract_address)
@@ -64,7 +65,7 @@ def deploy_custom_token(
 
 
 def get_token_network(
-    web3: Web3, address: HexAddress, contracts_manager: ContractManager
+    web3: Web3, address: ChecksumAddress, contracts_manager: ContractManager
 ) -> Contract:
     json_contract = contracts_manager.get_contract(CONTRACT_TOKEN_NETWORK)
 
@@ -73,7 +74,7 @@ def get_token_network(
 
 def call_and_transact(
     contract_function: Union[ContractConstructor, ContractFunction],
-    transaction_params: Optional[Dict] = None,
+    transaction_params: Optional[TxParams] = None,
 ) -> HexBytes:
     """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
     # First 'call' might raise an exception

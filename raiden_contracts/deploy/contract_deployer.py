@@ -4,14 +4,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import semver
-from eth_typing import HexAddress
+from eth_typing import ChecksumAddress, HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import TxReceipt
+from web3.types import TxParams, TxReceipt, Wei
 
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
@@ -49,8 +49,13 @@ class ContractDeployer(ContractVerifier):
         super(ContractDeployer, self).__init__(web3=web3, contracts_version=contracts_version)
         self.wait = wait
         self.owner = private_key_to_address(private_key)
-        self.transaction = {"from": self.owner, "gas": gas_limit}
-        self.transaction["gasPrice"] = gas_price * int(units["gwei"])
+        self.transaction = TxParams(
+            {
+                "from": self.owner,
+                "gas": Wei(gas_limit),
+                "gasPrice": Wei(gas_price * int(units["gwei"])),
+            }
+        )
 
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
@@ -74,6 +79,7 @@ class ContractDeployer(ContractVerifier):
             abi=contract_interface["abi"], bytecode=contract_interface["bin"]
         )
 
+        assert isinstance(contract, Contract)
         # Get transaction hash from deployed contract
         txhash = self.send_deployment_transaction(contract=contract, args=args)
 
@@ -120,7 +126,7 @@ class ContractDeployer(ContractVerifier):
         token_name: str,
         token_symbol: str,
         token_type: str = "CustomToken",
-    ) -> Dict[str, HexAddress]:
+    ) -> Dict[str, ChecksumAddress]:
         """Deploy a token contract."""
         receipt = self.deploy(
             contract_name=token_type, args=[token_supply, token_decimals, token_name, token_symbol]
@@ -206,11 +212,11 @@ class ContractDeployer(ContractVerifier):
     def register_token_network(
         self,
         token_registry_abi: List[Dict[str, Any]],
-        token_registry_address: HexAddress,
-        token_address: HexAddress,
+        token_registry_address: ChecksumAddress,
+        token_address: ChecksumAddress,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-    ) -> HexAddress:
+    ) -> ChecksumAddress:
         """Register token with a TokenNetworkRegistry contract."""
         assert (
             self.contracts_version is None or semver.compare(self.contracts_version, "0.9.0") > -1
@@ -325,6 +331,7 @@ class ContractDeployer(ContractVerifier):
 def _deployed_data_from_receipt(
     receipt: TxReceipt, constructor_arguments: List
 ) -> DeployedContract:
+    assert receipt["contractAddress"] is not None
     return {
         "address": to_checksum_address(receipt["contractAddress"]),
         "transaction_hash": encode_hex(receipt["transactionHash"]),
