@@ -9,7 +9,7 @@ import pytest
 from click import BadParameter, NoSuchOption
 from click.testing import CliRunner
 from eth_typing import HexStr
-from eth_typing.evm import HexAddress
+from eth_typing.evm import ChecksumAddress, HexAddress
 from eth_utils import ValidationError, to_checksum_address
 from pyfakefs.fake_filesystem import FakeFilesystem
 from pyfakefs.fake_filesystem_unittest import Patcher
@@ -440,7 +440,7 @@ def test_deploy_script_register(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
     deployed_raiden_info: DeployedContracts,
-    token_address: HexAddress,
+    token_address: ChecksumAddress,
 ) -> None:
     """ Run token register function used in the deployment script
 
@@ -476,7 +476,7 @@ def test_deploy_script_register_missing_limits(
     token_network_deposit_limit: int,
     channel_participant_deposit_limit: int,
     deployed_raiden_info: DeployedContracts,
-    token_address: HexAddress,
+    token_address: ChecksumAddress,
     deployer: ContractDeployer,
 ) -> None:
     """ Run token register function used in the deployment script
@@ -519,7 +519,7 @@ def test_deploy_script_register_unexpected_limits(
     web3: Web3,
     token_network_deposit_limit: int,
     channel_participant_deposit_limit: int,
-    token_address: HexAddress,
+    token_address: ChecksumAddress,
     deployed_raiden_info: DeployedContracts,
 ) -> None:
     """ Run token register function used in the deployment script

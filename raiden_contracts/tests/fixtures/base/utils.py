@@ -11,6 +11,7 @@ from eth_utils.units import units
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
+from web3.types import ABI, Wei
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import call_and_transact, get_random_privkey
@@ -32,7 +33,7 @@ def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
         for faucet in web3.eth.accounts[:10]:
             try:
                 web3.eth.sendTransaction(
-                    {"from": faucet, "to": address, "value": 1 * int(units["finney"])}
+                    {"from": faucet, "to": address, "value": Wei(1 * int(units["finney"]))}
                 )
                 break
             except TransactionFailed:
@@ -90,7 +91,7 @@ def event_handler(web3: Web3) -> Callable:
     def get(
         contract: Optional[Contract] = None,
         address: Optional[HexAddress] = None,
-        abi: Optional[List] = None,
+        abi: Optional[ABI] = None,
     ) -> LogHandler:
         if contract:
             abi = contract.abi
@@ -114,7 +115,7 @@ def txn_cost(web3: Web3, txn_gas: Callable) -> Callable:
 
 @pytest.fixture
 def txn_gas(web3: Web3) -> Callable:
-    def get(txn_hash: str) -> int:
+    def get(txn_hash: HexBytes) -> int:
         receipt = web3.eth.getTransactionReceipt(txn_hash)
         return receipt["gasUsed"]
 

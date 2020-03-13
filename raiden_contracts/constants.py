@@ -2,7 +2,7 @@ from collections import namedtuple
 from enum import Enum, IntEnum
 from typing import Dict
 
-from eth_typing import HexAddress, HexStr
+from eth_typing import ChecksumAddress, HexAddress, HexStr
 from eth_utils import keccak
 
 from raiden_contracts.utils.type_aliases import ChainID
@@ -39,7 +39,7 @@ MAX_ETH_TOKEN_NETWORK = int(250 * 10 ** 18)
 
 # Special hashes
 LOCKSROOT_OF_NO_LOCKS = keccak(b"")
-EMPTY_ADDRESS = HexAddress(HexStr("0x0000000000000000000000000000000000000000"))
+EMPTY_ADDRESS = ChecksumAddress(HexAddress(HexStr("0x0000000000000000000000000000000000000000")))
 
 # Event names
 # TokenNetworkRegistry
