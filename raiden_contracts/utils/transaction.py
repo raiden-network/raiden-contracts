@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 from hexbytes import HexBytes
 from web3 import Web3

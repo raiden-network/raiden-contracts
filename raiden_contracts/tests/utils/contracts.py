@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional
 
 from coincurve import PrivateKey
 from eth_tester import EthereumTester
-from eth_typing.evm import ChecksumAddress, HexAddress
+from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
 from web3 import Web3
-from web3.contract import Contract, ContractConstructor, ContractFunction
+from web3.contract import Contract, ContractFunction
 from web3.providers.eth_tester import EthereumTesterProvider
 from web3.types import TxParams
 

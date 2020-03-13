@@ -6,8 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from eth_typing import HexStr
-from eth_typing.evm import ChecksumAddress, HexAddress
-from hexbytes import HexBytes
+from eth_typing.evm import ChecksumAddress
 from mypy_extensions import TypedDict
 from web3.types import ABI, ABIEvent
 
