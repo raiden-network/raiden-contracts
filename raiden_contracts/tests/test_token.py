@@ -80,7 +80,7 @@ def test_custom_token(
     """ See custom_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(custom_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_CUSTOM_TOKEN)
-    assert blockchain_bytecode == compiled_bytecode
+    assert blockchain_bytecode.hex() == compiled_bytecode  # type: ignore
 
 
 def test_human_standard_token(
@@ -89,4 +89,4 @@ def test_human_standard_token(
     """ See human_standard_token.address contains the expected code """
     blockchain_bytecode = web3.eth.getCode(human_standard_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_HUMAN_STANDARD_TOKEN)
-    assert blockchain_bytecode == compiled_bytecode
+    assert blockchain_bytecode.hex() == compiled_bytecode  # type: ignore

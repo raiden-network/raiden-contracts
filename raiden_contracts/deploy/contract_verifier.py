@@ -197,7 +197,9 @@ class ContractVerifier:
             )
 
         # Check that the deployed bytecode matches the precompiled data
-        blockchain_bytecode = self.web3.eth.getCode(contract_instance.address)
+        blockchain_bytecode = self.web3.eth.getCode(  # type: ignore
+            contract_instance.address
+        ).hex()
         compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
         if blockchain_bytecode == compiled_bytecode:
             print(

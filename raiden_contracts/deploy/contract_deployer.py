@@ -1,7 +1,7 @@
 from copy import deepcopy
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 import semver
 from eth_typing import ChecksumAddress, HexAddress
@@ -79,7 +79,6 @@ class ContractDeployer(ContractVerifier):
             abi=contract_interface["abi"], bytecode=contract_interface["bin"]
         )
 
-        assert isinstance(contract, Contract)
         # Get transaction hash from deployed contract
         txhash = self.send_deployment_transaction(contract=contract, args=args)
 
@@ -90,7 +89,7 @@ class ContractDeployer(ContractVerifier):
         )
         receipt, tx = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         if not receipt["contractAddress"]:  # happens with Parity
-            receipt["contractAddress"] = tx["creates"]
+            receipt["contractAddress"] = tx["creates"]  # type: ignore
         LOG.info(
             "{0} address: {1}. Gas used: {2}".format(
                 contract_name, receipt["contractAddress"], receipt["gasUsed"]
@@ -105,7 +104,7 @@ class ContractDeployer(ContractVerifier):
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
 
-    def send_deployment_transaction(self, contract: Contract, args: List) -> HexBytes:
+    def send_deployment_transaction(self, contract: Type[Contract], args: List) -> HexBytes:
         txhash = None
         while txhash is None:
             try:
