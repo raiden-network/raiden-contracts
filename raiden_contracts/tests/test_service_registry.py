@@ -3,7 +3,6 @@ from typing import Callable
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from eth_typing import HexStr
-from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract, get_event_data
 from web3.exceptions import MismatchedABI

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import semver
 from eth_typing import ChecksumAddress, HexAddress

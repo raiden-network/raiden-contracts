@@ -1,7 +1,7 @@
 import functools
 from collections import defaultdict, namedtuple
 from inspect import getframeinfo, stack
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from click import echo
 from eth_typing.evm import BlockNumber, ChecksumAddress, HexAddress
@@ -15,6 +15,7 @@ from web3._utils.threads import Timeout
 from web3.types import ABI, ABIEvent, BlockIdentifier
 
 LogRecorded = namedtuple("LogRecorded", "message callback count")
+GenesisBlock = BlockNumber(0)
 
 
 class LogHandler:
@@ -142,7 +143,7 @@ class LogFilter:
         abi: ABI,
         address: ChecksumAddress,
         event_name: str,
-        from_block: BlockNumber = BlockNumber(0),
+        from_block: BlockNumber = GenesisBlock,
         to_block: BlockIdentifier = "latest",
         filters: Any = None,
         callback: Optional[Callable[..., Any]] = None,
