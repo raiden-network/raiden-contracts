@@ -2,7 +2,6 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from eth_typing import HexStr
 from web3 import Web3
 from web3.contract import Contract, get_event_data
 from web3.exceptions import MismatchedABI
@@ -14,7 +13,7 @@ from raiden_contracts.constants import (
     EVENT_REGISTERED_SERVICE,
 )
 from raiden_contracts.contract_manager import ContractManager, contracts_precompiled_path
-from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils import HexBytes, call_and_transact
 from raiden_contracts.tests.utils.constants import (
     DEFAULT_BUMP_DENOMINATOR,
     DEFAULT_BUMP_NUMERATOR,
@@ -562,7 +561,7 @@ def test_deprecation_immediate_payout(
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
     # The Deposit contract has destroyed itself
-    assert web3.eth.getCode(deposit.address) == HexStr("0x")
+    assert web3.eth.getCode(deposit.address) == HexBytes("0x")  # type: ignore
 
 
 def test_unauthorized_deprecation_switch(

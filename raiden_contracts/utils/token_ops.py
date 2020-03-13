@@ -4,8 +4,9 @@ from typing import Any, Callable, Dict, List, Optional
 
 import click
 import requests
-from eth_typing import URI, ChecksumAddress, HexStr
+from eth_typing import URI, ChecksumAddress
 from eth_utils import to_checksum_address
+from hexbytes import HexBytes
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware, geth_poa_middleware
 from web3.types import TxReceipt, Wei
@@ -31,7 +32,7 @@ class TokenOperations:
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def is_valid_contract(self, token_address: ChecksumAddress) -> bool:
-        return self.web3.eth.getCode(token_address, "latest") != HexStr("")
+        return self.web3.eth.getCode(token_address, "latest") != HexBytes("")  # type: ignore
 
     def mint_tokens(self, token_address: ChecksumAddress, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
