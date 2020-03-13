@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from eth_typing import URI, ChecksumAddress
+from eth_typing import URI, ChecksumAddress, HexStr
 from eth_utils import encode_hex
 from web3 import HTTPProvider, Web3
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -30,7 +30,7 @@ def main(rpc_url: URI, private_key: Path, token_address: ChecksumAddress, amount
     owner = private_key_to_address(private_key_string)
     web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key_string))
     token_code = web3.eth.getCode(token_address, "latest")
-    assert token_code != b""
+    assert token_code != HexStr("")
     token_contract = ContractManager(contracts_precompiled_path()).get_contract(
         CONTRACT_CUSTOM_TOKEN
     )

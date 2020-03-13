@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from coincurve import PrivateKey
 from eth_tester import EthereumTester
@@ -41,12 +41,12 @@ def deploy_contract(
     contracts_manager: ContractManager,
     contract_name: str,
     deployer_key: PrivateKey,
-    args: Optional[List] = None,
+    args: List[Any],
 ) -> Contract:
     deployer_address = private_key_to_address(deployer_key.to_hex())
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(abi=json_contract["abi"], bytecode=json_contract["bin"])
-    tx_hash = call_and_transact(contract.constructor(*args), TxParams({"from": deployer_address}))
+    tx_hash = contract.constructor(*args).transact(TxParams({"from": deployer_address}))
     contract_address = web3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
 
     return contract(contract_address)
@@ -73,8 +73,7 @@ def get_token_network(
 
 
 def call_and_transact(
-    contract_function: Union[ContractConstructor, ContractFunction],
-    transaction_params: Optional[TxParams] = None,
+    contract_function: ContractFunction, transaction_params: Optional[TxParams] = None,
 ) -> HexBytes:
     """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
     # First 'call' might raise an exception
