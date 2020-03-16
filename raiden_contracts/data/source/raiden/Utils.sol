@@ -1,4 +1,4 @@
-pragma solidity 0.6.3;
+pragma solidity 0.6.4;
 
 /// @title Utils
 /// @notice Utils contract for various helpers used by the Raiden Network smart

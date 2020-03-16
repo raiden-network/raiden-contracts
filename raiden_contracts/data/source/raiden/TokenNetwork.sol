@@ -1,4 +1,4 @@
-pragma solidity 0.6.3;
+pragma solidity 0.6.4;
 
 import "lib/ECVerify.sol";
 import "raiden/Token.sol";
