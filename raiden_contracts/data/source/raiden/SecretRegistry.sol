@@ -1,4 +1,4 @@
-pragma solidity 0.6.3;
+pragma solidity 0.6.4;
 
 /// @title SecretRegistry
 /// @notice SecretRegistry contract for registering secrets from Raiden Network
