@@ -561,7 +561,7 @@ def test_deprecation_immediate_payout(
     # The user has all the balance it has minted
     assert minted == custom_token.functions.balanceOf(A).call()
     # The Deposit contract has destroyed itself
-    assert web3.eth.getCode(deposit.address) == HexBytes("0x")  # type: ignore
+    assert web3.eth.getCode(deposit.address) == HexBytes("0x")
 
 
 def test_unauthorized_deprecation_switch(

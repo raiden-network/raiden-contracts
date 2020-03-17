@@ -31,7 +31,7 @@ def main(rpc_url: URI, private_key: Path, token_address: ChecksumAddress, amount
     owner = private_key_to_address(private_key_string)
     web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key_string))
     token_code = web3.eth.getCode(token_address, "latest")
-    assert token_code != HexBytes("")  # type: ignore
+    assert token_code != HexBytes("")
     token_contract = ContractManager(contracts_precompiled_path()).get_contract(
         CONTRACT_CUSTOM_TOKEN
     )
