@@ -139,7 +139,7 @@ class DeploymentModule(Enum):
 # Network configurations
 START_QUERY_BLOCK_KEY = "DefaultStartBlock"
 
-ID_TO_NETWORKNAME: Dict[ChainID, str] = {
+ID_TO_CHAINNAME: Dict[ChainID, str] = {
     ChainID(1): "mainnet",
     ChainID(3): "ropsten",
     ChainID(4): "rinkeby",
@@ -148,7 +148,7 @@ ID_TO_NETWORKNAME: Dict[ChainID, str] = {
     ChainID(627): "smoketest",
 }
 
-NETWORKNAME_TO_ID: Dict[str, ChainID] = {name: id for id, name in ID_TO_NETWORKNAME.items()}
+CHAINNAME_TO_ID: Dict[str, ChainID] = {name: id for id, name in ID_TO_CHAINNAME.items()}
 
 # ContractNames
 

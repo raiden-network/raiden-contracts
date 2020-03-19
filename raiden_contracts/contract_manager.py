@@ -10,7 +10,7 @@ from eth_typing.evm import ChecksumAddress
 from mypy_extensions import TypedDict
 from web3.types import ABI, ABIEvent
 
-from raiden_contracts.constants import ID_TO_NETWORKNAME, DeploymentModule
+from raiden_contracts.constants import ID_TO_CHAINNAME, DeploymentModule
 from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_provides_services
@@ -149,7 +149,7 @@ def contracts_deployed_path(
 ) -> Path:
     """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
-    chain_name = ID_TO_NETWORKNAME[chain_id] if chain_id in ID_TO_NETWORKNAME else "private_net"
+    chain_name = ID_TO_CHAINNAME[chain_id] if chain_id in ID_TO_CHAINNAME else "private_net"
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
