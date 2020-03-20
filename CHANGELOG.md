@@ -5,6 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.37.0-test]
+
+- Practice deployment for next mainnet release
+
 ## [0.36.2]
 
 - [#1372](https://github.com/raiden-network/raiden-contracts/pull/1372) Rename network to chain for consistency
