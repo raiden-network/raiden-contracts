@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 from hexbytes import HexBytes
 from web3 import Web3
 from web3._utils.threads import Timeout
+from web3.exceptions import TransactionNotFound
 from web3.types import TxData, TxReceipt
 
 
@@ -36,11 +37,8 @@ def wait_for_transaction_receipt(
         while not receipt or not receipt["blockNumber"]:  # pylint: disable=E1136
             try:
                 receipt = web3.eth.getTransactionReceipt(txid)
-            except ValueError as ex:
-                if str(ex).find("EmptyResponse") != -1:
-                    pass  # Empty response from a Parity light client
-                else:
-                    raise ex
+            except TransactionNotFound:
+                pass
             time.sleep(5)
 
     return receipt
