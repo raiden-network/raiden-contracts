@@ -11,7 +11,6 @@ from web3.contract import Contract
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
     LOCKSROOT_OF_NO_LOCKS,
-    TEST_SETTLE_TIMEOUT_MIN,
     MessageTypeId,
     MonitoringServiceEvent,
 )
@@ -101,14 +100,11 @@ def setup_monitor_data(
         )
 
         # calculate when this MS is allowed to monitor
-        (settle_block_number, _) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
-        first_allowed = monitoring_service_contract.functions.firstBlockAllowedToMonitor(
-            closed_at_block=settle_block_number - TEST_SETTLE_TIMEOUT_MIN,
-            settle_timeout=TEST_SETTLE_TIMEOUT_MIN,
-            participant1=A,
-            participant2=B,
+        first_allowed = monitoring_service_contract.functions.firstBlockAllowedToMonitorChannel(
+            token_network=token_network.address,
+            channel_identifier=channel_identifier,
+            closing_participant=A,
+            non_closing_participant=B,
             monitoring_service_address=ms_address,
         ).call()
 
@@ -302,7 +298,7 @@ def test_monitor_by_unregistered_service(
     # wait until MS is allowed to monitor
     mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
 
-    # only registered service provicers may call `monitor`
+    # only registered service providers may call `monitor`
     with pytest.raises(TransactionFailed, match="service not registered"):
         monitoring_service_external.functions.monitor(
             A,
@@ -398,7 +394,7 @@ def test_updateReward(
     assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 3
 
 
-def test_firstAllowedBlock(monitoring_service_external: Contract) -> None:
+def test_pureFirstAllowedBlock(monitoring_service_external: Contract) -> None:
     def call(addresses: List[int], closed_at_block: int = 1000, settle_timeout: int = 100) -> int:
         first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
             closed_at_block=closed_at_block,

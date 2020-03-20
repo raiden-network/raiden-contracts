@@ -200,10 +200,16 @@ contract MonitoringService is Utils {
         uint256 channel_identifier = token_network.getChannelIdentifier(
             closing_participant, non_closing_participant
         );
-        require(isAllowedToMonitor(
-            token_network, channel_identifier,
-            closing_participant, non_closing_participant, msg.sender
-        ), "not allowed to monitor");
+        require(
+            block.number >= firstBlockAllowedToMonitorChannel(
+                token_network,
+                channel_identifier,
+                closing_participant,
+                non_closing_participant,
+                msg.sender
+            ),
+            "not allowed to monitor"
+        );
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
@@ -227,15 +233,15 @@ contract MonitoringService is Utils {
         );
     }
 
-    function isAllowedToMonitor(
+    function firstBlockAllowedToMonitorChannel(
         TokenNetwork token_network,
         uint256 channel_identifier,
         address closing_participant,
         address non_closing_participant,
         address monitoring_service_address
     )
-        internal
-        returns (bool)
+        public view
+        returns (uint256)
     {
         require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
 
@@ -252,7 +258,7 @@ contract MonitoringService is Utils {
         require(settle_block_number >= assumed_settle_timeout, "too low settle block number");
         uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
 
-        return block.number >= firstBlockAllowedToMonitor(
+        return firstBlockAllowedToMonitor(
             assumed_close_block,
             assumed_settle_timeout,
             closing_participant,
