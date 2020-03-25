@@ -5,7 +5,7 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## [0.37.0-test]
+## [0.37.0-beta]
 
 - Practice deployment for next mainnet release
 
