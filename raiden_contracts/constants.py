@@ -158,6 +158,7 @@ ContractListEntry = namedtuple("ContractListEntry", "module name")
 CONTRACT_LIST = [
     ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_SECRET_REGISTRY),
     ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK_REGISTRY),
+    ContractListEntry(module=DeploymentModule.RAIDEN, name=CONTRACT_TOKEN_NETWORK),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_SERVICE_REGISTRY),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_MONITORING_SERVICE),
     ContractListEntry(module=DeploymentModule.SERVICES, name=CONTRACT_ONE_TO_N),

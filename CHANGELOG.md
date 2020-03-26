@@ -5,6 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## Unreleased
+
+- [#1376](https://github.com/raiden-network/raiden-contracts/pull/1376) Support verification of TokenNetworks
+
 ## [0.37.0-beta]
 
 - Practice deployment for next mainnet release

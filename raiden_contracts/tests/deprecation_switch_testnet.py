@@ -141,7 +141,7 @@ def deprecation_test_setup(
         token_address=token_address,
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
-    )
+    )["token_network_address"]
 
     token_network_abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
     token_network = deployer.web3.eth.contract(
