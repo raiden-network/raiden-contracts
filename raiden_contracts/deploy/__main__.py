@@ -22,10 +22,12 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
+from raiden_contracts.contract_manager import contracts_deployed_path
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_with_max_token_networks
 
 LOG = getLogger(__name__)
@@ -443,12 +445,22 @@ def register(
         )
     assert token_type in ctx.obj["deployed_contracts"]
     abi = deployer.contract_manager.get_contract_abi(CONTRACT_TOKEN_NETWORK_REGISTRY)
-    deployer.register_token_network(
+    token_network = deployer.register_token_network(
         token_registry_abi=abi,
         token_registry_address=ctx.obj["deployed_contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY],
         token_address=ctx.obj["deployed_contracts"][token_type],
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
+    )
+
+    deployment_file_path = contracts_deployed_path(
+        chain_id=ChainID(deployer.web3.eth.chainId), version=contracts_version
+    )
+    with deployment_file_path.open() as f:
+        deployed_contracts_info = json.load(f)
+    deployed_contracts_info.setdefault("token_networks", []).append(token_network)
+    deployer.store_and_verify_deployment_info_raiden(
+        deployed_contracts_info=deployed_contracts_info
     )
 
 

@@ -1,7 +1,8 @@
+import time
 from copy import deepcopy
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 import semver
 from eth_typing import ChecksumAddress, HexAddress
@@ -21,13 +22,20 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
+    DeploymentModule,
 )
-from raiden_contracts.contract_manager import CompiledContract, DeployedContract, DeployedContracts
+from raiden_contracts.contract_manager import (
+    CompiledContract,
+    DeployedContract,
+    DeployedContracts,
+    get_contracts_deployment_info,
+)
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
+from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import (
     contracts_version_monitoring_service_takes_token_network_registry,
 )
@@ -215,7 +223,7 @@ class ContractDeployer(ContractVerifier):
         token_address: ChecksumAddress,
         channel_participant_deposit_limit: Optional[int],
         token_network_deposit_limit: Optional[int],
-    ) -> ChecksumAddress:
+    ) -> Dict[str, Any]:
         """Register token with a TokenNetworkRegistry contract."""
         assert (
             self.contracts_version is None or semver.compare(self.contracts_version, "0.9.0") > -1
@@ -235,18 +243,49 @@ class ContractDeployer(ContractVerifier):
         )
 
         command = token_network_registry.functions.createERC20TokenNetwork(
-            _token_address=token_address,
-            _channel_participant_deposit_limit=channel_participant_deposit_limit,
-            _token_network_deposit_limit=token_network_deposit_limit,
+            token_address, channel_participant_deposit_limit, token_network_deposit_limit
         )
         self.transact(command)
 
-        token_network_address = token_network_registry.functions.token_to_token_networks(
-            token_address
-        ).call()
-        token_network_address = to_checksum_address(token_network_address)
+        LOG.debug("Collecting constructor parameters for later verification")
+        chain_id = ChainID(self.web3.eth.chainId)
+        deployment_data = get_contracts_deployment_info(
+            chain_id=chain_id,
+            version=self.contract_manager.contracts_version,
+            module=DeploymentModule.RAIDEN,
+        )
+        assert deployment_data
+        secret_registry = self.contract_instance_from_deployment_data(
+            deployment_data, CONTRACT_SECRET_REGISTRY
+        )
+        token_network_registry = self.contract_instance_from_deployment_data(
+            deployment_data, CONTRACT_TOKEN_NETWORK_REGISTRY
+        )
+        settle_timeout_min = token_network_registry.functions.settlement_timeout_min().call()
+        settle_timeout_max = token_network_registry.functions.settlement_timeout_max().call()
+        constructor_arguments = dict(
+            _token_address=token_address,
+            _secret_registry=secret_registry.address,
+            _chain_id=chain_id,
+            _settlement_timeout_min=settle_timeout_min,
+            _settlement_timeout_max=settle_timeout_max,
+            _deprecation_executor=self.owner,
+            _channel_participant_deposit_limit=channel_participant_deposit_limit,
+            _token_network_deposit_limit=token_network_deposit_limit,
+        )
+
+        LOG.debug(f"Getting address of new token network")
+        token_network_address = "0x0"
+        while int(token_network_address, 16) == 0:
+            token_network_address = token_network_registry.functions.token_to_token_networks(
+                token_address
+            ).call()
+            time.sleep(2)
         LOG.debug(f"TokenNetwork address: {token_network_address}")
-        return token_network_address
+        return dict(
+            token_network_address=token_network_address,
+            constructor_arguments=constructor_arguments,
+        )
 
     def deploy_service_contracts(
         self,
