@@ -25,7 +25,6 @@ from raiden_contracts.deploy.etherscan_verify import (
     get_constructor_args,
     guid_status,
     join_sources,
-    post_data_for_etherscan_verification,
 )
 
 contract_name = "DummyContract"
@@ -81,32 +80,6 @@ def test_get_constructor_args_two_args() -> None:
         == "0000000000000000000000000000000000000000000000000000000000000010"
         "0000000000000000000000000000000000000000000000000000000000000001"
     )
-
-
-def test_post_data_for_etherscan_verification() -> None:
-    output = post_data_for_etherscan_verification(
-        apikey="jkl;jkl;jkl;",
-        deployment_info={"address": "dummy_address"},  # type: ignore
-        source="dummy_source",
-        contract_name=contract_name,
-        metadata={
-            "compiler": {"version": "1.2.3"},
-            "settings": {"optimizer": {"enabled": False, "runs": "runs"}},
-        },
-        constructor_args="constructor_arguments",
-    )
-    assert output == {
-        "apikey": "jkl;jkl;jkl;",
-        "module": "contract",
-        "action": "verifysourcecode",
-        "contractaddress": "dummy_address",
-        "sourceCode": "dummy_source",
-        "contractname": contract_name,
-        "compilerversion": "v1.2.3",
-        "optimizationUsed": 0,
-        "runs": "runs",
-        "constructorArguements": "constructor_arguments",
-    }
 
 
 def test_run_join_contracts() -> None:

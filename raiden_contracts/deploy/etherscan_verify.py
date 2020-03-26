@@ -1,8 +1,8 @@
 import json
 import pprint
 import subprocess
+import time
 from pathlib import Path
-from time import sleep
 from typing import Any, Dict, Optional
 
 import click
@@ -11,11 +11,11 @@ from click import Context
 from click.exceptions import BadParameter
 from eth_abi import encode_abi
 
-from raiden_contracts.constants import CONTRACT_LIST, DeploymentModule
+from raiden_contracts.constants import CONTRACT_LIST, CONTRACT_TOKEN_NETWORK, DeploymentModule
 from raiden_contracts.contract_manager import (
     ContractManager,
-    DeployedContract,
     DeployedContracts,
+    contracts_deployed_path,
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
@@ -27,6 +27,7 @@ from raiden_contracts.utils.type_aliases import ChainID
 
 CONTRACT_NAMES_SEPARATED = " | ".join([c.name for c in CONTRACT_LIST])
 USER_AGENT = "curl/7.37.0"  # Etherscan blocks us without this user agent in some cases
+MODULE_OF_CONTRACT = {contract: module for module, contract in CONTRACT_LIST}
 
 
 def validate_contract_name(_ctx: Context, _param: Any, value: Optional[str]) -> Optional[str]:
@@ -59,12 +60,40 @@ def etherscan_verify(
 
     for list_entry in CONTRACT_LIST:
         if contract_name is None or contract_name == list_entry.name:
-            etherscan_verify_contract(
-                chain_id=chain_id,
-                apikey=apikey,
-                source_module=list_entry.module,
-                contract_name=list_entry.name,
-            )
+            if list_entry.name == CONTRACT_TOKEN_NETWORK:
+                _verify_token_networks(chain_id, apikey)
+            else:
+                _verify_singleton_contract(
+                    chain_id=chain_id,
+                    apikey=apikey,
+                    source_module=list_entry.module,
+                    contract_name=list_entry.name,
+                )
+
+
+def _verify_token_networks(chain_id: ChainID, apikey: str) -> None:
+    deployment_file_path = contracts_deployed_path(chain_id=chain_id)
+    with deployment_file_path.open() as f:
+        deployed_contracts_info = json.load(f)
+    token_networks = deployed_contracts_info.get("token_networks", [])
+
+    with open(contracts_precompiled_path()) as f:
+        contract_dict = json.load(f)["contracts"][CONTRACT_TOKEN_NETWORK]
+    metadata = json.loads(contract_dict["metadata"])
+    constructor = [func for func in contract_dict["abi"] if func["type"] == "constructor"][0]
+    arg_types = [arg["type"] for arg in constructor["inputs"]]
+    arg_names = [arg["name"] for arg in constructor["inputs"]]
+
+    for tn in token_networks:
+        args = [tn["constructor_arguments"][arg_name] for arg_name in arg_names]
+        etherscan_verify_contract(
+            chain_id=chain_id,
+            apikey=apikey,
+            address=tn["token_network_address"],
+            contract_name=CONTRACT_TOKEN_NETWORK,
+            metadata=metadata,
+            constructor_args=encode_abi(arg_types, args).hex(),
+        )
 
 
 api_of_chain_id = {
@@ -122,14 +151,17 @@ def get_constructor_args(
     return constructor_args
 
 
-def post_data_for_etherscan_verification(
+def etherscan_verify_contract(
+    chain_id: ChainID,
     apikey: str,
-    deployment_info: DeployedContract,
-    source: str,
+    address: str,
     contract_name: str,
     metadata: Dict,
     constructor_args: str,
-) -> Dict:
+) -> None:
+    source = (
+        join_sources(source_module=MODULE_OF_CONTRACT[contract_name], contract_name=contract_name),
+    )
     data = {
         # A valid API-Key is required
         "apikey": apikey,
@@ -137,7 +169,7 @@ def post_data_for_etherscan_verification(
         "module": "contract",
         # Do not change
         "action": "verifysourcecode",
-        "contractaddress": deployment_info["address"],
+        "contractaddress": address,
         "sourceCode": source,
         "contractname": contract_name,
         "compilerversion": "v" + metadata["compiler"]["version"],
@@ -148,40 +180,8 @@ def post_data_for_etherscan_verification(
         "constructorArguements": constructor_args,
     }
     pprint.pprint({k: v for k, v in data.items() if k != "sourceCode"})
-    return data
 
-
-def etherscan_verify_contract(
-    chain_id: ChainID, apikey: str, source_module: DeploymentModule, contract_name: str
-) -> None:
-    """ Calls Etherscan API for verifying the Solidity source of a contract.
-
-    Args:
-        chain_id: EIP-155 chain id of the Ethereum chain
-        apikey: key for calling Etherscan API
-        source_module: a module name to look up contracts_source_path()
-        contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
-    """
     etherscan_api = api_of_chain_id[chain_id]
-    deployment_info = get_contracts_deployment_info(chain_id=chain_id, module=source_module)
-    if deployment_info is None:
-        raise FileNotFoundError(
-            f"Deployment file not found for chain_id={chain_id} and module={source_module}"
-        )
-    contract_manager = ContractManager(contracts_precompiled_path())
-
-    data = post_data_for_etherscan_verification(
-        apikey=apikey,
-        deployment_info=deployment_info["contracts"][contract_name],
-        source=join_sources(source_module=source_module, contract_name=contract_name),
-        contract_name=contract_name,
-        metadata=json.loads(contract_manager.contracts[contract_name]["metadata"]),
-        constructor_args=get_constructor_args(
-            deployment_info=deployment_info,
-            contract_name=contract_name,
-            contract_manager=contract_manager,
-        ),
-    )
     response = requests.post(etherscan_api, data=data, headers={"User-Agent": USER_AGENT})
     try:
         content = response.json()
@@ -218,8 +218,42 @@ def etherscan_verify_contract(
         if r["result"] == "Pass - Verified":
             return
         print("Retrying...")
-        sleep(5)
+        time.sleep(5)
     raise TimeoutError(manual_submission_guide)
+
+
+def _verify_singleton_contract(
+    chain_id: ChainID, apikey: str, source_module: DeploymentModule, contract_name: str,
+) -> None:
+    """ Calls Etherscan API for verifying the Solidity source of a contract.
+
+    This function can only be used to verify contracts which are only deployed
+    once. E.g. `TokenNetworkRegistry`, but not `TokenNetwork`.
+    Args:
+        chain_id: EIP-155 chain id of the Ethereum chain
+        apikey: key for calling Etherscan API
+        source_module: a module name to look up contracts_source_path()
+        contract_name: 'TokenNetworkRegistry', 'SecretRegistry' etc.
+    """
+
+    deployment_info = get_contracts_deployment_info(chain_id=chain_id, module=source_module)
+    assert deployment_info
+    contract_manager = ContractManager(contracts_precompiled_path())
+    metadata = json.loads(contract_manager.contracts[contract_name]["metadata"])
+    constructor_args = get_constructor_args(
+        deployment_info=deployment_info,
+        contract_name=contract_name,
+        contract_manager=contract_manager,
+    )
+    contract_deploy_info = deployment_info["contracts"][contract_name]
+    etherscan_verify_contract(
+        chain_id=chain_id,
+        apikey=apikey,
+        address=contract_deploy_info["address"],
+        contract_name=contract_name,
+        metadata=metadata,
+        constructor_args=constructor_args,
+    )
 
 
 def guid_status(etherscan_api: str, guid: str) -> Dict:
