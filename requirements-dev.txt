@@ -2,8 +2,10 @@
 autopep8>=1.4.3
 black>=19.10b0
 eth-tester[py-evm]==0.4.0-beta.1
+coverage
 pytest
 pytest-cov
+pytest-xdist
 pyfakefs
 flake8>=3.7.9
 flake8-commas>=2.0.0

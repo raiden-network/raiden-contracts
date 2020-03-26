@@ -25,7 +25,7 @@ before_install:
 install:
   - pip install -U pip wheel
   - pip install -U -r requirements-dev.txt
-  - pip install pytest-xdist pytest-sugar codecov coverage pytest-travis-fold
+  - pip install -U codecov pytest-travis-fold
   - pipdeptree --warn fail
   - pip check
   - make verify_contracts
@@ -34,7 +34,7 @@ before_script:
   - make lint
 
 script:
-  - travis_wait 50 pytest --cov=./ raiden_contracts/tests/ -n 2 --cov-config setup.cfg
+  - pytest --cov=./ raiden_contracts/tests/ -v -n 2 --cov-config setup.cfg
   - codecov
 
 deploy:
