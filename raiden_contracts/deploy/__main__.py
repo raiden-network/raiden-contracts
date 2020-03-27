@@ -452,7 +452,13 @@ def register(
         channel_participant_deposit_limit=channel_participant_deposit_limit,
         token_network_deposit_limit=token_network_deposit_limit,
     )
+    _add_token_network_deploy_info(token_network, deployer, contracts_version)
 
+
+def _add_token_network_deploy_info(
+    token_network: Dict[str, Any], deployer: ContractDeployer, contracts_version: str
+) -> None:
+    """ Add deploy info dict to the deploy_*.json file """
     deployment_file_path = contracts_deployed_path(
         chain_id=ChainID(deployer.web3.eth.chainId), version=contracts_version
     )
