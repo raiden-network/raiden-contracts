@@ -22,7 +22,7 @@ from raiden_contracts.constants import (
     DEPLOY_SETTLE_TIMEOUT_MAX,
     DEPLOY_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.contract_manager import contracts_deployed_path
+from raiden_contracts.contract_manager import DeployedContracts, contracts_deployed_path
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.private_key import get_private_key
@@ -463,7 +463,7 @@ def _add_token_network_deploy_info(
         chain_id=ChainID(deployer.web3.eth.chainId), version=contracts_version
     )
     with deployment_file_path.open() as f:
-        deployed_contracts_info = json.load(f)
+        deployed_contracts_info: DeployedContracts = json.load(f)
     deployed_contracts_info.setdefault("token_networks", []).append(token_network)
     deployer.store_and_verify_deployment_info_raiden(
         deployed_contracts_info=deployed_contracts_info

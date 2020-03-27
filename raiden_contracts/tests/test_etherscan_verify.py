@@ -52,8 +52,8 @@ def test_get_constructor_args_one_arg() -> None:
             "metadata": "dummy",
         }
     )
-    deploy_info: DeployedContracts = {  # type: ignore
-        "contracts": {contract_name: {"constructor_arguments": [16]}}
+    deploy_info: DeployedContracts = {
+        "contracts": {contract_name: {"constructor_arguments": [16]}}  # type: ignore
     }
     assert (
         get_constructor_args(deploy_info, contract_name, contract_manager)
@@ -72,8 +72,8 @@ def test_get_constructor_args_two_args() -> None:
             "metadata": "dummy",
         }
     )
-    deploy_info: DeployedContracts = {  # type: ignore
-        "contracts": {contract_name: {"constructor_arguments": [16, True]}}
+    deploy_info: DeployedContracts = {
+        "contracts": {contract_name: {"constructor_arguments": [16, True]}}  # type: ignore
     }
     assert (
         get_constructor_args(deploy_info, contract_name, contract_manager)
