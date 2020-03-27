@@ -454,20 +454,23 @@ def test_deploy_script_register(
         web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
     )
 
-    deployed_contracts_raiden = deployed_raiden_info
     token_registry_abi = deployer.contract_manager.get_contract_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY
     )
-    token_registry_address = deployed_contracts_raiden["contracts"][
-        CONTRACT_TOKEN_NETWORK_REGISTRY
-    ]["address"]
-    token_network_address = deployer.register_token_network(
-        token_registry_abi=token_registry_abi,
-        token_registry_address=token_registry_address,
-        token_address=token_address,
-        channel_participant_deposit_limit=channel_participant_deposit_limit,
-        token_network_deposit_limit=token_network_deposit_limit,
-    )
+    token_registry_address = deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
+        "address"
+    ]
+    with patch(
+        "raiden_contracts.deploy.contract_deployer.get_contracts_deployment_info"
+    ) as get_deploy_info_mock:
+        get_deploy_info_mock.return_value = deployed_raiden_info
+        token_network_address = deployer.register_token_network(
+            token_registry_abi=token_registry_abi,
+            token_registry_address=token_registry_address,
+            token_address=token_address,
+            channel_participant_deposit_limit=channel_participant_deposit_limit,
+            token_network_deposit_limit=token_network_deposit_limit,
+        )["token_network_address"]
     assert token_network_address is not None
     assert isinstance(token_network_address, str)
 
@@ -1026,21 +1029,29 @@ def test_deploy_raiden(
 
 @patch.object(ContractDeployer, "register_token_network")
 def test_register_script(
-    mock_deploy: MagicMock, get_accounts: Callable, get_private_key: Callable
+    mock_deploy: MagicMock,
+    get_accounts: Callable,
+    get_private_key: Callable,
+    deployed_raiden_info: DeployedContracts,
 ) -> None:
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
+    with NamedTemporaryFile() as privkey_file, patch(
+        "raiden_contracts.deploy.contract_deployer.get_contracts_deployment_info"
+    ) as get_deploy_info_mock, patch(
+        "raiden_contracts.deploy.__main__._add_token_network_deploy_info"
+    ) as add_tn_info:
+        get_deploy_info_mock.return_value = deployed_raiden_info
         privkey_file.write(bytearray(priv_key, "ascii"))
         privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
+        with patch.object(Eth, "getBalance", return_value=1), patch.object(Eth, "chainId", 61):
             runner = CliRunner()
             result = runner.invoke(
                 register,
                 [
                     "--rpc-provider",
-                    "rpv_provider",
+                    "rpc_provider",
                     "--private-key",
                     privkey_file.name,
                     "--gas-price",
@@ -1054,10 +1065,11 @@ def test_register_script(
                     "--token-network-deposit-limit",
                     "200",
                 ],
+                catch_exceptions=False,
             )
-            assert result.exception is None
             assert result.exit_code == 0
             mock_deploy.assert_called_once()
+            add_tn_info.assert_called_once()
 
 
 @patch.object(ContractDeployer, "register_token_network")
