@@ -38,10 +38,11 @@ DeployedContract = TypedDict(
 )
 
 
-class DeployedContracts(TypedDict):
+class DeployedContracts(TypedDict, total=False):
     chain_id: int
     contracts: Dict[str, DeployedContract]
     contracts_version: str
+    token_networks: List[Dict[str, Any]]
 
 
 class ContractManagerLoadError(RuntimeError):
@@ -218,12 +219,13 @@ def get_contracts_deployment_info(
     if module_chosen(DeploymentModule.SERVICES) and contracts_version_provides_services(version):
         files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=True))
 
-    deployment_data: DeployedContracts = {}  # type: ignore
+    deployment_data: Optional[DeployedContracts] = {}
 
     for f in files:
         j = load_json_from_path(f)
         if j is None:
             continue
+        assert deployment_data is not None
         deployment_data = merge_deployment_data(
             deployment_data,
             DeployedContracts(
