@@ -5,9 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## Unreleased
+## [0.37.0-b2]
 
 - [#1376](https://github.com/raiden-network/raiden-contracts/pull/1376) Support verification of TokenNetworks
+- Test release of contracts on mainnet for Brainbot-internal testing. Do not use for anything else! The deprecation switch will be triggered soon!
 
 ## [0.37.0-beta]
 
