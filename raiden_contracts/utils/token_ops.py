@@ -56,8 +56,8 @@ class TokenOperations:
             token_address
         ), "The WETH token does not exist on this contract"
         result = requests.get(
-            f"http://api.etherscan.io/api?module=contract&action=getabi&"
-            f"address=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+            "http://api.etherscan.io/api?module=contract&action=getabi&"
+            "address=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
         )
         weth_abi = result.json()["result"]
         weth_proxy = self.web3.eth.contract(address=token_address, abi=weth_abi)
