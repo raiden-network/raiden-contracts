@@ -316,7 +316,7 @@ def print_gas_monitoring_service(
     )
 
     # c1 closes channel
-    txn_hash = call_and_transact(
+    call_and_transact(
         token_network.functions.closeChannel(
             channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_sig_A
         ),

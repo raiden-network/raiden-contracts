@@ -23,7 +23,7 @@ def check_successful_tx(
             "Does your chain have Byzantium rules enabled?"
         )
     if receipt["status"] == 0:
-        raise ValueError(f"Status 0 indicates failure")
+        raise ValueError("Status 0 indicates failure")
     if txinfo["gas"] == receipt["gasUsed"]:
         raise ValueError(f'Gas is completely used ({txinfo["gas"]}). Failure?')
     return receipt, txinfo

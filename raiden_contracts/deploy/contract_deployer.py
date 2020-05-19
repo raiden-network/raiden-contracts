@@ -274,7 +274,7 @@ class ContractDeployer(ContractVerifier):
             _token_network_deposit_limit=token_network_deposit_limit,
         )
 
-        LOG.debug(f"Getting address of new token network")
+        LOG.debug("Getting address of new token network")
         token_network_address = "0x0"
         while int(token_network_address, 16) == 0:
             token_network_address = token_network_registry.functions.token_to_token_networks(
