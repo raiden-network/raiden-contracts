@@ -12,7 +12,7 @@ Raiden Network Smart Contracts
 Prerequisites
 -------------
 
--  Python 3.6
+-  Python 3.7 or 3.8
 -  https://pip.pypa.io/en/stable/
 
 Installation
@@ -26,9 +26,21 @@ Recommended::
 Finding Deployed Contract Instances
 -----------------------------------
 
-We do not recommend the smart contracts to be used in production as of this moment. All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Use at your own risk.
+All smart contracts in this repository are made available WITHOUT ANY
+REPRESENTATION OR WARRANTY; without even the (implied) warranty of FITNESS FOR
+ANY PARTICULAR PURPOSE. Use at your own risk.
 
-You can find other useful constants that you can import in ``raiden_contracts/constants.py``.
+If you want to use the deployed contracts, please use the
+``raiden_contracts/data_<CONTRACTS_VERSION>/contracts.json`` file to get the ABI
+and bytecode for initializing the contract instances.
+
+You can find the addresses of the deployed contracts in
+``raiden_contracts/data_<CONTRACTS_VERSION>/deployment_*.json``. All contracts
+under ``raiden_contracts/contracts/test/`` are only for testing purposes and
+they should not be used in production.
+
+You can find other useful constants that you can import in
+``raiden_contracts/constants.py``.
 
 .. Note::
     This package supports many contract versions, including:
@@ -39,7 +51,11 @@ You can find other useful constants that you can import in ``raiden_contracts/co
 
     The current policy is to add all new deployment data together with the sources.
 
-If you want to use the officially deployed contracts, please use the ``raiden_contracts/data_<CONTRACTS_VERSION>`` files to get the precompiled data (ABI, bytecode etc.) and addresses for initializing the contract instances. Alternatively, in Python scripts, with ``raiden-contracts`` package, you can find the already deployed contract instances like::
+If you want to use the officially deployed contracts, please use the
+``raiden_contracts/data_<CONTRACTS_VERSION>`` files to get the precompiled data
+(ABI, bytecode etc.) and addresses for initializing the contract instances.
+Alternatively, in Python scripts, with ``raiden-contracts`` package, you can
+find the already deployed contract instances like::
 
     from raiden_contracts.contract_manager import (
         ContractManager,
