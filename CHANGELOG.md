@@ -5,6 +5,11 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.37.0]
+
+- New deployments for both mainnet and testnets (goerli, rinkeby, ropsten)
+- Updated disclaimer
+
 ## [0.37.0-b3]
 
 - Fix `CONTRACTS_VERSION`, which was outdated in 0.37.0-b2.
