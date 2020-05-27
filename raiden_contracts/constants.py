@@ -67,6 +67,7 @@ class ChannelEvent(str, Enum):
     CLOSED = "ChannelClosed"
     SETTLED = "ChannelSettled"
     UNLOCKED = "ChannelUnlocked"
+    DEPRECATED = "DeprecationSwitch"
 
 
 class ChannelInfoIndex(IntEnum):
