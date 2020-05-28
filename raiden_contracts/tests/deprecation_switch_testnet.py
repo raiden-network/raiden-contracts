@@ -44,6 +44,7 @@ def deprecation_test(
     setup_ctx(
         ctx=ctx,
         private_key=private_key,
+        password_file=None,
         rpc_provider=rpc_provider,
         wait=wait,
         gas_price=gas_price,

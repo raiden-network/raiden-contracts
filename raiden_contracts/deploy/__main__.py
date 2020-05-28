@@ -64,6 +64,14 @@ def common_options(func: Callable) -> Callable:
 
     @click.option("--private-key", required=True, help="Path to a private key store.")
     @click.option(
+        "--password-file",
+        help="Text file containing the password for the provided account",
+        default=None,
+        type=click.Path(exists=True, dir_okay=False),
+        show_default=True,
+        callback=lambda ctx, param, value: Path(value) if value is not None else None,
+    )
+    @click.option(
         "--rpc-provider",
         default="http://127.0.0.1:8545",
         help="Address of the Ethereum RPC provider",
@@ -87,6 +95,7 @@ def common_options(func: Callable) -> Callable:
 def setup_ctx(
     ctx: click.Context,
     private_key: str,
+    password_file: Optional[Path],
     rpc_provider: URI,
     wait: int,
     gas_price: int,
@@ -104,7 +113,7 @@ def setup_ctx(
     web3 = Web3(HTTPProvider(rpc_provider, request_kwargs={"timeout": 60}))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     print("Web3 provider is", web3.provider)
-    private_key_string = get_private_key(Path(private_key).expanduser())
+    private_key_string = get_private_key(Path(private_key).expanduser(), password_file)
     if not private_key_string:
         raise RuntimeError("Could not access the private key.")
     owner = private_key_to_address(private_key_string)
@@ -186,6 +195,7 @@ def check_version_dependent_parameters(
 def raiden(
     ctx: click.Context,
     private_key: str,
+    password_file: Optional[Path],
     rpc_provider: URI,
     wait: int,
     gas_price: int,
@@ -202,7 +212,16 @@ def raiden(
     if secret_registry_from_deployment_file:
         secret_registry_from_deployment_path = Path(secret_registry_from_deployment_file)
 
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx=ctx,
+        private_key=private_key,
+        password_file=password_file,
+        rpc_provider=rpc_provider,
+        wait=wait,
+        gas_price=gas_price,
+        gas_limit=gas_limit,
+        contracts_version=contracts_version,
+    )
     deployer = ctx.obj["deployer"]
     deployed_contracts_info = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=max_token_networks,
@@ -294,6 +313,7 @@ def raiden(
 def services(
     ctx: Context,
     private_key: str,
+    password_file: Optional[Path],
     rpc_provider: URI,
     wait: int,
     gas_price: int,
@@ -311,7 +331,16 @@ def services(
     service_registration_duration: int,
     token_network_registry_address: HexAddress,
 ) -> None:
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx=ctx,
+        private_key=private_key,
+        password_file=password_file,
+        rpc_provider=rpc_provider,
+        wait=wait,
+        gas_price=gas_price,
+        gas_limit=gas_limit,
+        contracts_version=contracts_version,
+    )
     deployer: ContractDeployer = ctx.obj["deployer"]
 
     deployed_contracts_info = deployer.deploy_service_contracts(
@@ -364,6 +393,7 @@ def services(
 def token(
     ctx: click.Context,
     private_key: str,
+    password_file: Optional[Path],
     rpc_provider: URI,
     wait: int,
     gas_price: int,
@@ -374,7 +404,16 @@ def token(
     token_decimals: int,
     token_symbol: str,
 ) -> None:
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx=ctx,
+        private_key=private_key,
+        password_file=password_file,
+        rpc_provider=rpc_provider,
+        wait=wait,
+        gas_price=gas_price,
+        gas_limit=gas_limit,
+        contracts_version=contracts_version,
+    )
     deployer = ctx.obj["deployer"]
     token_supply *= 10 ** token_decimals
     deployed_token = deployer.deploy_token_contract(
@@ -415,6 +454,7 @@ def token(
 def register(
     ctx: Context,
     private_key: str,
+    password_file: Optional[Path],
     rpc_provider: URI,
     wait: int,
     gas_price: int,
@@ -427,7 +467,16 @@ def register(
     registry_address: Optional[HexAddress],
 ) -> None:
     assert registry_address is None  # No longer used option
-    setup_ctx(ctx, private_key, rpc_provider, wait, gas_price, gas_limit, contracts_version)
+    setup_ctx(
+        ctx=ctx,
+        private_key=private_key,
+        password_file=password_file,
+        rpc_provider=rpc_provider,
+        wait=wait,
+        gas_price=gas_price,
+        gas_limit=gas_limit,
+        contracts_version=contracts_version,
+    )
     token_type = ctx.obj["token_type"]
     deployer = ctx.obj["deployer"]
 
