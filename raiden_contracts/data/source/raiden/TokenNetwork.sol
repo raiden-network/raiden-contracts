@@ -1,4 +1,5 @@
 pragma solidity 0.6.4;
+pragma experimental ABIEncoderV2;
 
 import "lib/ECVerify.sol";
 import "raiden/Token.sol";
@@ -122,6 +123,13 @@ contract TokenNetwork is Utils {
         // Total amount of tokens locked in the pending locks corresponding
         // to the `locksroot`
         uint256 locked_amount;
+    }
+
+    struct ParticipantSettleInput {
+        address participant;
+        uint256 transferred_amount;
+        uint256 locked_amount;
+        bytes32 locksroot;
     }
 
     event ChannelOpened(
@@ -693,6 +701,30 @@ contract TokenNetwork is Utils {
     )
         public
     {
+        settleChannel2(
+            channel_identifier,
+            ParticipantSettleInput({
+                participant: participant1,
+                transferred_amount: participant1_transferred_amount,
+                locked_amount: participant1_locked_amount,
+                locksroot: participant1_locksroot
+            }),
+            ParticipantSettleInput({
+                participant: participant2,
+                transferred_amount: participant2_transferred_amount,
+                locked_amount: participant2_locked_amount,
+                locksroot: participant2_locksroot
+            })
+        );
+    }
+
+    function settleChannel2(
+        uint256 channel_identifier,
+        ParticipantSettleInput memory participant1_settlement,
+        ParticipantSettleInput memory participant2_settlement
+    )
+        public
+    {
         // There are several requirements that this function MUST enforce:
         // - it MUST never fail; therefore, any overflows or underflows must be
         // handled gracefully
@@ -708,6 +740,8 @@ contract TokenNetwork is Utils {
         // therefore it cannot ensure correctness. Users MUST use the official
         // Raiden clients for signing balance proofs.
 
+        address participant1 = participant1_settlement.participant;
+        address participant2 = participant2_settlement.participant;
         require(channel_identifier == getChannelIdentifier(participant1, participant2));
 
         bytes32 pair_hash;
@@ -725,16 +759,16 @@ contract TokenNetwork is Utils {
 
         require(verifyBalanceHashData(
             participant1_state,
-            participant1_transferred_amount,
-            participant1_locked_amount,
-            participant1_locksroot
+            participant1_settlement.transferred_amount,
+            participant1_settlement.locked_amount,
+            participant1_settlement.locksroot
         ));
 
         require(verifyBalanceHashData(
             participant2_state,
-            participant2_transferred_amount,
-            participant2_locked_amount,
-            participant2_locksroot
+            participant2_settlement.transferred_amount,
+            participant2_settlement.locked_amount,
+            participant2_settlement.locksroot
         ));
 
         // We are calculating the final token amounts that need to be
@@ -752,17 +786,17 @@ contract TokenNetwork is Utils {
         // We are reusing variables due to the local variables number limit.
         // For better readability this can be refactored further.
         (
-            participant1_transferred_amount,
-            participant2_transferred_amount,
-            participant1_locked_amount,
-            participant2_locked_amount
+            participant1_settlement.transferred_amount,
+            participant2_settlement.transferred_amount,
+            participant1_settlement.locked_amount,
+            participant2_settlement.locked_amount
         ) = getSettleTransferAmounts(
             participant1_state,
-            participant1_transferred_amount,
-            participant1_locked_amount,
+            participant1_settlement.transferred_amount,
+            participant1_settlement.locked_amount,
             participant2_state,
-            participant2_transferred_amount,
-            participant2_locked_amount
+            participant2_settlement.transferred_amount,
+            participant2_settlement.locked_amount
         );
 
         // Remove the channel data from storage
@@ -779,32 +813,32 @@ contract TokenNetwork is Utils {
             channel_identifier,
             participant1,
             participant2,
-            participant1_locked_amount,
-            participant1_locksroot
+            participant1_settlement.locked_amount,
+            participant1_settlement.locksroot
         );
         storeUnlockData(
             channel_identifier,
             participant2,
             participant1,
-            participant2_locked_amount,
-            participant2_locksroot
+            participant2_settlement.locked_amount,
+            participant2_settlement.locksroot
         );
 
         emit ChannelSettled(
             channel_identifier,
-            participant1_transferred_amount,
-            participant1_locksroot,
-            participant2_transferred_amount,
-            participant2_locksroot
+            participant1_settlement.transferred_amount,
+            participant1_settlement.locksroot,
+            participant2_settlement.transferred_amount,
+            participant2_settlement.locksroot
         );
 
         // Do the actual token transfers
-        if (participant1_transferred_amount > 0) {
-            require(token.transfer(participant1, participant1_transferred_amount));
+        if (participant1_settlement.transferred_amount > 0) {
+            require(token.transfer(participant1, participant1_settlement.transferred_amount));
         }
 
-        if (participant2_transferred_amount > 0) {
-            require(token.transfer(participant2, participant2_transferred_amount));
+        if (participant2_settlement.transferred_amount > 0) {
+            require(token.transfer(participant2, participant2_settlement.transferred_amount));
         }
     }
 

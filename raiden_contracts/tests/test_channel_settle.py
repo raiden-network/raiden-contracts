@@ -89,6 +89,66 @@ def test_settle_no_bp_success(
     assert custom_token.functions.balanceOf(B).call() == deposit_B
 
 
+def test_settle2_no_bp_success(
+    web3: Web3,
+    custom_token: Contract,
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_close_signature_for_no_balance_proof: Callable,
+) -> None:
+    """ The simplest settlement, tested against the V2 ABI settle """
+    (A, B) = get_accounts(2)
+    deposit_A = 10
+    deposit_B = 6
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
+
+    # Close channel with no balance proof
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier,
+            B,
+            A,
+            EMPTY_BALANCE_HASH,
+            0,
+            EMPTY_ADDITIONAL_HASH,
+            EMPTY_SIGNATURE,
+            closing_sig,
+        ),
+        {"from": A},
+    )
+
+    # Do not call updateNonClosingBalanceProof
+
+    # Settlement window must be over before settling the channel
+    mine_blocks(web3, settle_timeout + 1)
+
+    # Settling the channel should work with no balance proofs
+    call_and_transact(
+        token_network.functions.settleChannel2(
+            channel_identifier=channel_identifier,
+            participant1_settlement=dict(
+                participant=A,
+                transferred_amount=0,
+                locked_amount=0,
+                locksroot=LOCKSROOT_OF_NO_LOCKS,
+            ),
+            participant2_settlement=dict(
+                participant=B,
+                transferred_amount=0,
+                locked_amount=0,
+                locksroot=LOCKSROOT_OF_NO_LOCKS,
+            ),
+        ),
+        {"from": A},
+    )
+
+    assert custom_token.functions.balanceOf(A).call() == deposit_A
+    assert custom_token.functions.balanceOf(B).call() == deposit_B
+
+
 def test_settle_channel_state(
     web3: Web3,
     get_accounts: Callable,
