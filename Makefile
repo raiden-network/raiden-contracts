@@ -25,12 +25,14 @@ ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contrac
 
 BLACK_PARAMS = --line-length 99 raiden_contracts/
 
-lint:
+lint: mypy
 	black --check --diff $(BLACK_PARAMS)
-	mypy $(LINT_FILES)
 	flake8 $(LINT_FILES)
 	pylint $(LINT_FILES)
 	isort $(ISORT_PARAMS) --check-only
+
+mypy:
+	mypy $(LINT_FILES)
 
 isort:
 	isort $(ISORT_PARAMS)

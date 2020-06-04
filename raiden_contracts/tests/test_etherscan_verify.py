@@ -127,11 +127,11 @@ def test_etherscan_verify_already_verified() -> None:
             """,
         )
         runner = CliRunner()
-        result = runner.invoke(
+        runner.invoke(
             etherscan_verify,
             ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            catch_exceptions=False,
         )
-        assert result.exit_code == 0
 
 
 def test_etherscan_verify_unknown_error() -> None:

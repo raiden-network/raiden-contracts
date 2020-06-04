@@ -8,7 +8,7 @@ from eth_utils.typing import ChecksumAddress
 sha3 = keccak
 
 
-def sign(privkey: str, msg_hash: bytes, v: int = 0) -> bytes:
+def sign(privkey: PrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
     if not isinstance(msg_hash, bytes):
         raise TypeError("sign(): msg_hash is not an instance of bytes")
     if len(msg_hash) != 32:

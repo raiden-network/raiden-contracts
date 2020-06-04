@@ -8,6 +8,7 @@ from web3.contract import Contract
 from raiden_contracts.constants import EMPTY_ADDRESS, MessageTypeId
 from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_proof
 from raiden_contracts.utils.signature import sign
+from raiden_contracts.utils.type_aliases import ChainID
 
 # pylint: disable=E1120
 
@@ -37,7 +38,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=web3.eth.chainId,
+            chain_identifier=ChainID(web3.eth.chainId),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,
@@ -53,7 +54,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=web3.eth.chainId,
+            chain_identifier=ChainID(web3.eth.chainId),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_B.balance_hash,
             nonce=balance_proof_B.nonce,
@@ -106,7 +107,7 @@ def test_ecrecover_output(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=web3.eth.chainId,
+            chain_identifier=ChainID(web3.eth.chainId),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,
@@ -190,7 +191,7 @@ def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Cal
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(TypeError):
-        sign(bytes(privatekey, "ascii"), bytes("a" * 32, "ascii"), v=27)  # type: ignore
+        sign(bytes(privatekey, "ascii"), bytes("a" * 32, "ascii"), v=27)
 
 
 def test_sign_wrong_v(get_private_key: Callable, get_accounts: Callable) -> None:

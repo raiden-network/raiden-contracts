@@ -22,6 +22,7 @@ from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
+from raiden_contracts.utils.type_aliases import BlockExpiration, ChainID, TokenAmount
 
 
 @pytest.mark.parametrize("version", [None])
@@ -277,7 +278,7 @@ def print_gas_monitoring_service(
     # setup: two parties + MS
     (A, MS) = get_accounts(2)
     B = create_service_account()
-    reward_amount = 10
+    reward_amount = TokenAmount(10)
     deposit_to_udc(B, reward_amount)
 
     # register MS in the ServiceRegistry contract
@@ -372,8 +373,8 @@ def print_gas_one_to_n(
 
     # happy case
     chain_id = web3.eth.chainId
-    amount = 10
-    expiration = web3.eth.blockNumber + 2
+    amount = TokenAmount(10)
+    expiration = BlockExpiration(web3.eth.blockNumber + 2)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -381,7 +382,7 @@ def print_gas_one_to_n(
         amount=amount,
         expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
+        chain_id=ChainID(chain_id),
     )
     txn_hash = call_and_transact(
         one_to_n_contract.functions.claim(
