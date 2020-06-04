@@ -10,6 +10,7 @@ from raiden_contracts.utils.type_aliases import (
     BlockExpiration,
     ChainID,
     ChannelID,
+    Locksroot,
     PrivateKey,
     Signature,
     TokenAmount,
@@ -19,7 +20,7 @@ from .signature import sign
 
 
 def hash_balance_data(
-    transferred_amount: int, locked_amount: int, locksroot: bytes
+    transferred_amount: TokenAmount, locked_amount: TokenAmount, locksroot: Locksroot
 ) -> BalanceHash:
     # pylint: disable=E1120
     return Web3.solidityKeccak(
