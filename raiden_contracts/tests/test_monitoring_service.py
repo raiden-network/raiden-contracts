@@ -23,8 +23,9 @@ from raiden_contracts.tests.utils import (
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.proofs import sign_reward_proof
+from raiden_contracts.utils.type_aliases import TokenAmount
 
-REWARD_AMOUNT = 10
+REWARD_AMOUNT = TokenAmount(10)
 
 
 @pytest.fixture

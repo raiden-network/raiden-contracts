@@ -6,6 +6,7 @@ from eth_typing import HexAddress
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
+from web3.types import Nonce
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState, MessageTypeId
 from raiden_contracts.tests.utils import (
@@ -30,6 +31,14 @@ from raiden_contracts.utils.proofs import (
     sign_balance_proof_message,
     sign_cooperative_settle_message,
     sign_withdraw_message,
+)
+from raiden_contracts.utils.type_aliases import (
+    AdditionalHash,
+    BalanceHash,
+    BlockExpiration,
+    ChannelID,
+    Signature,
+    TokenAmount,
 )
 
 
@@ -648,13 +657,13 @@ def withdraw_state_tests(custom_token: Contract, token_network: Contract) -> Cal
 @pytest.fixture(scope="session")
 def create_balance_proof(token_network: Contract, get_private_key: Callable) -> Callable:
     def get(
-        channel_identifier: int,
+        channel_identifier: ChannelID,
         participant: HexAddress,
         transferred_amount: int = 0,
         locked_amount: int = 0,
-        nonce: int = 0,
+        nonce: Nonce = Nonce(0),  # noqa
         locksroot: Optional[bytes] = None,
-        additional_hash: Optional[bytes] = None,
+        additional_hash: Optional[AdditionalHash] = None,
         v: int = 27,
         signer: Optional[HexAddress] = None,
         other_token_network: Optional[Contract] = None,
@@ -662,14 +671,14 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
         _token_network = other_token_network or token_network
         private_key = get_private_key(signer or participant)
         locksroot = locksroot or LOCKSROOT_OF_NO_LOCKS
-        additional_hash = additional_hash or b"\x00" * 32
+        additional_hash = additional_hash or AdditionalHash(b"\x00" * 32)
 
         balance_hash = hash_balance_data(transferred_amount, locked_amount, locksroot)
 
         signature = sign_balance_proof(
             private_key,
             _token_network.address,
-            int(_token_network.functions.chain_id().call()),
+            _token_network.functions.chain_id().call(),
             channel_identifier,
             MessageTypeId.BALANCE_PROOF,
             balance_hash,
@@ -695,12 +704,12 @@ def create_balance_proof_countersignature(
 ) -> Callable:
     def get(
         participant: HexAddress,
-        channel_identifier: int,
+        channel_identifier: ChannelID,
         msg_type: MessageTypeId,
-        balance_hash: bytes,
-        nonce: int,
-        additional_hash: bytes,
-        original_signature: bytes,
+        balance_hash: BalanceHash,
+        nonce: Nonce,
+        additional_hash: AdditionalHash,
+        original_signature: Signature,
         v: int = 27,
         other_token_network: Optional[Contract] = None,
     ) -> bytes:
@@ -710,7 +719,7 @@ def create_balance_proof_countersignature(
         non_closing_signature = sign_balance_proof_message(
             private_key,
             _token_network.address,
-            int(_token_network.functions.chain_id().call()),
+            _token_network.functions.chain_id().call(),
             channel_identifier,
             msg_type,
             balance_hash,
@@ -730,7 +739,7 @@ def create_close_signature_for_no_balance_proof(
 ) -> Callable:
     def get(
         participant: HexAddress,
-        channel_identifier: int,
+        channel_identifier: ChannelID,
         v: int = 27,
         other_token_network: Optional[Contract] = None,
     ) -> bytes:
@@ -740,11 +749,11 @@ def create_close_signature_for_no_balance_proof(
         non_closing_signature = sign_balance_proof_message(
             private_key,
             _token_network.address,
-            int(_token_network.functions.chain_id().call()),
+            _token_network.functions.chain_id().call(),
             channel_identifier,
             MessageTypeId.BALANCE_PROOF,
             EMPTY_BALANCE_HASH,
-            0,
+            Nonce(0),
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
             v,
@@ -760,11 +769,11 @@ def create_cooperative_settle_signatures(
 ) -> Callable:
     def get(
         participants_to_sign: HexAddress,
-        channel_identifier: int,
+        channel_identifier: ChannelID,
         participant1_address: HexAddress,
-        participant1_balance: int,
+        participant1_balance: TokenAmount,
         participant2_address: HexAddress,
-        participant2_balance: int,
+        participant2_balance: TokenAmount,
         v: int = 27,
         other_token_network: Optional[Contract] = None,
     ) -> List[bytes]:
@@ -775,7 +784,7 @@ def create_cooperative_settle_signatures(
             signature = sign_cooperative_settle_message(
                 private_key,
                 _token_network.address,
-                int(_token_network.functions.chain_id().call()),
+                _token_network.functions.chain_id().call(),
                 channel_identifier,
                 participant1_address,
                 participant1_balance,
@@ -793,10 +802,10 @@ def create_cooperative_settle_signatures(
 def create_withdraw_signatures(token_network: Contract, get_private_key: Callable) -> Callable:
     def get(
         participants_to_sign: Collection[HexAddress],
-        channel_identifier: int,
+        channel_identifier: ChannelID,
         participant_who_withdraws: HexAddress,
-        amount_to_withdraw: int,
-        expiration_block: int,
+        amount_to_withdraw: TokenAmount,
+        expiration_block: BlockExpiration,
         token_network_address: Optional[HexAddress] = None,
         v: int = 27,
     ) -> List[bytes]:
@@ -809,7 +818,7 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
             signature = sign_withdraw_message(
                 private_key,
                 token_network_address,
-                int(token_network.functions.chain_id().call()),
+                token_network.functions.chain_id().call(),
                 channel_identifier,
                 participant_who_withdraws,
                 amount_to_withdraw,

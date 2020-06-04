@@ -9,6 +9,7 @@ from web3.contract import Contract
 from raiden_contracts.constants import OneToNEvent
 from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
+from raiden_contracts.utils.type_aliases import BlockExpiration, ChainID, TokenAmount
 
 
 def test_claim(
@@ -202,8 +203,8 @@ def test_claim_by_unregistered_service(
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
 
-    amount = 10
-    expiration = web3.eth.blockNumber + 2
+    amount = TokenAmount(10)
+    expiration = BlockExpiration(web3.eth.blockNumber + 2)
     chain_id = web3.eth.chainId
 
     signature = sign_one_to_n_iou(
@@ -213,7 +214,7 @@ def test_claim_by_unregistered_service(
         amount=amount,
         expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
+        chain_id=ChainID(chain_id),
     )
 
     # Doesn't work because B is not registered
@@ -247,8 +248,8 @@ def test_claim_with_insufficient_deposit(
     deposit_to_udc(A, 6)
     chain_id = web3.eth.chainId
 
-    amount = 10
-    expiration = web3.eth.blockNumber + 1
+    amount = TokenAmount(10)
+    expiration = BlockExpiration(web3.eth.blockNumber + 1)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -256,7 +257,7 @@ def test_claim_with_insufficient_deposit(
         amount=amount,
         expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
+        chain_id=ChainID(chain_id),
     )
 
     # amount is 10, but only 6 are in deposit
@@ -279,7 +280,7 @@ def test_claim_with_insufficient_deposit(
     assert user_deposit_contract.functions.balances(B).call() == 6
 
     # claim can be retried when transferred amount was 0
-    expiration = web3.eth.blockNumber + 10
+    expiration = BlockExpiration(web3.eth.blockNumber + 10)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -287,7 +288,7 @@ def test_claim_with_insufficient_deposit(
         amount=amount,
         expiration_block=expiration,
         one_to_n_address=one_to_n_contract.address,
-        chain_id=chain_id,
+        chain_id=ChainID(chain_id),
     )
     call_and_transact(
         one_to_n_contract.functions.claim(

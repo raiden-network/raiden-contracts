@@ -1,13 +1,26 @@
 from eth_abi import encode_single
 from eth_typing.evm import HexAddress
 from web3 import Web3
+from web3.types import Nonce
 
 from raiden_contracts.constants import MessageTypeId
+from raiden_contracts.utils.type_aliases import (
+    AdditionalHash,
+    BalanceHash,
+    BlockExpiration,
+    ChainID,
+    ChannelID,
+    PrivateKey,
+    Signature,
+    TokenAmount,
+)
 
 from .signature import sign
 
 
-def hash_balance_data(transferred_amount: int, locked_amount: int, locksroot: bytes) -> bytes:
+def hash_balance_data(
+    transferred_amount: int, locked_amount: int, locksroot: bytes
+) -> BalanceHash:
     # pylint: disable=E1120
     return Web3.solidityKeccak(
         abi_types=["uint256", "uint256", "bytes32"],
@@ -26,11 +39,11 @@ def eth_sign_hash_message(encoded_message: bytes) -> bytes:
 
 def pack_balance_proof(
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
-    balance_hash: bytes,
-    nonce: int,
-    additional_hash: bytes,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
+    balance_hash: BalanceHash,
+    nonce: Nonce,
+    additional_hash: AdditionalHash,
     msg_type: MessageTypeId,
 ) -> bytes:
     return (
@@ -46,13 +59,13 @@ def pack_balance_proof(
 
 def pack_balance_proof_message(
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     msg_type: MessageTypeId,
-    balance_hash: bytes,
-    nonce: int,
-    additional_hash: bytes,
-    closing_signature: bytes,
+    balance_hash: BalanceHash,
+    nonce: Nonce,
+    additional_hash: AdditionalHash,
+    closing_signature: Signature,
 ) -> bytes:
     return (
         pack_balance_proof(
@@ -70,12 +83,12 @@ def pack_balance_proof_message(
 
 def pack_cooperative_settle_message(
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     participant1_address: HexAddress,
-    participant1_balance: int,
+    participant1_balance: TokenAmount,
     participant2_address: HexAddress,
-    participant2_balance: int,
+    participant2_balance: TokenAmount,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=token_network_address)
@@ -91,11 +104,11 @@ def pack_cooperative_settle_message(
 
 def pack_withdraw_message(
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     participant: HexAddress,
-    amount_to_withdraw: int,
-    expiration_block: int,
+    amount_to_withdraw: TokenAmount,
+    expiration_block: BlockExpiration,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=token_network_address)
@@ -110,11 +123,11 @@ def pack_withdraw_message(
 
 def pack_reward_proof(
     monitoring_service_contract_address: HexAddress,
-    chain_id: int,
+    chain_id: ChainID,
     token_network_address: HexAddress,
     non_closing_participant: HexAddress,
-    non_closing_signature: bytes,
-    reward_amount: int,
+    non_closing_signature: Signature,
+    reward_amount: TokenAmount,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=monitoring_service_contract_address)
@@ -128,14 +141,14 @@ def pack_reward_proof(
 
 
 def sign_balance_proof(
-    privatekey: str,
+    privatekey: PrivateKey,
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     msg_type: MessageTypeId,
-    balance_hash: bytes,
-    nonce: int,
-    additional_hash: bytes,
+    balance_hash: BalanceHash,
+    nonce: Nonce,
+    additional_hash: AdditionalHash,
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
@@ -154,15 +167,15 @@ def sign_balance_proof(
 
 
 def sign_balance_proof_message(
-    privatekey: str,
+    privatekey: PrivateKey,
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     msg_type: MessageTypeId,
-    balance_hash: bytes,
-    nonce: int,
-    additional_hash: bytes,
-    closing_signature: bytes,
+    balance_hash: BalanceHash,
+    nonce: Nonce,
+    additional_hash: AdditionalHash,
+    closing_signature: Signature,
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
@@ -182,14 +195,14 @@ def sign_balance_proof_message(
 
 
 def sign_cooperative_settle_message(
-    privatekey: str,
+    privatekey: PrivateKey,
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     participant1_address: HexAddress,
-    participant1_balance: int,
+    participant1_balance: TokenAmount,
     participant2_address: HexAddress,
-    participant2_balance: int,
+    participant2_balance: TokenAmount,
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
@@ -208,13 +221,13 @@ def sign_cooperative_settle_message(
 
 
 def sign_withdraw_message(
-    privatekey: str,
+    privatekey: PrivateKey,
     token_network_address: HexAddress,
-    chain_identifier: int,
-    channel_identifier: int,
+    chain_identifier: ChainID,
+    channel_identifier: ChannelID,
     participant: HexAddress,
-    amount_to_withdraw: int,
-    expiration_block: int,
+    amount_to_withdraw: TokenAmount,
+    expiration_block: BlockExpiration,
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
@@ -232,13 +245,13 @@ def sign_withdraw_message(
 
 
 def sign_reward_proof(
-    privatekey: str,
+    privatekey: PrivateKey,
     monitoring_service_contract_address: HexAddress,
-    chain_id: int,
+    chain_id: ChainID,
     token_network_address: HexAddress,
     non_closing_participant: HexAddress,
-    non_closing_signature: bytes,
-    reward_amount: int,
+    non_closing_signature: Signature,
+    reward_amount: TokenAmount,
     v: int = 27,
 ) -> bytes:
     packed_data = pack_reward_proof(
@@ -255,13 +268,13 @@ def sign_reward_proof(
 
 
 def sign_one_to_n_iou(
-    privatekey: str,
+    privatekey: PrivateKey,
     sender: HexAddress,
     receiver: HexAddress,
-    amount: int,
-    expiration_block: int,
-    one_to_n_address: str,
-    chain_id: int,
+    amount: TokenAmount,
+    expiration_block: BlockExpiration,
+    one_to_n_address: HexAddress,
+    chain_id: ChainID,
     v: int = 27,
 ) -> bytes:
     iou_hash = eth_sign_hash_message(
