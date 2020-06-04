@@ -5,7 +5,7 @@ from typing import Dict
 from eth_typing import ChecksumAddress, HexAddress, HexStr
 from eth_utils import keccak
 
-from raiden_contracts.utils.type_aliases import ChainID
+from raiden_contracts.utils.type_aliases import ChainID, Locksroot
 
 # The last digit is supposed to be zero always. See `RELEASE.rst`.
 CONTRACTS_VERSION = "0.37.0"
@@ -38,7 +38,7 @@ MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10 ** 18)
 MAX_ETH_TOKEN_NETWORK = int(250 * 10 ** 18)
 
 # Special hashes
-LOCKSROOT_OF_NO_LOCKS = keccak(b"")
+LOCKSROOT_OF_NO_LOCKS = Locksroot(keccak(b""))
 EMPTY_ADDRESS = ChecksumAddress(HexAddress(HexStr("0x0000000000000000000000000000000000000000")))
 
 # Event names

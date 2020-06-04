@@ -16,6 +16,9 @@ ChainID = NewType("ChainID", T_ChainID)
 T_ChannelID = int
 ChannelID = NewType("ChannelID", T_ChannelID)
 
+T_Locksroot = bytes
+Locksroot = NewType("Locksroot", T_Locksroot)
+
 T_PrivateKey = bytes
 PrivateKey = NewType("PrivateKey", T_PrivateKey)
 

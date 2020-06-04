@@ -37,6 +37,7 @@ from raiden_contracts.utils.type_aliases import (
     BalanceHash,
     BlockExpiration,
     ChannelID,
+    Locksroot,
     Signature,
     TokenAmount,
 )
@@ -659,10 +660,10 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
     def get(
         channel_identifier: ChannelID,
         participant: HexAddress,
-        transferred_amount: int = 0,
-        locked_amount: int = 0,
+        transferred_amount: TokenAmount = TokenAmount(0),  # noqa
+        locked_amount: TokenAmount = TokenAmount(0),  # noqa
         nonce: Nonce = Nonce(0),  # noqa
-        locksroot: Optional[bytes] = None,
+        locksroot: Optional[Locksroot] = None,
         additional_hash: Optional[AdditionalHash] = None,
         v: int = 27,
         signer: Optional[HexAddress] = None,
