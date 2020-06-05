@@ -5,7 +5,12 @@ import pytest
 from eth_typing import HexAddress, HexStr
 from web3.contract import Contract
 
-from raiden_contracts.constants import CONTRACTS_VERSION, EMPTY_ADDRESS, DeploymentModule
+from raiden_contracts.constants import (
+    ALDERAAN_VERSION,
+    CONTRACTS_VERSION,
+    EMPTY_ADDRESS,
+    DeploymentModule,
+)
 from raiden_contracts.contract_manager import (
     DeployedContract,
     contracts_data_path,
@@ -112,8 +117,8 @@ def test_deploy_data_not_deployed() -> None:
 @pytest.mark.parametrize("chain_id", [1, 3, 4, 5])
 def test_deploy_data_for_alderaan_exist(chain_id: ChainID) -> None:
     """ get_contracts_deployment_info() on Alderaan version should have data """
-    assert get_contracts_deployment_info(chain_id, "0.37.0")
-    assert get_contracts_deployment_info(chain_id, "0.37.0", DeploymentModule.SERVICES)
+    assert get_contracts_deployment_info(chain_id, ALDERAAN_VERSION)
+    assert get_contracts_deployment_info(chain_id, ALDERAAN_VERSION, DeploymentModule.SERVICES)
 
 
 def test_version_provides_services() -> None:
@@ -129,7 +134,7 @@ def test_verify_nonexistent_deployment(
     web3_mock = Mock()
     web3_mock.version.network = 42
     # contracts_version 0.37.0 does not contain a kovan deployment.
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
+    verifier = ContractVerifier(web3=web3_mock, contracts_version=ALDERAAN_VERSION)
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
@@ -148,7 +153,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
     web3_mock = Mock()
     web3_mock.version.network = 5
     web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
+    verifier = ContractVerifier(web3=web3_mock, contracts_version=ALDERAAN_VERSION)
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
@@ -174,7 +179,7 @@ def test_verify_existent_deployment_with_wrong_code(
         "gasUsed": 555366,
         "contractAddress": "0x8Ff327f7ed03cD6Bd5e611E9e404B47d8c9Db81E",
     }
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
+    verifier = ContractVerifier(web3=web3_mock, contracts_version=ALDERAAN_VERSION)
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
