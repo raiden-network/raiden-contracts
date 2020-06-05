@@ -2,7 +2,7 @@ import json
 from copy import deepcopy
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable, Generator, List, Optional
+from typing import IO, Generator, List, Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -931,40 +931,30 @@ def test_deploy_token_invalid_privkey() -> None:
         mock_deployer.assert_not_called()
 
 
-def test_deploy_token_no_balance(get_accounts: Callable, get_private_key: Callable) -> None:
+def test_deploy_token_no_balance(privkey_file: IO) -> None:
     """ Call deploy token command with a private key with no balance """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(
-            ContractDeployer, "deploy_token_contract", spec=ContractDeployer
-        ) as mock_deployer:
-            with patch.object(Eth, "getBalance", return_value=0):
-                runner = CliRunner()
-                result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
-                assert result.exit_code != 0
-                assert type(result.exception) == RuntimeError
-                assert result.exception.args == ("Account with insufficient funds.",)
-                mock_deployer.assert_not_called()
+    with patch.object(
+        ContractDeployer, "deploy_token_contract", spec=ContractDeployer
+    ) as mock_deployer:
+        with patch.object(Eth, "getBalance", return_value=0):
+            runner = CliRunner()
+            result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
+            assert result.exit_code != 0
+            assert type(result.exception) == RuntimeError
+            assert result.exception.args == ("Account with insufficient funds.",)
+            mock_deployer.assert_not_called()
 
 
-def test_deploy_token_with_balance(get_accounts: Callable, get_private_key: Callable) -> None:
+def test_deploy_token_with_balance(privkey_file: IO) -> None:
     """ Call deploy token command with a private key with some balance """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(
-            ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
-        ) as mock_deployer:
-            with patch.object(Eth, "getBalance", return_value=100):
-                runner = CliRunner()
-                result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
-                assert result.exit_code == 0
-                mock_deployer.assert_called_once()
+    with patch.object(
+        ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
+    ) as mock_deployer:
+        with patch.object(Eth, "getBalance", return_value=100):
+            runner = CliRunner()
+            result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
+            assert result.exit_code == 0
+            mock_deployer.assert_called_once()
 
 
 def deploy_raiden_arguments(
@@ -999,52 +989,39 @@ def deploy_raiden_arguments(
 def test_deploy_raiden(
     mock_deploy: MagicMock,
     mock_verify: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
     contracts_version: Optional[str],
     reuse_secret_registry: bool,
+    privkey_file: IO,
 ) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                raiden,
-                deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                    contracts_version=contracts_version,
-                    reuse_secret_registry=reuse_secret_registry,
-                ),
-            )
-            assert result.exception is None
-            assert result.exit_code == 0
-            mock_deploy.assert_called_once()
-            mock_verify.assert_called_once()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            raiden,
+            deploy_raiden_arguments(
+                privkey=privkey_file.name,
+                save_info=None,
+                contracts_version=contracts_version,
+                reuse_secret_registry=reuse_secret_registry,
+            ),
+        )
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_deploy.assert_called_once()
+        mock_verify.assert_called_once()
 
 
 @patch.object(ContractDeployer, "register_token_network")
 def test_register_script(
-    mock_deploy: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
-    deployed_raiden_info: DeployedContracts,
+    mock_deploy: MagicMock, deployed_raiden_info: DeployedContracts, privkey_file: IO,
 ) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file, patch(
+    with patch(
         "raiden_contracts.deploy.contract_deployer.get_contracts_deployment_info"
     ) as get_deploy_info_mock, patch(
         "raiden_contracts.deploy.__main__._add_token_network_deploy_info"
     ) as add_tn_info:
         get_deploy_info_mock.return_value = deployed_raiden_info
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1), patch.object(Eth, "chainId", 61):
             runner = CliRunner()
             result = runner.invoke(
@@ -1073,72 +1050,57 @@ def test_register_script(
 
 
 @patch.object(ContractDeployer, "register_token_network")
-def test_register_script_without_token_network(
-    mock_deploy: MagicMock, get_accounts: Callable, get_private_key: Callable
-) -> None:
+def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                register,
-                [
-                    "--rpc-provider",
-                    "rpv_provider",
-                    "--private-key",
-                    privkey_file.name,
-                    "--gas-price",
-                    "12",
-                    "--token-address",
-                    "0x90a16f6aEA062c429c85dc4124ee4b24A00bCc9a",
-                    "--channel-participant-deposit-limit",
-                    "100",
-                    "--token-network-deposit-limit",
-                    "200",
-                ],
-            )
-            assert result.exit_code != 0
-            assert type(result.exception) == RuntimeError
-            assert result.exception.args == (
-                "No TokenNetworkRegistry was specified. "
-                "Add --token-network-registry-address <address>.",
-            )
-            mock_deploy.assert_not_called()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            register,
+            [
+                "--rpc-provider",
+                "rpv_provider",
+                "--private-key",
+                privkey_file.name,
+                "--gas-price",
+                "12",
+                "--token-address",
+                "0x90a16f6aEA062c429c85dc4124ee4b24A00bCc9a",
+                "--channel-participant-deposit-limit",
+                "100",
+                "--token-network-deposit-limit",
+                "200",
+            ],
+        )
+        assert result.exit_code != 0
+        assert type(result.exception) == RuntimeError
+        assert result.exception.args == (
+            "No TokenNetworkRegistry was specified. "
+            "Add --token-network-registry-address <address>.",
+        )
+        mock_deploy.assert_not_called()
 
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractDeployer, "verify_deployment_data")
 def test_deploy_raiden_save_info_false(
-    mock_deploy: MagicMock,
-    mock_verify: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
+    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command with --save_info False"""
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                raiden,
-                deploy_raiden_arguments(
-                    privkey=privkey_file.name,
-                    save_info=False,
-                    contracts_version=None,
-                    reuse_secret_registry=False,
-                ),
-            )
-            assert result.exception is None
-            assert result.exit_code == 0
-            mock_deploy.assert_called_once()
-            mock_verify.assert_called_once()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            raiden,
+            deploy_raiden_arguments(
+                privkey=privkey_file.name,
+                save_info=False,
+                contracts_version=None,
+                reuse_secret_registry=False,
+            ),
+        )
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_deploy.assert_called_once()
+        mock_verify.assert_called_once()
 
 
 def deploy_services_arguments(
@@ -1187,118 +1149,87 @@ def deploy_services_arguments(
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
-def test_deploy_services(
-    mock_deploy: MagicMock,
-    mock_verify: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
-) -> None:
+def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                    service_registry_controller=FAKE_ADDRESS,
-                    token_network_registry_address=FAKE_ADDRESS,
-                ),
-            )
-            assert result.exception is None
-            assert result.exit_code == 0
-            mock_deploy.assert_called_once()
-            mock_verify.assert_called_once()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            services,
+            deploy_services_arguments(
+                privkey=privkey_file.name,
+                save_info=None,
+                service_registry_controller=FAKE_ADDRESS,
+                token_network_registry_address=FAKE_ADDRESS,
+            ),
+        )
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_deploy.assert_called_once()
+        mock_verify.assert_called_once()
 
 
-def test_deploy_old_services(get_accounts: Callable, get_private_key: Callable) -> None:
+def test_deploy_old_services(privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                    service_registry_controller=FAKE_ADDRESS,
-                    token_network_registry_address=FAKE_ADDRESS,
-                    contracts_version="0.21.0",
-                ),
-            )
-            assert result.exception
-            assert result.exit_code == 2
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            services,
+            deploy_services_arguments(
+                privkey=privkey_file.name,
+                save_info=None,
+                service_registry_controller=FAKE_ADDRESS,
+                token_network_registry_address=FAKE_ADDRESS,
+                contracts_version="0.21.0",
+            ),
+        )
+        assert result.exception
+        assert result.exit_code == 2
 
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
 def test_deploy_services_with_controller(
-    mock_deploy: MagicMock,
-    mock_verify: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
+    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command """
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=None,
-                    service_registry_controller=signer,
-                    token_network_registry_address=FAKE_ADDRESS,
-                ),
-            )
-            assert result.exception is None
-            assert result.exit_code == 0
-            mock_deploy.assert_called_once()
-            mock_verify.assert_called_once()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            services,
+            deploy_services_arguments(
+                privkey=privkey_file.name,
+                save_info=None,
+                service_registry_controller=HexAddress(HexStr("0x" + "1" * 40)),
+                token_network_registry_address=FAKE_ADDRESS,
+            ),
+        )
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_deploy.assert_called_once()
+        mock_verify.assert_called_once()
 
 
 @patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractDeployer, "verify_service_contracts_deployment_data")
 def test_deploy_services_save_info_false(
-    mock_deploy: MagicMock,
-    mock_verify: MagicMock,
-    get_accounts: Callable,
-    get_private_key: Callable,
+    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command with --save_info False"""
-    (signer,) = get_accounts(1)
-    priv_key = get_private_key(signer)
-    with NamedTemporaryFile("w") as privkey_file:
-        privkey_file.write(priv_key.hex())
-        privkey_file.flush()
-        with patch.object(Eth, "getBalance", return_value=1):
-            runner = CliRunner()
-            result = runner.invoke(
-                services,
-                deploy_services_arguments(
-                    privkey=privkey_file.name,
-                    save_info=False,
-                    service_registry_controller=FAKE_ADDRESS,
-                    token_network_registry_address=FAKE_ADDRESS,
-                ),
-            )
-            assert result.exception is None
-            assert result.exit_code == 0
-            mock_deploy.assert_called_once()
-            mock_verify.assert_called_once()
+    with patch.object(Eth, "getBalance", return_value=1):
+        runner = CliRunner()
+        result = runner.invoke(
+            services,
+            deploy_services_arguments(
+                privkey=privkey_file.name,
+                save_info=False,
+                service_registry_controller=FAKE_ADDRESS,
+                token_network_registry_address=FAKE_ADDRESS,
+            ),
+        )
+        assert result.exception is None
+        assert result.exit_code == 0
+        mock_deploy.assert_called_once()
+        mock_verify.assert_called_once()
 
 
 @patch.object(ContractVerifier, "verify_deployed_contracts_in_filesystem")
