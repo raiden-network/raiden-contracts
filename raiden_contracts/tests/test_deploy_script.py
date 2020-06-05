@@ -19,6 +19,7 @@ from web3.eth import Eth
 
 import raiden_contracts
 from raiden_contracts.constants import (
+    ALDERAAN_VERSION,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -171,7 +172,7 @@ def test_deploy_service_0_37_0(
 
 
 @pytest.mark.parametrize(
-    "version,expectation", [("0.37.0", True), (None, True)],
+    "version,expectation", [(ALDERAAN_VERSION, True), (None, True)],
 )
 def test_contracts_version_with_max_token_networks(
     version: Optional[str], expectation: bool
@@ -180,7 +181,7 @@ def test_contracts_version_with_max_token_networks(
 
 
 @pytest.mark.parametrize(
-    "version,expectation", [("0.37.0", True), (None, True)],
+    "version,expectation", [(ALDERAAN_VERSION, True), (None, True)],
 )
 def test_contracts_version_monitoring_service_takes_token_network_registry(
     version: Optional[str], expectation: bool
@@ -729,7 +730,7 @@ def test_alderaan_deployer(web3: Web3) -> None:
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version="0.37.0",
+        contracts_version=ALDERAAN_VERSION,
     )
     deployer.deploy_raiden_contracts(
         max_num_of_token_networks=2,
@@ -746,7 +747,7 @@ def test_error_removed_option_raises() -> None:
 
 
 def test_contracts_version_has_initial_service_deposit() -> None:
-    assert contracts_version_has_initial_service_deposit("0.37.0")
+    assert contracts_version_has_initial_service_deposit(ALDERAAN_VERSION)
     assert contracts_version_has_initial_service_deposit(None)
     with pytest.raises(ValueError):
         contracts_version_has_initial_service_deposit("not a semver string")
@@ -837,7 +838,7 @@ def deploy_raiden_arguments(
 
 @patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_raiden")
-@pytest.mark.parametrize("contracts_version", [None, "0.37.0"])
+@pytest.mark.parametrize("contracts_version", [None, ALDERAAN_VERSION])
 @pytest.mark.parametrize("reuse_secret_registry", [False, True])
 def test_deploy_raiden(
     mock_deploy: MagicMock,
