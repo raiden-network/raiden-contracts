@@ -14,10 +14,7 @@ from raiden_contracts.contract_manager import (
 )
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.type_aliases import ChainID
-from raiden_contracts.utils.versions import (
-    contracts_version_provides_services,
-    contracts_version_with_max_token_networks,
-)
+from raiden_contracts.utils.versions import contracts_version_provides_services
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
@@ -112,33 +109,17 @@ def test_deploy_data_not_deployed() -> None:
     )
 
 
-@pytest.mark.parametrize("chain_id", [3, 4, 42])
-def test_deploy_data_for_redeyes_succeed(chain_id: ChainID) -> None:
-    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
-    assert get_contracts_deployment_info(chain_id, "0.4.0")
-
-
-@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
-def test_service_deploy_data_for_redeyes_fail(chain_id: ChainID) -> None:
-    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
-    with pytest.raises(ValueError):
-        assert get_contracts_deployment_info(chain_id, "0.4.0", DeploymentModule.SERVICES)
+@pytest.mark.parametrize("chain_id", [1, 3, 4, 5])
+def test_deploy_data_for_alderaan_exist(chain_id: ChainID) -> None:
+    """ get_contracts_deployment_info() on Alderaan version should have data """
+    assert get_contracts_deployment_info(chain_id, "0.37.0")
+    assert get_contracts_deployment_info(chain_id, "0.37.0", DeploymentModule.SERVICES)
 
 
 def test_version_provides_services() -> None:
-    assert not contracts_version_provides_services("0.3._")
-    assert not contracts_version_provides_services("0.4.0")
-    assert contracts_version_provides_services("0.8.0")
-    assert contracts_version_provides_services("0.8.0_unlimited")
-    assert contracts_version_provides_services("0.10.1")
-    assert contracts_version_provides_services("0.11.0")
+    assert contracts_version_provides_services(CONTRACTS_VERSION)
     with pytest.raises(ValueError):
         assert contracts_version_provides_services("not a semver")
-
-
-def test_version_with_max_token_networks() -> None:
-    assert contracts_version_with_max_token_networks(None)
-    assert not contracts_version_with_max_token_networks("0.8.0_unlimited")
 
 
 def test_verify_nonexistent_deployment(
@@ -146,9 +127,9 @@ def test_verify_nonexistent_deployment(
 ) -> None:
     """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
     web3_mock = Mock()
-    web3_mock.version.network = 1
-    # contracts_version 0.10.1 does not contain a main net deployment.
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.10.1")
+    web3_mock.version.network = 42
+    # contracts_version 0.37.0 does not contain a kovan deployment.
+    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
@@ -165,15 +146,15 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
     but with a fake web3 that returns a wrong block number for deployment.
     """
     web3_mock = Mock()
-    web3_mock.version.network = 42
+    web3_mock.version.network = 5
     web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.11.1")
+    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address=HexAddress(HexStr("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c")),
+            token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -187,19 +168,19 @@ def test_verify_existent_deployment_with_wrong_code(
     but with a fake web3 that does not return the correct code.
     """
     web3_mock = Mock()
-    web3_mock.version.network = 42
+    web3_mock.version.network = 5
     web3_mock.eth.getTransactionReceipt = lambda _: {
         "blockNumber": 10711807,
         "gasUsed": 555366,
         "contractAddress": "0x8Ff327f7ed03cD6Bd5e611E9e404B47d8c9Db81E",
     }
-    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.11.1")
+    verifier = ContractVerifier(web3=web3_mock, contracts_version="0.37.0")
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_contracts_in_filesystem()
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
-            token_address=HexAddress(HexStr("0x3Aa761BcDB064179a1e37748D8A5F577a177Be5c")),
+            token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )
