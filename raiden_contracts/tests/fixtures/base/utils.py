@@ -1,6 +1,7 @@
 import json
 from sys import argv
-from typing import Callable, Dict, Iterable, List, Optional
+from tempfile import NamedTemporaryFile
+from typing import IO, Callable, Dict, Iterable, List, Optional
 
 import pytest
 from eth_tester import EthereumTester
@@ -85,6 +86,16 @@ def get_private_key(ethereum_tester: EthereumTester) -> Callable:
         return keys[0]
 
     return get
+
+
+@pytest.fixture(scope="session")
+def privkey_file(get_private_key: Callable, get_accounts: Callable) -> Iterable[IO]:
+    (signer,) = get_accounts(1)
+    priv_key = get_private_key(signer)
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
+        privkey_file.flush()
+        yield privkey_file
 
 
 @pytest.fixture(scope="session")
