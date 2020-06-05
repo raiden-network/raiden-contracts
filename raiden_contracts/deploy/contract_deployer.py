@@ -4,7 +4,6 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import semver
 from eth_typing import ChecksumAddress, HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
@@ -221,23 +220,10 @@ class ContractDeployer(ContractVerifier):
         token_registry_abi: ABI,
         token_registry_address: ChecksumAddress,
         token_address: ChecksumAddress,
-        channel_participant_deposit_limit: Optional[int],
-        token_network_deposit_limit: Optional[int],
+        channel_participant_deposit_limit: int,
+        token_network_deposit_limit: int,
     ) -> Dict[str, Any]:
         """Register token with a TokenNetworkRegistry contract."""
-        assert (
-            self.contracts_version is None or semver.compare(self.contracts_version, "0.9.0") > -1
-        ), "Can't deploy old contracts (before limits were introduced)"
-
-        if channel_participant_deposit_limit is None:
-            raise ValueError(
-                "contracts_version 0.9.0 and afterwards expect "
-                "channel_participant_deposit_limit"
-            )
-        if token_network_deposit_limit is None:
-            raise ValueError(
-                "contracts_version 0.9.0 and afterwards expect " "token_network_deposit_limit"
-            )
         token_network_registry = self.web3.eth.contract(
             abi=token_registry_abi, address=token_registry_address
         )
