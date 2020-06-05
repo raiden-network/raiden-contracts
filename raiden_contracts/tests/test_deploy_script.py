@@ -888,12 +888,7 @@ def test_error_removed_option_raises() -> None:
 
 
 def test_contracts_version_has_initial_service_deposit() -> None:
-    assert not contracts_version_has_initial_service_deposit("0.3._")
-    assert not contracts_version_has_initial_service_deposit("0.4.0")
-    assert not contracts_version_has_initial_service_deposit("0.8.0_unlimited")
-    assert not contracts_version_has_initial_service_deposit("0.9.0")
-    assert not contracts_version_has_initial_service_deposit("0.10.0")
-    assert not contracts_version_has_initial_service_deposit("0.10.1")
+    assert contracts_version_has_initial_service_deposit("0.37.0")
     assert contracts_version_has_initial_service_deposit(None)
     with pytest.raises(ValueError):
         contracts_version_has_initial_service_deposit("not a semver string")
