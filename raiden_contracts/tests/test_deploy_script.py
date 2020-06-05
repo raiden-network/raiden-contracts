@@ -721,18 +721,18 @@ def test_store_and_verify_services(
 
 
 @pytest.mark.slow
-def test_red_eyes_deployer(web3: Web3) -> None:
-    """ A smoke test for deploying RedEyes version contracts """
+def test_alderaan_deployer(web3: Web3) -> None:
+    """ A smoke test for deploying Alderaan version contracts """
     deployer = ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version="0.4.0",
+        contracts_version="0.37.0",
     )
     deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=None,
+        max_num_of_token_networks=2,
         reuse_secret_registry_from_deploy_file=None,
         settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
         settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,

@@ -144,7 +144,7 @@ class ContractDeployer(ContractVerifier):
 
     def deploy_raiden_contracts(
         self,
-        max_num_of_token_networks: Optional[int],
+        max_num_of_token_networks: int,
         reuse_secret_registry_from_deploy_file: Optional[Path],
         settle_timeout_min: int,
         settle_timeout_max: int,
@@ -191,9 +191,8 @@ class ContractDeployer(ContractVerifier):
             deployed_contracts["chain_id"],
             settle_timeout_min,
             settle_timeout_max,
+            max_num_of_token_networks,
         ]
-        if max_num_of_token_networks:
-            token_network_registry_args.append(max_num_of_token_networks)
         self._deploy_and_remember(
             contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
             arguments=token_network_registry_args,
