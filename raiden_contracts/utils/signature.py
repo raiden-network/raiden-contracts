@@ -1,8 +1,7 @@
 from typing import Union
 
 from coincurve import PrivateKey, PublicKey
-from eth_typing import HexStr
-from eth_utils import keccak, remove_0x_prefix, to_bytes, to_checksum_address
+from eth_utils import keccak, to_bytes, to_checksum_address
 from eth_utils.typing import ChecksumAddress
 
 sha3 = keccak
@@ -13,12 +12,12 @@ def sign(privkey: PrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
         raise TypeError("sign(): msg_hash is not an instance of bytes")
     if len(msg_hash) != 32:
         raise ValueError("sign(): msg_hash has to be exactly 32 bytes")
-    if not isinstance(privkey, str):
-        raise TypeError("sign(): privkey is not an instance of str")
+    if not isinstance(privkey, bytes):
+        raise TypeError("sign(): privkey is not an instance of bytes")
     if v not in {0, 27}:
         raise ValueError(f"sign(): got v = {v} expected 0 or 27.")
 
-    pk = PrivateKey.from_hex(remove_0x_prefix(HexStr(privkey)))
+    pk = PrivateKey(privkey)
     sig: bytes = pk.sign_recoverable(msg_hash, hasher=None)
     assert len(sig) == 65
 

@@ -17,6 +17,7 @@ from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import call_and_transact, get_random_privkey
 from raiden_contracts.utils.logs import LogHandler
 from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.type_aliases import PrivateKey
 
 
 @pytest.fixture(scope="session")
@@ -74,9 +75,9 @@ def create_service_account(
 
 @pytest.fixture(scope="session")
 def get_private_key(ethereum_tester: EthereumTester) -> Callable:
-    def get(account_address: HexAddress) -> str:
+    def get(account_address: HexAddress) -> PrivateKey:
         keys = [
-            key.to_hex()
+            key.to_bytes()
             for key in ethereum_tester.backend.account_keys
             if is_same_address(key.public_key.to_address(), account_address)
         ]
