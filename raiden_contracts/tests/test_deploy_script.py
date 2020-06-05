@@ -75,26 +75,14 @@ def deployer(web3: Web3) -> ContractDeployer:
 
 
 @pytest.fixture(scope="session")
-def deployer_0_4_0(web3: Web3) -> ContractDeployer:
+def deployer_0_37_0(web3: Web3) -> ContractDeployer:
     return ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
         gas_limit=GAS_LIMIT,
         gas_price=1,
         wait=10,
-        contracts_version="0.4.0",
-    )
-
-
-@pytest.fixture(scope="session")
-def deployer_0_21_0(web3: Web3) -> ContractDeployer:
-    return ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=GAS_LIMIT,
-        gas_price=1,
-        wait=10,
-        contracts_version="0.21.0",
+        contracts_version="0.37.0",
     )
 
 
@@ -114,17 +102,6 @@ def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
 def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(
         max_num_of_token_networks=1,
-        reuse_secret_registry_from_deploy_file=None,
-        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
-    )
-
-
-@pytest.mark.slow
-@pytest.fixture(scope="session")
-def deployed_raiden_info_0_4_0(deployer_0_4_0: ContractDeployer) -> DeployedContracts:
-    return deployer_0_4_0.deploy_raiden_contracts(
-        max_num_of_token_networks=None,
         reuse_secret_registry_from_deploy_file=None,
         settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
         settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
@@ -173,35 +150,13 @@ def deployed_service_info(
 
 @pytest.mark.slow
 @pytest.fixture(scope="session")
-def test_deploy_service_0_4_0(
-    deployer_0_4_0: ContractDeployer,
+def test_deploy_service_0_37_0(
+    deployer_0_37_0: ContractDeployer,
     token_address: HexAddress,
     token_network_registry_contract: Contract,
 ) -> None:
     with pytest.raises(RuntimeError, match="older service contracts is not supported"):
-        deployer_0_4_0.deploy_service_contracts(
-            token_address=token_address,
-            user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
-            service_registry_controller=DEPLOYER_ADDRESS,
-            initial_service_deposit_price=SERVICE_DEPOSIT // 2,
-            service_deposit_bump_numerator=6,
-            service_deposit_bump_denominator=5,
-            decay_constant=200 * SECONDS_PER_DAY,
-            min_price=1000,
-            registration_duration=180 * SECONDS_PER_DAY,
-            token_network_registry_address=token_network_registry_contract.address,
-        )
-
-
-@pytest.mark.slow
-@pytest.fixture(scope="session")
-def test_deploy_service_0_21_0(
-    deployer_0_21_0: ContractDeployer,
-    token_address: HexAddress,
-    token_network_registry_contract: Contract,
-) -> None:
-    with pytest.raises(RuntimeError, match="older service contracts is not supported"):
-        deployer_0_21_0.deploy_service_contracts(
+        deployer_0_37_0.deploy_service_contracts(
             token_address=token_address,
             user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
             service_registry_controller=DEPLOYER_ADDRESS,
@@ -216,15 +171,7 @@ def test_deploy_service_0_21_0(
 
 
 @pytest.mark.parametrize(
-    "version,expectation",
-    [
-        ("0.3._", False),
-        ("0.4.0", False),
-        ("0.8.0", False),
-        ("0.9.0", True),
-        ("0.10.0", True),
-        (None, True),
-    ],
+    "version,expectation", [("0.37.0", True), (None, True)],
 )
 def test_contracts_version_with_max_token_networks(
     version: Optional[str], expectation: bool
@@ -233,17 +180,7 @@ def test_contracts_version_with_max_token_networks(
 
 
 @pytest.mark.parametrize(
-    "version,expectation",
-    [
-        ("0.3.0", False),
-        ("0.3._", False),
-        ("0.4.0", False),
-        ("0.8.0", False),
-        ("0.8.0_unlimited", False),
-        ("0.22.0", False),
-        ("0.23.0", True),
-        (None, True),
-    ],
+    "version,expectation", [("0.37.0", True), (None, True)],
 )
 def test_contracts_version_monitoring_service_takes_token_network_registry(
     version: Optional[str], expectation: bool
