@@ -935,8 +935,8 @@ def test_deploy_token_no_balance(get_accounts: Callable, get_private_key: Callab
     """ Call deploy token command with a private key with no balance """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(
             ContractDeployer, "deploy_token_contract", spec=ContractDeployer
@@ -954,8 +954,8 @@ def test_deploy_token_with_balance(get_accounts: Callable, get_private_key: Call
     """ Call deploy token command with a private key with some balance """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(
             ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
@@ -1007,8 +1007,8 @@ def test_deploy_raiden(
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1037,13 +1037,13 @@ def test_register_script(
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file, patch(
+    with NamedTemporaryFile("w") as privkey_file, patch(
         "raiden_contracts.deploy.contract_deployer.get_contracts_deployment_info"
     ) as get_deploy_info_mock, patch(
         "raiden_contracts.deploy.__main__._add_token_network_deploy_info"
     ) as add_tn_info:
         get_deploy_info_mock.return_value = deployed_raiden_info
-        privkey_file.write(bytearray(priv_key, "ascii"))
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1), patch.object(Eth, "chainId", 61):
             runner = CliRunner()
@@ -1079,8 +1079,8 @@ def test_register_script_without_token_network(
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1121,8 +1121,8 @@ def test_deploy_raiden_save_info_false(
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1196,8 +1196,8 @@ def test_deploy_services(
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1220,8 +1220,8 @@ def test_deploy_old_services(get_accounts: Callable, get_private_key: Callable) 
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1250,8 +1250,8 @@ def test_deploy_services_with_controller(
     """ Calling deploy raiden command """
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
@@ -1281,8 +1281,8 @@ def test_deploy_services_save_info_false(
     """ Calling deploy raiden command with --save_info False"""
     (signer,) = get_accounts(1)
     priv_key = get_private_key(signer)
-    with NamedTemporaryFile() as privkey_file:
-        privkey_file.write(bytearray(priv_key, "ascii"))
+    with NamedTemporaryFile("w") as privkey_file:
+        privkey_file.write(priv_key.hex())
         privkey_file.flush()
         with patch.object(Eth, "getBalance", return_value=1):
             runner = CliRunner()
