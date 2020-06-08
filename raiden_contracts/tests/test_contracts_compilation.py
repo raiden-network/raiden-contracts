@@ -133,6 +133,27 @@ def test_current_development_version() -> None:
     assert contracts_deployed_path(CHAINNAME_TO_ID["ropsten"], services=True).exists()
 
 
+def test_red_eyes_version() -> None:
+    """ contracts_source_path('0.4.0') exists and contains the expected files """
+    contracts_version = "0.4.0"
+    contract_names = [
+        "Utils",
+        "EndpointRegistry",
+        "SecretRegistry",
+        "TokenNetworkRegistry",
+        "TokenNetwork",
+    ]
+
+    manager = ContractManager(contracts_precompiled_path(contracts_version))
+    assert manager.contracts_version == contracts_version
+    check_precompiled_content(manager, contract_names, PRECOMPILED_DATA_FIELDS)
+
+    assert contracts_precompiled_path(contracts_version).exists()
+    assert contracts_deployed_path(CHAINNAME_TO_ID["mainnet"], contracts_version).exists()
+    assert contracts_deployed_path(CHAINNAME_TO_ID["rinkeby"], contracts_version).exists()
+    assert contracts_deployed_path(CHAINNAME_TO_ID["ropsten"], contracts_version).exists()
+
+
 def test_alderaan_version() -> None:
     """ contracts_source_path('0.37.0') exists and contains the expected files """
     contract_names = [
@@ -222,7 +243,7 @@ def test_contract_manager_constructor_does_not_invent_version() -> None:
     assert manager.contracts_version is None
 
 
-@pytest.mark.parametrize("version", [CONTRACTS_VERSION, ALDERAAN_VERSION])
+@pytest.mark.parametrize("version", [CONTRACTS_VERSION, ALDERAAN_VERSION, "0.4.0"])
 def test_contract_manager_constructor_keeps_existing_versions(version: str) -> None:
     """ ContractManager should keep an existing version string """
     manager = ContractManager(contracts_precompiled_path(version=version))

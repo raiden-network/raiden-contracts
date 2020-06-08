@@ -114,6 +114,19 @@ def test_deploy_data_not_deployed() -> None:
     )
 
 
+@pytest.mark.parametrize("chain_id", [3, 4, 42])
+def test_deploy_data_for_redeyes_succeed(chain_id: ChainID) -> None:
+    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    assert get_contracts_deployment_info(chain_id, "0.4.0")
+
+
+@pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
+def test_service_deploy_data_for_redeyes_fail(chain_id: ChainID) -> None:
+    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    with pytest.raises(ValueError):
+        assert get_contracts_deployment_info(chain_id, "0.4.0", DeploymentModule.SERVICES)
+
+
 @pytest.mark.parametrize("chain_id", [1, 3, 4, 5])
 def test_deploy_data_for_alderaan_exist(chain_id: ChainID) -> None:
     """ get_contracts_deployment_info() on Alderaan version should have data """
