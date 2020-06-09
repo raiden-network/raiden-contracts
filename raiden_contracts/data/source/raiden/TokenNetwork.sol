@@ -759,16 +759,12 @@ contract TokenNetwork is Utils {
 
         require(verifyBalanceHashData(
             participant1_state,
-            participant1_settlement.transferred_amount,
-            participant1_settlement.locked_amount,
-            participant1_settlement.locksroot
+            participant1_settlement
         ));
 
         require(verifyBalanceHashData(
             participant2_state,
-            participant2_settlement.transferred_amount,
-            participant2_settlement.locked_amount,
-            participant2_settlement.locksroot
+            participant2_settlement
         ));
 
         // We are calculating the final token amounts that need to be
@@ -1489,9 +1485,7 @@ contract TokenNetwork is Utils {
 
     function verifyBalanceHashData(
         Participant storage participant,
-        uint256 transferred_amount,
-        uint256 locked_amount,
-        bytes32 locksroot
+        SettleInput memory settle_input
     )
         internal
         view
@@ -1500,8 +1494,8 @@ contract TokenNetwork is Utils {
         // When no balance proof has been provided, we need to check this
         // separately because hashing values of 0 outputs a value != 0
         if (participant.balance_hash == 0 &&
-            transferred_amount == 0 &&
-            locked_amount == 0
+            settle_input.transferred_amount == 0 &&
+            settle_input.locked_amount == 0
             /* locksroot is ignored. */
         ) {
             return true;
@@ -1510,9 +1504,9 @@ contract TokenNetwork is Utils {
         // Make sure the hash of the provided state is the same as the stored
         // balance_hash
         return participant.balance_hash == keccak256(abi.encodePacked(
-            transferred_amount,
-            locked_amount,
-            locksroot
+            settle_input.transferred_amount,
+            settle_input.locked_amount,
+            settle_input.locksroot
         ));
     }
 
