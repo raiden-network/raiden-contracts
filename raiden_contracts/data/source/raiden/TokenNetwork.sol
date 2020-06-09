@@ -125,7 +125,7 @@ contract TokenNetwork is Utils {
         uint256 locked_amount;
     }
 
-    struct ParticipantSettleInput {
+    struct SettleInput {
         address participant;
         uint256 transferred_amount;
         uint256 locked_amount;
@@ -703,13 +703,13 @@ contract TokenNetwork is Utils {
     {
         settleChannel2(
             channel_identifier,
-            ParticipantSettleInput({
+            SettleInput({
                 participant: participant1,
                 transferred_amount: participant1_transferred_amount,
                 locked_amount: participant1_locked_amount,
                 locksroot: participant1_locksroot
             }),
-            ParticipantSettleInput({
+            SettleInput({
                 participant: participant2,
                 transferred_amount: participant2_transferred_amount,
                 locked_amount: participant2_locked_amount,
@@ -720,8 +720,8 @@ contract TokenNetwork is Utils {
 
     function settleChannel2(
         uint256 channel_identifier,
-        ParticipantSettleInput memory participant1_settlement,
-        ParticipantSettleInput memory participant2_settlement
+        SettleInput memory participant1_settlement,
+        SettleInput memory participant2_settlement
     )
         public
     {
