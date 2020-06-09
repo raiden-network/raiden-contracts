@@ -807,17 +807,13 @@ contract TokenNetwork is Utils {
         // locked amounts remaining in the contract.
         storeUnlockData(
             channel_identifier,
-            participant1,
-            participant2,
-            participant1_settlement.locked_amount,
-            participant1_settlement.locksroot
+            participant1_settlement,
+            participant2
         );
         storeUnlockData(
             channel_identifier,
-            participant2,
-            participant1,
-            participant2_settlement.locked_amount,
-            participant2_settlement.locksroot
+            participant2_settlement,
+            participant1
         );
 
         emit ChannelSettled(
@@ -1203,23 +1199,21 @@ contract TokenNetwork is Utils {
 
     function storeUnlockData(
         uint256 channel_identifier,
-        address sender,
-        address receiver,
-        uint256 locked_amount,
-        bytes32 locksroot
+        SettleInput memory settle_input,
+        address receiver
     )
         internal
     {
         // If there are transfers to unlock, store the locksroot and total
         // amount of tokens
-        if (locked_amount == 0) {
+        if (settle_input.locked_amount == 0) {
             return;
         }
 
-        bytes32 key = getUnlockIdentifier(channel_identifier, sender, receiver);
+        bytes32 key = getUnlockIdentifier(channel_identifier, settle_input.participant, receiver);
         UnlockData storage unlock_data = unlock_identifier_to_unlock_data[key];
-        unlock_data.locksroot = locksroot;
-        unlock_data.locked_amount = locked_amount;
+        unlock_data.locksroot = settle_input.locksroot;
+        unlock_data.locked_amount = settle_input.locked_amount;
     }
 
     function getChannelAvailableDeposit(
