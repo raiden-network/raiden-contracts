@@ -45,19 +45,15 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
 
     function updateUnlockDataPublic(
         uint256 channel_identifier,
-        address participant,
-        address partner,
-        uint256 locked_amount,
-        bytes32 locksroot
+        SettleInput memory settle_input,
+        address partner
     )
         public
     {
        return storeUnlockData(
             channel_identifier,
-            participant,
-            partner,
-            locked_amount,
-            locksroot
+            settle_input,
+            partner
         );
     }
 
