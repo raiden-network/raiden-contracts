@@ -101,9 +101,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
     function verifyBalanceHashDataPublic(
         address to_verify,
         address partner,
-        uint256 transferred_amount,
-        uint256 locked_amount,
-        bytes32 locksroot
+        SettleInput memory settle_input
     )
         public
         view
@@ -115,9 +113,7 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         Participant storage to_verify_state = channel.participants[to_verify];
         return verifyBalanceHashData(
             to_verify_state,
-            transferred_amount,
-            locked_amount,
-            locksroot
+            settle_input
         );
     }
 
