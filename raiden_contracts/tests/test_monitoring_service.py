@@ -57,7 +57,7 @@ def setup_monitor_data(
 ) -> Callable:
     def f(monitoring_service_contract: Contract) -> Dict:
         # Create two parties and a channel between them
-        (A, B) = get_accounts(2, privkeys=["0x" + "1" * 64, "0x" + "2" * 64])
+        (A, B) = get_accounts(2, privkeys=[bytes([1] * 32), bytes([2] * 32)])
         deposit_to_udc(B, REWARD_AMOUNT)
         channel_identifier = create_channel(A, B)[0]
 

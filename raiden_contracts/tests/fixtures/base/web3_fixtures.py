@@ -43,7 +43,7 @@ def web3(ethereum_tester: EthereumTester) -> Web3:
     web3.eth.estimateGas = lambda txn: int(5.2e6)  # type: ignore  # pylint: disable=E1101
 
     # add faucet account to tester
-    ethereum_tester.add_account(FAUCET_PRIVATE_KEY)
+    ethereum_tester.add_account(FAUCET_PRIVATE_KEY.hex())
 
     # make faucet rich
     ethereum_tester.send_transaction(

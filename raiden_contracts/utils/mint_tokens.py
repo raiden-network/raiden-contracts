@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from pathlib import Path
-from typing import Optional
 
 import click
 from eth_typing import URI, ChecksumAddress
@@ -26,10 +25,10 @@ WEI_TO_ETH = 10 ** 18
 @click.option("--amount", help="Amount of tokens to mint", required=True, type=click.INT)
 def main(rpc_url: URI, private_key: Path, token_address: ChecksumAddress, amount: int) -> None:
     web3 = Web3(HTTPProvider(rpc_url))
-    private_key_string: Optional[str] = get_private_key(private_key)
-    assert private_key_string is not None
-    owner = private_key_to_address(private_key_string)
-    web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key_string))
+    privkey = get_private_key(private_key)
+    assert privkey is not None
+    owner = private_key_to_address(privkey)
+    web3.middleware_onion.add(construct_sign_and_send_raw_middleware(privkey))
     token_code = web3.eth.getCode(token_address, "latest")
     assert token_code != HexBytes("")
     token_contract = ContractManager(contracts_precompiled_path()).get_contract(
