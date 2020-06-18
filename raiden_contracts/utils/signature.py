@@ -30,7 +30,7 @@ def sign(privkey: PrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
     return sig
 
 
-def private_key_to_address(private_key: Union[str, bytes]) -> ChecksumAddress:
+def private_key_to_address(private_key: PrivateKey) -> ChecksumAddress:
     """ Converts a private key to an Ethereum address. """
     if isinstance(private_key, str):
         private_key_bytes = to_bytes(hexstr=private_key)

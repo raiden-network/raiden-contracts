@@ -23,14 +23,14 @@ from raiden_contracts.utils.type_aliases import PrivateKey
 
 @pytest.fixture(scope="session")
 def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
-    def get(privkey: Optional[str] = None) -> HexAddress:
+    def get(privkey: Optional[PrivateKey] = None) -> HexAddress:
         if not privkey:
             privkey = get_random_privkey()
         address = private_key_to_address(privkey)
 
         if not any((is_same_address(address, x) for x in ethereum_tester.get_accounts())):
             # account has not been added to ethereum_tester, yet
-            ethereum_tester.add_account(privkey)
+            ethereum_tester.add_account(privkey.hex())
 
         for faucet in web3.eth.accounts[:10]:
             try:
@@ -47,7 +47,7 @@ def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
 
 @pytest.fixture(scope="session")
 def get_accounts(create_account: Callable) -> Callable:
-    def get(number: int, privkeys: Iterable = ()) -> List:
+    def get(number: int, privkeys: Iterable[PrivateKey] = ()) -> List:
         privkeys = iter(privkeys)
         return [create_account(privkey=next(privkeys, None)) for x in range(number)]
 

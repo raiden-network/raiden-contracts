@@ -2,10 +2,11 @@ from enum import IntEnum
 from typing import NamedTuple
 
 from eth_typing import HexAddress, HexStr
+from eth_utils import decode_hex
 from eth_utils.units import units
 
 from raiden_contracts.utils.signature import private_key_to_address
-from raiden_contracts.utils.type_aliases import AdditionalHash, BalanceHash, Signature
+from raiden_contracts.utils.type_aliases import AdditionalHash, BalanceHash, PrivateKey, Signature
 
 UINT256_MAX = 2 ** 256 - 1
 NOT_ADDRESS = "0xaaa"
@@ -15,7 +16,9 @@ EMPTY_BALANCE_HASH = BalanceHash(b"\x00" * 32)
 EMPTY_ADDITIONAL_HASH = AdditionalHash(b"\x00" * 32)
 EMPTY_SIGNATURE = Signature(b"\x00" * 65)
 passphrase = "0"
-FAUCET_PRIVATE_KEY = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+FAUCET_PRIVATE_KEY = PrivateKey(
+    decode_hex("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+)
 FAUCET_ADDRESS = private_key_to_address(FAUCET_PRIVATE_KEY)
 FAUCET_ALLOWANCE = 100 * int(units["ether"])
 DEPLOYER_ADDRESS = FAUCET_ADDRESS

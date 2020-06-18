@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Optional
 
 from eth_keyfile import decode_keyfile_json
-from eth_utils import decode_hex, encode_hex, is_hex
+from eth_utils import decode_hex, is_hex
+
+from raiden_contracts.utils.type_aliases import PrivateKey
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ def check_permission_safety(path: Path) -> bool:
     return (f_stats.st_mode & (stat.S_IRWXG | stat.S_IRWXO)) == 0 and f_stats.st_uid == os.getuid()
 
 
-def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Optional[str]:
+def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Optional[PrivateKey]:
     """Open a JSON-encoded private key and return it
 
     If a password file is provided, uses it to decrypt the key. If not, the
@@ -50,10 +52,11 @@ def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Opt
         return None
 
     with open(key_path) as keyfile:
-        private_key = keyfile.readline().strip()
+        raw_keyfile = keyfile.readline().strip()
 
-        if is_hex(private_key) and len(decode_hex(private_key)) == 32:
+        if is_hex(raw_keyfile) and len(decode_hex(raw_keyfile)) == 32:
             log.warning("Private key in raw format. Consider switching to JSON-encoded")
+            return PrivateKey(decode_hex(raw_keyfile))
         else:
             keyfile.seek(0)
             try:
@@ -65,9 +68,7 @@ def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Opt
                     password = getpass.getpass("Enter the private key password: ")
                 if json_data["crypto"]["kdf"] == "pbkdf2":
                     password = password.encode()  # type: ignore
-                private_key = encode_hex(decode_keyfile_json(json_data, password))
+                return PrivateKey(decode_keyfile_json(json_data, password))
             except ValueError:
                 log.fatal("Invalid private key format or password!")
                 return None
-
-    return private_key

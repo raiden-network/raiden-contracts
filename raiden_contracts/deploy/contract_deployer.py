@@ -34,7 +34,7 @@ from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.file_ops import load_json_from_path
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
-from raiden_contracts.utils.type_aliases import ChainID
+from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
 from raiden_contracts.utils.versions import (
     contracts_version_monitoring_service_takes_token_network_registry,
 )
@@ -46,7 +46,7 @@ class ContractDeployer(ContractVerifier):
     def __init__(
         self,
         web3: Web3,
-        private_key: str,
+        private_key: PrivateKey,
         gas_limit: int,
         gas_price: int,
         wait: int = 10,
