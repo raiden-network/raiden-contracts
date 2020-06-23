@@ -180,12 +180,17 @@ contract Deposit {
     /// @param _release_at The timestap after which the withdrawer can withdraw the deposit
     /// @param _withdrawer The address that can withdraw the deposit after the release time
     /// @param _service_registry The address of ServiceRegistry whose deprecation enables immediate withdrawals
-    constructor(address _token, uint256 _release_at, address _withdrawer, address _service_registry) public {
-        token = Token(_token);
+    constructor(
+        Token _token,
+        uint256 _release_at,
+        address _withdrawer,
+        ServiceRegistryConfigurableParameters _service_registry
+    ) public {
+        token = _token;
         // Don't care even if it's in the past.
         release_at = _release_at;
         withdrawer = _withdrawer;
-        service_registry = ServiceRegistryConfigurableParameters(_service_registry);
+        service_registry = _service_registry;
     }
 
     // In order to make a deposit, transfer the ERC20 token into this contract.
@@ -232,7 +237,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     // @param _registration_duration The number of seconds (roughly, barring block time & miners'
     // timestamp errors) of a slot gained for a successful deposit
     constructor(
-            address _token_for_registration,
+            Token _token_for_registration,
             address _controller,
             uint256 _initial_price,
             uint256 _price_bump_numerator,
@@ -241,12 +246,12 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             uint256 _min_price,
             uint256 _registration_duration
     ) public {
-        require(_token_for_registration != address(0x0), "token at address zero");
-        require(contractExists(_token_for_registration), "token has no code");
+        require(address(_token_for_registration) != address(0x0), "token at address zero");
+        require(contractExists(address(_token_for_registration)), "token has no code");
         require(_initial_price >= min_price, "initial price too low");
         require(_initial_price <= 2 ** 90, "intiial price too high");
 
-        token = Token(_token_for_registration);
+        token = _token_for_registration;
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0, "total supply zero");
         controller = _controller;
@@ -292,7 +297,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
 
         // Move the deposit in a new Deposit contract.
         assert(now < valid_till);
-        Deposit depo = new Deposit(address(token), valid_till, msg.sender, address(this));
+        Deposit depo = new Deposit(token, valid_till, msg.sender, this);
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
         // Fire event
