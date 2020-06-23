@@ -289,19 +289,6 @@ def test_constructor_call(
             _token_network_deposit_limit=token_network_deposit_limit,
         )
 
-    # failure with chain_id zero
-    with pytest.raises(TransactionFailed):
-        get_token_network(
-            _token_address=custom_token.address,
-            _secret_registry=secret_registry_contract.address,
-            _chain_id=0,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _controller=controller,
-            _channel_participant_deposit_limit=channel_participant_deposit_limit,
-            _token_network_deposit_limit=token_network_deposit_limit,
-        )
-
     # failure with a timeout min and max swapped
     with pytest.raises(TransactionFailed):
         get_token_network(
@@ -419,7 +406,7 @@ def test_constructor_not_registered(
     assert token_network.functions.token().call() == custom_token.address
     assert token_network.functions.secret_registry().call() == secret_registry_contract.address
     assert (
-        token_network.functions.chain_id().call()
+        token_network.functions.getChainID().call()
         == token_network_registry_contract.functions.chain_id().call()
     )
 

@@ -394,7 +394,7 @@ def test_create_erc20_token_network(
     assert token_network.functions.secret_registry().call() == secret_registry
 
     chain_id = token_network_registry_contract.functions.chain_id().call()
-    assert token_network.functions.chain_id().call() == chain_id
+    assert token_network.functions.getChainID().call() == chain_id
 
     settle_timeout_min = token_network_registry_contract.functions.settlement_timeout_min().call()
     assert token_network.functions.settlement_timeout_min().call() == settle_timeout_min

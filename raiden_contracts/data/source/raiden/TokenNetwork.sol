@@ -23,10 +23,6 @@ contract TokenNetwork is Utils, Controllable {
     // mediating transfer.
     SecretRegistry public secret_registry;
 
-    // Chain ID as specified by EIP155 used in balance proof signatures to
-    // avoid replay attacks
-    uint256 public chain_id;
-
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
@@ -237,7 +233,6 @@ contract TokenNetwork is Utils, Controllable {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
         require(_controller != address(0x0));
-        require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
         require(contractExists(_token_address));
@@ -249,7 +244,6 @@ contract TokenNetwork is Utils, Controllable {
         token = Token(_token_address);
 
         secret_registry = SecretRegistry(_secret_registry);
-        chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
 

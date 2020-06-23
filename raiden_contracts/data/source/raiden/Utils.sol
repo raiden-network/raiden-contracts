@@ -18,4 +18,15 @@ contract Utils {
 
         return size > 0;
     }
+
+    function getChainID()
+        public pure
+        returns (uint256)
+    {
+        uint256 id;
+        assembly { // solium-disable-line security/no-inline-assembly
+            id := chainid()
+        }
+        return id;
+    }
 }

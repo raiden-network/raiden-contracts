@@ -86,7 +86,7 @@ def setup_monitor_data(
         reward_proof_signature = sign_reward_proof(
             privatekey=get_private_key(B),
             monitoring_service_contract_address=monitoring_service_contract.address,
-            chain_id=token_network.functions.chain_id().call(),
+            chain_id=token_network.functions.getChainID().call(),
             token_network_address=token_network.address,
             non_closing_participant=B,
             non_closing_signature=non_closing_signature_B,
@@ -459,7 +459,6 @@ def test_recoverAddressFromRewardProof(
         monitoring_service_internals.functions.recoverAddressFromRewardProofPublic
     )
     recovered_address = recoverAddressFromRewardProof(
-        chain_id=token_network.functions.chain_id().call(),
         token_network_address=token_network.address,
         non_closing_participant=B,
         non_closing_signature=monitor_data_internal["non_closing_signature"],
