@@ -1,5 +1,5 @@
 /* solium-disable */
-pragma solidity 0.6.4;
+pragma solidity 0.6.10;
 
 import "raiden/Token.sol";
 

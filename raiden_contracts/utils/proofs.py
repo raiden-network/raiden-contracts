@@ -288,3 +288,22 @@ def sign_one_to_n_iou(
         + encode_single("uint256", expiration_block)
     )
     return sign(privkey=privatekey, msg_hash=iou_hash, v=v)
+
+
+def sign_claim(
+    privatekey: PrivateKey,
+    owner: HexAddress,
+    partner: HexAddress,
+    total_amount: TokenAmount,
+    distribution_address: HexAddress,
+    chain_id: ChainID,
+    v: int = 27,
+) -> bytes:
+    iou_hash = eth_sign_hash_message(
+        Web3.toBytes(hexstr=distribution_address)
+        + encode_single("uint256", chain_id)
+        + Web3.toBytes(hexstr=owner)
+        + Web3.toBytes(hexstr=partner)
+        + encode_single("uint256", total_amount)
+    )
+    return sign(privkey=privatekey, msg_hash=iou_hash, v=v)

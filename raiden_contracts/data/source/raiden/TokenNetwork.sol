@@ -1,6 +1,6 @@
 /* solium-disable error-reason */
 /* solium-disable indentation */
-pragma solidity 0.6.4;
+pragma solidity 0.6.10;
 pragma experimental ABIEncoderV2;
 
 import "lib/ECVerify.sol";

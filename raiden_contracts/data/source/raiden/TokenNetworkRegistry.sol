@@ -1,5 +1,5 @@
 /* solium-disable error-reason */
-pragma solidity 0.6.4;
+pragma solidity 0.6.10;
 
 import "raiden/Utils.sol";
 import "raiden/Token.sol";

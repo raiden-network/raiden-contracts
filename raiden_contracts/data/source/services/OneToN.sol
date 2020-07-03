@@ -1,4 +1,4 @@
-pragma solidity 0.6.4;
+pragma solidity 0.6.10;
 
 import "raiden/Utils.sol";
 import "services/ServiceRegistry.sol";
