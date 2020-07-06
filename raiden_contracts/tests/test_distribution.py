@@ -16,6 +16,12 @@ def test_claim(
     A = create_account()
     B = create_account()
 
+    # Wrong claim creator
+    with pytest.raises(TransactionFailed, match="Signature mismatch"):
+        distribution_contract.functions.claim(
+            **make_claim(owner=A, partner=B, claim_creator=A)
+        ).call({"from": A})
+
     # Wrong chain_id
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
         distribution_contract.functions.claim(**make_claim(owner=A, partner=B, chain_id=77)).call(

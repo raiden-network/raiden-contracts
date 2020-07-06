@@ -11,19 +11,24 @@ contract Distribution is Utils {
     // avoid replay attacks
     uint256 public chain_id;
 
+    address claim_creator;
+
     mapping(address => uint256) public withdraws;
 
     constructor(
         address _token_address,
-        uint256 _chain_id
+        uint256 _chain_id,
+        address _claim_creator
     )
         public
     {
         require(_token_address != address(0x0));
         require(_chain_id > 0);
+        require(_claim_creator != address(0x0));
 
         token = CustomToken(_token_address);
         chain_id = _chain_id;
+        claim_creator = _claim_creator;
     }
 
     function claim(
@@ -32,22 +37,22 @@ contract Distribution is Utils {
         uint256 total_amount,
         bytes memory signature
     ) public {
-        address receiver = recoverAddressFromClaim(
+        address creator = recoverAddressFromClaim(
             owner,
             partner,
             total_amount,
             signature
         );
 
-        require(receiver == owner, "Signature mismatch");
+        require(creator == claim_creator, "Signature mismatch");
 
-        uint256 already_claimed = withdraws[receiver];
-        require(total_amount > already_claimed, 'Already claimed');
+        uint256 already_claimed = withdraws[owner];
+        require(total_amount > already_claimed, "Already claimed");
 
-        withdraws[receiver] = total_amount;
+        withdraws[owner] = total_amount;
         uint256 mint_amount = total_amount - already_claimed;
 
-        token.mintFor(mint_amount, receiver);
+        token.mintFor(mint_amount, owner);
     }
 
     function recoverAddressFromClaim(

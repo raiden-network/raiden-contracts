@@ -18,10 +18,18 @@ def get_distribution(deploy_tester_contract: Callable) -> Callable:
 
 
 @pytest.fixture(scope="session")
-def distribution_constructor_args(web3: Web3, custom_token: Contract) -> Dict:
+def claim_creator(create_account: Callable) -> HexAddress:
+    return create_account()
+
+
+@pytest.fixture(scope="session")
+def distribution_constructor_args(
+    web3: Web3, custom_token: Contract, claim_creator: HexAddress
+) -> Dict:
     return {
         "_token_address": custom_token.address,
         "_chain_id": web3.eth.chainId,
+        "_claim_creator": claim_creator,
     }
 
 
@@ -40,7 +48,12 @@ def token_network_registry_address(distribution_contract: Contract) -> HexAddres
 
 
 @pytest.fixture
-def make_claim(web3: Web3, distribution_contract: Contract, get_private_key: Callable) -> Callable:
+def make_claim(
+    web3: Web3,
+    distribution_contract: Contract,
+    get_private_key: Callable,
+    claim_creator: HexAddress,
+) -> Callable:
     chain_id = web3.eth.chainId
 
     def f(
@@ -49,6 +62,7 @@ def make_claim(web3: Web3, distribution_contract: Contract, get_private_key: Cal
         total_amount: int = 10,
         chain_id: int = chain_id,
         distribution_address: HexAddress = distribution_contract.address,
+        claim_creator: HexAddress = claim_creator,
     ) -> dict:
         iou = dict(
             owner=owner,
@@ -57,7 +71,7 @@ def make_claim(web3: Web3, distribution_contract: Contract, get_private_key: Cal
             chain_id=chain_id,
             distribution_address=distribution_address,
         )
-        iou["signature"] = sign_claim(get_private_key(owner), **iou)  # type: ignore
+        iou["signature"] = sign_claim(get_private_key(claim_creator), **iou)  # type: ignore
         del iou["chain_id"]
         del iou["distribution_address"]
         return iou
