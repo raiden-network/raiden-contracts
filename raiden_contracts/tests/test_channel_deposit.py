@@ -6,8 +6,7 @@ from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
-from raiden_contracts.constants import EMPTY_ADDRESS, TEST_SETTLE_TIMEOUT_MIN, ChannelEvent
-from raiden_contracts.tests.fixtures.channel import call_settle
+from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
@@ -247,7 +246,6 @@ def test_deposit_channel_state(
 
 
 def test_deposit_wrong_state_fail(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
@@ -258,7 +256,7 @@ def test_deposit_wrong_state_fail(
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=2, transferred=0)
     vals_B = ChannelValues(deposit=2, transferred=0)
-    channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
+    channel_identifier = create_channel(A, B)[0]
     assign_tokens(A, vals_A.deposit)
     assign_tokens(B, vals_B.deposit)
     call_and_transact(
@@ -298,17 +296,6 @@ def test_deposit_wrong_state_fail(
     assign_tokens(B, 10)
     vals_A.deposit += 5
     vals_B.deposit += 5
-    with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(
-            {"from": A}
-        )
-    with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A).call(
-            {"from": B}
-        )
-
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(
             {"from": A}

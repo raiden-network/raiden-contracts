@@ -340,11 +340,12 @@ contract MonitoringService is Utils {
         // When channel_state is Open, settle_block_number is the length of the settlement period.
         // In these cases, we don't want to proceed anyway because the settlement period has not even started.
         // We can only proceed with these other channel states.
-        require(
-            channel_state == TokenNetwork.ChannelState.Closed ||
-            channel_state == TokenNetwork.ChannelState.Settled ||
-            channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
-        );
+        // TODO: virtual channel fixme
+        // require(
+        //     channel_state == TokenNetwork.ChannelState.Closed ||
+        //     channel_state == TokenNetwork.ChannelState.Settled ||
+        //     channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
+        // );
         require(settle_block_number < block.number, "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];

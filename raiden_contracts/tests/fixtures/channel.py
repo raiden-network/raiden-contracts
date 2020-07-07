@@ -45,14 +45,14 @@ from raiden_contracts.utils.type_aliases import (
 
 @pytest.fixture(scope="session")
 def create_channel(token_network: Contract) -> Callable:
-    def get(A: HexAddress, B: HexAddress, settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN) -> Tuple:
+    def get(A: HexAddress, B: HexAddress) -> Tuple:
         # Make sure there is no channel existent on chain
-        assert token_network.functions.getChannelIdentifier(A, B).call() == 0
+        # assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
         txn_hash = call_and_transact(
             token_network.functions.openChannel(
-                participant1=A, participant2=B, settle_timeout=settle_timeout
+                participant1=A, participant2=B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN
             )
         )
 
@@ -63,7 +63,7 @@ def create_channel(token_network: Contract) -> Callable:
         (channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(
             channel_identifier, A, B
         ).call()
-        assert channel_settle_timeout == settle_timeout
+        assert channel_settle_timeout == TEST_SETTLE_TIMEOUT_MIN
         assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)
@@ -133,13 +133,9 @@ def channel_deposit(token_network: Contract, assign_tokens: Callable) -> Callabl
 @pytest.fixture()
 def create_channel_and_deposit(create_channel: Callable, channel_deposit: Callable) -> Callable:
     def get(
-        participant1: HexAddress,
-        participant2: HexAddress,
-        deposit1: int = 0,
-        deposit2: int = 0,
-        settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN,
+        participant1: HexAddress, participant2: HexAddress, deposit1: int = 0, deposit2: int = 0,
     ) -> int:
-        channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
+        channel_identifier = create_channel(participant1, participant2)[0]
 
         if deposit1 > 0:
             channel_deposit(channel_identifier, participant1, deposit1, participant2)
@@ -297,11 +293,7 @@ def create_settled_channel(
         )
 
         channel_identifier = create_channel_and_deposit(
-            participant1,
-            participant2,
-            participant1_values.deposit,
-            participant2_values.deposit,
-            settle_timeout,
+            participant1, participant2, participant1_values.deposit, participant2_values.deposit,
         )
 
         close_and_update_channel(
@@ -545,14 +537,8 @@ def settle_state_tests(token_network: Contract, custom_token: Contract) -> Calla
         if locked_amount_B > 0:
             assert locksroot_B == values_B.locksroot
 
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
-        assert settle_block_number == 0
-        if locked_amount_A > 0 or locked_amount_B > 0:
-            assert state == ChannelState.SETTLED
-        else:
-            assert state == ChannelState.REMOVED
+        (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        assert state == ChannelState.NONEXISTENT
 
     return get
 

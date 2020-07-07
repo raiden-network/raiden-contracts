@@ -182,9 +182,7 @@ def test_withdraw_wrong_state(
     (A, B) = get_accounts(2)
     withdraw_A = 1
 
-    assert token_network.functions.getChannelIdentifier(A, B).call() == 0
-
-    channel_identifier = create_channel_and_deposit(A, B, 10, 14, TEST_SETTLE_TIMEOUT_MIN)
+    channel_identifier = create_channel_and_deposit(A, B, 10, 14)
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
@@ -219,7 +217,7 @@ def test_withdraw_wrong_state(
         {"from": A},
     )
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == ChannelState.REMOVED
+    assert state == ChannelState.NONEXISTENT
 
     with pytest.raises(TransactionFailed):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
@@ -470,75 +468,6 @@ def test_withdraw_channel_state(
         withdraw_A,
         balance_A,
         balance_contract,
-    )
-
-
-def test_withdraw_replay_reopened_channel(
-    web3: Web3,
-    token_network: Contract,
-    create_channel: Callable,
-    channel_deposit: Callable,
-    get_accounts: Callable,
-    create_withdraw_signatures: Callable,
-    create_close_signature_for_no_balance_proof: Callable,
-) -> None:
-    (A, B) = get_accounts(2)
-    deposit_A = 20
-    withdraw_A = 5
-
-    channel_identifier1 = create_channel(A, B)[0]
-    channel_deposit(channel_identifier1, A, deposit_A, B)
-    (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
-        [A, B], channel_identifier1, A, withdraw_A, UINT256_MAX
-    )
-    call_and_transact(
-        token_network.functions.setTotalWithdraw(
-            channel_identifier1, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
-        ),
-        {"from": A},
-    )
-
-    closing_sig = create_close_signature_for_no_balance_proof(B, channel_identifier1)
-    call_and_transact(
-        token_network.functions.closeChannel(
-            channel_identifier=channel_identifier1,
-            non_closing_participant=A,
-            closing_participant=B,
-            balance_hash=EMPTY_BALANCE_HASH,
-            nonce=0,
-            additional_hash=EMPTY_ADDITIONAL_HASH,
-            non_closing_signature=EMPTY_SIGNATURE,
-            closing_signature=closing_sig,
-        ),
-        {"from": B},
-    )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
-    call_and_transact(
-        token_network.functions.settleChannel(
-            channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
-        ),
-        {"from": A},
-    )
-
-    # Reopen the channel and make sure we cannot use the old withdraw proof
-    channel_identifier2 = create_channel(A, B)[0]
-    channel_deposit(channel_identifier2, A, deposit_A, B)
-
-    assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalWithdraw(
-            channel_identifier2, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
-        ).call({"from": A})
-
-    # Signed message with correct channel_identifier must work
-    (signature_A_for_A2, signature_B_for_A2) = create_withdraw_signatures(
-        [A, B], channel_identifier2, A, withdraw_A, UINT256_MAX
-    )
-    call_and_transact(
-        token_network.functions.setTotalWithdraw(
-            channel_identifier2, A, withdraw_A, UINT256_MAX, signature_A_for_A2, signature_B_for_A2
-        ),
-        {"from": A},
     )
 
 

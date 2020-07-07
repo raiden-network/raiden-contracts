@@ -24,6 +24,7 @@ contract TokenNetwork is Utils {
     // avoid replay attacks
     uint256 public chain_id;
 
+    uint256 public settlement_timeout;
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
@@ -93,7 +94,7 @@ contract TokenNetwork is Utils {
 
     enum ChannelState {
         NonExistent, // 0
-        Opened,      // 1
+        PLACEHOLDER_DONTUSE, // 1
         Closed,      // 2
         Settled,     // 3; Note: The channel has at least one pending unlock
         Removed      // 4; Note: Channel data is removed, there are no pending unlocks
@@ -201,7 +202,7 @@ contract TokenNetwork is Utils {
     }
 
     modifier isOpen(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == ChannelState.Opened);
+        require(channels[channel_identifier].state == ChannelState.NonExistent, "Channel not open");
         _;
     }
 
@@ -251,6 +252,7 @@ contract TokenNetwork is Utils {
 
         secret_registry = SecretRegistry(_secret_registry);
         chain_id = _chain_id;
+        settlement_timeout = _settlement_timeout_min;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
 
@@ -279,44 +281,59 @@ contract TokenNetwork is Utils {
         settleTimeoutValid(settle_timeout)
         returns (uint256)
     {
-        bytes32 pair_hash;
-        uint256 channel_identifier;
+        // bytes32 pair_hash;
+        // uint256 channel_identifier;
 
-        // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) < token_network_deposit_limit);
+        // // Red Eyes release token network limit
+        // require(token.balanceOf(address(this)) < token_network_deposit_limit);
 
-        // First increment the counter
-        // There will never be a channel with channel_identifier == 0
-        channel_counter += 1;
-        channel_identifier = channel_counter;
+        // // First increment the counter
+        // // There will never be a channel with channel_identifier == 0
+        // channel_counter += 1;
+        // channel_identifier = channel_counter;
 
-        pair_hash = getParticipantsHash(participant1, participant2);
+        // pair_hash = getParticipantsHash(participant1, participant2);
 
-        // There must only be one channel opened between two participants at
-        // any moment in time.
-        require(participants_hash_to_channel_identifier[pair_hash] == 0);
-        participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
+        // // There must only be one channel opened between two participants at
+        // // any moment in time.
+        // require(participants_hash_to_channel_identifier[pair_hash] == 0);
+        // participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
 
-        Channel storage channel = channels[channel_identifier];
+        // Channel storage channel = channels[channel_identifier];
 
-        // We always increase the channel counter, therefore no channel data can already exist,
-        // corresponding to this channel_identifier. This check must never fail.
-        assert(channel.settle_block_number == 0);
-        assert(channel.state == ChannelState.NonExistent);
+        // // We always increase the channel counter, therefore no channel data can already exist,
+        // // corresponding to this channel_identifier. This check must never fail.
+        // assert(channel.settle_block_number == 0);
+        // assert(channel.state == ChannelState.NonExistent);
 
-        // Store channel information
-        channel.settle_block_number = settle_timeout;
-        channel.state = ChannelState.Opened;
+        // // Store channel information
+        // channel.settle_block_number = settle_timeout;
+        // channel.state = ChannelState.Opened;
 
-        emit ChannelOpened(
-            channel_identifier,
-            participant1,
-            participant2,
-            settle_timeout
-        );
+        // emit ChannelOpened(
+        //     channel_identifier,
+        //     participant1,
+        //     participant2,
+        //     settle_timeout
+        // );
 
-        return channel_identifier;
+        return getChannelIdentifier(participant1, participant2);
     }
+
+    function getChannelIdentifier(
+        address participant1,
+        address participant2
+    )
+        public view
+        returns (uint256 channel_id)
+    {
+        if (participant1 < participant2) {
+            return uint256(keccak256(abi.encodePacked(chain_id, this, participant1, participant2)));
+        } else {
+            return uint256(keccak256(abi.encodePacked(chain_id, this, participant2, participant1)));
+        }
+    }
+
 
     /// @notice Sets the channel participant total deposit value.
     /// Can be called by anyone.
@@ -509,12 +526,11 @@ contract TokenNetwork is Utils {
         bytes32 additional_hash,
         bytes memory non_closing_signature,
         bytes memory closing_signature
+        // Add claim info
     )
         public
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant));
-
         address recovered_non_closing_participant_address;
 
         Channel storage channel = channels[channel_identifier];
@@ -523,7 +539,7 @@ contract TokenNetwork is Utils {
         channel.participants[closing_participant].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
-        channel.settle_block_number += uint256(block.number);
+        channel.settle_block_number = settlement_timeout + block.number;
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -535,7 +551,7 @@ contract TokenNetwork is Utils {
             non_closing_signature,
             closing_signature
         );
-        require(closing_participant == recovered_closing_participant_address);
+        require(closing_participant == recovered_closing_participant_address, "Bad closing_participant");
 
         // Nonce 0 means that the closer never received a transfer, therefore
         // never received a balance proof, or he is intentionally not providing
@@ -550,7 +566,7 @@ contract TokenNetwork is Utils {
                 non_closing_signature
             );
             // Signature must be from the channel partner
-            require(non_closing_participant == recovered_non_closing_participant_address);
+            require(non_closing_participant == recovered_non_closing_participant_address, "Bad non_closing_participant");
 
             updateBalanceProofData(
                 channel,
@@ -859,12 +875,12 @@ contract TokenNetwork is Utils {
     {
         // Channel represented by channel_identifier must be settled and
         // channel data deleted
-        require(channel_identifier != getChannelIdentifier(receiver, sender));
+        // require(channel_identifier != getChannelIdentifier(receiver, sender), "Bad channel_id");
 
         // After the channel is settled the storage is cleared, therefore the
         // value will be NonExistent and not Settled. The value Settled is used
         // for the external APIs
-        require(channels[channel_identifier].state == ChannelState.NonExistent);
+        require(channels[channel_identifier].state == ChannelState.NonExistent, "Channel still exists");
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -888,11 +904,11 @@ contract TokenNetwork is Utils {
         locked_amount = unlock_data.locked_amount;
 
         // Locksroot must be the same as the computed locksroot
-        require(unlock_data.locksroot == computed_locksroot);
+        require(unlock_data.locksroot == computed_locksroot, "Bad locksroot");
 
         // There are no pending transfers if the locked_amount is 0.
         // Transaction must fail
-        require(locked_amount > 0);
+        require(locked_amount > 0, "Bad locked_amount");
 
         // Make sure we don't transfer more tokens than previously reserved in
         // the smart contract.
@@ -1028,25 +1044,6 @@ contract TokenNetwork is Utils {
         }
     } */
 
-    /// @notice Returns the unique identifier for the channel given by the
-    /// contract
-    /// @param participant Address of a channel participant
-    /// @param partner Address of the other channel participant
-    /// @return Unique identifier for the channel. It can be 0 if channel does
-    /// not exist
-    function getChannelIdentifier(address participant, address partner)
-        public
-        view
-        returns (uint256)
-    {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
-
-        bytes32 pair_hash = getParticipantsHash(participant, partner);
-        return participants_hash_to_channel_identifier[pair_hash];
-    }
-
     /// @dev Returns the channel specific data.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place
@@ -1065,33 +1062,11 @@ contract TokenNetwork is Utils {
         view
         returns (uint256, ChannelState)
     {
-        bytes32 unlock_key1;
-        bytes32 unlock_key2;
-
         Channel storage channel = channels[channel_identifier];
         ChannelState state = channel.state;  // This must **not** update the storage
 
-        if (state == ChannelState.NonExistent &&
-            channel_identifier > 0 &&
-            channel_identifier <= channel_counter
-        ) {
-            // The channel has been settled, channel data is removed Therefore,
-            // the channel state in storage is actually `0`, or `NonExistent`
-            // However, for this view function, we return `Settled`, in order
-            // to provide a consistent external API
-            state = ChannelState.Settled;
-
-            // We might still have data stored for future unlock operations
-            // Only if we do not, we can consider the channel as `Removed`
-            unlock_key1 = getUnlockIdentifier(channel_identifier, participant1, participant2);
-            UnlockData storage unlock_data1 = unlock_identifier_to_unlock_data[unlock_key1];
-
-            unlock_key2 = getUnlockIdentifier(channel_identifier, participant2, participant1);
-            UnlockData storage unlock_data2 = unlock_identifier_to_unlock_data[unlock_key2];
-
-            if (unlock_data1.locked_amount == 0 && unlock_data2.locked_amount == 0) {
-                state = ChannelState.Removed;
-            }
+        if (state == ChannelState.NonExistent) {
+            return (settlement_timeout, state);
         }
 
         return (

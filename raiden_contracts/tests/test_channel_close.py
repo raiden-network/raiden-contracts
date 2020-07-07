@@ -17,13 +17,11 @@ from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
     EMPTY_SIGNATURE,
-    NONEXISTENT_LOCKSROOT,
     ChannelValues,
     LockedAmounts,
     call_and_transact,
     fake_bytes,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_channel_closed
 
 
@@ -32,11 +30,11 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
+    (_, state) = token_network.functions.getChannelInfo(
         channel_identifier=non_existent_channel_identifier, participant1=A, participant2=B
     ).call()
     assert state == ChannelState.NONEXISTENT
-    assert settle_block_number == 0
+    # assert settle_block_number == 0
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
@@ -49,71 +47,6 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
             non_closing_signature=EMPTY_SIGNATURE,
             closing_signature=EMPTY_SIGNATURE,
         ).call({"from": A, "gas": Wei(81_000)})
-
-
-def test_close_settled_channel_fail(
-    web3: Web3,
-    token_network: Contract,
-    create_channel: Callable,
-    channel_deposit: Callable,
-    get_accounts: Callable,
-    create_close_signature_for_no_balance_proof: Callable,
-) -> None:
-    """ Test getChannelInfo and closeChannel on an already settled channel """
-    (A, B) = get_accounts(2)
-    channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
-    channel_deposit(channel_identifier, A, 5, B)
-
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    assert state == ChannelState.OPENED
-    closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
-
-    call_and_transact(
-        token_network.functions.closeChannel(
-            channel_identifier=channel_identifier,
-            non_closing_participant=B,
-            closing_participant=A,
-            balance_hash=EMPTY_BALANCE_HASH,
-            nonce=0,
-            additional_hash=EMPTY_ADDITIONAL_HASH,
-            non_closing_signature=EMPTY_SIGNATURE,
-            closing_signature=closing_sig,
-        ),
-        {"from": A},
-    )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
-    call_and_transact(
-        token_network.functions.settleChannel(
-            channel_identifier=channel_identifier,
-            participant1=A,
-            participant1_transferred_amount=0,
-            participant1_locked_amount=0,
-            participant1_locksroot=NONEXISTENT_LOCKSROOT,
-            participant2=B,
-            participant2_transferred_amount=0,
-            participant2_locked_amount=0,
-            participant2_locksroot=NONEXISTENT_LOCKSROOT,
-        ),
-        {"from": A},
-    )
-
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
-    assert state == ChannelState.REMOVED
-    assert settle_block_number == 0
-
-    with pytest.raises(TransactionFailed):
-        token_network.functions.closeChannel(
-            channel_identifier=channel_identifier,
-            non_closing_participant=B,
-            closing_participant=A,
-            balance_hash=EMPTY_BALANCE_HASH,
-            nonce=0,
-            additional_hash=EMPTY_ADDITIONAL_HASH,
-            non_closing_signature=EMPTY_SIGNATURE,
-            closing_signature=closing_sig,
-        ).call({"from": A})
 
 
 def test_close_wrong_signature(
@@ -315,7 +248,7 @@ def test_close_first_argument_is_for_partner_transfer(
     (A, B) = get_accounts(2)
 
     # Create channel
-    channel_identifier = create_channel(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN)[0]
+    channel_identifier = create_channel(A, B)[0]
 
     # Create balance proofs
     balance_proof = create_balance_proof(channel_identifier, B)
@@ -462,7 +395,7 @@ def test_close_channel_state(
     )
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Check the state of the openned channel
@@ -610,92 +543,6 @@ def test_close_channel_event_no_offchain_transfers(
         ),
     )
     ev_handler.check()
-
-
-def test_close_replay_reopened_channel(
-    web3: Web3,
-    get_accounts: Callable,
-    token_network: Contract,
-    create_channel: Callable,
-    channel_deposit: Callable,
-    create_balance_proof: Callable,
-    create_balance_proof_countersignature: Callable,
-) -> None:
-    """ The same balance proof cannot close another channel between the same participants """
-    (A, B) = get_accounts(2)
-    nonce = 3
-    values_A = ChannelValues(deposit=10, transferred=0)
-    values_B = ChannelValues(deposit=20, transferred=15)
-    channel_identifier1 = create_channel(A, B)[0]
-    channel_deposit(channel_identifier1, B, values_B.deposit, A)
-
-    balance_proof_B = create_balance_proof(
-        channel_identifier1,
-        B,
-        values_B.transferred,
-        values_B.locked_amounts.locked,
-        nonce,
-        values_B.locksroot,
-    )
-    closing_sig_A = create_balance_proof_countersignature(
-        participant=A,
-        channel_identifier=channel_identifier1,
-        msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B._asdict(),
-    )
-    call_and_transact(
-        token_network.functions.closeChannel(
-            channel_identifier1, B, A, *balance_proof_B._asdict().values(), closing_sig_A
-        ),
-        {"from": A},
-    )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
-    call_and_transact(
-        token_network.functions.settleChannel(
-            channel_identifier=channel_identifier1,
-            participant1=A,
-            participant1_transferred_amount=values_A.transferred,
-            participant1_locked_amount=values_A.locked_amounts.locked,
-            participant1_locksroot=values_A.locksroot,
-            participant2=B,
-            participant2_transferred_amount=values_B.transferred,
-            participant2_locked_amount=values_B.locked_amounts.locked,
-            participant2_locksroot=values_B.locksroot,
-        ),
-        {"from": A},
-    )
-
-    # Reopen the channel and make sure we cannot use the old balance proof
-    channel_identifier2 = create_channel(A, B)[0]
-    channel_deposit(channel_identifier2, B, values_B.deposit, A)
-
-    assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed):
-        token_network.functions.closeChannel(
-            channel_identifier2, B, A, *balance_proof_B._asdict().values(), closing_sig_A
-        ).call({"from": A})
-
-    # Balance proof with correct channel_identifier must work
-    balance_proof_B2 = create_balance_proof(
-        channel_identifier2,
-        B,
-        values_B.transferred,
-        values_B.locked_amounts.locked,
-        nonce,
-        values_B.locksroot,
-    )
-    closing_sig_A2 = create_balance_proof_countersignature(
-        participant=A,
-        channel_identifier=channel_identifier2,
-        msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B2._asdict(),
-    )
-    call_and_transact(
-        token_network.functions.closeChannel(
-            channel_identifier2, B, A, *balance_proof_B2._asdict().values(), closing_sig_A2
-        ),
-        {"from": A},
-    )
 
 
 def test_close_channel_event(

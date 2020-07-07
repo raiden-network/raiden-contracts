@@ -535,8 +535,7 @@ def test_settle_wrong_state_fail(
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
     ).call()
-    assert state == ChannelState.REMOVED
-    assert settle_block_number == 0
+    assert state == ChannelState.NONEXISTENT
 
 
 def test_settle_wrong_balance_hash(
