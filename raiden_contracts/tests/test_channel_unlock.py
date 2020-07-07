@@ -329,7 +329,7 @@ def test_unlock_wrong_locksroot(
 ) -> None:
     """ Test unlocking with wrong pending locks """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [], settle_timeout)
     pending_transfers_tree_A_fake = get_pending_transfers_tree(web3, [1, 3, 6], [], settle_timeout)
@@ -579,7 +579,7 @@ def test_channel_unlock(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -699,6 +699,12 @@ def test_channel_settle_and_unlock(
         LOCKSROOT_OF_NO_LOCKS,
         settle_timeout,
     )
+    call_and_transact(
+        token_network.functions.unlock(
+            channel_identifier3, B, A, pending_transfers_tree_1.packed_transfers
+        ),
+        {"from": A},
+    )
 
     # Mock pending transfers data for a reopened channel
     pending_transfers_tree_2 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -715,16 +721,9 @@ def test_channel_settle_and_unlock(
         settle_timeout,
     )
 
-    # Both old and new unlocks should go through
     call_and_transact(
         token_network.functions.unlock(
             channel_identifier4, B, A, pending_transfers_tree_2.packed_transfers
-        ),
-        {"from": A},
-    )
-    call_and_transact(
-        token_network.functions.unlock(
-            channel_identifier3, B, A, pending_transfers_tree_1.packed_transfers
         ),
         {"from": A},
     )
@@ -749,7 +748,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -868,13 +867,13 @@ def test_channel_unlock_before_settlement_fails(
 ) -> None:
     """ unlock() should not work before settlement """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1045,13 +1044,13 @@ def test_channel_unlock_both_participants(
 ) -> None:
     """ A scenario where both parties get some of the pending transfers """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
     values_A = ChannelValues(deposit=100, transferred=5)
     values_B = ChannelValues(deposit=100, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -1218,13 +1217,13 @@ def test_channel_unlock_with_a_large_expiration(
 ) -> None:
     """ unlock() should still work after a delayed settleChannel() call """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -1351,66 +1350,6 @@ def test_reverse_participants_unlock(
     )
 
 
-def test_unlock_different_channel_same_participants_fail(
-    web3: Web3,
-    token_network: Contract,
-    get_accounts: Callable,
-    create_settled_channel: Callable,
-    reveal_secrets: Callable,
-) -> None:
-    """ Try to confuse unlock() with two channels between the same participants """
-    (A, B) = get_accounts(2)
-    settle_timeout = 8
-
-    # Mock pending transfers data
-    pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_1.unlockable)
-    channel_identifier = create_settled_channel(
-        A,
-        pending_transfers_tree_1.locked_amount,
-        pending_transfers_tree_1.hash_of_packed_transfers,
-        B,
-        0,
-        LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
-    )
-
-    # The first channel is settled, so we create another one
-    pending_transfers_tree_2 = get_pending_transfers_tree(web3, [3, 5], [2, 4, 3], settle_timeout)
-    reveal_secrets(A, pending_transfers_tree_2.unlockable)
-    channel_identifier2 = create_settled_channel(
-        A,
-        pending_transfers_tree_2.locked_amount,
-        pending_transfers_tree_2.hash_of_packed_transfers,
-        B,
-        0,
-        LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
-    )
-
-    with pytest.raises(TransactionFailed):
-        token_network.functions.unlock(
-            channel_identifier, B, A, pending_transfers_tree_2.packed_transfers
-        ).call({"from": A})
-    with pytest.raises(TransactionFailed):
-        token_network.functions.unlock(
-            channel_identifier2, B, A, pending_transfers_tree_1.packed_transfers
-        ).call({"from": A})
-
-    call_and_transact(
-        token_network.functions.unlock(
-            channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
-        ),
-        {"from": A},
-    )
-    call_and_transact(
-        token_network.functions.unlock(
-            channel_identifier2, B, A, pending_transfers_tree_2.packed_transfers
-        ),
-        {"from": A},
-    )
-
-
 def test_unlock_channel_event(
     web3: Web3,
     token_network: Contract,
@@ -1424,13 +1363,13 @@ def test_unlock_channel_event(
 ) -> None:
     """ Successful unlock() should cause an UNLOCKED event """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 

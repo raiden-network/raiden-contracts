@@ -151,12 +151,12 @@ def print_gas_channel_cycle(
 ) -> None:
     """ Abusing pytest to print gas costs of TokenNetwork's operations """
     (A, B, C, D) = get_accounts(4)
-    settle_timeout = 11
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
-    (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
+    (channel_identifier, txn_hash) = create_channel(A, B)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".openChannel")
 
-    (_, txn_hash) = create_channel(C, D, settle_timeout)
+    (_, txn_hash) = create_channel(C, D)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".openChannel")
 
     txn_hash = channel_deposit(channel_identifier, A, 20, B)

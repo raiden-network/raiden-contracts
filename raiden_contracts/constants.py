@@ -93,7 +93,7 @@ class ChannelState(IntEnum):
     """Meaning of values returned by TokenNetwork.getChannelInfo[ChannelInfoIndex.STATE]"""
 
     NONEXISTENT = 0
-    OPENED = 1
+    OPENED = 0
     CLOSED = 2
     SETTLED = 3
     REMOVED = 4
