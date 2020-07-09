@@ -806,11 +806,9 @@ contract TokenNetwork is Utils {
             participant2_settlement.locked_amount
         ) = getSettleTransferAmounts(
             participant1_state,
-            participant1_settlement.transferred_amount,
-            participant1_settlement.locked_amount,
+            participant1_settlement,
             participant2_state,
-            participant2_settlement.transferred_amount,
-            participant2_settlement.locked_amount
+            participant2_settlement
         );
 
         // Remove the channel data from storage
@@ -1215,11 +1213,9 @@ contract TokenNetwork is Utils {
     /// algorithm analysis and explanations.
     function getSettleTransferAmounts(
         Participant storage participant1_state,
-        uint256 participant1_transferred_amount,
-        uint256 participant1_locked_amount,
+        SettleInput memory participant1_input,
         Participant storage participant2_state,
-        uint256 participant2_transferred_amount,
-        uint256 participant2_locked_amount
+        SettleInput memory participant2_input
     )
         private
         view
@@ -1321,13 +1317,13 @@ contract TokenNetwork is Utils {
 
         participant1_settlement.deposit = participant1_state.deposit;
         participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
-        participant1_settlement.transferred = participant1_transferred_amount;
-        participant1_settlement.locked = participant1_locked_amount;
+        participant1_settlement.transferred = participant1_input.transferred_amount;
+        participant1_settlement.locked = participant1_input.locked_amount;
 
         participant2_settlement.deposit = participant2_state.deposit;
         participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
-        participant2_settlement.transferred = participant2_transferred_amount;
-        participant2_settlement.locked = participant2_locked_amount;
+        participant2_settlement.transferred = participant2_input.transferred_amount;
+        participant2_settlement.locked = participant2_input.locked_amount;
 
         // TAD = D1 + D2 - W1 - W2 = total available deposit at settlement time
         total_available_deposit = getChannelAvailableDeposit(
@@ -1359,9 +1355,9 @@ contract TokenNetwork is Utils {
         // Both operations are done by failsafe_subtract
         // We take out participant2's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant1
-        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
+        (participant1_amount, participant2_input.locked_amount) = failsafe_subtract(
             participant1_amount,
-            participant2_locked_amount
+            participant2_input.locked_amount
         );
 
         // SL1 = min(RmaxP2, L1)
@@ -1369,9 +1365,9 @@ contract TokenNetwork is Utils {
         // Both operations are done by failsafe_subtract
         // We take out participant1's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant2
-        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
+        (participant2_amount, participant1_input.locked_amount) = failsafe_subtract(
             participant2_amount,
-            participant1_locked_amount
+            participant1_input.locked_amount
         );
 
         // This should never throw:
@@ -1382,15 +1378,15 @@ contract TokenNetwork is Utils {
         assert(total_available_deposit == (
             participant1_amount +
             participant2_amount +
-            participant1_locked_amount +
-            participant2_locked_amount
+            participant1_input.locked_amount +
+            participant2_input.locked_amount
         ));
 
         return (
             participant1_amount,
             participant2_amount,
-            participant1_locked_amount,
-            participant2_locked_amount
+            participant1_input.locked_amount,
+            participant2_input.locked_amount
         );
     }
 
