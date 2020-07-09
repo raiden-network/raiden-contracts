@@ -128,11 +128,19 @@ contract TokenNetwork is Utils {
         uint256 locked_amount;
     }
 
+    struct Claim {
+        address owner;
+        address partner;
+        uint256 total_amount;
+        bytes signature;
+    }
+
     struct SettleInput {
         address participant;
         uint256 transferred_amount;
         uint256 locked_amount;
         bytes32 locksroot;
+        Claim claim;
     }
 
     event ChannelOpened(
@@ -526,7 +534,6 @@ contract TokenNetwork is Utils {
         bytes32 additional_hash,
         bytes memory non_closing_signature,
         bytes memory closing_signature
-        // Add claim info
     )
         public
         isOpen(channel_identifier)
@@ -712,10 +719,12 @@ contract TokenNetwork is Utils {
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
         bytes32 participant1_locksroot,
+        Claim memory participant1_claim,
         address participant2,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount,
-        bytes32 participant2_locksroot
+        bytes32 participant2_locksroot,
+        Claim memory participant2_claim
     )
         public
     {
@@ -725,13 +734,15 @@ contract TokenNetwork is Utils {
                 participant: participant1,
                 transferred_amount: participant1_transferred_amount,
                 locked_amount: participant1_locked_amount,
-                locksroot: participant1_locksroot
+                locksroot: participant1_locksroot,
+                claim: participant1_claim
             }),
             SettleInput({
                 participant: participant2,
                 transferred_amount: participant2_transferred_amount,
                 locked_amount: participant2_locked_amount,
-                locksroot: participant2_locksroot
+                locksroot: participant2_locksroot,
+                claim: participant2_claim
             })
         );
     }
@@ -760,17 +771,17 @@ contract TokenNetwork is Utils {
 
         address participant1 = participant1_settlement.participant;
         address participant2 = participant2_settlement.participant;
-        require(channel_identifier == getChannelIdentifier(participant1, participant2));
+        require(channel_identifier == getChannelIdentifier(participant1, participant2), "Bad channel_id");
 
         bytes32 pair_hash;
 
         pair_hash = getParticipantsHash(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, "Bad channel state");
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number);
+        require(channel.settle_block_number < block.number, "Still in settlement window");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -778,12 +789,12 @@ contract TokenNetwork is Utils {
         require(verifyBalanceHashData(
             participant1_state,
             participant1_settlement
-        ));
+        ), "Balance hash 1 wrong");
 
         require(verifyBalanceHashData(
             participant2_state,
             participant2_settlement
-        ));
+        ), "Balance hash 2 wrong");
 
         // We are calculating the final token amounts that need to be
         // transferred to the participants now and the amount of tokens that
@@ -840,13 +851,15 @@ contract TokenNetwork is Utils {
             participant2_settlement.locksroot
         );
 
+        token.mintFor(participant1_settlement.claim.total_amount, address(this));
+        token.mintFor(participant2_settlement.claim.total_amount, address(this));
         // Do the actual token transfers
         if (participant1_settlement.transferred_amount > 0) {
-            require(token.transfer(participant1, participant1_settlement.transferred_amount));
+            require(token.transfer(participant1, participant1_settlement.transferred_amount), "Token transfer 1 failed");
         }
 
         if (participant2_settlement.transferred_amount > 0) {
-            require(token.transfer(participant2, participant2_settlement.transferred_amount));
+            require(token.transfer(participant2, participant2_settlement.transferred_amount), "Token transfer 2 failed");
         }
     }
 
@@ -1193,7 +1206,9 @@ contract TokenNetwork is Utils {
 
     function getChannelAvailableDeposit(
         Participant storage participant1_state,
-        Participant storage participant2_state
+        Participant storage participant2_state,
+        Claim memory participant1_claim,
+        Claim memory participant2_claim
     )
         internal
         view
@@ -1201,7 +1216,9 @@ contract TokenNetwork is Utils {
     {
         total_available_deposit = (
             participant1_state.deposit +
-            participant2_state.deposit -
+            participant2_state.deposit +
+            participant1_claim.total_amount +
+            participant2_claim.total_amount -
             participant1_state.withdrawn_amount -
             participant2_state.withdrawn_amount
         );
@@ -1312,23 +1329,12 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount;
         uint256 total_available_deposit;
 
-        SettlementData memory participant1_settlement;
-        SettlementData memory participant2_settlement;
-
-        participant1_settlement.deposit = participant1_state.deposit;
-        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
-        participant1_settlement.transferred = participant1_input.transferred_amount;
-        participant1_settlement.locked = participant1_input.locked_amount;
-
-        participant2_settlement.deposit = participant2_state.deposit;
-        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
-        participant2_settlement.transferred = participant2_input.transferred_amount;
-        participant2_settlement.locked = participant2_input.locked_amount;
-
         // TAD = D1 + D2 - W1 - W2 = total available deposit at settlement time
         total_available_deposit = getChannelAvailableDeposit(
             participant1_state,
-            participant2_state
+            participant2_state,
+            participant1_input.claim,
+            participant2_input.claim
         );
 
         // RmaxP1 = (T2 + L2) - (T1 + L1) + D1 - W1
@@ -1336,8 +1342,18 @@ contract TokenNetwork is Utils {
         // receive at settlement time and also contains the entire locked amount
         //  of the pending transfers from participant2 to participant1.
         participant1_amount = getMaxPossibleReceivableAmount(
-            participant1_settlement,
-            participant2_settlement
+            SettlementData(
+                participant1_state.deposit + participant1_input.claim.total_amount,
+                participant1_state.withdrawn_amount,
+                participant1_input.transferred_amount,
+                participant1_input.locked_amount
+            ),
+            SettlementData(
+                participant2_state.deposit + participant2_input.claim.total_amount,
+                participant2_state.withdrawn_amount,
+                participant2_input.transferred_amount,
+                participant2_input.locked_amount
+            )
         );
 
         // RmaxP1 = min(TAD, RmaxP1)

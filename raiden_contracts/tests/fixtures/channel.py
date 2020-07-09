@@ -346,15 +346,12 @@ def common_settle_state_tests(
     balance_B: int,
     pre_account_balance_A: int,
     pre_account_balance_B: int,
-    pre_balance_contract: int,
 ) -> None:
     # Make sure the correct amount of tokens has been transferred
     account_balance_A = custom_token.functions.balanceOf(A).call()
     account_balance_B = custom_token.functions.balanceOf(B).call()
-    balance_contract = custom_token.functions.balanceOf(token_network.address).call()
     assert account_balance_A == pre_account_balance_A + balance_A
     assert account_balance_B == pre_account_balance_B + balance_B
-    assert balance_contract == pre_balance_contract - balance_A - balance_B
 
     # Make sure channel data has been removed
     assert (
@@ -457,7 +454,6 @@ def cooperative_settle_state_tests(token_network: Contract, custom_token: Contra
         balance_B: int,
         pre_account_balance_A: int,
         pre_account_balance_B: int,
-        pre_balance_contract: int,
     ) -> None:
         common_settle_state_tests(
             custom_token,
@@ -469,7 +465,6 @@ def cooperative_settle_state_tests(token_network: Contract, custom_token: Contra
             balance_B,
             pre_account_balance_A,
             pre_account_balance_B,
-            pre_balance_contract,
         )
 
         (settle_block_number, state) = token_network.functions.getChannelInfo(
@@ -491,7 +486,6 @@ def settle_state_tests(token_network: Contract, custom_token: Contract) -> Calla
         values_B: ChannelValues,
         pre_account_balance_A: int,
         pre_account_balance_B: int,
-        pre_balance_contract: int,
     ) -> None:
         # Calculate how much A and B should receive
         settlement = get_settlement_amounts(values_A, values_B)
@@ -508,7 +502,6 @@ def settle_state_tests(token_network: Contract, custom_token: Contract) -> Calla
             settlement.participant2_balance,
             pre_account_balance_A,
             pre_account_balance_B,
-            pre_balance_contract,
         )
         common_settle_state_tests(
             custom_token,
@@ -520,7 +513,6 @@ def settle_state_tests(token_network: Contract, custom_token: Contract) -> Calla
             on_chain_settlement.participant2_balance,
             pre_account_balance_A,
             pre_account_balance_B,
-            pre_balance_contract,
         )
 
         info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
@@ -839,10 +831,16 @@ def call_settle(
                     participant1_transferred_amount=vals_B.transferred,
                     participant1_locked_amount=0,
                     participant1_locksroot=vals_B.locksroot,
+                    participant1_claim=dict(
+                        owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+                    ),
                     participant2=A,
                     participant2_transferred_amount=0,
                     participant2_locked_amount=0,
                     participant2_locksroot=vals_A.locksroot,
+                    participant2_claim=dict(
+                        owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+                    ),
                 ),
                 {"from": A},
             )
@@ -853,10 +851,12 @@ def call_settle(
         vals_A.transferred,
         vals_A.locked_amounts.locked,
         vals_A.locksroot,
+        dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
         B,
         vals_B.transferred,
         vals_B.locked_amounts.locked,
         vals_B.locksroot,
+        dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
     )
     # call() raises TransactionFailed exception
     contract_function.call({"from": A})

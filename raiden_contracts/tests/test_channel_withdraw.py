@@ -212,7 +212,17 @@ def test_withdraw_wrong_state(
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
-            channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+            channel_identifier,
+            A,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
+            dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+            B,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
+            dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
         ),
         {"from": A},
     )

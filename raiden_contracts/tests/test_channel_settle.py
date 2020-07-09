@@ -77,10 +77,12 @@ def test_settle_no_bp_success(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant1_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
             participant2=B,
             participant2_transferred_amount=0,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
         ),
         {"from": A},
     )
@@ -134,12 +136,14 @@ def test_settle2_no_bp_success(
                 transferred_amount=0,
                 locked_amount=0,
                 locksroot=LOCKSROOT_OF_NO_LOCKS,
+                claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
             ),
             participant2_settlement=dict(
                 participant=B,
                 transferred_amount=0,
                 locked_amount=0,
                 locksroot=LOCKSROOT_OF_NO_LOCKS,
+                claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
             ),
         ),
         {"from": A},
@@ -196,20 +200,12 @@ def test_settle_channel_state(
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Balance & state tests
     settle_state_tests(
-        channel_identifier,
-        A,
-        vals_A,
-        B,
-        vals_B,
-        pre_balance_A,
-        pre_balance_B,
-        pre_balance_contract,
+        channel_identifier, A, vals_A, B, vals_B, pre_balance_A, pre_balance_B,
     )
 
     # Some manual checks for the final balances, in case the settlement algorithms
@@ -218,11 +214,9 @@ def test_settle_channel_state(
     # FIXME after setTotalWithdraw is implemented again
     post_balance_A = pre_balance_A + 33
     post_balance_B = pre_balance_B + 15
-    post_balance_contract = pre_balance_contract - 48
 
     assert custom_token.functions.balanceOf(A).call() == post_balance_A
     assert custom_token.functions.balanceOf(B).call() == post_balance_B
-    assert custom_token.functions.balanceOf(token_network.address).call() == post_balance_contract
 
 
 def test_settle_single_direct_transfer_for_closing_party(
@@ -272,7 +266,6 @@ def test_settle_single_direct_transfer_for_closing_party(
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     mine_blocks(web3, settle_timeout + 1)
     call_and_transact(
@@ -282,10 +275,12 @@ def test_settle_single_direct_transfer_for_closing_party(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant1_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
             participant2=B,
             participant2_transferred_amount=vals_B.transferred,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
         ),
         {"from": A},
     )
@@ -299,9 +294,6 @@ def test_settle_single_direct_transfer_for_closing_party(
     assert expected_settlement.participant2_balance == onchain_settlement.participant2_balance
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 6
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 5
-    assert (
-        custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract - 11
-    )
 
 
 def test_settle_single_direct_transfer_for_counterparty(
@@ -371,7 +363,6 @@ def test_settle_single_direct_transfer_for_counterparty(
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     mine_blocks(web3, settle_timeout + 1)
     call_and_transact(
@@ -381,10 +372,12 @@ def test_settle_single_direct_transfer_for_counterparty(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
             participant2=A,
             participant2_transferred_amount=vals_A.transferred,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
         ),
         {"from": B},
     )
@@ -398,9 +391,6 @@ def test_settle_single_direct_transfer_for_counterparty(
     assert expected_settlement.participant2_balance == onchain_settlement.participant2_balance
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 5
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 6
-    assert (
-        custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract - 11
-    )
 
 
 def test_settlement_with_unauthorized_token_transfer(
@@ -459,7 +449,6 @@ def test_settlement_with_unauthorized_token_transfer(
     # Fetch onchain balances after settlement
     post_balance_A = custom_token.functions.balanceOf(A).call()
     post_balance_B = custom_token.functions.balanceOf(B).call()
-    post_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # A has lost the externally_transferred_amount
     assert (
@@ -468,14 +457,6 @@ def test_settlement_with_unauthorized_token_transfer(
 
     # B's settlement works correctly
     assert pre_balance_B + settlement.participant2_balance == post_balance_B
-
-    # The externally_transferred_amount stays in the contract
-    assert (
-        pre_balance_contract
-        - settlement.participant1_balance
-        - settlement.participant2_balance
-        + externally_transferred_amount
-    ) == post_balance_contract
 
 
 def test_settle_wrong_state_fail(
@@ -724,10 +705,85 @@ def test_settle_channel_event(
             participant1_transferred_amount=5,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
             participant2=A,
             participant2_transferred_amount=10,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+        ),
+        {"from": A},
+    )
+
+    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))
+    ev_handler.check()
+
+
+def test_settle_virtual_channel(
+    web3: Web3,
+    get_accounts: Callable,
+    token_network: Contract,
+    create_channel: Callable,
+    create_balance_proof: Callable,
+    create_balance_proof_countersignature: Callable,
+    event_handler: Callable,
+) -> None:
+    """ Settle a channel with claims (no on-chain deposit) """
+    ev_handler = event_handler(token_network)
+    (A, B) = get_accounts(2)
+    deposit_A = 10
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+
+    channel_identifier = create_channel(A, B)[0]
+
+    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
+    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
+    balance_proof_update_signature_B = create_balance_proof_countersignature(
+        participant=B,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+        **balance_proof_A._asdict(),
+    )
+    close_sig_A = create_balance_proof_countersignature(
+        participant=A,
+        channel_identifier=channel_identifier,
+        msg_type=MessageTypeId.BALANCE_PROOF,
+        **balance_proof_B._asdict(),
+    )
+
+    call_and_transact(
+        token_network.functions.closeChannel(
+            channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
+        ),
+        {"from": A},
+    )
+    call_and_transact(
+        token_network.functions.updateNonClosingBalanceProof(
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A._asdict().values(),
+            balance_proof_update_signature_B,
+        ),
+        {"from": B},
+    )
+
+    mine_blocks(web3, settle_timeout + 1)
+    txn_hash = call_and_transact(
+        token_network.functions.settleChannel(
+            channel_identifier=channel_identifier,
+            participant1=B,
+            participant1_transferred_amount=5,
+            participant1_locked_amount=0,
+            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            participant2=A,
+            participant2_transferred_amount=10,
+            participant2_locked_amount=0,
+            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
+            participant2_claim=dict(
+                owner=A, partner=B, total_amount=deposit_A, signature=bytes([1] * 65)
+            ),
         ),
         {"from": A},
     )
