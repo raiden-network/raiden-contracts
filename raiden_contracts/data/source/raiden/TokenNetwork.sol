@@ -796,6 +796,9 @@ contract TokenNetwork is Utils {
             participant2_settlement
         ), "Balance hash 2 wrong");
 
+        require(verifyClaim(participant1_settlement, participant2), "Bad claim 1");
+        require(verifyClaim(participant2_settlement, participant1), "Bad claim 2");
+
         // We are calculating the final token amounts that need to be
         // transferred to the participants now and the amount of tokens that
         // need to remain locked in the contract. These tokens can be unlocked
@@ -1491,6 +1494,22 @@ contract TokenNetwork is Utils {
             settle_input.locked_amount,
             settle_input.locksroot
         ));
+    }
+
+    function verifyClaim(
+        SettleInput memory settle_input,
+        address partner
+    )
+        internal
+        view
+        returns (bool)
+    {
+        return (
+            settle_input.claim.owner == settle_input.participant &&
+            settle_input.claim.partner == partner
+            // TODO: virtual channel fixme
+            // && claim_signer == recoverAddressFromClaim(settle_input.claim)
+        );
     }
 
     function recoverAddressFromBalanceProof(
