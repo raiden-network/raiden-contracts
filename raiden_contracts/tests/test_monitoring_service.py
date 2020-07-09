@@ -181,10 +181,12 @@ def test_claimReward_with_settle_call(
                 10,  # participant_B_transferred_amount
                 0,  # participant_B_locked_amount
                 LOCKSROOT_OF_NO_LOCKS,  # participant_B_locksroot
+                dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
                 A,  # participant_A
                 20,  # participant_A_transferred_amount
                 0,  # participant_A_locked_amount
                 LOCKSROOT_OF_NO_LOCKS,  # participant_A_locksroot
+                dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
             )
         )
 

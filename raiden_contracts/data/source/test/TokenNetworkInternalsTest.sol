@@ -115,7 +115,9 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
 
     function getChannelAvailableDepositPublic(
         address participant1,
-        address participant2
+        address participant2,
+        Claim memory participant1_claim,
+        Claim memory participant2_claim
     )
         public
         view
@@ -127,7 +129,9 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         Participant storage participant2_state = channel.participants[participant2];
         return getChannelAvailableDeposit(
             participant1_state,
-            participant2_state
+            participant2_state,
+            participant1_claim,
+            participant2_claim
         );
     }
 }

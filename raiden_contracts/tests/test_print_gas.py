@@ -228,7 +228,17 @@ def print_gas_channel_cycle(
     mine_blocks(web3, settle_timeout)
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
-            channel_identifier, B, 5, locked_amount2, locksroot2, A, 10, locked_amount1, locksroot1
+            channel_identifier,
+            B,
+            5,
+            locked_amount2,
+            locksroot2,
+            dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            A,
+            10,
+            locked_amount1,
+            locksroot1,
+            dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
         )
     )
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".settleChannel")
