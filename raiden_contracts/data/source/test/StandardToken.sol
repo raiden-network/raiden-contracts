@@ -72,4 +72,12 @@ contract StandardToken is Token {
     function decimals() public virtual override view returns (uint8 decimals) {
         return 18;
     }
+
+    function mintFor(uint256 num, address target) public override {
+        balances[target] += num;
+        _total_supply += num;
+
+        require(balances[target] >= num, "Balance overflow");
+        // assert(_total_supply >= num);
+    }
 }
