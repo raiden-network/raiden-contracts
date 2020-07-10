@@ -137,6 +137,7 @@ contract TokenNetwork is Utils {
 
     struct SettleInput {
         address participant;
+        uint256 burnt_amount;
         uint256 transferred_amount;
         uint256 locked_amount;
         bytes32 locksroot;
@@ -732,6 +733,7 @@ contract TokenNetwork is Utils {
             channel_identifier,
             SettleInput({
                 participant: participant1,
+                burnt_amount: 0,
                 transferred_amount: participant1_transferred_amount,
                 locked_amount: participant1_locked_amount,
                 locksroot: participant1_locksroot,
@@ -739,6 +741,7 @@ contract TokenNetwork is Utils {
             }),
             SettleInput({
                 participant: participant2,
+                burnt_amount: 0,
                 transferred_amount: participant2_transferred_amount,
                 locked_amount: participant2_locked_amount,
                 locksroot: participant2_locksroot,
@@ -1490,6 +1493,7 @@ contract TokenNetwork is Utils {
         // Make sure the hash of the provided state is the same as the stored
         // balance_hash
         return participant.balance_hash == keccak256(abi.encodePacked(
+            settle_input.burnt_amount,
             settle_input.transferred_amount,
             settle_input.locked_amount,
             settle_input.locksroot

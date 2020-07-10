@@ -69,7 +69,12 @@ def test_close_wrong_signature(
 
     # Create balance proofs
     balance_proof = create_balance_proof(
-        channel_identifier, C, transferred_amount, 0, nonce, locksroot
+        channel_identifier=channel_identifier,
+        participant=C,
+        transferred_amount=transferred_amount,
+        locked_amount=0,
+        nonce=nonce,
+        locksroot=locksroot,
     )
     closing_signature_A = create_balance_proof_countersignature(
         participant=A,
@@ -172,12 +177,12 @@ def test_close_nonce_zero(
 
     # Create balance proofs
     balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B,
-        vals_B.transferred,
-        vals_B.locked_amounts.locked,
-        vals_B.nonce,
-        vals_B.locksroot,
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=vals_B.transferred,
+        locked_amount=vals_B.locked_amounts.locked,
+        nonce=vals_B.nonce,
+        locksroot=vals_B.locksroot,
     )
     close_sig_A = create_balance_proof_countersignature(
         participant=A,
@@ -439,12 +444,12 @@ def test_close_channel_state(
 
     # Create a balance proof
     balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B,
-        vals_B.transferred,
-        vals_B.locked_amounts.locked,
-        vals_B.nonce,
-        vals_B.locksroot,
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=vals_B.transferred,
+        locked_amount=vals_B.locked_amounts.locked,
+        nonce=vals_B.nonce,
+        locksroot=vals_B.locksroot,
     )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,

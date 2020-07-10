@@ -8,6 +8,7 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import LOCKSROOT_OF_NO_LOCKS
 from raiden_contracts.tests.utils.constants import EMPTY_ADDITIONAL_HASH, UINT256_MAX
+from raiden_contracts.utils.type_aliases import TokenAmount
 
 SettlementValues = namedtuple(
     "SettlementValues",
@@ -338,4 +339,27 @@ def get_participants_hash(A: HexAddress, B: HexAddress) -> bytes:
         keccak(A_canonical + B_canonical)
         if A_canonical < B_canonical
         else keccak(B_canonical + A_canonical)
+    )
+
+
+def get_settlement_input(
+    participant: HexAddress,
+    burnt_amount: TokenAmount = TokenAmount(0),  # noqa
+    transferred_amount: TokenAmount = TokenAmount(0),  # noqa
+    locked_amount: TokenAmount = TokenAmount(0),  # noqa
+    locksroot: bytes = LOCKSROOT_OF_NO_LOCKS,
+    claim: dict = None,
+    partner: HexAddress = None,
+) -> dict:
+    assert claim or partner
+    return dict(
+        participant=participant,
+        burnt_amount=burnt_amount,
+        transferred_amount=transferred_amount,
+        locked_amount=locked_amount,
+        locksroot=locksroot,
+        claim=(
+            claim
+            or dict(owner=participant, partner=partner, total_amount=0, signature=bytes([1] * 65))
+        ),
     )

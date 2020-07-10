@@ -27,6 +27,7 @@ from raiden_contracts.tests.utils import (
     get_settlement_amounts,
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
+from raiden_contracts.tests.utils.channel import get_settlement_input
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
@@ -131,20 +132,8 @@ def test_settle2_no_bp_success(
     call_and_transact(
         token_network.functions.settleChannel2(
             channel_identifier=channel_identifier,
-            participant1_settlement=dict(
-                participant=A,
-                transferred_amount=0,
-                locked_amount=0,
-                locksroot=LOCKSROOT_OF_NO_LOCKS,
-                claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
-            ),
-            participant2_settlement=dict(
-                participant=B,
-                transferred_amount=0,
-                locked_amount=0,
-                locksroot=LOCKSROOT_OF_NO_LOCKS,
-                claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
-            ),
+            participant1_settlement=get_settlement_input(A, partner=B),
+            participant2_settlement=get_settlement_input(B, partner=A),
         ),
         {"from": A},
     )
@@ -244,12 +233,12 @@ def test_settle_single_direct_transfer_for_closing_party(
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     balance_proof_B = create_balance_proof(
-        channel_identifier,
-        B,
-        vals_B.transferred,
-        vals_B.locked_amounts.locked,
-        1,
-        LOCKSROOT_OF_NO_LOCKS,
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=vals_B.transferred,
+        locked_amount=vals_B.locked_amounts.locked,
+        nonce=1,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
     )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
@@ -336,12 +325,12 @@ def test_settle_single_direct_transfer_for_counterparty(
     )
 
     balance_proof_A = create_balance_proof(
-        channel_identifier,
-        A,
-        vals_A.transferred,
-        vals_A.locked_amounts.locked,
-        1,
-        LOCKSROOT_OF_NO_LOCKS,
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=vals_A.transferred,
+        locked_amount=vals_A.locked_amounts.locked,
+        nonce=1,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
@@ -665,8 +654,22 @@ def test_settle_channel_event(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=1,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
+    )
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
@@ -736,8 +739,22 @@ def test_settle_virtual_channel(
 
     channel_identifier = create_channel(A, B)[0]
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 1, LOCKSROOT_OF_NO_LOCKS)
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, LOCKSROOT_OF_NO_LOCKS)
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=1,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
+    )
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=LOCKSROOT_OF_NO_LOCKS,
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,

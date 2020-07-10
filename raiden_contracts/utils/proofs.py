@@ -20,12 +20,15 @@ from .signature import sign
 
 
 def hash_balance_data(
-    transferred_amount: TokenAmount, locked_amount: TokenAmount, locksroot: Locksroot
+    burnt_amount: TokenAmount,
+    transferred_amount: TokenAmount,
+    locked_amount: TokenAmount,
+    locksroot: Locksroot,
 ) -> BalanceHash:
     # pylint: disable=E1120
     return Web3.solidityKeccak(
-        abi_types=["uint256", "uint256", "bytes32"],
-        values=[transferred_amount, locked_amount, locksroot],
+        abi_types=["uint256", "uint256", "uint256", "bytes32"],
+        values=[burnt_amount, transferred_amount, locked_amount, locksroot],
     )
 
 

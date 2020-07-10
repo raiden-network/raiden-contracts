@@ -177,7 +177,12 @@ def print_gas_channel_cycle(
     locked_amount2 = get_locked_amount(pending_transfers_tree2.transfers)
 
     balance_proof_A = create_balance_proof(
-        channel_identifier, A, 10, locked_amount1, 5, locksroot1
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=locked_amount1,
+        nonce=5,
+        locksroot=locksroot1,
     )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
@@ -185,7 +190,14 @@ def print_gas_channel_cycle(
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
         **balance_proof_A._asdict(),
     )
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, locked_amount2, 3, locksroot2)
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=locked_amount2,
+        nonce=3,
+        locksroot=locksroot2,
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
@@ -302,14 +314,18 @@ def print_gas_monitoring_service(
     channel_identifier = create_channel(A, B)[0]
 
     # create balance and reward proofs
-    balance_proof_A = create_balance_proof(channel_identifier, B, transferred_amount=10, nonce=1)
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier, participant=B, transferred_amount=10, nonce=1
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
         **balance_proof_A._asdict(),
     )
-    balance_proof_B = create_balance_proof(channel_identifier, A, transferred_amount=20, nonce=2)
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier, participant=A, transferred_amount=20, nonce=2
+    )
     non_closing_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
