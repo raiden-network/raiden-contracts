@@ -79,6 +79,10 @@ contract TokenNetwork is Utils {
         // This is a strictly monotonic value.
         uint256 withdrawn_amount;
 
+        // Total amount of tokens burnt by the participant in this channel.
+        // This is a strictly monotonic value.
+        uint256 burnt_amount;
+
         // This is a value set to true after the channel has been closed, only
         // if this is the participant who closed the channel.
         bool is_the_closer;
@@ -1226,7 +1230,9 @@ contract TokenNetwork is Utils {
             participant1_claim.total_amount +
             participant2_claim.total_amount -
             participant1_state.withdrawn_amount -
-            participant2_state.withdrawn_amount
+            participant2_state.withdrawn_amount -
+            participant1_state.burnt_amount -
+            participant2_state.burnt_amount
         );
     }
 
@@ -1350,13 +1356,13 @@ contract TokenNetwork is Utils {
         participant1_amount = getMaxPossibleReceivableAmount(
             SettlementData(
                 participant1_state.deposit + participant1_input.claim.total_amount,
-                participant1_state.withdrawn_amount,
+                participant1_state.withdrawn_amount + participant1_input.burnt_amount,
                 participant1_input.transferred_amount,
                 participant1_input.locked_amount
             ),
             SettlementData(
                 participant2_state.deposit + participant2_input.claim.total_amount,
-                participant2_state.withdrawn_amount,
+                participant2_state.withdrawn_amount + participant2_input.burnt_amount,
                 participant2_input.transferred_amount,
                 participant2_input.locked_amount
             )
@@ -1371,6 +1377,7 @@ contract TokenNetwork is Utils {
         // RmaxP2 = TAD - RmaxP1
         // Now it is safe to subtract without underflow
         participant2_amount = total_available_deposit - participant1_amount;
+        participant2_amount -= participant1_input.burnt_amount + participant2_input.burnt_amount;
 
         // SL2 = min(RmaxP1, L2)
         // S1 = RmaxP1 - SL2
@@ -1401,7 +1408,9 @@ contract TokenNetwork is Utils {
             participant1_amount +
             participant2_amount +
             participant1_input.locked_amount +
-            participant2_input.locked_amount
+            participant2_input.locked_amount +
+            participant1_input.burnt_amount +
+            participant2_input.burnt_amount
         ));
 
         return (

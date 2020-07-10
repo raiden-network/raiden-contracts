@@ -32,6 +32,7 @@ from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
 )
+from raiden_contracts.utils.type_aliases import TokenAmount
 
 
 def test_settle_no_bp_success(
@@ -750,6 +751,7 @@ def test_settle_virtual_channel(
     balance_proof_B = create_balance_proof(
         channel_identifier=channel_identifier,
         participant=B,
+        burnt_amount=1,
         transferred_amount=5,
         locked_amount=0,
         nonce=3,
@@ -787,23 +789,22 @@ def test_settle_virtual_channel(
 
     mine_blocks(web3, settle_timeout + 1)
     txn_hash = call_and_transact(
-        token_network.functions.settleChannel(
-            channel_identifier=channel_identifier,
-            participant1=B,
-            participant1_transferred_amount=5,
-            participant1_locked_amount=0,
-            participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
-            participant2=A,
-            participant2_transferred_amount=10,
-            participant2_locked_amount=0,
-            participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant2_claim=dict(
-                owner=A, partner=B, total_amount=deposit_A, signature=bytes([1] * 65)
+        token_network.functions.settleChannel2(
+            channel_identifier,
+            get_settlement_input(
+                participant=B,
+                burnt_amount=TokenAmount(1),
+                transferred_amount=TokenAmount(5),
+                claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            ),
+            get_settlement_input(
+                participant=A,
+                transferred_amount=TokenAmount(10),
+                claim=dict(owner=A, partner=B, total_amount=deposit_A, signature=bytes([1] * 65)),
             ),
         ),
         {"from": A},
     )
 
-    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))
+    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 4, 5))
     ev_handler.check()
