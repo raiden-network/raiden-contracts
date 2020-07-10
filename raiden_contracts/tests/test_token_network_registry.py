@@ -9,6 +9,7 @@ from web3.exceptions import ValidationError
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
     EVENT_TOKEN_NETWORK_CREATED,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -312,39 +313,51 @@ def test_create_erc20_token_network_call(
     # failures with addresses where no Token contract can be found
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            EMPTY_ADDRESS, channel_participant_deposit_limit, token_network_deposit_limit
+            EMPTY_ADDRESS,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            A, channel_participant_deposit_limit, token_network_deposit_limit
+            A, channel_participant_deposit_limit, token_network_deposit_limit, TEST_CLAIM_SIGNER
         ).call()
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            fake_token_contract, channel_participant_deposit_limit, token_network_deposit_limit
+            fake_token_contract,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call()
 
     # failures with invalid deposit limits
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, 0, token_network_deposit_limit
+            custom_token.address, 0, token_network_deposit_limit, TEST_CLAIM_SIGNER
         ).call({"from": DEPLOYER_ADDRESS})
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, 0
+            custom_token.address, channel_participant_deposit_limit, 0, TEST_CLAIM_SIGNER
         ).call({"from": DEPLOYER_ADDRESS})
 
     with pytest.raises(TransactionFailed):
         # fails because token_network_deposit_limit is smaller than
         # channel_participant_deposit_limit.
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, token_network_deposit_limit, channel_participant_deposit_limit
+            custom_token.address,
+            token_network_deposit_limit,
+            channel_participant_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call({"from": DEPLOYER_ADDRESS})
 
     # see a success to make sure above tests were meaningful
     call_and_transact(
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ),
         {"from": DEPLOYER_ADDRESS},
     )
@@ -406,14 +419,20 @@ def test_create_erc20_token_network_twice_fails(
 
     call_and_transact(
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ),
         {"from": DEPLOYER_ADDRESS},
     )
 
     with pytest.raises(TransactionFailed):
         token_network_registry_contract.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call({"from": DEPLOYER_ADDRESS})
 
 

@@ -10,6 +10,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_DEPRECATION_SWITCH,
     EVENT_TOKEN_NETWORK_CREATED,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -63,7 +64,10 @@ def test_deprecation_executor(
     # It can be deployed by anyone
     tx_hash = call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ),
         {"from": B},
     )
@@ -72,11 +76,17 @@ def test_deprecation_executor(
     # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call({"from": B})
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call({"from": deprecation_executor})
 
     tx_receipt = web3.eth.getTransactionReceipt(tx_hash)

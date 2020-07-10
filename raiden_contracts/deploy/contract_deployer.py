@@ -21,6 +21,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
+    TEST_CLAIM_SIGNER,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -228,7 +229,10 @@ class ContractDeployer(ContractVerifier):
         )
 
         command = token_network_registry.functions.createERC20TokenNetwork(
-            token_address, channel_participant_deposit_limit, token_network_deposit_limit
+            token_address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         )
         self.transact(command)
 

@@ -12,6 +12,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
     MessageTypeId,
@@ -103,6 +104,7 @@ def print_gas_token_network_deployment(
         _deprecation_executor=deprecation_executor,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
+        _claim_signer=TEST_CLAIM_SIGNER,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + " DEPLOYMENT")
 
@@ -120,7 +122,10 @@ def print_gas_token_network_create(
     registry = get_token_network_registry(**token_network_registry_constructor_args)
     txn_hash = call_and_transact(
         registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ),
         {"from": DEPLOYER_ADDRESS},
     )

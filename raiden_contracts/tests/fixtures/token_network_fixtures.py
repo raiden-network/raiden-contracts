@@ -11,6 +11,7 @@ from raiden_contracts.constants import (
     EVENT_TOKEN_NETWORK_CREATED,
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -44,7 +45,10 @@ def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Ca
     ) -> Contract:
         tx_hash = call_and_transact(
             token_network_registry.functions.createERC20TokenNetwork(
-                token_address, channel_participant_deposit_limit, token_network_deposit_limit
+                token_address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+                TEST_CLAIM_SIGNER,
             ),
             {"from": DEPLOYER_ADDRESS},
         )
@@ -156,4 +160,5 @@ def token_network_external(
         _deprecation_executor=DEPLOYER_ADDRESS,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
+        _claim_signer=TEST_CLAIM_SIGNER,
     )
