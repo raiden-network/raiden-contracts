@@ -71,7 +71,8 @@ contract TokenNetworkRegistry is Utils {
     function createERC20TokenNetwork(
         address _token_address,
         uint256 _channel_participant_deposit_limit,
-        uint256 _token_network_deposit_limit
+        uint256 _token_network_deposit_limit,
+        address _claim_signer
     )
         external
         canCreateTokenNetwork
@@ -93,7 +94,8 @@ contract TokenNetworkRegistry is Utils {
             settlement_timeout_max,
             deprecation_executor,
             _channel_participant_deposit_limit,
-            _token_network_deposit_limit
+            _token_network_deposit_limit,
+            _claim_signer
         );
 
         token_network_address = address(token_network);

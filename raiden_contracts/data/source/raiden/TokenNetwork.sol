@@ -28,6 +28,9 @@ contract TokenNetwork is Utils {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
+    // All claims must be signed by this address to be considered valid
+    address claim_signer;
+
     uint256 constant public MAX_SAFE_UINT256 = (
         115792089237316195423570985008687907853269984665640564039457584007913129639935
     );
@@ -245,7 +248,8 @@ contract TokenNetwork is Utils {
         uint256 _settlement_timeout_max,
         address _deprecation_executor,
         uint256 _channel_participant_deposit_limit,
-        uint256 _token_network_deposit_limit
+        uint256 _token_network_deposit_limit,
+        address _claim_signer
     )
         public
     {
@@ -268,6 +272,7 @@ contract TokenNetwork is Utils {
         settlement_timeout = _settlement_timeout_min;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
+        claim_signer = _claim_signer;
 
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);

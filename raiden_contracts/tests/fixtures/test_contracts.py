@@ -4,7 +4,11 @@ import pytest
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
+from raiden_contracts.constants import (
+    TEST_CLAIM_SIGNER,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
+)
 
 
 @pytest.fixture()
@@ -40,6 +44,7 @@ def token_network_test_signatures(
         _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _claim_signer=TEST_CLAIM_SIGNER,
     )
 
 
@@ -57,4 +62,5 @@ def token_network_test_utils(
         _chain_id=web3.eth.chainId,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _claim_signer=TEST_CLAIM_SIGNER,
     )

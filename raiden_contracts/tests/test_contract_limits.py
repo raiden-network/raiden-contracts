@@ -9,6 +9,7 @@ from web3.contract import Contract
 from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
     ParticipantInfoIndex,
@@ -39,22 +40,34 @@ def test_register_three_but_not_four(
     token3 = custom_token_factory()
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token0.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token0.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         )
     )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token1.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token1.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         )
     )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token2.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token2.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         )
     )
     with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
-            token3.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token3.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+            TEST_CLAIM_SIGNER,
         ).call()
 
 

@@ -48,6 +48,7 @@ EVENT_TOKEN_NETWORK_CREATED = "TokenNetworkCreated"
 
 # TokenNetwork
 EVENT_DEPRECATION_SWITCH = "DeprecationSwitch"
+TEST_CLAIM_SIGNER = HexAddress(HexStr("0x" + bytes(range(20)).hex()))
 
 # SecretRegistry
 EVENT_SECRET_REVEALED = "SecretRevealed"

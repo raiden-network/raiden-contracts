@@ -7,10 +7,11 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
+    TEST_CLAIM_SIGNER,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import NOT_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.constants import UINT256_MAX
 
 
 def test_constructor_call(
@@ -26,208 +27,11 @@ def test_constructor_call(
 
     (A, deprecation_executor) = get_accounts(2)
     chain_id = web3.eth.chainId
-    settle_min = TEST_SETTLE_TIMEOUT_MIN
-    settle_max = TEST_SETTLE_TIMEOUT_MAX
+    claim_signer = TEST_CLAIM_SIGNER
 
     # failure with no arguments
     with pytest.raises(TypeError):
         get_token_network([])
-
-    # failures with integers instead of a Token address
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                3,
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                0,
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with non-address strings instead of a Token address
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                "",
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                NOT_ADDRESS,
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with integers instead of a SecretRegistry address
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                3,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                0,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with non-address strings instead of a SecretRegistry address
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                "",
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                NOT_ADDRESS,
-                chain_id,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid chain_id
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                "",
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                -3,
-                settle_min,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid settle_min
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                "",
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                -3,
-                settle_max,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid settle_max
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                "",
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                chain_id,
-                settle_min,
-                -3,
-                deprecation_executor,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
 
     # failures with Ethereum addresses that don't contain a Token contract
     with pytest.raises(TransactionFailed):
@@ -240,6 +44,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
@@ -251,6 +56,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
@@ -262,6 +68,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failures with Ethereum addresses that don't contain the SecretRegistry contract
@@ -275,6 +82,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
     with pytest.raises(TransactionFailed):
         get_token_network(
@@ -286,6 +94,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with chain_id zero
@@ -299,6 +108,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with a timeout min and max swapped
@@ -312,6 +122,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with settle_timeout_min being zero
@@ -325,6 +136,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with settle_timeout_max being zero
@@ -338,6 +150,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with channel_participant_deposit_limit being zero
@@ -351,6 +164,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=token_network_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # failure with both limits being zero
@@ -364,6 +178,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=0,
+            _claim_signer=claim_signer,
         )
 
     # failure with channel_participant_deposit_limit being bigger than
@@ -378,6 +193,7 @@ def test_constructor_call(
             _deprecation_executor=deprecation_executor,
             _channel_participant_deposit_limit=token_network_deposit_limit,
             _token_network_deposit_limit=channel_participant_deposit_limit,
+            _claim_signer=claim_signer,
         )
 
     # see a success to make sure that the above failures are meaningful
@@ -390,6 +206,7 @@ def test_constructor_call(
         _deprecation_executor=deprecation_executor,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
+        _claim_signer=claim_signer,
     )
 
 

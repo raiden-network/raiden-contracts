@@ -9,7 +9,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         address _secret_registry,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        uint256 _settlement_timeout_max,
+        address _claim_signer
     )
         public
         TokenNetwork(
@@ -20,7 +21,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
-            MAX_SAFE_UINT256
+            MAX_SAFE_UINT256,
+            _claim_signer
         )
     {
 
@@ -142,7 +144,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         address _secret_registry,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        uint256 _settlement_timeout_max,
+        address _claim_signer
     )
         TokenNetwork(
             _token_address,
@@ -152,7 +155,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
-            MAX_SAFE_UINT256
+            MAX_SAFE_UINT256,
+            _claim_signer
         )
         public
     {
@@ -252,7 +256,8 @@ contract TokenNetworkUtilsTest is TokenNetwork {
         address _secret_registry,
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        uint256 _settlement_timeout_max,
+        address _claim_signer
     )
         TokenNetwork(
             _token_address,
@@ -262,7 +267,8 @@ contract TokenNetworkUtilsTest is TokenNetwork {
             _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
-            MAX_SAFE_UINT256
+            MAX_SAFE_UINT256,
+            _claim_signer
         )
         public
     {
