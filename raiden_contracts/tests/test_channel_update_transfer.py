@@ -52,7 +52,14 @@ def test_update_call(
         {"from": A},
     )
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
@@ -154,7 +161,14 @@ def test_update_nonexistent_fail(
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.NONEXISTENT
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
@@ -185,7 +199,14 @@ def test_update_notclosed_fail(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
@@ -223,8 +244,22 @@ def test_update_wrong_nonce_fail(
     deposit_A = 20
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=fake_bytes(32, "02"),
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
@@ -265,7 +300,12 @@ def test_update_wrong_nonce_fail(
             balance_proof_update_signature_B,
         ).call({"from": Delegate})
     balance_proof_A_same_nonce = create_balance_proof(
-        channel_identifier, A, 12, 2, balance_proof_A.nonce, fake_bytes(32, "03")
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=12,
+        locked_amount=2,
+        nonce=balance_proof_A.nonce,
+        locksroot=fake_bytes(32, "03"),
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
@@ -277,7 +317,12 @@ def test_update_wrong_nonce_fail(
         ).call({"from": Delegate})
 
     balance_proof_A_lower_nonce = create_balance_proof(
-        channel_identifier, A, 10, 0, 4, fake_bytes(32, "02")
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=4,
+        locksroot=fake_bytes(32, "02"),
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
@@ -314,9 +359,22 @@ def test_update_wrong_signatures(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
 
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
     balance_proof_A_fake = create_balance_proof(
-        channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"), signer=C
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+        signer=C,
     )
 
     balance_proof_update_signature_B = create_balance_proof_countersignature(
@@ -396,8 +454,22 @@ def test_update_channel_state(
     deposit_A = 20
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=fake_bytes(32, "02"),
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
@@ -526,8 +598,22 @@ def test_update_not_allowed_after_settlement_period(
     deposit_A = 20
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
-    balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=5,
+        locksroot=fake_bytes(32, "02"),
+    )
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=fake_bytes(32, "02"),
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
@@ -572,7 +658,14 @@ def test_update_not_allowed_for_the_closing_address(
     channel_deposit(channel_identifier, A, deposit_A, B)
 
     # Some balance proof from B
-    balance_proof_B_0 = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
+    balance_proof_B_0 = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+        locksroot=fake_bytes(32, "02"),
+    )
     closing_sig_A_0 = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
@@ -581,7 +674,14 @@ def test_update_not_allowed_for_the_closing_address(
     )
 
     # Later balance proof, higher transferred amount, higher nonce
-    balance_proof_B_1 = create_balance_proof(channel_identifier, B, 10, 0, 4, fake_bytes(32, "02"))
+    balance_proof_B_1 = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=10,
+        locked_amount=0,
+        nonce=4,
+        locksroot=fake_bytes(32, "02"),
+    )
 
     # B's signature on the update message is valid
     balance_proof_update_signature_B = create_balance_proof_countersignature(
@@ -663,7 +763,14 @@ def test_update_invalid_balance_proof_arguments(
 
     #  Create valid balance_proof
     balance_proof_valid = balance_proof(
-        *create_balance_proof(channel_identifier, A, 10, 0, 2, fake_bytes(32, "02"))
+        *create_balance_proof(
+            channel_identifier=channel_identifier,
+            participant=A,
+            transferred_amount=10,
+            locked_amount=0,
+            nonce=2,
+            locksroot=fake_bytes(32, "02"),
+        )
         ._asdict()
         .values()
     )
@@ -681,12 +788,12 @@ def test_update_invalid_balance_proof_arguments(
     #  Create balance_proof for invalid token_network
     balance_proof_invalid_token_network = balance_proof(
         *create_balance_proof(
-            channel_identifier,
-            A,
-            10,
-            0,
-            2,
-            fake_bytes(32, "02"),
+            channel_identifier=channel_identifier,
+            participant=A,
+            transferred_amount=10,
+            locked_amount=0,
+            nonce=2,
+            locksroot=fake_bytes(32, "02"),
             other_token_network=token_network_test_utils,
         )
         ._asdict()
@@ -714,7 +821,14 @@ def test_update_invalid_balance_proof_arguments(
 
     #  Create balance_proof for invalid channel participant
     balance_proof_invalid_channel_participant = balance_proof(
-        *create_balance_proof(channel_identifier, C, 10, 0, 2, fake_bytes(32, "02"))
+        *create_balance_proof(
+            channel_identifier=channel_identifier,
+            participant=C,
+            transferred_amount=10,
+            locked_amount=0,
+            nonce=2,
+            locksroot=fake_bytes(32, "02"),
+        )
         ._asdict()
         .values()
     )
@@ -739,7 +853,14 @@ def test_update_invalid_balance_proof_arguments(
 
     #  Create balance_proof for invalid channel identifier
     balance_proof_invalid_channel_identifier = balance_proof(
-        *create_balance_proof(channel_identifier + 1, A, 10, 0, 2, fake_bytes(32, "02"))
+        *create_balance_proof(
+            channel_identifier=channel_identifier + 1,
+            participant=A,
+            transferred_amount=10,
+            locked_amount=0,
+            nonce=2,
+            locksroot=fake_bytes(32, "02"),
+        )
         ._asdict()
         .values()
     )
@@ -901,7 +1022,13 @@ def test_update_signature_on_invalid_arguments(
     #  Create valid balance_proof
     balance_proof_valid = balance_proof(
         *create_balance_proof(
-            channel_identifier, A, 10, 0, 2, fake_bytes(32, "02"), fake_bytes(32, "02")
+            channel_identifier=channel_identifier,
+            participant=A,
+            transferred_amount=10,
+            locked_amount=0,
+            nonce=2,
+            locksroot=fake_bytes(32, "02"),
+            additional_hash=fake_bytes(32, "02"),
         )
         ._asdict()
         .values()
@@ -1068,14 +1195,26 @@ def test_update_channel_event(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
     channel_deposit(channel_identifier, B, deposit_B, A)
-    balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3)
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=5,
+        locked_amount=0,
+        nonce=3,
+    )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
         channel_identifier=channel_identifier,
         msg_type=MessageTypeId.BALANCE_PROOF,
         **balance_proof_B._asdict(),
     )
-    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 1)
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=2,
+        locked_amount=0,
+        nonce=1,
+    )
     balance_proof_update_signature_B = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,
@@ -1108,7 +1247,13 @@ def test_update_channel_event(
     ev_handler.check()
 
     # Test event for second balance proof update
-    balance_proof_A2 = create_balance_proof(channel_identifier, A, 4, 0, 2)
+    balance_proof_A2 = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=4,
+        locked_amount=0,
+        nonce=2,
+    )
     balance_proof_update_signature_B2 = create_balance_proof_countersignature(
         participant=B,
         channel_identifier=channel_identifier,

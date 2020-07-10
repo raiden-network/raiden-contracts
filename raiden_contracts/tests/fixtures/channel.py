@@ -203,22 +203,22 @@ def close_and_update_channel(
         additional_hash2 = fake_bytes(32)
 
         balance_proof_1 = create_balance_proof(
-            channel_identifier,
-            participant1,
-            participant1_values.transferred,
-            participant1_values.locked_amounts.locked,
-            nonce1,
-            participant1_values.locksroot,
-            additional_hash1,
+            channel_identifier=channel_identifier,
+            participant=participant1,
+            transferred_amount=participant1_values.transferred,
+            locked_amount=participant1_values.locked_amounts.locked,
+            nonce=nonce1,
+            locksroot=participant1_values.locksroot,
+            additional_hash=additional_hash1,
         )
         balance_proof_2 = create_balance_proof(
-            channel_identifier,
-            participant2,
-            participant2_values.transferred,
-            participant2_values.locked_amounts.locked,
-            nonce2,
-            participant2_values.locksroot,
-            additional_hash2,
+            channel_identifier=channel_identifier,
+            participant=participant2,
+            transferred_amount=participant2_values.transferred,
+            locked_amount=participant2_values.locked_amounts.locked,
+            nonce=nonce2,
+            locksroot=participant2_values.locksroot,
+            additional_hash=additional_hash2,
         )
         balance_proof_close_signature_1 = create_balance_proof_countersignature(
             participant=participant1,
@@ -638,6 +638,7 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
     def get(
         channel_identifier: ChannelID,
         participant: HexAddress,
+        burnt_amount: TokenAmount = TokenAmount(0),  # noqa
         transferred_amount: TokenAmount = TokenAmount(0),  # noqa
         locked_amount: TokenAmount = TokenAmount(0),  # noqa
         nonce: Nonce = Nonce(0),  # noqa
@@ -652,18 +653,20 @@ def create_balance_proof(token_network: Contract, get_private_key: Callable) -> 
         locksroot = locksroot or LOCKSROOT_OF_NO_LOCKS
         additional_hash = additional_hash or AdditionalHash(b"\x00" * 32)
 
-        balance_hash = hash_balance_data(transferred_amount, locked_amount, locksroot)
+        balance_hash = hash_balance_data(
+            burnt_amount, transferred_amount, locked_amount, locksroot
+        )
 
         signature = sign_balance_proof(
-            private_key,
-            _token_network.address,
-            _token_network.functions.chain_id().call(),
-            channel_identifier,
-            MessageTypeId.BALANCE_PROOF,
-            balance_hash,
-            nonce,
-            additional_hash,
-            v,
+            privatekey=private_key,
+            token_network_address=_token_network.address,
+            chain_identifier=_token_network.functions.chain_id().call(),
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF,
+            balance_hash=balance_hash,
+            nonce=nonce,
+            additional_hash=additional_hash,
+            v=v,
         )
         # The keys of the dictionary correspond to the parameters of
         # create_balance_proof_countersignature.

@@ -49,7 +49,13 @@ def test_verify(
     address = signature_test_contract.functions.verify(balance_proof_hash, signature).call()
     assert address == A
 
-    balance_proof_B = create_balance_proof(channel_identifier, B, 0, 0, 0)
+    balance_proof_B = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=0,
+        locked_amount=0,
+        nonce=0,
+    )
     signature = balance_proof_B.original_signature
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
@@ -99,7 +105,13 @@ def test_ecrecover_output(
     """ ecrecover returns the address that was used to sign a balance proof """
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
-    balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
+    balance_proof_A = create_balance_proof(
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=2,
+        locked_amount=0,
+        nonce=3,
+    )
     signature = balance_proof_A.original_signature
     r = signature[:32]
     s = signature[32:64]
