@@ -219,7 +219,6 @@ def test_token_network_variables(
     assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
     assert max_safe_uint256 == UINT256_MAX
 
-    assert token_network.functions.channel_counter().call() == 0
     assert token_network.functions.signature_prefix().call() == "\x19Ethereum Signed Message:\n"
 
 
