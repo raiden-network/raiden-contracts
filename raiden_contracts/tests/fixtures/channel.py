@@ -8,7 +8,12 @@ from web3 import Web3
 from web3.contract import Contract
 from web3.types import Nonce
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState, MessageTypeId
+from raiden_contracts.constants import (
+    TEST_CLAIM_PRIVKEY,
+    TEST_SETTLE_TIMEOUT_MIN,
+    ChannelState,
+    MessageTypeId,
+)
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
@@ -29,6 +34,7 @@ from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
     sign_balance_proof_message,
+    sign_claim,
     sign_cooperative_settle_message,
     sign_withdraw_message,
 )
@@ -36,8 +42,10 @@ from raiden_contracts.utils.type_aliases import (
     AdditionalHash,
     BalanceHash,
     BlockExpiration,
+    ChainID,
     ChannelID,
     Locksroot,
+    PrivateKey,
     Signature,
     TokenAmount,
 )
@@ -261,9 +269,9 @@ def close_and_update_channel(
 @pytest.fixture()
 def create_settled_channel(
     web3: Web3,
-    token_network: Contract,
     create_channel_and_deposit: Callable,
     close_and_update_channel: Callable,
+    call_settle: Callable,
 ) -> Callable:
     def get(
         participant1: HexAddress,
@@ -307,7 +315,6 @@ def create_settled_channel(
         mine_blocks(web3, settle_timeout)
 
         call_settle(
-            token_network,
             channel_identifier,
             participant1,
             participant1_values,
@@ -813,55 +820,83 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
     return get
 
 
-def call_settle(
-    token_network: Contract,
-    channel_identifier: int,
-    A: HexAddress,
-    vals_A: ChannelValues,
-    B: HexAddress,
-    vals_B: ChannelValues,
-) -> None:
-    A_total_transferred = vals_A.transferred + vals_A.locked_amounts.locked
-    B_total_transferred = vals_B.transferred + vals_B.locked_amounts.locked
-    assert B_total_transferred >= A_total_transferred
+@pytest.fixture
+def call_settle(token_network: Contract, make_claim: Callable,) -> Callable:
+    def get(
+        channel_identifier: int,
+        A: HexAddress,
+        vals_A: ChannelValues,
+        B: HexAddress,
+        vals_B: ChannelValues,
+    ) -> None:
+        A_total_transferred = vals_A.transferred + vals_A.locked_amounts.locked
+        B_total_transferred = vals_B.transferred + vals_B.locked_amounts.locked
+        assert B_total_transferred >= A_total_transferred
 
-    if A_total_transferred != B_total_transferred:
-        with pytest.raises(TransactionFailed):
-            call_and_transact(
-                token_network.functions.settleChannel(
-                    channel_identifier=channel_identifier,
-                    participant1=B,
-                    participant1_transferred_amount=vals_B.transferred,
-                    participant1_locked_amount=0,
-                    participant1_locksroot=vals_B.locksroot,
-                    participant1_claim=dict(
-                        owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+        if A_total_transferred != B_total_transferred:
+            with pytest.raises(TransactionFailed):
+                call_and_transact(
+                    token_network.functions.settleChannel(
+                        channel_identifier=channel_identifier,
+                        participant1=B,
+                        participant1_transferred_amount=vals_B.transferred,
+                        participant1_locked_amount=0,
+                        participant1_locksroot=vals_B.locksroot,
+                        participant1_claim=dict(
+                            owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+                        ),
+                        participant2=A,
+                        participant2_transferred_amount=0,
+                        participant2_locked_amount=0,
+                        participant2_locksroot=vals_A.locksroot,
+                        participant2_claim=dict(
+                            owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+                        ),
                     ),
-                    participant2=A,
-                    participant2_transferred_amount=0,
-                    participant2_locked_amount=0,
-                    participant2_locksroot=vals_A.locksroot,
-                    participant2_claim=dict(
-                        owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
-                    ),
-                ),
-                {"from": A},
-            )
+                    {"from": A},
+                )
 
-    contract_function = token_network.functions.settleChannel(
-        channel_identifier,
-        A,
-        vals_A.transferred,
-        vals_A.locked_amounts.locked,
-        vals_A.locksroot,
-        dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
-        B,
-        vals_B.transferred,
-        vals_B.locked_amounts.locked,
-        vals_B.locksroot,
-        dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
-    )
-    # call() raises TransactionFailed exception
-    contract_function.call({"from": A})
-    # transact() changes the chain state
-    call_and_transact(contract_function, {"from": A})
+        contract_function = token_network.functions.settleChannel(
+            channel_identifier,
+            A,
+            vals_A.transferred,
+            vals_A.locked_amounts.locked,
+            vals_A.locksroot,
+            make_claim(owner=A, partner=B, total_amount=0),
+            B,
+            vals_B.transferred,
+            vals_B.locked_amounts.locked,
+            vals_B.locksroot,
+            make_claim(owner=B, partner=A, total_amount=0),
+        )
+        # call() raises TransactionFailed exception
+        contract_function.call({"from": A})
+        # transact() changes the chain state
+        call_and_transact(contract_function, {"from": A})
+
+    return get
+
+
+@pytest.fixture()
+def make_claim(token_network: Contract, web3: Web3) -> Callable:
+    def get(
+        owner: HexAddress,
+        partner: HexAddress,
+        total_amount: TokenAmount = TokenAmount(0),  # noqa
+        signing_privkey: PrivateKey = TEST_CLAIM_PRIVKEY,
+    ) -> dict:
+        return dict(
+            owner=owner,
+            partner=partner,
+            total_amount=total_amount,
+            signature=sign_claim(
+                privatekey=signing_privkey,
+                token_network_address=token_network.address,
+                chain_id=ChainID(web3.eth.chainId),
+                owner=owner,
+                partner=partner,
+                total_amount=total_amount,
+            ),
+        )
+
+    return get

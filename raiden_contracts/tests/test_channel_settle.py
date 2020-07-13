@@ -12,7 +12,6 @@ from raiden_contracts.constants import (
     ChannelState,
     MessageTypeId,
 )
-from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
@@ -147,11 +146,11 @@ def test_settle_channel_state(
     web3: Web3,
     get_accounts: Callable,
     custom_token: Contract,
-    token_network: Contract,
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
+    call_settle: Callable,
 ) -> None:
     """ settleChannel() with some balance proofs """
     (A, B) = get_accounts(2)
@@ -191,7 +190,7 @@ def test_settle_channel_state(
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     # Balance & state tests
     settle_state_tests(
@@ -218,6 +217,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
+    make_claim: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that called close.
@@ -265,12 +265,12 @@ def test_settle_single_direct_transfer_for_closing_party(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant1_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+            participant1_claim=make_claim(owner=A, partner=B),
             participant2=B,
             participant2_transferred_amount=vals_B.transferred,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant2_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            participant2_claim=make_claim(owner=B, partner=A),
         ),
         {"from": A},
     )
@@ -296,6 +296,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    make_claim: Callable,
 ) -> None:
     """ Test settle of a channel with one direct transfer to the participant
     that did not call close.
@@ -362,12 +363,12 @@ def test_settle_single_direct_transfer_for_counterparty(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            participant1_claim=make_claim(owner=B, partner=A),
             participant2=A,
             participant2_transferred_amount=vals_A.transferred,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant2_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+            participant2_claim=make_claim(owner=A, partner=B),
         ),
         {"from": B},
     )
@@ -392,6 +393,7 @@ def test_settlement_with_unauthorized_token_transfer(
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
+    call_settle: Callable,
 ) -> None:
     """ A participant transfers some tokens to the contract and so loses them """
     externally_transferred_amount = 5
@@ -434,7 +436,7 @@ def test_settlement_with_unauthorized_token_transfer(
     settlement = get_settlement_amounts(vals_A, vals_B)
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     # Fetch onchain balances after settlement
     post_balance_A = custom_token.functions.balanceOf(A).call()
@@ -456,6 +458,7 @@ def test_settle_wrong_state_fail(
     create_channel_and_deposit: Callable,
     get_block: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    call_settle: Callable,
 ) -> None:
     """ settleChannel() fails on OPENED state and on CLOSED state before the settlement block """
     (A, B) = get_accounts(2)
@@ -470,7 +473,7 @@ def test_settle_wrong_state_fail(
     assert settle_timeout == TEST_SETTLE_TIMEOUT_MIN
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     txn_hash = call_and_transact(
@@ -495,13 +498,13 @@ def test_settle_wrong_state_fail(
     assert web3.eth.blockNumber < settle_block_number
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     assert web3.eth.blockNumber > settle_block_number
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
@@ -512,10 +515,10 @@ def test_settle_wrong_state_fail(
 def test_settle_wrong_balance_hash(
     web3: Web3,
     get_accounts: Callable,
-    token_network: Contract,
     create_channel_and_deposit: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> None:
     """ Calling settleChannel() with various wrong arguments and see failures """
     (A, B) = get_accounts(2)
@@ -558,82 +561,82 @@ def test_settle_wrong_balance_hash(
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
+        call_settle(channel_identifier, B, vals_A, A, vals_B)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.transferred += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = UINT256_MAX
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+        call_settle(channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locked_amounts.claimable_locked += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked_amounts.claimable_locked = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked_amounts.unclaimable_locked = 0
     vals_A_fail.locked_amounts.claimable_locked = UINT256_MAX
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
+        call_settle(channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locksroot = fake_bytes(32, "01")
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
+        call_settle(channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.transferred += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.transferred = 0
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+        call_settle(channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.transferred = UINT256_MAX
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locked_amounts.claimable_locked += 1
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locked_amounts.claimable_locked = 0
     with pytest.raises(AssertionError):
-        call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
+        call_settle(channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.locked_amounts.unclaimable_locked = 0
     vals_B_fail.locked_amounts.claimable_locked = UINT256_MAX
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locksroot = fake_bytes(32, "01")
     with pytest.raises(TransactionFailed):
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
+        call_settle(channel_identifier, A, vals_A, B, vals_B_fail)
 
     # Channel is settled
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
 
 def test_settle_channel_event(
@@ -645,6 +648,7 @@ def test_settle_channel_event(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     event_handler: Callable,
+    make_claim: Callable,
 ) -> None:
     """ A successful settleChannel() call causes a SETTLED event """
     ev_handler = event_handler(token_network)
@@ -709,12 +713,12 @@ def test_settle_channel_event(
             participant1_transferred_amount=5,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant1_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            participant1_claim=make_claim(owner=B, partner=A),
             participant2=A,
             participant2_transferred_amount=10,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant2_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+            participant2_claim=make_claim(owner=A, partner=B),
         ),
         {"from": A},
     )
@@ -731,6 +735,7 @@ def test_settle_virtual_channel(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     event_handler: Callable,
+    make_claim: Callable,
 ) -> None:
     """ Settle a channel with claims (no on-chain deposit) """
     ev_handler = event_handler(token_network)
@@ -795,12 +800,12 @@ def test_settle_virtual_channel(
                 participant=B,
                 burnt_amount=TokenAmount(1),
                 transferred_amount=TokenAmount(5),
-                claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+                claim=make_claim(owner=B, partner=A, total_amount=0),
             ),
             get_settlement_input(
                 participant=A,
                 transferred_amount=TokenAmount(10),
-                claim=dict(owner=A, partner=B, total_amount=deposit_A, signature=bytes([1] * 65)),
+                claim=make_claim(owner=A, partner=B, total_amount=deposit_A),
             ),
         ),
         {"from": A},

@@ -1522,12 +1522,39 @@ contract TokenNetwork is Utils {
         view
         returns (bool)
     {
+        if (settle_input.claim.total_amount == 0) {
+            // Empty claims may be created at will without valid signature.
+            // They serve as a dummy value when no claim exist, since solidity
+            // does not allow us to pass a null value in that case.
+            return true;
+        }
         return (
             settle_input.claim.owner == settle_input.participant &&
-            settle_input.claim.partner == partner
-            // TODO: virtual channel fixme
-            // && claim_signer == recoverAddressFromClaim(settle_input.claim)
+            settle_input.claim.partner == partner &&
+            claim_signer == recoverAddressFromClaim(settle_input.claim)
         );
+    }
+
+    function recoverAddressFromClaim(
+        Claim memory claim
+    )
+        internal view
+        returns (address signer_address)
+    {
+        // Length of the actual message: 20 + 32 + 20 + 20 + 32
+        string memory message_length = "124";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            claim.owner,
+            claim.partner,
+            claim.total_amount
+        ));
+
+        return ECVerify.ecverify(message_hash, claim.signature);
     }
 
     function recoverAddressFromBalanceProof(

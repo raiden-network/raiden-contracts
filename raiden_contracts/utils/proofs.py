@@ -144,6 +144,22 @@ def pack_reward_proof(
     )
 
 
+def pack_claim(
+    token_network_address: HexAddress,
+    chain_id: ChainID,
+    owner: HexAddress,
+    partner: HexAddress,
+    total_amount: TokenAmount,
+) -> bytes:
+    return (
+        Web3.toBytes(hexstr=token_network_address)
+        + encode_single("uint256", chain_id)
+        + Web3.toBytes(hexstr=owner)
+        + Web3.toBytes(hexstr=partner)
+        + encode_single("uint256", total_amount)
+    )
+
+
 def sign_balance_proof(
     privatekey: PrivateKey,
     token_network_address: HexAddress,
@@ -291,3 +307,24 @@ def sign_one_to_n_iou(
         + encode_single("uint256", expiration_block)
     )
     return sign(privkey=privatekey, msg_hash=iou_hash, v=v)
+
+
+def sign_claim(
+    privatekey: PrivateKey,
+    token_network_address: HexAddress,
+    chain_id: ChainID,
+    owner: HexAddress,
+    partner: HexAddress,
+    total_amount: TokenAmount,
+    v: int = 27,
+) -> bytes:
+    claim_hash = eth_sign_hash_message(
+        pack_claim(
+            token_network_address=token_network_address,
+            chain_id=chain_id,
+            owner=owner,
+            partner=partner,
+            total_amount=total_amount,
+        )
+    )
+    return sign(privkey=privatekey, msg_hash=claim_hash, v=v)
