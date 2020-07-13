@@ -506,6 +506,8 @@ contract TokenNetwork is Utils {
 
         channel.state = ChannelState.Closed;
         channel.participants[closing_participant].is_the_closer = true;
+        channel.participants[non_closing_participant].is_the_closer = false;
+        channel.participants[non_closing_participant].nonce = 0;
 
         // This is the block number at which the channel can be settled.
         channel.settle_block_number = settlement_timeout + block.number;
@@ -789,10 +791,10 @@ contract TokenNetwork is Utils {
             participant2_settlement
         );
 
-        // Remove the channel data from storage
-        delete channel.participants[participant1];
-        delete channel.participants[participant2];
-        delete channels[channel_identifier];
+        // Update channel state
+        participant1_state.withdrawn_amount += participant1_settlement.transferred_amount;
+        participant2_state.withdrawn_amount += participant2_settlement.transferred_amount;
+        channel.state = ChannelState.NonExistent;
 
         // Store balance data needed for `unlock`, including the calculated
         // locked amounts remaining in the contract.
@@ -1044,7 +1046,7 @@ contract TokenNetwork is Utils {
         // need to store the last known balance proof data.
         // This line prevents Monitoring Services from getting rewards
         // again and again using the same reward proof.
-        require(nonce > participant_state.nonce);
+        require(nonce > participant_state.nonce, "Nonce did not increase");
 
         participant_state.nonce = nonce;
         participant_state.balance_hash = balance_hash;

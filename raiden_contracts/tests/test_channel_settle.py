@@ -3,6 +3,7 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 
@@ -741,75 +742,88 @@ def test_settle_virtual_channel(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    burnt_B = 1
+    transferred_A = 10
+    transferred_B = 5
+    nonce_A = 1
+    nonce_B = 3
 
     channel_identifier = create_channel(A, B)[0]
 
-    balance_proof_A = create_balance_proof(
-        channel_identifier=channel_identifier,
-        participant=A,
-        transferred_amount=10,
-        locked_amount=0,
-        nonce=1,
-        locksroot=LOCKSROOT_OF_NO_LOCKS,
-    )
-    balance_proof_B = create_balance_proof(
-        channel_identifier=channel_identifier,
-        participant=B,
-        burnt_amount=1,
-        transferred_amount=5,
-        locked_amount=0,
-        nonce=3,
-        locksroot=LOCKSROOT_OF_NO_LOCKS,
-    )
-    balance_proof_update_signature_B = create_balance_proof_countersignature(
-        participant=B,
-        channel_identifier=channel_identifier,
-        msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
-        **balance_proof_A._asdict(),
-    )
-    close_sig_A = create_balance_proof_countersignature(
-        participant=A,
-        channel_identifier=channel_identifier,
-        msg_type=MessageTypeId.BALANCE_PROOF,
-        **balance_proof_B._asdict(),
-    )
+    def close_and_settle() -> HexBytes:
+        balance_proof_A = create_balance_proof(
+            channel_identifier=channel_identifier,
+            participant=A,
+            transferred_amount=transferred_A,
+            nonce=nonce_A,
+        )
+        balance_proof_B = create_balance_proof(
+            channel_identifier=channel_identifier,
+            participant=B,
+            burnt_amount=burnt_B,
+            transferred_amount=transferred_B,
+            nonce=nonce_B,
+        )
+        balance_proof_update_signature_B = create_balance_proof_countersignature(
+            participant=B,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
+            **balance_proof_A._asdict(),
+        )
+        close_sig_A = create_balance_proof_countersignature(
+            participant=A,
+            channel_identifier=channel_identifier,
+            msg_type=MessageTypeId.BALANCE_PROOF,
+            **balance_proof_B._asdict(),
+        )
 
-    call_and_transact(
-        token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
-        ),
-        {"from": A},
-    )
-    call_and_transact(
-        token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier,
-            A,
-            B,
-            *balance_proof_A._asdict().values(),
-            balance_proof_update_signature_B,
-        ),
-        {"from": B},
-    )
-
-    mine_blocks(web3, settle_timeout + 1)
-    txn_hash = call_and_transact(
-        token_network.functions.settleChannel2(
-            channel_identifier,
-            get_settlement_input(
-                participant=B,
-                burnt_amount=TokenAmount(1),
-                transferred_amount=TokenAmount(5),
-                claim=make_claim(owner=B, partner=A, total_amount=0),
+        call_and_transact(
+            token_network.functions.closeChannel(
+                channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
             ),
-            get_settlement_input(
-                participant=A,
-                transferred_amount=TokenAmount(10),
-                claim=make_claim(owner=A, partner=B, total_amount=deposit_A),
+            {"from": A},
+        )
+        call_and_transact(
+            token_network.functions.updateNonClosingBalanceProof(
+                channel_identifier,
+                A,
+                B,
+                *balance_proof_A._asdict().values(),
+                balance_proof_update_signature_B,
             ),
-        ),
-        {"from": A},
-    )
+            {"from": B},
+        )
 
+        mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+        return call_and_transact(
+            token_network.functions.settleChannel2(
+                channel_identifier,
+                get_settlement_input(
+                    participant=B,
+                    burnt_amount=TokenAmount(burnt_B),
+                    transferred_amount=TokenAmount(transferred_B),
+                    claim=make_claim(owner=B, partner=A, total_amount=0),
+                ),
+                get_settlement_input(
+                    participant=A,
+                    transferred_amount=TokenAmount(transferred_A),
+                    claim=make_claim(owner=A, partner=B, total_amount=deposit_A),
+                ),
+            ),
+            {"from": A},
+        )
+
+    # Settle
+    txn_hash = close_and_settle()
     ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 4, 5))
+    ev_handler.check()
+
+    # Settle a second time and check that only the new tokens get paid out
+    deposit_A += 20
+    transferred_A += 1
+    nonce_A += 1
+    txn_hash = close_and_settle()
+    ev_handler.add(
+        txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 1, 19)
+    )
     ev_handler.check()

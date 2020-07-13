@@ -360,35 +360,15 @@ def common_settle_state_tests(
     assert account_balance_B == pre_account_balance_B + balance_B
 
     # Make sure participant data has been removed
-    (
-        A_deposit,
-        A_withdrawn,
-        A_is_the_closer,
-        A_balance_hash,
-        A_nonce,
-        _,
-        _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
-    assert A_deposit == 0
-    assert A_withdrawn == 0
-    assert A_is_the_closer == 0
-    assert A_balance_hash == fake_bytes(32)
-    assert A_nonce == 0
+    (_, A_withdrawn, _, _, _, _, _,) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()
+    assert A_withdrawn >= balance_A
 
-    (
-        B_deposit,
-        B_withdrawn,
-        B_is_the_closer,
-        B_balance_hash,
-        B_nonce,
-        _,
-        _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
-    assert B_deposit == 0
-    assert B_withdrawn == 0
-    assert B_is_the_closer == 0
-    assert B_balance_hash == fake_bytes(32)
-    assert B_nonce == 0
+    (_, B_withdrawn, _, _, _, _, _,) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
+    assert B_withdrawn >= balance_B
 
 
 @pytest.fixture()

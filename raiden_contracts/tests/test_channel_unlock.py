@@ -627,6 +627,7 @@ def test_channel_unlock(
     assert balance_contract == pre_balance_contract - values_B.locked_amounts.locked
 
 
+@pytest.mark.skip("Not required for the raiddit PoC")
 @pytest.mark.slow
 def test_channel_settle_and_unlock(
     web3: Web3,
