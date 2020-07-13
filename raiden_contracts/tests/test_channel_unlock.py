@@ -6,7 +6,6 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ParticipantInfoIndex
-from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     LOCKSROOT_OF_NO_LOCKS,
     NONEXISTENT_LOCKSROOT,
@@ -325,7 +324,7 @@ def test_lock_data_from_packed_locks(
 
 
 def test_unlock_wrong_locksroot(
-    web3: Web3, token_network: Contract, create_settled_channel: Callable, get_accounts: Callable
+    web3: Web3, token_network: Contract, create_settled_channel: Callable, get_accounts: Callable,
 ) -> None:
     """ Test unlocking with wrong pending locks """
     (A, B) = get_accounts(2)
@@ -569,6 +568,7 @@ def test_channel_unlock(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> None:
     """ unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties """
@@ -598,7 +598,7 @@ def test_channel_unlock(
     # Settlement window must be over before settling the channel
     mine_blocks(web3, settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -738,6 +738,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     channel_deposit: Callable,
     get_accounts: Callable,
     close_and_update_channel: Callable,
+    call_settle: Callable,
 ) -> None:
     """ unlock() should refund tokens locked with secrets revealed after the expiration """
     (A, B) = get_accounts(2)
@@ -780,7 +781,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     mine_blocks(web3, settle_timeout)
 
     # settle channel
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -811,6 +812,7 @@ def test_channel_unlock_unregistered_locks(
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
     custom_token: Contract,
+    call_settle: Callable,
 ) -> None:
     """ unlock() should refund tokens locked by secrets not registered before settlement """
     (A, B) = get_accounts(2)
@@ -838,7 +840,7 @@ def test_channel_unlock_unregistered_locks(
 
     # Secret hasn't been registered before settlement timeout
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
     call_and_transact(
@@ -864,6 +866,7 @@ def test_channel_unlock_before_settlement_fails(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> None:
     """ unlock() should not work before settlement """
     (A, B) = get_accounts(2)
@@ -918,7 +921,7 @@ def test_channel_unlock_before_settlement_fails(
         ).call()
 
     # settle channel
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1041,6 +1044,7 @@ def test_channel_unlock_both_participants(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> None:
     """ A scenario where both parties get some of the pending transfers """
     (A, B) = get_accounts(2)
@@ -1079,7 +1083,7 @@ def test_channel_unlock_both_participants(
     # Settle channel
     mine_blocks(web3, settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1214,6 +1218,7 @@ def test_channel_unlock_with_a_large_expiration(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> None:
     """ unlock() should still work after a delayed settleChannel() call """
     (A, B) = get_accounts(2)
@@ -1244,7 +1249,7 @@ def test_channel_unlock_with_a_large_expiration(
     # Settle channel after a "long" time
     mine_blocks(web3, settle_timeout + 50)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -1360,6 +1365,7 @@ def test_unlock_channel_event(
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
     event_handler: Callable,
+    call_settle: Callable,
 ) -> None:
     """ Successful unlock() should cause an UNLOCKED event """
     (A, B) = get_accounts(2)
@@ -1390,7 +1396,7 @@ def test_unlock_channel_event(
     # Settlement window must be over before settling the channel
     mine_blocks(web3, settle_timeout)
 
-    call_settle(token_network, channel_identifier, A, values_A, B, values_B)
+    call_settle(channel_identifier, A, values_A, B, values_B)
 
     ev_handler = event_handler(token_network)
 

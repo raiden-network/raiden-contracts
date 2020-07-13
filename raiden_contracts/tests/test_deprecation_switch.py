@@ -15,7 +15,6 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
-from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import ChannelValues, LockedAmounts, call_and_transact
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.pending_transfers import (
@@ -167,6 +166,7 @@ def test_deprecation_switch_settle(
     create_channel: Callable,
     channel_deposit: Callable,
     close_and_update_channel: Callable,
+    call_settle: Callable,
 ) -> None:
     """ Channel close and settlement still work after the depracation switch is turned on """
     deprecation_executor = token_network.functions.deprecation_executor().call()
@@ -224,7 +224,7 @@ def test_deprecation_switch_settle(
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     # Unlock B's pending transfers that were sent to A
     call_and_transact(

@@ -5,7 +5,8 @@ from typing import Dict
 from eth_typing import ChecksumAddress, HexAddress, HexStr
 from eth_utils import keccak
 
-from raiden_contracts.utils.type_aliases import ChainID, Locksroot
+from raiden_contracts.utils.signature import private_key_to_address
+from raiden_contracts.utils.type_aliases import ChainID, Locksroot, PrivateKey
 
 # The last digit is supposed to be zero always. See `RELEASE.rst`.
 CONTRACTS_VERSION = "0.37.0"
@@ -48,7 +49,8 @@ EVENT_TOKEN_NETWORK_CREATED = "TokenNetworkCreated"
 
 # TokenNetwork
 EVENT_DEPRECATION_SWITCH = "DeprecationSwitch"
-TEST_CLAIM_SIGNER = HexAddress(HexStr("0x" + bytes(range(20)).hex()))
+TEST_CLAIM_PRIVKEY = PrivateKey(bytes(range(20)))
+TEST_CLAIM_SIGNER = private_key_to_address(TEST_CLAIM_PRIVKEY)
 
 # SecretRegistry
 EVENT_SECRET_REVEALED = "SecretRevealed"

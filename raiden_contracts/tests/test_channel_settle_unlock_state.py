@@ -6,7 +6,6 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ParticipantInfoIndex
-from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.channel_test_values import (
     channel_settle_invalid_test_values,
     channel_settle_test_values,
@@ -41,6 +40,7 @@ def test_settlement_outcome(
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
     reveal_secrets: Callable,
+    call_settle: Callable,
 ) -> Callable:
     def f(
         participants: Tuple,
@@ -89,7 +89,7 @@ def test_settlement_outcome(
         pre_balance_B = custom_token.functions.balanceOf(B).call()
         pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-        call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+        call_settle(channel_identifier, A, vals_A, B, vals_B)
 
         # We do the balance & state tests here for each channel and also compare with
         # the expected settlement amounts
@@ -333,13 +333,13 @@ def test_channel_settle_invalid_balance_proof_values(
     web3: Web3,
     get_accounts: Callable,
     custom_token: Contract,
-    token_network: Contract,
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
     reveal_secrets: Callable,
     channel_test_values: Tuple,
+    call_settle: Callable,
 ) -> None:
     """ Check the settlement results with invalid balance proofs """
     (A, B, C, D) = get_accounts(4)
@@ -389,7 +389,7 @@ def test_channel_settle_invalid_balance_proof_values(
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
 
-    call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
+    call_settle(channel_identifier, A, vals_A, B, vals_B)
 
     # We do the balance & state tests here for each channel and also compare with
     # the expected settlement amounts
