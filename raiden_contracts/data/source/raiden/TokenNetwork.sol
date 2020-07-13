@@ -40,10 +40,6 @@ contract TokenNetwork is Utils {
     // The total combined deposit of all channels across the whole network
     uint256 public token_network_deposit_limit;
 
-    // Global, monotonically increasing counter that keeps track of all the
-    // opened channels in this contract
-    uint256 public channel_counter;
-
     string public constant signature_prefix = "\x19Ethereum Signed Message:\n";
 
     // Only for the limited Red Eyes release
@@ -54,10 +50,6 @@ contract TokenNetwork is Utils {
     // channel identifier is the channel_counter value at the time of opening
     // the channel
     mapping (uint256 => Channel) public channels;
-
-    // This is needed to enforce one channel per pair of participants
-    // The key is keccak256(participant1_address, participant2_address)
-    mapping (bytes32 => uint256) public participants_hash_to_channel_identifier;
 
     // We keep the unlock data in a separate mapping to allow channel data
     // structures to be removed when settling uncooperatively. If there are
@@ -102,15 +94,10 @@ contract TokenNetwork is Utils {
     enum ChannelState {
         NonExistent, // 0
         PLACEHOLDER_DONTUSE, // 1
-        Closed,      // 2
-        Settled,     // 3; Note: The channel has at least one pending unlock
-        Removed      // 4; Note: Channel data is removed, there are no pending unlocks
+        Closed      // 2
     }
 
     struct Channel {
-        // After opening the channel this value represents the settlement
-        // window. This is the number of blocks that need to be mined between
-        // closing the channel uncooperatively and settling the channel.
         // After the channel has been uncooperatively closed, this value
         // represents the block number after which settleChannel can be called.
         uint256 settle_block_number;
@@ -300,42 +287,6 @@ contract TokenNetwork is Utils {
         settleTimeoutValid(settle_timeout)
         returns (uint256)
     {
-        // bytes32 pair_hash;
-        // uint256 channel_identifier;
-
-        // // Red Eyes release token network limit
-        // require(token.balanceOf(address(this)) < token_network_deposit_limit);
-
-        // // First increment the counter
-        // // There will never be a channel with channel_identifier == 0
-        // channel_counter += 1;
-        // channel_identifier = channel_counter;
-
-        // pair_hash = getParticipantsHash(participant1, participant2);
-
-        // // There must only be one channel opened between two participants at
-        // // any moment in time.
-        // require(participants_hash_to_channel_identifier[pair_hash] == 0);
-        // participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
-
-        // Channel storage channel = channels[channel_identifier];
-
-        // // We always increase the channel counter, therefore no channel data can already exist,
-        // // corresponding to this channel_identifier. This check must never fail.
-        // assert(channel.settle_block_number == 0);
-        // assert(channel.state == ChannelState.NonExistent);
-
-        // // Store channel information
-        // channel.settle_block_number = settle_timeout;
-        // channel.state = ChannelState.Opened;
-
-        // emit ChannelOpened(
-        //     channel_identifier,
-        //     participant1,
-        //     participant2,
-        //     settle_timeout
-        // );
-
         return getChannelIdentifier(participant1, participant2);
     }
 
@@ -843,9 +794,6 @@ contract TokenNetwork is Utils {
         delete channel.participants[participant2];
         delete channels[channel_identifier];
 
-        // Remove the pair's channel counter
-        delete participants_hash_to_channel_identifier[pair_hash];
-
         // Store balance data needed for `unlock`, including the calculated
         // locked amounts remaining in the contract.
         storeUnlockData(
@@ -971,105 +919,6 @@ contract TokenNetwork is Utils {
         assert(locked_amount >= returned_tokens);
         assert(locked_amount >= unlocked_amount);
     }
-
-    /* /// @notice Cooperatively settles the balances between the two channel
-    /// participants and transfers the agreed upon token amounts to the
-    /// participants. After this the channel lifecycle has ended and no more
-    /// operations can be done on it.
-    /// @param channel_identifier Identifier for the channel on which this
-    /// operation takes place
-    /// @param participant1_address Address of channel participant
-    /// @param participant1_balance Amount of tokens that `participant1_address`
-    /// must receive when the channel is settled and removed
-    /// @param participant2_address Address of the other channel participant
-    /// @param participant2_balance Amount of tokens that `participant2_address`
-    /// must receive when the channel is settled and removed
-    /// @param participant1_signature Signature of `participant1_address` on the
-    /// cooperative settle message
-    /// @param participant2_signature Signature of `participant2_address` on the
-    /// cooperative settle message
-    function cooperativeSettle(
-        uint256 channel_identifier,
-        address participant1_address,
-        uint256 participant1_balance,
-        address participant2_address,
-        uint256 participant2_balance,
-        bytes participant1_signature,
-        bytes participant2_signature
-    )
-        public
-    {
-        require(channel_identifier == getChannelIdentifier(
-            participant1_address,
-            participant2_address
-        ));
-        bytes32 pair_hash;
-        address participant1;
-        address participant2;
-        uint256 total_available_deposit;
-
-        pair_hash = getParticipantsHash(participant1_address, participant2_address);
-        Channel storage channel = channels[channel_identifier];
-
-        require(channel.state == ChannelState.Opened);
-
-        participant1 = recoverAddressFromCooperativeSettleSignature(
-            channel_identifier,
-            participant1_address,
-            participant1_balance,
-            participant2_address,
-            participant2_balance,
-            participant1_signature
-        );
-        // The provided address must be the same as the recovered one
-        require(participant1 == participant1_address);
-
-        participant2 = recoverAddressFromCooperativeSettleSignature(
-            channel_identifier,
-            participant1_address,
-            participant1_balance,
-            participant2_address,
-            participant2_balance,
-            participant2_signature
-        );
-        // The provided address must be the same as the recovered one
-        require(participant2 == participant2_address);
-
-        Participant storage participant1_state = channel.participants[participant1];
-        Participant storage participant2_state = channel.participants[participant2];
-
-        total_available_deposit = getChannelAvailableDeposit(
-            participant1_state,
-            participant2_state
-        );
-        // The sum of the provided balances must be equal to the total
-        // available deposit
-        require(total_available_deposit == (participant1_balance + participant2_balance));
-        // Overflow check for the balances addition from the above check.
-        // This overflow should never happen if the token.transfer function is implemented
-        // correctly. We do not control the token implementation, therefore we add this
-        // check for safety.
-        require(participant1_balance <= participant1_balance + participant2_balance);
-
-        // Remove channel data from storage before doing the token transfers
-        delete channel.participants[participant1];
-        delete channel.participants[participant2];
-        delete channels[channel_identifier];
-
-        // Remove the pair's channel counter
-        delete participants_hash_to_channel_identifier[pair_hash];
-
-        emit ChannelSettled(channel_identifier, participant1_balance, participant2_balance);
-
-        // Do the token transfers
-        if (participant1_balance > 0) {
-            require(token.transfer(participant1, participant1_balance));
-        }
-
-        if (participant2_balance > 0) {
-            require(token.transfer(participant2, participant2_balance));
-        }
-    } */
 
     /// @dev Returns the channel specific data.
     /// @param channel_identifier Identifier for the channel on which this
@@ -1628,37 +1477,6 @@ contract TokenNetwork is Utils {
 
         signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
     }
-
-    /* function recoverAddressFromCooperativeSettleSignature(
-        uint256 channel_identifier,
-        address participant1,
-        uint256 participant1_balance,
-        address participant2,
-        uint256 participant2_balance,
-        bytes signature
-    )
-        view
-        internal
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
-        string memory message_length = '220';
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.CooperativeSettle),
-            channel_identifier,
-            participant1,
-            participant1_balance,
-            participant2,
-            participant2_balance
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, signature);
-    } */
 
     function recoverAddressFromWithdrawMessage(
         uint256 channel_identifier,

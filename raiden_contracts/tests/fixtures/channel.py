@@ -25,7 +25,6 @@ from raiden_contracts.tests.utils import (
     call_and_transact,
     fake_bytes,
     get_onchain_settlement_amounts,
-    get_participants_hash,
     get_settlement_amounts,
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
@@ -359,14 +358,6 @@ def common_settle_state_tests(
     account_balance_B = custom_token.functions.balanceOf(B).call()
     assert account_balance_A == pre_account_balance_A + balance_A
     assert account_balance_B == pre_account_balance_B + balance_B
-
-    # Make sure channel data has been removed
-    assert (
-        token_network.functions.participants_hash_to_channel_identifier(
-            get_participants_hash(A, B)
-        ).call()
-        == 0
-    )
 
     # Make sure participant data has been removed
     (
