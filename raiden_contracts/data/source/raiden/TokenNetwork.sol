@@ -124,6 +124,7 @@ contract TokenNetwork is Utils {
         uint256 deposit;
         uint256 withdrawn;
         uint256 transferred;
+        uint256 burnt;
         uint256 locked;
     }
 
@@ -1223,7 +1224,9 @@ contract TokenNetwork is Utils {
         Participant storage participant1_state,
         Participant storage participant2_state,
         Claim memory participant1_claim,
-        Claim memory participant2_claim
+        Claim memory participant2_claim,
+        uint256 participant1_burnt,
+        uint256 participant2_burnt
     )
         internal
         view
@@ -1236,8 +1239,8 @@ contract TokenNetwork is Utils {
             participant2_claim.total_amount -
             participant1_state.withdrawn_amount -
             participant2_state.withdrawn_amount -
-            participant1_state.burnt_amount -
-            participant2_state.burnt_amount
+            participant1_burnt -
+            participant2_burnt
         );
     }
 
@@ -1351,7 +1354,9 @@ contract TokenNetwork is Utils {
             participant1_state,
             participant2_state,
             participant1_input.claim,
-            participant2_input.claim
+            participant2_input.claim,
+            participant1_input.burnt_amount,
+            participant2_input.burnt_amount
         );
 
         // RmaxP1 = (T2 + L2) - (T1 + L1) + D1 - W1
@@ -1361,14 +1366,16 @@ contract TokenNetwork is Utils {
         participant1_amount = getMaxPossibleReceivableAmount(
             SettlementData(
                 participant1_state.deposit + participant1_input.claim.total_amount,
-                participant1_state.withdrawn_amount + participant1_input.burnt_amount,
+                participant1_state.withdrawn_amount,
                 participant1_input.transferred_amount,
+                participant1_input.burnt_amount,
                 participant1_input.locked_amount
             ),
             SettlementData(
                 participant2_state.deposit + participant2_input.claim.total_amount,
-                participant2_state.withdrawn_amount + participant2_input.burnt_amount,
+                participant2_state.withdrawn_amount,
                 participant2_input.transferred_amount,
+                participant2_input.burnt_amount,
                 participant2_input.locked_amount
             )
         );
@@ -1382,7 +1389,6 @@ contract TokenNetwork is Utils {
         // RmaxP2 = TAD - RmaxP1
         // Now it is safe to subtract without underflow
         participant2_amount = total_available_deposit - participant1_amount;
-        participant2_amount -= participant1_input.burnt_amount + participant2_input.burnt_amount;
 
         // SL2 = min(RmaxP1, L2)
         // S1 = RmaxP1 - SL2
@@ -1413,9 +1419,7 @@ contract TokenNetwork is Utils {
             participant1_amount +
             participant2_amount +
             participant1_input.locked_amount +
-            participant2_input.locked_amount +
-            participant1_input.burnt_amount +
-            participant2_input.burnt_amount
+            participant2_input.locked_amount
         ));
 
         return (
@@ -1483,6 +1487,13 @@ contract TokenNetwork is Utils {
             participant1_max_amount,
             participant1_settlement.withdrawn
         );
+
+        // Burnt tokens are not receivable
+        (participant1_max_amount, ) = failsafe_subtract(
+            participant1_max_amount,
+            participant1_settlement.burnt
+        );
+
         return participant1_max_amount;
     }
 

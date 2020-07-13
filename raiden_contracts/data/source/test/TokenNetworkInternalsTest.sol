@@ -119,7 +119,9 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         address participant1,
         address participant2,
         Claim memory participant1_claim,
-        Claim memory participant2_claim
+        Claim memory participant2_claim,
+        uint256 participant1_burnt,
+        uint256 participant2_burnt
     )
         public
         view
@@ -133,7 +135,9 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             participant1_state,
             participant2_state,
             participant1_claim,
-            participant2_claim
+            participant2_claim,
+            participant1_burnt,
+            participant2_burnt
         );
     }
 }
