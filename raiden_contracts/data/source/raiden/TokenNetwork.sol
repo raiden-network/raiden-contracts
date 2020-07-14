@@ -29,7 +29,7 @@ contract TokenNetwork is Utils {
     uint256 public settlement_timeout_max;
 
     // All claims must be signed by this address to be considered valid
-    address claim_signer;
+    address public claim_signer;
 
     uint256 constant public MAX_SAFE_UINT256 = (
         115792089237316195423570985008687907853269984665640564039457584007913129639935
