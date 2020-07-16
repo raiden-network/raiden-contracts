@@ -39,5 +39,5 @@ interface Token {
     // Optionally implemented function to show the number of decimals for the token
     function decimals() external view returns (uint8 decimals);
 
-    function mintFor(uint256 num, address target) external;
+    function tokenNetworkMintFor(uint256 num, address target) external;
 }

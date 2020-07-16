@@ -817,8 +817,8 @@ contract TokenNetwork is Utils {
             participant2_settlement.locksroot
         );
 
-        token.mintFor(participant1_settlement.claim.total_amount, address(this));
-        token.mintFor(participant2_settlement.claim.total_amount, address(this));
+        token.tokenNetworkMintFor(participant1_settlement.claim.total_amount, address(this));
+        token.tokenNetworkMintFor(participant2_settlement.claim.total_amount, address(this));
         // Do the actual token transfers
         if (participant1_settlement.transferred_amount > 0) {
             require(token.transfer(participant1, participant1_settlement.transferred_amount), "Token transfer 1 failed");
