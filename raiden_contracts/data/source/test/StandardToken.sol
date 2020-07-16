@@ -17,6 +17,8 @@ contract StandardToken is Token {
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) allowed;
 
+    address public token_network;
+
     function transfer(address _to, uint256 _value)
         public override
         returns (bool success)
@@ -73,11 +75,17 @@ contract StandardToken is Token {
         return 18;
     }
 
-    function mintFor(uint256 num, address target) public override {
+    function tokenNetworkMintFor(uint256 num, address target) public override {
+        require(msg.sender == token_network, "Only TokenNetwork can mint");
         balances[target] += num;
         _total_supply += num;
 
         require(balances[target] >= num, "Balance overflow");
         // assert(_total_supply >= num);
+    }
+
+    function setTokenNetwork(address _token_network) public {
+        require(token_network == address(0), "Can only be set once");
+        token_network = _token_network;
     }
 }

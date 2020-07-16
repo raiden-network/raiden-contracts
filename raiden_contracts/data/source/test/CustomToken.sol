@@ -72,15 +72,15 @@ contract CustomToken is StandardToken {
     }
 
     /// @notice Allows `num` tokens to be minted and assigned to `target`
-    // function mintFor(uint256 num, address target) public {
-    //     balances[target] += num;
-    //     _total_supply += num;
+    function mintFor(uint256 num, address target) public {
+        balances[target] += num;
+        _total_supply += num;
 
-    //     emit Minted(target, num);
+        emit Minted(target, num);
 
-    //     require(balances[target] >= num);
-    //     assert(_total_supply >= num);
-    // }
+        require(balances[target] >= num);
+        assert(_total_supply >= num);
+    }
 
     /// @notice Transfers the collected ETH to the contract owner.
     function transferFunds() public {

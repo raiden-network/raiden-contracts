@@ -102,12 +102,14 @@ def token_network(
     """Register a new token network for a custom token"""
     global snapshot_before_token_network
     snapshot_before_token_network = web3.testing.snapshot()  # type: ignore
-    return register_token_network(
+    token_network = register_token_network(
         token_network_registry_contract,
         custom_token.address,
         channel_participant_deposit_limit,
         token_network_deposit_limit,
     )
+    custom_token.functions.setTokenNetwork(token_network.address).transact()
+    return token_network
 
 
 @pytest.fixture(scope="session")
