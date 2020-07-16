@@ -14,6 +14,7 @@ from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, TxParams, TxReceipt, Wei
 
 from raiden_contracts.constants import (
+    CONTRACT_CUSTOM_TOKEN,
     CONTRACT_MONITORING_SERVICE,
     CONTRACT_ONE_TO_N,
     CONTRACT_SECRET_REGISTRY,
@@ -271,6 +272,14 @@ class ContractDeployer(ContractVerifier):
             ).call()
             time.sleep(2)
         LOG.debug(f"TokenNetwork address: {token_network_address}")
+
+        LOG.debug("Registering TokenNetwork with Token")
+        token = self.web3.eth.contract(
+            abi=self.contract_manager.get_contract_abi(CONTRACT_CUSTOM_TOKEN),
+            address=token_address,
+        )
+        command = token.functions.setTokenNetwork(token_network_address)
+        self.transact(command)
         return dict(
             token_network_address=token_network_address,
             constructor_arguments=constructor_arguments,
