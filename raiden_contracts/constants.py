@@ -111,6 +111,7 @@ class MessageTypeId(IntEnum):
     COOPERATIVE_SETTLE = 4
     IOU = 5
     MSReward = 6
+    BURN = 7
 
 
 class MonitoringServiceEvent(str, Enum):
