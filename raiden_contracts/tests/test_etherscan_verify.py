@@ -96,7 +96,7 @@ def test_guid_status() -> None:
     with requests_mock.Mocker() as m:
         etherscan_api = api_of_chain_id[3]
         m.get(etherscan_api, text='{ "content": 1 }')
-        assert guid_status(etherscan_api, "something") == {"content": 1}
+        assert guid_status(etherscan_api, "something", apikey="foo") == {"content": 1}
 
 
 def test_etherscan_verify_with_guid() -> None:
