@@ -55,7 +55,7 @@ def etherscan_verify(
     chain_id: ChainID, apikey: str, guid: Optional[str], contract_name: Optional[str]
 ) -> None:
     if guid:
-        guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid)
+        guid_status(etherscan_api=api_of_chain_id[chain_id], guid=guid, apikey=apikey)
         return
 
     for list_entry in CONTRACT_LIST:
@@ -211,7 +211,7 @@ def etherscan_verify_contract(
     retries = 10
     while status == "0" and retries > 0:
         retries -= 1
-        r = guid_status(etherscan_api=etherscan_api, guid=guid)
+        r = guid_status(etherscan_api=etherscan_api, guid=guid, apikey=apikey)
         status = r["status"]
         if r["result"] == "Fail - Unable to verify":
             raise ValueError(manual_submission_guide)
@@ -256,8 +256,13 @@ def _verify_singleton_contract(
     )
 
 
-def guid_status(etherscan_api: str, guid: str) -> Dict:
-    data = {"guid": guid, "module": "contract", "action": "checkverifystatus"}
+def guid_status(etherscan_api: str, guid: str, apikey: str) -> Dict:
+    data = {
+        "guid": guid,
+        "module": "contract",
+        "action": "checkverifystatus",
+        "apikey": apikey,
+    }
     r = requests.get(etherscan_api, data, headers={"User-Agent": USER_AGENT})
     try:
         status_content = json.loads(r.content.decode())
