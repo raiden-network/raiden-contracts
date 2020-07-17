@@ -168,7 +168,8 @@ contract TokenNetwork is Utils {
         uint256 indexed channel_identifier,
         address indexed closing_participant,
         uint256 indexed nonce,
-        bytes32 balance_hash
+        bytes32 balance_hash,
+        uint256 burnt_amount
     );
 
     event ChannelUnlocked(
@@ -184,7 +185,8 @@ contract TokenNetwork is Utils {
         uint256 indexed channel_identifier,
         address indexed closing_participant,
         uint256 indexed nonce,
-        bytes32 balance_hash
+        bytes32 balance_hash,
+        uint256 burnt_amount
     );
 
     event ChannelSettled(
@@ -483,6 +485,7 @@ contract TokenNetwork is Utils {
     /// @param additional_hash Computed from the message. Used for message
     /// authentication
     /// @param nonce Strictly monotonic value used to order transfers
+    /// @param burnt_amount closing participant's burnt amount
     /// @param non_closing_signature Non-closing participant's signature of the balance proof data
     /// @param closing_signature Closing participant's signature of the balance
     /// proof data
@@ -494,6 +497,7 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
+        uint256 burnt_amount,
         bytes memory non_closing_signature,
         bytes memory closing_signature
     )
@@ -508,6 +512,7 @@ contract TokenNetwork is Utils {
         channel.participants[closing_participant].is_the_closer = true;
         channel.participants[non_closing_participant].is_the_closer = false;
         channel.participants[non_closing_participant].nonce = 0;
+        channel.participants[closing_participant].burnt_amount = burnt_amount;
 
         // This is the block number at which the channel can be settled.
         channel.settle_block_number = settlement_timeout + block.number;
@@ -547,7 +552,7 @@ contract TokenNetwork is Utils {
             );
         }
 
-        emit ChannelClosed(channel_identifier, closing_participant, nonce, balance_hash);
+        emit ChannelClosed(channel_identifier, closing_participant, nonce, balance_hash, burnt_amount);
     }
 
     /// @notice Called on a closed channel, the function allows the non-closing
@@ -563,6 +568,7 @@ contract TokenNetwork is Utils {
     /// @param additional_hash Computed from the message. Used for message
     /// authentication
     /// @param nonce Strictly monotonic value used to order transfers
+    /// @param burnt_amount non-closing participant's burnt amount
     /// @param closing_signature Closing participant's signature of the balance
     /// proof data
     /// @param non_closing_signature Non-closing participant signature of the
@@ -574,6 +580,7 @@ contract TokenNetwork is Utils {
         // The next four arguments form a balance proof
         bytes32 balance_hash,
         uint256 nonce,
+        uint256 burnt_amount,
         bytes32 additional_hash,
         bytes calldata closing_signature,
         bytes calldata non_closing_signature
@@ -593,6 +600,8 @@ contract TokenNetwork is Utils {
         Channel storage channel = channels[channel_identifier];
 
         require(channel.state == ChannelState.Closed);
+
+        channel.participants[non_closing_participant].burnt_amount = burnt_amount;
 
         // Calling this function after the settlement window is forbidden to
         // fix the following race condition:
@@ -649,7 +658,8 @@ contract TokenNetwork is Utils {
             channel_identifier,
             closing_participant,
             nonce,
-            balance_hash
+            balance_hash,
+            burnt_amount
         );
     }
 
@@ -696,7 +706,7 @@ contract TokenNetwork is Utils {
             channel_identifier,
             SettleInput({
                 participant: participant1,
-                burnt_amount: 0,
+                burnt_amount: channel.participants[participant1].burnt_amount,
                 transferred_amount: participant1_transferred_amount,
                 locked_amount: participant1_locked_amount,
                 locksroot: participant1_locksroot,
@@ -704,7 +714,7 @@ contract TokenNetwork is Utils {
             }),
             SettleInput({
                 participant: participant2,
-                burnt_amount: 0,
+                burnt_amount: channel.participants[participant2].burnt_amount,
                 transferred_amount: participant2_transferred_amount,
                 locked_amount: participant2_locked_amount,
                 locksroot: participant2_locksroot,
