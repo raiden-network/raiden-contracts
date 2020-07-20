@@ -18,7 +18,7 @@ from raiden_contracts.constants import (
     MessageTypeId,
 )
 from raiden_contracts.contract_manager import gas_measurements
-from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils import EMPTY_BURNT_AMOUNT, call_and_transact
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
@@ -134,10 +134,14 @@ def print_gas_token_network_create(
 
 
 @pytest.fixture
-def print_gas_secret_registry(secret_registry_contract: Contract, print_gas: Callable) -> None:
+def print_gas_secret_registry(
+    secret_registry_contract: Contract, print_gas: Callable
+) -> None:
     """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
     secret = b"secretsecretsecretsecretsecretse"
-    txn_hash = call_and_transact(secret_registry_contract.functions.registerSecret(secret))
+    txn_hash = call_and_transact(
+        secret_registry_contract.functions.registerSecret(secret)
+    )
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecret")
 
 
@@ -224,7 +228,12 @@ def print_gas_channel_cycle(
 
     txn_hash = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -236,6 +245,7 @@ def print_gas_channel_cycle(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": B},
@@ -311,7 +321,8 @@ def print_gas_monitoring_service(
     # register MS in the ServiceRegistry contract
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT * 2), {"from": MS})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": MS}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": MS},
     )
     call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": MS})
 
@@ -320,7 +331,10 @@ def print_gas_monitoring_service(
 
     # create balance and reward proofs
     balance_proof_A = create_balance_proof(
-        channel_identifier=channel_identifier, participant=B, transferred_amount=10, nonce=1
+        channel_identifier=channel_identifier,
+        participant=B,
+        transferred_amount=10,
+        nonce=1,
     )
     closing_sig_A = create_balance_proof_countersignature(
         participant=A,
@@ -329,7 +343,10 @@ def print_gas_monitoring_service(
         **balance_proof_A._asdict(),
     )
     balance_proof_B = create_balance_proof(
-        channel_identifier=channel_identifier, participant=A, transferred_amount=20, nonce=2
+        channel_identifier=channel_identifier,
+        participant=A,
+        transferred_amount=20,
+        nonce=2,
     )
     non_closing_signature_B = create_balance_proof_countersignature(
         participant=B,
@@ -350,7 +367,12 @@ def print_gas_monitoring_service(
     # c1 closes channel
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -473,19 +495,27 @@ def print_gas_user_deposit(
     )
 
     # deposit
-    txn_hash = call_and_transact(user_deposit_contract.functions.deposit(A, 10), {"from": A})
+    txn_hash = call_and_transact(
+        user_deposit_contract.functions.deposit(A, 10), {"from": A}
+    )
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".deposit")
-    txn_hash = call_and_transact(user_deposit_contract.functions.deposit(A, 20), {"from": A})
+    txn_hash = call_and_transact(
+        user_deposit_contract.functions.deposit(A, 20), {"from": A}
+    )
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".deposit (increase balance)")
 
     # plan withdraw
-    txn_hash = call_and_transact(user_deposit_contract.functions.planWithdraw(10), {"from": A})
+    txn_hash = call_and_transact(
+        user_deposit_contract.functions.planWithdraw(10), {"from": A}
+    )
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".planWithdraw")
 
     # withdraw
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
     mine_blocks(web3, withdraw_delay)
-    txn_hash = call_and_transact(user_deposit_contract.functions.withdraw(10), {"from": A})
+    txn_hash = call_and_transact(
+        user_deposit_contract.functions.withdraw(10), {"from": A}
+    )
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 
 
@@ -502,7 +532,9 @@ def print_gas_service_registry(
     call_and_transact(
         custom_token.functions.approve(service_registry.address, deposit), {"from": A}
     )
-    deposit_tx = call_and_transact(service_registry.functions.deposit(deposit), {"from": A})
+    deposit_tx = call_and_transact(
+        service_registry.functions.deposit(deposit), {"from": A}
+    )
     print_gas(deposit_tx, CONTRACT_SERVICE_REGISTRY + ".deposit")
     url = "http://example.com"
     set_url_tx = call_and_transact(service_registry.functions.setURL(url), {"from": A})
@@ -510,7 +542,9 @@ def print_gas_service_registry(
 
 
 @pytest.fixture
-def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: Callable) -> None:
+def print_gas_token(
+    get_accounts: Callable, custom_token: Contract, print_gas: Callable
+) -> None:
     (A, B) = get_accounts(2)
     tx_hash = call_and_transact(custom_token.functions.mint(100), {"from": A})
     print_gas(tx_hash, "CustomToken.mint")
@@ -518,7 +552,9 @@ def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: C
     print_gas(tx_hash, "CustomToken.transfer")
     tx_hash = call_and_transact(custom_token.functions.approve(A, 100), {"from": B})
     print_gas(tx_hash, "CustomToken.approve")
-    tx_hash = call_and_transact(custom_token.functions.transferFrom(B, A, 100), {"from": A})
+    tx_hash = call_and_transact(
+        custom_token.functions.transferFrom(B, A, 100), {"from": A}
+    )
     print_gas(tx_hash, "CustomToken.transferFrom")
 
 

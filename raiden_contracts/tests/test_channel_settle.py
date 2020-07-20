@@ -16,6 +16,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
+    EMPTY_BURNT_AMOUNT,
     EMPTY_SIGNATURE,
     LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
@@ -61,6 +62,7 @@ def test_settle_no_bp_success(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -79,12 +81,16 @@ def test_settle_no_bp_success(
             participant1_transferred_amount=0,
             participant1_locked_amount=0,
             participant1_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant1_claim=dict(owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)),
+            participant1_claim=dict(
+                owner=A, partner=B, total_amount=0, signature=bytes([1] * 65)
+            ),
             participant2=B,
             participant2_transferred_amount=0,
             participant2_locked_amount=0,
             participant2_locksroot=LOCKSROOT_OF_NO_LOCKS,
-            participant2_claim=dict(owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)),
+            participant2_claim=dict(
+                owner=B, partner=A, total_amount=0, signature=bytes([1] * 65)
+            ),
         ),
         {"from": A},
     )
@@ -119,6 +125,7 @@ def test_settle2_no_bp_success(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -181,7 +188,9 @@ def test_settle_channel_state(
     vals_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
     vals_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
 
-    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    channel_identifier = create_channel_and_deposit(
+        A, B, vals_A.deposit, vals_B.deposit
+    )
     withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
     withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
@@ -250,7 +259,12 @@ def test_settle_single_direct_transfer_for_closing_party(
     )
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -281,8 +295,14 @@ def test_settle_single_direct_transfer_for_closing_party(
     # Calculate how much A and B receive according to onchain computation
     onchain_settlement = get_onchain_settlement_amounts(vals_A, vals_B)
 
-    assert expected_settlement.participant1_balance == onchain_settlement.participant1_balance
-    assert expected_settlement.participant2_balance == onchain_settlement.participant2_balance
+    assert (
+        expected_settlement.participant1_balance
+        == onchain_settlement.participant1_balance
+    )
+    assert (
+        expected_settlement.participant2_balance
+        == onchain_settlement.participant2_balance
+    )
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 6
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 5
 
@@ -322,6 +342,7 @@ def test_settle_single_direct_transfer_for_counterparty(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -348,6 +369,7 @@ def test_settle_single_direct_transfer_for_counterparty(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": B},
@@ -379,8 +401,14 @@ def test_settle_single_direct_transfer_for_counterparty(
     # Calculate how much A and B receive according to onchain computation
     onchain_settlement = get_onchain_settlement_amounts(vals_B, vals_A)
 
-    assert expected_settlement.participant1_balance == onchain_settlement.participant1_balance
-    assert expected_settlement.participant2_balance == onchain_settlement.participant2_balance
+    assert (
+        expected_settlement.participant1_balance
+        == onchain_settlement.participant1_balance
+    )
+    assert (
+        expected_settlement.participant2_balance
+        == onchain_settlement.participant2_balance
+    )
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A + 5
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B + 6
 
@@ -406,7 +434,9 @@ def test_settlement_with_unauthorized_token_transfer(
     vals_A.locksroot = fake_bytes(32, "02")
     vals_B.locksroot = fake_bytes(32, "03")
 
-    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    channel_identifier = create_channel_and_deposit(
+        A, B, vals_A.deposit, vals_B.deposit
+    )
 
     withdraw_channel(channel_identifier, A, vals_A.withdrawn, UINT256_MAX, B)
     withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
@@ -420,11 +450,15 @@ def test_settlement_with_unauthorized_token_transfer(
     # Fetch onchain balances after settlement
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    pre_balance_contract = custom_token.functions.balanceOf(
+        token_network.address
+    ).call()
 
     # A does a transfer to the token_network without appropriate function call - tokens are lost
     call_and_transact(
-        custom_token.functions.transfer(token_network.address, externally_transferred_amount),
+        custom_token.functions.transfer(
+            token_network.address, externally_transferred_amount
+        ),
         {"from": A},
     )
     assert custom_token.functions.balanceOf(token_network.address).call() == (
@@ -465,7 +499,9 @@ def test_settle_wrong_state_fail(
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=35)
     vals_B = ChannelValues(deposit=40)
-    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    channel_identifier = create_channel_and_deposit(
+        A, B, vals_A.deposit, vals_B.deposit
+    )
 
     (settle_timeout, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
@@ -486,6 +522,7 @@ def test_settle_wrong_state_fail(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -535,7 +572,9 @@ def test_settle_wrong_balance_hash(
         transferred=15,
         locked_amounts=LockedAmounts(claimable_locked=5, unclaimable_locked=4),
     )
-    channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
+    channel_identifier = create_channel_and_deposit(
+        A, B, vals_A.deposit, vals_B.deposit
+    )
 
     # Mock pending transfers data for A -> B
     pending_transfers_tree_A = get_pending_transfers_tree_with_generated_lists(
@@ -691,7 +730,12 @@ def test_settle_channel_event(
 
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            close_sig_A,
         ),
         {"from": A},
     )
@@ -701,6 +745,7 @@ def test_settle_channel_event(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": B},
@@ -724,7 +769,9 @@ def test_settle_channel_event(
         {"from": A},
     )
 
-    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))
+    ev_handler.add(
+        txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5)
+    )
     ev_handler.check()
 
 
@@ -760,7 +807,6 @@ def test_settle_virtual_channel(
         balance_proof_B = create_balance_proof(
             channel_identifier=channel_identifier,
             participant=B,
-            burnt_amount=burnt_B,
             transferred_amount=transferred_B,
             nonce=nonce_B,
         )
@@ -779,7 +825,12 @@ def test_settle_virtual_channel(
 
         call_and_transact(
             token_network.functions.closeChannel(
-                channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
+                channel_identifier,
+                B,
+                A,
+                *balance_proof_B._asdict().values(),
+                0,
+                close_sig_A,
             ),
             {"from": A},
         )
@@ -789,6 +840,7 @@ def test_settle_virtual_channel(
                 A,
                 B,
                 *balance_proof_A._asdict().values(),
+                burnt_B,
                 balance_proof_update_signature_B,
             ),
             {"from": B},
@@ -800,7 +852,6 @@ def test_settle_virtual_channel(
                 channel_identifier,
                 get_settlement_input(
                     participant=B,
-                    burnt_amount=TokenAmount(burnt_B),
                     transferred_amount=TokenAmount(transferred_B),
                     claim=make_claim(owner=B, partner=A, total_amount=0),
                 ),
@@ -815,7 +866,9 @@ def test_settle_virtual_channel(
 
     # Settle
     txn_hash = close_and_settle()
-    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 4, 5))
+    ev_handler.add(
+        txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 4, 5)
+    )
     ev_handler.check()
 
     # Settle a second time and check that only the new tokens get paid out

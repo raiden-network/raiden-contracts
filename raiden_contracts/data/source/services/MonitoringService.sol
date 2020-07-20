@@ -222,6 +222,7 @@ contract MonitoringService is Utils {
             nonce,
             additional_hash,
             closing_signature,
+            0,
             non_closing_signature
         );
 
