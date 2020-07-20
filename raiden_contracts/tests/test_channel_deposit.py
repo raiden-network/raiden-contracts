@@ -10,12 +10,12 @@ from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
+    EMPTY_BURNT_AMOUNT,
     EMPTY_SIGNATURE,
     NOT_ADDRESS,
     UINT256_MAX,
     ChannelValues,
     call_and_transact,
-    EMPTY_BURNT_AMOUNT,
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_new_deposit
@@ -52,9 +52,7 @@ def test_deposit_channel_call(
         token_network.functions.setTotalDeposit(channel_identifier, "", deposit_A, B)
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.setTotalDeposit(
-            channel_identifier, NOT_ADDRESS, deposit_A, B
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, NOT_ADDRESS, deposit_A, B)
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(channel_identifier, 0x0, deposit_A, B)
@@ -63,9 +61,7 @@ def test_deposit_channel_call(
         token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, "")
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.setTotalDeposit(
-            channel_identifier, A, deposit_A, NOT_ADDRESS
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, NOT_ADDRESS)
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, 0x0)
@@ -84,25 +80,17 @@ def test_deposit_channel_call(
         ).call({"from": A})
     # Transaction failure with zero total deposit
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call(
-            {"from": A}
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call({"from": A})
 
     call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B),
-        {"from": A},
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B), {"from": A},
     )
     assert (
         deposit_A
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
     assert (
-        0
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, B, A
-        ).call()[0]
+        0 == token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[0]
     )
 
 
@@ -121,19 +109,14 @@ def test_deposit_notapproved(
     call_and_transact(custom_token.functions.mint(deposit_A), {"from": A})
     mine_blocks(web3, 1)
     balance = custom_token.functions.balanceOf(A).call()
-    assert (
-        balance >= deposit_A
-    ), f"minted {deposit_A} but the balance is still {balance}"
+    assert balance >= deposit_A, f"minted {deposit_A} but the balance is still {balance}"
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(
-            channel_identifier, A, deposit_A, B
-        ).call({"from": A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B).call(
+            {"from": A}
+        )
     assert (
-        0
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        0 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
 
@@ -153,18 +136,11 @@ def test_null_or_negative_deposit_fail(
 
     # setTotalDeposit is idempotent
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call(
-            {"from": A}
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call({"from": A})
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call(
-            {"from": A}
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})
     assert (
-        2
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        2 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
 
@@ -179,10 +155,7 @@ def test_deposit_delegate_works(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
     assert (
-        2
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        2 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
 
@@ -199,23 +172,15 @@ def test_deposit_wrong_channel(
     assign_tokens(A, 10)
 
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier2, A, 10, B).call(
-            {"from": A}
-        )
+        token_network.functions.setTotalDeposit(channel_identifier2, A, 10, B).call({"from": A})
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(channel_identifier, A, 10, C).call(
-            {"from": A}
-        )
+        token_network.functions.setTotalDeposit(channel_identifier, A, 10, C).call({"from": A})
 
     call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, A, 10, B),
-        {"from": A},
+        token_network.functions.setTotalDeposit(channel_identifier, A, 10, B), {"from": A},
     )
     assert (
-        10
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        10 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
 
@@ -296,28 +261,20 @@ def test_deposit_wrong_state_fail(
     assign_tokens(A, vals_A.deposit)
     assign_tokens(B, vals_B.deposit)
     call_and_transact(
-        token_network.functions.setTotalDeposit(
-            channel_identifier, A, vals_A.deposit, B
-        ),
+        token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B),
         {"from": A},
     )
     call_and_transact(
-        token_network.functions.setTotalDeposit(
-            channel_identifier, B, vals_B.deposit, A
-        ),
+        token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A),
         {"from": B},
     )
     assert (
         vals_A.deposit
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
     assert (
         vals_B.deposit
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, B, A
-        ).call()[0]
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()[0]
     )
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
@@ -342,13 +299,13 @@ def test_deposit_wrong_state_fail(
     vals_A.deposit += 5
     vals_B.deposit += 5
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(
-            channel_identifier, A, vals_A.deposit, B
-        ).call({"from": A})
+        token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(
+            {"from": A}
+        )
     with pytest.raises(TransactionFailed):
-        token_network.functions.setTotalDeposit(
-            channel_identifier, B, vals_B.deposit, A
-        ).call({"from": B})
+        token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A).call(
+            {"from": B}
+        )
 
 
 def test_deposit_channel_event(
@@ -369,22 +326,16 @@ def test_deposit_channel_event(
     txn_hash = channel_deposit(channel_identifier, A, deposit_A, B)
     assert (
         deposit_A
-        == token_network.functions.getChannelParticipantInfo(
-            channel_identifier, A, B
-        ).call()[0]
+        == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
     )
 
     ev_handler.add(
-        txn_hash,
-        ChannelEvent.DEPOSIT,
-        check_new_deposit(channel_identifier, A, deposit_A),
+        txn_hash, ChannelEvent.DEPOSIT, check_new_deposit(channel_identifier, A, deposit_A),
     )
 
     txn_hash = channel_deposit(channel_identifier, B, deposit_B, A)
     ev_handler.add(
-        txn_hash,
-        ChannelEvent.DEPOSIT,
-        check_new_deposit(channel_identifier, B, deposit_B),
+        txn_hash, ChannelEvent.DEPOSIT, check_new_deposit(channel_identifier, B, deposit_B),
     )
 
     ev_handler.check()

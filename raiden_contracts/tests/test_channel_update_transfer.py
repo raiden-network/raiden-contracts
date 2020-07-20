@@ -365,13 +365,7 @@ def test_update_wrong_nonce_fail(
         ).call({"from": A})
 
     update_state_tests(
-        channel_identifier,
-        A,
-        balance_proof_A,
-        B,
-        balance_proof_B,
-        settle_timeout,
-        txn_hash1,
+        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1,
     )
 
 
@@ -536,9 +530,7 @@ def test_update_channel_state(
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_delegate = custom_token.functions.balanceOf(Delegate).call()
-    pre_balance_contract = custom_token.functions.balanceOf(
-        token_network.address
-    ).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     txn_hash = call_and_transact(
         token_network.functions.updateNonClosingBalanceProof(
@@ -556,26 +548,15 @@ def test_update_channel_state(
     # There are no transfers to be made in updateNonClosingBalanceProof.
     assert web3.eth.getBalance(A) == pre_eth_balance_A
     assert web3.eth.getBalance(B) == pre_eth_balance_B
-    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(
-        txn_hash
-    )
+    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(txn_hash)
     assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(Delegate).call() == pre_balance_delegate
-    assert (
-        custom_token.functions.balanceOf(token_network.address).call()
-        == pre_balance_contract
-    )
+    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
     update_state_tests(
-        channel_identifier,
-        A,
-        balance_proof_A,
-        B,
-        balance_proof_B,
-        settle_timeout,
-        txn_hash1,
+        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1,
     )
 
 
