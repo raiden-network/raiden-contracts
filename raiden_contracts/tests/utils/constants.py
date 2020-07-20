@@ -15,6 +15,7 @@ EMPTY_HEXADDRESS = "0x0000000000000000000000000000000000000000"
 EMPTY_BALANCE_HASH = BalanceHash(b"\x00" * 32)
 EMPTY_ADDITIONAL_HASH = AdditionalHash(b"\x00" * 32)
 EMPTY_SIGNATURE = Signature(b"\x00" * 65)
+EMPTY_BURNT_AMOUNT = 0
 passphrase = "0"
 FAUCET_PRIVATE_KEY = PrivateKey(
     decode_hex("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")

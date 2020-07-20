@@ -19,6 +19,7 @@ from raiden_contracts.tests.utils import (
     EMPTY_HEXADDRESS,
     SERVICE_DEPOSIT,
     call_and_transact,
+    EMPTY_BURNT_AMOUNT,
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.proofs import sign_reward_proof
@@ -36,7 +37,8 @@ def ms_address(
     # register MS in the ServiceRegistry contract
     call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": ms})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": ms}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": ms},
     )
     call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": ms})
 
@@ -94,7 +96,12 @@ def setup_monitor_data(
         # close channel
         call_and_transact(
             token_network.functions.closeChannel(
-                channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_signature_A
+                channel_identifier,
+                B,
+                A,
+                *balance_proof_A._asdict().values(),
+                EMPTY_BURNT_AMOUNT,
+                closing_signature_A,
             ),
             {"from": A},
         )
@@ -123,7 +130,9 @@ def setup_monitor_data(
 
 
 @pytest.fixture
-def monitor_data(setup_monitor_data: Callable, monitoring_service_external: Contract) -> Dict:
+def monitor_data(
+    setup_monitor_data: Callable, monitoring_service_external: Contract
+) -> Dict:
     return setup_monitor_data(monitoring_service_external)
 
 
@@ -200,17 +209,24 @@ def test_claimReward_with_settle_call(
 
     # Check REWARD_CLAIMED event
     reward_identifier = Web3.keccak(
-        encode_single("uint256", channel_identifier) + Web3.toBytes(hexstr=token_network.address)
+        encode_single("uint256", channel_identifier)
+        + Web3.toBytes(hexstr=token_network.address)
     )
     ms_ev_handler = event_handler(monitoring_service_external)
     ms_ev_handler.assert_event(
         txn_hash,
         MonitoringServiceEvent.REWARD_CLAIMED,
-        dict(ms_address=ms_address, amount=REWARD_AMOUNT, reward_identifier=reward_identifier),
+        dict(
+            ms_address=ms_address,
+            amount=REWARD_AMOUNT,
+            reward_identifier=reward_identifier,
+        ),
     )
 
     # Check that MS balance has increased by claiming the reward
-    ms_balance_after_reward = user_deposit_contract.functions.balances(ms_address).call()
+    ms_balance_after_reward = user_deposit_contract.functions.balances(
+        ms_address
+    ).call()
     assert ms_balance_after_reward == REWARD_AMOUNT
 
 
@@ -228,7 +244,9 @@ def test_monitor(
     # parameters passed to it are handled correctly.
 
     # changing reward amount must lead to a failure during reward signature check
-    with pytest.raises(TransactionFailed, match="Reward proof with wrong non_closing_participant"):
+    with pytest.raises(
+        TransactionFailed, match="Reward proof with wrong non_closing_participant"
+    ):
         txn_hash = monitoring_service_external.functions.monitor(
             A,
             B,
@@ -385,7 +403,10 @@ def test_updateReward(
 
     # normal first call succeeds
     update_with_nonce(2)
-    assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 2
+    assert (
+        monitoring_service_internals.functions.rewardNonce(reward_identifier).call()
+        == 2
+    )
 
     # calling again with same nonce fails
     with pytest.raises(TransactionFailed, match="stale nonce"):
@@ -393,11 +414,16 @@ def test_updateReward(
 
     # calling again with higher nonce succeeds
     update_with_nonce(3)
-    assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 3
+    assert (
+        monitoring_service_internals.functions.rewardNonce(reward_identifier).call()
+        == 3
+    )
 
 
 def test_pureFirstAllowedBlock(monitoring_service_external: Contract) -> None:
-    def call(addresses: List[int], closed_at_block: int = 1000, settle_timeout: int = 100) -> int:
+    def call(
+        addresses: List[int], closed_at_block: int = 1000, settle_timeout: int = 100
+    ) -> int:
         first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
             closed_at_block=closed_at_block,
             settle_timeout=settle_timeout,
@@ -434,7 +460,9 @@ def test_pureFirstAllowedBlock(monitoring_service_external: Contract) -> None:
 
 
 def test_recoverAddressFromRewardProof(
-    monitor_data_internal: Dict, token_network: Contract, monitoring_service_internals: Contract
+    monitor_data_internal: Dict,
+    token_network: Contract,
+    monitoring_service_internals: Contract,
 ) -> None:
     _, B = monitor_data_internal["participants"]
 

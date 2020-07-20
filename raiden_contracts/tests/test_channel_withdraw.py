@@ -19,6 +19,7 @@ from raiden_contracts.tests.utils import (
     LOCKSROOT_OF_NO_LOCKS,
     UINT256_MAX,
     call_and_transact,
+    EMPTY_BURNT_AMOUNT,
 )
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_withdraw
@@ -199,6 +200,7 @@ def test_withdraw_wrong_state(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=closing_sig,
         ),
         {"from": A},
@@ -234,7 +236,9 @@ def test_withdraw_wrong_state(
 
 
 def test_withdraw_bigger(
-    create_channel_and_deposit: Callable, get_accounts: Callable, withdraw_channel: Callable
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    withdraw_channel: Callable,
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 15
@@ -243,16 +247,24 @@ def test_withdraw_bigger(
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
     with pytest.raises(TransactionFailed):
-        withdraw_channel(channel_identifier, A, deposit_A + deposit_B + 1, UINT256_MAX, B)
+        withdraw_channel(
+            channel_identifier, A, deposit_A + deposit_B + 1, UINT256_MAX, B
+        )
     with pytest.raises(TransactionFailed):
-        withdraw_channel(channel_identifier, B, deposit_A + deposit_B + 1, UINT256_MAX, A)
+        withdraw_channel(
+            channel_identifier, B, deposit_A + deposit_B + 1, UINT256_MAX, A
+        )
 
     withdraw_channel(channel_identifier, A, 3, UINT256_MAX, B)
     withdraw_channel(channel_identifier, B, 6, UINT256_MAX, A)
     with pytest.raises(TransactionFailed):
-        withdraw_channel(channel_identifier, A, deposit_A + deposit_B - 5, UINT256_MAX, B)
+        withdraw_channel(
+            channel_identifier, A, deposit_A + deposit_B - 5, UINT256_MAX, B
+        )
     with pytest.raises(TransactionFailed):
-        withdraw_channel(channel_identifier, B, deposit_A + deposit_B - 2, UINT256_MAX, A)
+        withdraw_channel(
+            channel_identifier, B, deposit_A + deposit_B - 2, UINT256_MAX, A
+        )
 
     withdraw_channel(channel_identifier, A, deposit_A + deposit_B - 7, UINT256_MAX, B)
 
@@ -269,21 +281,40 @@ def test_withdraw_wrong_signers(
     withdraw_A = 5
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A_for_A, signature_B_for_A, signature_C_for_A) = create_withdraw_signatures(
+    (
+        signature_A_for_A,
+        signature_B_for_A,
+        signature_C_for_A,
+    ) = create_withdraw_signatures(
         [A, B, C], channel_identifier, A, withdraw_A, UINT256_MAX
     )
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier, A, withdraw_A, UINT256_MAX, signature_C_for_A, signature_B_for_A
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_C_for_A,
+            signature_B_for_A,
         ).call({"from": C})
     with pytest.raises(TransactionFailed):
         token_network.functions.setTotalWithdraw(
-            channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_C_for_A
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_C_for_A,
         ).call({"from": C})
 
     call_and_transact(
         token_network.functions.setTotalWithdraw(
-            channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_B_for_A,
         ),
         {"from": C},
     )
@@ -373,7 +404,12 @@ def test_withdraw_wrong_signature_content(
     with pytest.raises(TransactionFailed):
         call_and_transact(
             token_network.functions.setTotalWithdraw(
-                channel_identifier, A, withdraw_A, 0, signature_A_for_A, signature_B_for_A
+                channel_identifier,
+                A,
+                withdraw_A,
+                0,
+                signature_A_for_A,
+                signature_B_for_A,
             ),
             {"from": A},
         )
@@ -392,7 +428,12 @@ def test_withdraw_wrong_signature_content(
 
     call_and_transact(
         token_network.functions.setTotalWithdraw(
-            channel_identifier, A, withdraw_A, UINT256_MAX, signature_A_for_A, signature_B_for_A
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_B_for_A,
         ),
         {"from": A},
     )
@@ -418,7 +459,15 @@ def test_withdraw_channel_state(
     balance_B = custom_token.functions.balanceOf(B).call()
     balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    (_, withdrawn_amount, _, _, _, _, _) = token_network.functions.getChannelParticipantInfo(
+    (
+        _,
+        withdrawn_amount,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ) = token_network.functions.getChannelParticipantInfo(
         channel_identifier, A, B
     ).call()
     assert withdrawn_amount == 0
@@ -494,9 +543,13 @@ def test_withdraw_event(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
 
     txn_hash = withdraw_channel(channel_identifier, A, 5, UINT256_MAX, B)
-    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, A, 5))
+    ev_handler.add(
+        txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, A, 5)
+    )
 
     txn_hash = withdraw_channel(channel_identifier, B, 2, UINT256_MAX, A, C)
-    ev_handler.add(txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, B, 2))
+    ev_handler.add(
+        txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, B, 2)
+    )
 
     ev_handler.check()

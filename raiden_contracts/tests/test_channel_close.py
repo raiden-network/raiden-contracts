@@ -16,6 +16,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
+    EMPTY_BURNT_AMOUNT,
     EMPTY_SIGNATURE,
     ChannelValues,
     LockedAmounts,
@@ -25,13 +26,17 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_channel_closed
 
 
-def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callable) -> None:
+def test_close_nonexistent_channel(
+    token_network: Contract, get_accounts: Callable
+) -> None:
     """ Test getChannelInfo and closeChannel on a not-yet opened channel """
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
 
     (_, state) = token_network.functions.getChannelInfo(
-        channel_identifier=non_existent_channel_identifier, participant1=A, participant2=B
+        channel_identifier=non_existent_channel_identifier,
+        participant1=A,
+        participant2=B,
     ).call()
     assert state == ChannelState.NONEXISTENT
     # assert settle_block_number == 0
@@ -45,6 +50,7 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=EMPTY_SIGNATURE,
         ).call({"from": A, "gas": Wei(81_000)})
 
@@ -85,7 +91,12 @@ def test_close_wrong_signature(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof._asdict().values(), closing_signature_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_signature_A,
         ).call({"from": A})
 
 
@@ -112,6 +123,7 @@ def test_close_call_twice_fail(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=closing_sig,
         ),
         {"from": A},
@@ -126,6 +138,7 @@ def test_close_call_twice_fail(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=closing_sig,
         ).call({"from": A})
 
@@ -151,6 +164,7 @@ def test_close_different_sender(
         nonce=0,
         additional_hash=EMPTY_ADDITIONAL_HASH,
         non_closing_signature=EMPTY_SIGNATURE,
+        burnt_amount=EMPTY_BURNT_AMOUNT,
         closing_signature=closing_sig,
     ).call({"from": C})
 
@@ -199,7 +213,9 @@ def test_close_nonce_zero(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -208,7 +224,12 @@ def test_close_nonce_zero(
 
     close_tx = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), close_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            close_sig_A,
         ),
         {"from": A},
     )
@@ -236,7 +257,9 @@ def test_close_nonce_zero(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -273,13 +296,23 @@ def test_close_first_argument_is_for_partner_transfer(
     # closeChannel fails, if the provided balance proof is from the same participant who closes
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof._asdict().values(), closing_sig_B
+            channel_identifier,
+            B,
+            A,
+            *balance_proof._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_B,
         ).call({"from": B})
 
     # Else, closeChannel works with this balance proof
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -308,6 +341,7 @@ def test_close_first_participant_can_close(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=closing_sig,
         ),
         {"from": A},
@@ -327,7 +361,9 @@ def test_close_first_participant_can_close(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()
     assert A_is_the_closer is True
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -340,7 +376,9 @@ def test_close_first_participant_can_close(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -366,6 +404,7 @@ def test_close_second_participant_can_close(
             nonce=0,
             additional_hash=EMPTY_ADDITIONAL_HASH,
             non_closing_signature=EMPTY_SIGNATURE,
+            burnt_amount=EMPTY_BURNT_AMOUNT,
             closing_signature=closing_sig,
         ),
         {"from": B},
@@ -418,7 +457,9 @@ def test_close_channel_state(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()
     assert A_is_the_closer is False
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -430,7 +471,9 @@ def test_close_channel_state(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -440,7 +483,9 @@ def test_close_channel_state(
     pre_eth_balance_contract = web3.eth.getBalance(token_network.address)
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    pre_balance_contract = custom_token.functions.balanceOf(
+        token_network.address
+    ).call()
 
     # Create a balance proof
     balance_proof_B = create_balance_proof(
@@ -460,7 +505,12 @@ def test_close_channel_state(
 
     txn_hash = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -472,7 +522,10 @@ def test_close_channel_state(
     assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
-    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
+    assert (
+        custom_token.functions.balanceOf(token_network.address).call()
+        == pre_balance_contract
+    )
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
@@ -488,7 +541,9 @@ def test_close_channel_state(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, A, B
+    ).call()
     assert A_is_the_closer is True
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -501,7 +556,9 @@ def test_close_channel_state(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
+    ) = token_network.functions.getChannelParticipantInfo(
+        channel_identifier, B, A
+    ).call()
     assert B_is_the_closer is False
     assert B_balance_hash == balance_proof_B.balance_hash
     assert B_nonce == vals_B.nonce
@@ -532,6 +589,7 @@ def test_close_channel_event_no_offchain_transfers(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -578,7 +636,12 @@ def test_close_channel_event(
 
     txn_hash = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof._asdict().values(), close_sig
+            channel_identifier,
+            B,
+            A,
+            *balance_proof._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            close_sig,
         ),
         {"from": A},
     )

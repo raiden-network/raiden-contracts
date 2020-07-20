@@ -16,6 +16,7 @@ from raiden_contracts.constants import (
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
+    EMPTY_BURNT_AMOUNT,
     EMPTY_SIGNATURE,
     call_and_transact,
     fake_bytes,
@@ -47,6 +48,7 @@ def test_update_call(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -74,6 +76,7 @@ def test_update_call(
             EMPTY_ADDRESS,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -84,13 +87,19 @@ def test_update_call(
             A,
             EMPTY_ADDRESS,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
     # Failure with the zero signature
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier, A, B, *balance_proof_A._asdict().values(), EMPTY_SIGNATURE
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            EMPTY_SIGNATURE,
         ).call({"from": C})
 
     # Failure with the empty balance hash
@@ -103,6 +112,7 @@ def test_update_call(
             balance_proof_A.nonce,
             balance_proof_A.additional_hash,
             balance_proof_A.original_signature,
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -116,6 +126,7 @@ def test_update_call(
             0,
             balance_proof_A.additional_hash,
             balance_proof_A.original_signature,
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -129,6 +140,7 @@ def test_update_call(
             balance_proof_A.nonce,
             balance_proof_A.additional_hash,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -142,6 +154,7 @@ def test_update_call(
             balance_proof_A.nonce,
             balance_proof_A.additional_hash,
             balance_proof_A.original_signature,
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": C},
@@ -182,6 +195,7 @@ def test_update_nonexistent_fail(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -226,6 +240,7 @@ def test_update_notclosed_fail(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
 
@@ -274,7 +289,12 @@ def test_update_wrong_nonce_fail(
     )
     txn_hash1 = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -285,6 +305,7 @@ def test_update_wrong_nonce_fail(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": Delegate},
@@ -297,6 +318,7 @@ def test_update_wrong_nonce_fail(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": Delegate})
     balance_proof_A_same_nonce = create_balance_proof(
@@ -313,6 +335,7 @@ def test_update_wrong_nonce_fail(
             A,
             B,
             *balance_proof_A_same_nonce._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": Delegate})
 
@@ -337,11 +360,18 @@ def test_update_wrong_nonce_fail(
             A,
             B,
             *balance_proof_A_lower_nonce._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": A})
 
     update_state_tests(
-        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1
+        channel_identifier,
+        A,
+        balance_proof_A,
+        B,
+        balance_proof_B,
+        settle_timeout,
+        txn_hash1,
     )
 
 
@@ -401,6 +431,7 @@ def test_update_wrong_signatures(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -412,6 +443,7 @@ def test_update_wrong_signatures(
             A,
             B,
             *balance_proof_A_fake._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": C})
     with pytest.raises(TransactionFailed):
@@ -420,6 +452,7 @@ def test_update_wrong_signatures(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B_fake,
         ).call({"from": C})
 
@@ -430,6 +463,7 @@ def test_update_wrong_signatures(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": C},
@@ -485,7 +519,12 @@ def test_update_channel_state(
 
     txn_hash1 = call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -497,7 +536,9 @@ def test_update_channel_state(
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_delegate = custom_token.functions.balanceOf(Delegate).call()
-    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
+    pre_balance_contract = custom_token.functions.balanceOf(
+        token_network.address
+    ).call()
 
     txn_hash = call_and_transact(
         token_network.functions.updateNonClosingBalanceProof(
@@ -505,6 +546,7 @@ def test_update_channel_state(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": Delegate},
@@ -514,15 +556,26 @@ def test_update_channel_state(
     # There are no transfers to be made in updateNonClosingBalanceProof.
     assert web3.eth.getBalance(A) == pre_eth_balance_A
     assert web3.eth.getBalance(B) == pre_eth_balance_B
-    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(txn_hash)
+    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(
+        txn_hash
+    )
     assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(Delegate).call() == pre_balance_delegate
-    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
+    assert (
+        custom_token.functions.balanceOf(token_network.address).call()
+        == pre_balance_contract
+    )
 
     update_state_tests(
-        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1
+        channel_identifier,
+        A,
+        balance_proof_A,
+        B,
+        balance_proof_B,
+        settle_timeout,
+        txn_hash1,
     )
 
 
@@ -556,6 +609,7 @@ def test_update_channel_fail_no_offchain_transfers(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -570,6 +624,7 @@ def test_update_channel_fail_no_offchain_transfers(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             EMPTY_SIGNATURE,
         ).call({"from": B})
 
@@ -579,6 +634,7 @@ def test_update_channel_fail_no_offchain_transfers(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": B})
 
@@ -628,7 +684,12 @@ def test_update_not_allowed_after_settlement_period(
     )
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -639,6 +700,7 @@ def test_update_not_allowed_after_settlement_period(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": A})
 
@@ -694,7 +756,12 @@ def test_update_not_allowed_for_the_closing_address(
     # A closes with the first balance proof
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B_0._asdict().values(), closing_sig_A_0
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B_0._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A_0,
         ),
         {"from": A},
     )
@@ -706,6 +773,7 @@ def test_update_not_allowed_for_the_closing_address(
             A,
             B,
             *balance_proof_B_1._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": A})
     with pytest.raises(TransactionFailed):
@@ -714,6 +782,7 @@ def test_update_not_allowed_for_the_closing_address(
             A,
             B,
             *balance_proof_B_1._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": B})
     with pytest.raises(TransactionFailed):
@@ -722,6 +791,7 @@ def test_update_not_allowed_for_the_closing_address(
             A,
             B,
             *balance_proof_B_1._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ).call({"from": M})
 
@@ -752,6 +822,7 @@ def test_update_invalid_balance_proof_arguments(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -816,6 +887,7 @@ def test_update_invalid_balance_proof_arguments(
             A,
             B,
             *balance_proof_invalid_token_network._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_token_network,
         ).call({"from": B})
 
@@ -848,6 +920,7 @@ def test_update_invalid_balance_proof_arguments(
             A,
             B,
             *balance_proof_invalid_channel_participant._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_channel_participant,
         ).call({"from": B})
 
@@ -880,6 +953,7 @@ def test_update_invalid_balance_proof_arguments(
             A,
             B,
             *balance_proof_invalid_channel_identifier._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_channel_identifier,
         ).call({"from": B})
 
@@ -901,6 +975,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.nonce,
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_balance_hash,
         ).call({"from": B})
 
@@ -923,6 +998,7 @@ def test_update_invalid_balance_proof_arguments(
             1,  # invalid nonce
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_nonce,
         ).call({"from": B})
 
@@ -945,6 +1021,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.nonce,
             fake_bytes(32, "02"),  # invalid additional_hash
             balance_proof_valid.signature,
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_additional_hash,
         ).call({"from": B})
 
@@ -967,6 +1044,7 @@ def test_update_invalid_balance_proof_arguments(
             balance_proof_valid.nonce,
             balance_proof_valid.additional_hash,
             balance_proof_valid.signature,
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_closing_signature[::-1],  # invalid non-closing signature
         ).call({"from": B})
 
@@ -978,6 +1056,7 @@ def test_update_invalid_balance_proof_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             valid_balance_proof_update_signature,
         ),
         {"from": B},
@@ -1014,6 +1093,7 @@ def test_update_signature_on_invalid_arguments(
             0,
             EMPTY_ADDITIONAL_HASH,
             EMPTY_SIGNATURE,
+            EMPTY_BURNT_AMOUNT,
             closing_sig,
         ),
         {"from": A},
@@ -1047,6 +1127,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_token_network_address,
         ).call({"from": B})
 
@@ -1065,6 +1146,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_participant,
         ).call({"from": B})
 
@@ -1083,6 +1165,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_channel_identifier,
         ).call({"from": B})
 
@@ -1101,6 +1184,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_balance_hash,
         ).call({"from": B})
 
@@ -1119,6 +1203,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_nonce,
         ).call({"from": B})
 
@@ -1137,6 +1222,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_additional_hash,
         ).call({"from": B})
 
@@ -1155,6 +1241,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             signature_invalid_closing_signature,
         ).call({"from": B})
 
@@ -1171,6 +1258,7 @@ def test_update_signature_on_invalid_arguments(
             A,
             B,
             *balance_proof_valid._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature,
         ),
         {"from": B},
@@ -1224,7 +1312,12 @@ def test_update_channel_event(
 
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -1234,6 +1327,7 @@ def test_update_channel_event(
             A,
             B,
             *balance_proof_A._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B,
         ),
         {"from": B},
@@ -1266,6 +1360,7 @@ def test_update_channel_event(
             A,
             B,
             *balance_proof_A2._asdict().values(),
+            EMPTY_BURNT_AMOUNT,
             balance_proof_update_signature_B2,
         ),
         {"from": B},

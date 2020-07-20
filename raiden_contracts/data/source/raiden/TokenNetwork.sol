@@ -130,9 +130,15 @@ contract TokenNetwork is Utils {
         bytes signature;
     }
 
+    struct BalanceProof {
+        bytes32 balance_hash;
+        uint256 nonce;
+        bytes32 additional_hash;
+        bytes signature;
+    }
+
     struct SettleInput {
         address participant;
-        uint256 burnt_amount;
         uint256 transferred_amount;
         uint256 locked_amount;
         bytes32 locksroot;
@@ -497,8 +503,8 @@ contract TokenNetwork is Utils {
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        uint256 burnt_amount,
         bytes memory non_closing_signature,
+        uint256 burnt_amount,
         bytes memory closing_signature
     )
         public
@@ -568,9 +574,9 @@ contract TokenNetwork is Utils {
     /// @param additional_hash Computed from the message. Used for message
     /// authentication
     /// @param nonce Strictly monotonic value used to order transfers
-    /// @param burnt_amount non-closing participant's burnt amount
     /// @param closing_signature Closing participant's signature of the balance
     /// proof data
+    /// @param burnt_amount non-closing participant's burnt amount
     /// @param non_closing_signature Non-closing participant signature of the
     /// balance proof data
     function updateNonClosingBalanceProof(
@@ -580,19 +586,44 @@ contract TokenNetwork is Utils {
         // The next four arguments form a balance proof
         bytes32 balance_hash,
         uint256 nonce,
-        uint256 burnt_amount,
         bytes32 additional_hash,
         bytes calldata closing_signature,
+        uint256 burnt_amount,
         bytes calldata non_closing_signature
     )
         external
+    {
+        updateNonClosingBalanceProof2(
+            channel_identifier,
+            closing_participant,
+            non_closing_participant,
+            BalanceProof(
+                balance_hash,
+                nonce,
+                additional_hash,
+                closing_signature
+            ),
+            burnt_amount,
+            non_closing_signature
+        );
+    }
+
+    function updateNonClosingBalanceProof2(
+        uint256 channel_identifier,
+        address closing_participant,
+        address non_closing_participant,
+        BalanceProof memory balance_proof,
+        uint256 burnt_amount,
+        bytes memory non_closing_signature
+    )
+        public
     {
         require(channel_identifier == getChannelIdentifier(
             closing_participant,
             non_closing_participant
         ));
-        require(balance_hash != bytes32(0x0));
-        require(nonce > 0);
+        require(balance_proof.balance_hash != bytes32(0x0));
+        require(balance_proof.nonce > 0);
 
         address recovered_non_closing_participant;
         address recovered_closing_participant;
@@ -630,20 +661,20 @@ contract TokenNetwork is Utils {
         recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
             MessageTypeId.BalanceProofUpdate,
             channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            closing_signature,
+            balance_proof.balance_hash,
+            balance_proof.nonce,
+            balance_proof.additional_hash,
+            balance_proof.signature,
             non_closing_signature
         );
         require(non_closing_participant == recovered_non_closing_participant);
 
         recovered_closing_participant = recoverAddressFromBalanceProof(
             channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            closing_signature
+            balance_proof.balance_hash,
+            balance_proof.nonce,
+            balance_proof.additional_hash,
+            balance_proof.signature
         );
         require(closing_participant == recovered_closing_participant);
 
@@ -652,16 +683,18 @@ contract TokenNetwork is Utils {
         require(closing_participant_state.is_the_closer);
 
         // Update the balance proof data for the closing_participant
-        updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
+        updateBalanceProofData(channel, closing_participant, balance_proof.nonce, balance_proof.balance_hash);
 
         emit NonClosingBalanceProofUpdated(
             channel_identifier,
             closing_participant,
-            nonce,
-            balance_hash,
+            balance_proof.nonce,
+            balance_proof.balance_hash,
             burnt_amount
         );
     }
+
+
 
     /// @notice Settles the balance between the two parties. Note that arguments
     /// order counts: `participant1_transferred_amount +
@@ -706,7 +739,6 @@ contract TokenNetwork is Utils {
             channel_identifier,
             SettleInput({
                 participant: participant1,
-                burnt_amount: channel.participants[participant1].burnt_amount,
                 transferred_amount: participant1_transferred_amount,
                 locked_amount: participant1_locked_amount,
                 locksroot: participant1_locksroot,
@@ -714,7 +746,6 @@ contract TokenNetwork is Utils {
             }),
             SettleInput({
                 participant: participant2,
-                burnt_amount: channel.participants[participant2].burnt_amount,
                 transferred_amount: participant2_transferred_amount,
                 locked_amount: participant2_locked_amount,
                 locksroot: participant2_locksroot,
@@ -1216,8 +1247,8 @@ contract TokenNetwork is Utils {
             participant2_state,
             participant1_input.claim,
             participant2_input.claim,
-            participant1_input.burnt_amount,
-            participant2_input.burnt_amount
+            participant1_state.burnt_amount,
+            participant2_state.burnt_amount
         );
 
         // RmaxP1 = (T2 + L2) - (T1 + L1) + D1 - W1
@@ -1229,14 +1260,14 @@ contract TokenNetwork is Utils {
                 participant1_state.deposit + participant1_input.claim.total_amount,
                 participant1_state.withdrawn_amount,
                 participant1_input.transferred_amount,
-                participant1_input.burnt_amount,
+                participant1_state.burnt_amount,
                 participant1_input.locked_amount
             ),
             SettlementData(
                 participant2_state.deposit + participant2_input.claim.total_amount,
                 participant2_state.withdrawn_amount,
                 participant2_input.transferred_amount,
-                participant2_input.burnt_amount,
+                participant2_state.burnt_amount,
                 participant2_input.locked_amount
             )
         );
@@ -1379,7 +1410,6 @@ contract TokenNetwork is Utils {
         // Make sure the hash of the provided state is the same as the stored
         // balance_hash
         return participant.balance_hash == keccak256(abi.encodePacked(
-            settle_input.burnt_amount,
             settle_input.transferred_amount,
             settle_input.locked_amount,
             settle_input.locksroot
