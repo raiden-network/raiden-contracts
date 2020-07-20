@@ -26,17 +26,13 @@ from raiden_contracts.tests.utils import (
 from raiden_contracts.utils.events import check_channel_closed
 
 
-def test_close_nonexistent_channel(
-    token_network: Contract, get_accounts: Callable
-) -> None:
+def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callable) -> None:
     """ Test getChannelInfo and closeChannel on a not-yet opened channel """
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
 
     (_, state) = token_network.functions.getChannelInfo(
-        channel_identifier=non_existent_channel_identifier,
-        participant1=A,
-        participant2=B,
+        channel_identifier=non_existent_channel_identifier, participant1=A, participant2=B,
     ).call()
     assert state == ChannelState.NONEXISTENT
     # assert settle_block_number == 0
@@ -213,9 +209,7 @@ def test_close_nonce_zero(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, B, A
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -257,9 +251,7 @@ def test_close_nonce_zero(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, B, A
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -361,9 +353,7 @@ def test_close_first_participant_can_close(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, A, B
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is True
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -376,9 +366,7 @@ def test_close_first_participant_can_close(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, B, A
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -457,9 +445,7 @@ def test_close_channel_state(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, A, B
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is False
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -471,9 +457,7 @@ def test_close_channel_state(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, B, A
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
@@ -483,9 +467,7 @@ def test_close_channel_state(
     pre_eth_balance_contract = web3.eth.getBalance(token_network.address)
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
-    pre_balance_contract = custom_token.functions.balanceOf(
-        token_network.address
-    ).call()
+    pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
     # Create a balance proof
     balance_proof_B = create_balance_proof(
@@ -522,10 +504,7 @@ def test_close_channel_state(
     assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
-    assert (
-        custom_token.functions.balanceOf(token_network.address).call()
-        == pre_balance_contract
-    )
+    assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
@@ -541,9 +520,7 @@ def test_close_channel_state(
         A_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, A, B
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert A_is_the_closer is True
     assert A_balance_hash == EMPTY_BALANCE_HASH
     assert A_nonce == 0
@@ -556,9 +533,7 @@ def test_close_channel_state(
         B_nonce,
         _,
         _,
-    ) = token_network.functions.getChannelParticipantInfo(
-        channel_identifier, B, A
-    ).call()
+    ) = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert B_is_the_closer is False
     assert B_balance_hash == balance_proof_B.balance_hash
     assert B_nonce == vals_B.nonce
