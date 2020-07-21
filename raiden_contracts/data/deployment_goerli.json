@@ -3,19 +3,19 @@
   "chain_id": 5,
   "contracts": {
     "SecretRegistry": {
-      "address": "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
-      "transaction_hash": "0x74e45a70fbfe991b9dcee98b248a8165c5cb1cbfe0a8e8b5cca07219e958bce9",
-      "block_number": 2723613,
+      "address": "0xBDD6FbEca0D16A8e19d504B930C1d83C0F261C07",
+      "transaction_hash": "0xab28bcaf645003b404e62adcfb89cd31bb1f5ae235d9a3570a6d7fd491bf9931",
+      "block_number": 3085525,
       "gas_cost": 247286,
       "constructor_arguments": []
     },
     "TokenNetworkRegistry": {
-      "address": "0x5a5CF4A63022F61F1506D1A2398490c2e8dfbb98",
-      "transaction_hash": "0x229a818e87c41e5ca1818e7f102d02edb22018475706846071b2f0e7dc59eca6",
-      "block_number": 2723614,
-      "gas_cost": 4001594,
+      "address": "0x4f4aFA4AA68dF641be37F0aeF41f005862f57dF5",
+      "transaction_hash": "0x34812f5571aa743be7cabaddf3f17407cb7a309aec0bdbfe185f47eea8f42411",
+      "block_number": 3085526,
+      "gas_cost": 5109595,
       "constructor_arguments": [
-        "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
+        "0xBDD6FbEca0D16A8e19d504B930C1d83C0F261C07",
         5,
         20,
         555428,
@@ -25,10 +25,10 @@
   },
   "token_networks": [
     {
-      "token_network_address": "0x812650FB6Acdf9dD47E631cBB5518B32FFD4D129",
+      "token_network_address": "0x03A9769DB468e51c9EA5E2ff180e319b0b88a356",
       "constructor_arguments": {
-        "_token_address": "0xC563388e2e2fdD422166eD5E76971D11eD37A466",
-        "_secret_registry": "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
+        "_token_address": "0xea5E265C4BE2E58B31a28b6cAc3F6918727f0e5A",
+        "_secret_registry": "0xBDD6FbEca0D16A8e19d504B930C1d83C0F261C07",
         "_chain_id": 5,
         "_settlement_timeout_min": 20,
         "_settlement_timeout_max": 555428,
