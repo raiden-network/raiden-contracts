@@ -951,11 +951,15 @@ contract TokenNetwork is Utils {
         // be 0
         if (unlocked_amount > 0) {
             require(token.transfer(receiver, unlocked_amount));
+            Participant storage receiver_state = channels[channel_identifier].participants[receiver];
+            receiver_state.withdrawn_amount += unlocked_amount;
         }
 
         // Transfer the rest of the tokens back to the sender
         if (returned_tokens > 0) {
             require(token.transfer(sender, returned_tokens));
+            Participant storage sender_state = channels[channel_identifier].participants[sender];
+            sender_state.withdrawn_amount += returned_tokens;
         }
 
         // At this point, this should always be true
