@@ -288,7 +288,7 @@ contract TokenNetwork is Utils {
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
         channel_counter += 1;
-        channel_identifier = channel_counter;
+        channel_identifier = uint256(keccak256(abi.encodePacked(chain_id, address(this), channel_counter)));
 
         pair_hash = getParticipantsHash(participant1, participant2);
 
@@ -1072,8 +1072,7 @@ contract TokenNetwork is Utils {
         ChannelState state = channel.state;  // This must **not** update the storage
 
         if (state == ChannelState.NonExistent &&
-            channel_identifier > 0 &&
-            channel_identifier <= channel_counter
+            channel_identifier > 0
         ) {
             // The channel has been settled, channel data is removed Therefore,
             // the channel state in storage is actually `0`, or `NonExistent`

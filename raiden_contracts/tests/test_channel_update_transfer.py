@@ -152,11 +152,11 @@ def test_update_nonexistent_fail(
     (A, B, C) = get_accounts(3)
     channel_identifier = 1
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
+    (settle_block_number, _) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
     ).call()
     assert settle_block_number == 0
-    assert state == ChannelState.NONEXISTENT
+    # assert state == ChannelState.NONEXISTENT
 
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_update_signature_B = create_balance_proof_countersignature(

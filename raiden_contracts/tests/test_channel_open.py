@@ -134,28 +134,37 @@ def test_counter(
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     # Create channel between A and B, counter increases
-    create_channel(A, B)
+    channel_id, _ = create_channel(A, B)
     assert token_network.functions.channel_counter().call() == 1
-    assert token_network.functions.participants_hash_to_channel_identifier(AB_hash).call() == 1
-    assert token_network.functions.getChannelIdentifier(A, B).call() == 1
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(AB_hash).call()
+        == channel_id
+    )
+    assert token_network.functions.getChannelIdentifier(A, B).call() == channel_id
 
     # We still do not have a channel between B and C
     assert token_network.functions.getChannelIdentifier(B, C).call() == 0
 
     # Create channel between B and C, counter increases
-    create_channel(B, C)
+    channel_id, _ = create_channel(B, C)
     assert token_network.functions.channel_counter().call() == 2
-    assert token_network.functions.participants_hash_to_channel_identifier(BC_hash).call() == 2
-    assert token_network.functions.getChannelIdentifier(B, C).call() == 2
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(BC_hash).call()
+        == channel_id
+    )
+    assert token_network.functions.getChannelIdentifier(B, C).call() == channel_id
 
     # We still do not have a channel between C and D
     assert token_network.functions.getChannelIdentifier(C, D).call() == 0
 
     # Create channel between C and D, counter increases
-    create_channel(C, D)
+    channel_id, _ = create_channel(C, D)
     assert token_network.functions.channel_counter().call() == 3
-    assert token_network.functions.participants_hash_to_channel_identifier(CD_hash).call() == 3
-    assert token_network.functions.getChannelIdentifier(C, D).call() == 3
+    assert (
+        token_network.functions.participants_hash_to_channel_identifier(CD_hash).call()
+        == channel_id
+    )
+    assert token_network.functions.getChannelIdentifier(C, D).call() == channel_id
 
 
 def test_state_channel_identifier_invalid(
@@ -207,10 +216,9 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
-    assert (
-        token_network.functions.participants_hash_to_channel_identifier(participants_hash).call()
-        == channel_counter + 1
-    )
+    assert token_network.functions.participants_hash_to_channel_identifier(
+        participants_hash
+    ).call()
 
     channel_info_response = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     settle_block_number = channel_info_response[ChannelInfoIndex.SETTLE_BLOCK]
@@ -264,9 +272,6 @@ def test_reopen_channel(
 
     call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
-    channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
-        get_participants_hash(A, B)
-    ).call()
 
     # Opening twice fails
     with pytest.raises(TransactionFailed):
@@ -307,12 +312,9 @@ def test_reopen_channel(
     call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
     channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
     assert channel_identifier2 != channel_identifier1
-    assert (
-        token_network.functions.participants_hash_to_channel_identifier(
-            get_participants_hash(A, B)
-        ).call()
-        == channel_counter1 + 1
-    )
+    assert token_network.functions.participants_hash_to_channel_identifier(
+        get_participants_hash(A, B)
+    ).call()
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier2, A, B
