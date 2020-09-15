@@ -51,7 +51,7 @@ def udc_transfer_contract(
 @pytest.fixture
 def deposit_to_udc(user_deposit_contract: Contract, custom_token: Contract) -> Callable:
     def deposit(receiver: HexAddress, amount: int) -> None:
-        """ Uses UDC's monotonous deposit amount handling
+        """Uses UDC's monotonous deposit amount handling
 
         If you call it twice, only amount2 - amount1 will be deposited. More
         will be mined and approved to keep the implementation simple, though.

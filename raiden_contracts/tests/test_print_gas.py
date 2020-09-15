@@ -430,7 +430,7 @@ def print_gas_user_deposit(
     web3: Web3,
     print_gas: Callable,
 ) -> None:
-    """ Abusing pytest to print gas cost of UserDeposit functions
+    """Abusing pytest to print gas cost of UserDeposit functions
 
     The `transfer` function is not included because it's only called by trusted
     contracts as part of another function.

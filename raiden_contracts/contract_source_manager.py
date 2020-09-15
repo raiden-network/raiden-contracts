@@ -102,7 +102,7 @@ class ContractSourceManager:
         return ContractManager(target_path)
 
     def verify_precompiled_checksums(self, precompiled_path: Path) -> None:
-        """ Compare source code checksums with those from a precompiled file
+        """Compare source code checksums with those from a precompiled file
 
         If `contract_name` is None, all contracts checksums and the overall checksum are checked.
         """
@@ -126,7 +126,7 @@ class ContractSourceManager:
             )
 
     def _checksum_contracts(self) -> Tuple[Dict[str, str], str]:
-        """ Compute the checksum of each source, and the overall checksum
+        """Compute the checksum of each source, and the overall checksum
 
         Returns (contracts_checksums, overall_checksum)
         """

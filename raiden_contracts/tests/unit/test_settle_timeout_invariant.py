@@ -16,7 +16,7 @@ def test_settle_timeout_inrange(
     web3: Web3,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ The TokenNetwork constructor must enforce that settle timeout is in
+    """The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.
 
     Also asserts that the constants.py and the netting channel contract values

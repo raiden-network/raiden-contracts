@@ -59,7 +59,7 @@ class LogHandler:
         self.wait(timeout)
 
     def _handle_waited_log(self, event: Dict[str, Any]) -> None:
-        """ A subroutine of handle_log
+        """A subroutine of handle_log
         Increment self.event_count, forget about waiting, and call the callback if any.
         """
         txn_hash = event["transactionHash"]
@@ -118,7 +118,7 @@ class LogHandler:
     def assert_event(
         self, txn_hash: str, event_name: str, args: List[Any], timeout: int = 5
     ) -> None:
-        """ Assert that `event_name` is emitted with the `args`
+        """Assert that `event_name` is emitted with the `args`
 
         For use in tests only.
         """

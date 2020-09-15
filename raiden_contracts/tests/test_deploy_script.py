@@ -172,7 +172,8 @@ def test_deploy_service_0_37_0(
 
 
 @pytest.mark.parametrize(
-    "version,expectation", [(ALDERAAN_VERSION, True), (None, True)],
+    "version,expectation",
+    [(ALDERAAN_VERSION, True), (None, True)],
 )
 def test_contracts_version_with_max_token_networks(
     version: Optional[str], expectation: bool
@@ -181,7 +182,8 @@ def test_contracts_version_with_max_token_networks(
 
 
 @pytest.mark.parametrize(
-    "version,expectation", [(ALDERAAN_VERSION, True), (None, True)],
+    "version,expectation",
+    [(ALDERAAN_VERSION, True), (None, True)],
 )
 def test_contracts_version_monitoring_service_takes_token_network_registry(
     version: Optional[str], expectation: bool
@@ -198,7 +200,7 @@ def test_deploy_script_raiden(
     deployed_raiden_info: DeployedContracts,
     deployed_raiden_info2: DeployedContracts,
 ) -> None:
-    """ Run raiden contracts deployment function and tamper with deployed_contracts_info
+    """Run raiden contracts deployment function and tamper with deployed_contracts_info
 
     This checks if deploy_raiden_contracts() works correctly in the happy case,
     to make sure no code dependencies have been changed, affecting the deployment script.
@@ -334,7 +336,7 @@ def test_deploy_raiden_reuse_secret_registry(
 
 
 def test_deploy_script_token(web3: Web3) -> None:
-    """ Run test token deployment function used in the deployment script
+    """Run test token deployment function used in the deployment script
 
     This checks if deploy_token_contract() works correctly in the happy case,
     to make sure no code dependencies have been changed, affecting the deployment script.
@@ -380,7 +382,7 @@ def test_deploy_script_register(
     deployed_raiden_info: DeployedContracts,
     token_address: ChecksumAddress,
 ) -> None:
-    """ Run token register function used in the deployment script
+    """Run token register function used in the deployment script
 
     This checks if register_token_network() works correctly in the happy case,
     to make sure no code dependencies have been changed, affecting the deployment script.
@@ -420,7 +422,7 @@ def test_deploy_script_service(
     token_address: HexAddress,
     token_network_registry_contract: Contract,
 ) -> None:
-    """ Run deploy_service_contracts() used in the deployment script
+    """Run deploy_service_contracts() used in the deployment script
 
     This checks if deploy_service_contracts() works correctly in the happy case.
     """
@@ -867,7 +869,9 @@ def test_deploy_raiden(
 
 @patch.object(ContractDeployer, "register_token_network")
 def test_register_script(
-    mock_deploy: MagicMock, deployed_raiden_info: DeployedContracts, privkey_file: IO,
+    mock_deploy: MagicMock,
+    deployed_raiden_info: DeployedContracts,
+    privkey_file: IO,
 ) -> None:
     """ Calling deploy raiden command """
     with patch(

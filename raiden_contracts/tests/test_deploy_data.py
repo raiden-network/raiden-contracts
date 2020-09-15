@@ -159,7 +159,7 @@ def test_verify_nonexistent_deployment(
 
 
 def test_verify_existent_deployment(token_network_registry_contract: Contract) -> None:
-    """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
+    """Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that returns a wrong block number for deployment.
     """
@@ -181,7 +181,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
 def test_verify_existent_deployment_with_wrong_code(
     token_network_registry_contract: Contract,
 ) -> None:
-    """ Test verify_deployed_contracts_in_filesystem() with an existent deployment data
+    """Test verify_deployed_contracts_in_filesystem() with an existent deployment data
 
     but with a fake web3 that does not return the correct code.
     """

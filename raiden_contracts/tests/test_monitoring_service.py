@@ -495,10 +495,10 @@ def test_monitoring_service_deploy_with_service_registry_without_code(
     uninitialized_user_deposit_contract: Contract,
     token_network_registry_contract: Contract,
 ) -> None:
-    """ Test MonitoringService's constructor with a service_registry address
+    """Test MonitoringService's constructor with a service_registry address
 
     which does not contain code. This is supposed to cause a failure in one
-    of the require() statements in the constructor. """
+    of the require() statements in the constructor."""
     # No good error message is available due to
     # https://github.com/raiden-network/raiden-contracts/issues/1329
     # with pytest.raises(TransactionFailed, match="ServiceRegistry has no code"):
