@@ -40,6 +40,9 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "OneToN.bulkClaim 1 ious",
         "OneToN.bulkClaim 6 ious",
         "SecretRegistry.registerSecret",
+        "SecretRegistry.registerSecretBatch1",
+        "SecretRegistry.registerSecretBatch2",
+        "SecretRegistry.registerSecretBatch3",
         "ServiceRegistry.deposit",
         "ServiceRegistry.setURL",
         "TokenNetwork DEPLOYMENT",
@@ -134,6 +137,11 @@ def print_gas_secret_registry(secret_registry_contract: Contract, print_gas: Cal
     secret = b"secretsecretsecretsecretsecretse"
     txn_hash = call_and_transact(secret_registry_contract.functions.registerSecret(secret))
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecret")
+
+    for batch_size in (1, 2, 3):
+        batch = [bytes([batch_size, i] + [0] * 30) for i in range(batch_size)]
+        txn_hash = call_and_transact(secret_registry_contract.functions.registerSecretBatch(batch))
+        print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecretBatch" + str(batch_size))
 
 
 @pytest.fixture
