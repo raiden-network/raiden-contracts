@@ -24,8 +24,8 @@ before_install:
 
 install:
   - pip install -U pip wheel
-  - pip install -U -r requirements-dev.txt
-  - pip install -U codecov pytest-travis-fold
+  - pip install --use-deprecated=legacy-resolver -U -r requirements-dev.txt
+  - pip install --use-deprecated=legacy-resolver -U codecov pytest-travis-fold
   - pipdeptree --warn fail
   - pip check
   - make verify_contracts

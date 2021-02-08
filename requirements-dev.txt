@@ -21,3 +21,4 @@ requests_mock
 isort<5.0.0
 pipdeptree
 six~=1.12
+pip>=21
