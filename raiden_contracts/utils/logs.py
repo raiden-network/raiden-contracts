@@ -173,7 +173,7 @@ class LogFilter:
         )
         log_data_extract_fn = functools.partial(get_event_data, web3.codec, event_abi)
 
-        self.filter: Web3LogFilter = web3.eth.filter(filter_params)  # type: ignore
+        self.filter: Web3LogFilter = web3.eth.filter(filter_params)
         self.filter.set_data_filters(data_filter_set)  # type: ignore
         self.filter.log_entry_formatter = log_data_extract_fn
         self.filter.filter_params = filter_params
