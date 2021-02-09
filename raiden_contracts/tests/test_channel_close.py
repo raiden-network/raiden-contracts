@@ -446,7 +446,7 @@ def test_close_channel_state(
     txn_cost: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ Observe the effect of a successful closeChannel
+    """Observe the effect of a successful closeChannel
 
     This test compares the state of the channel and the balances of Ethereum
     accounts before/after a successful closeChannel call.

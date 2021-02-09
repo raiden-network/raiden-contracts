@@ -26,10 +26,10 @@ def test_verify(
     create_channel: Callable,
     create_balance_proof: Callable,
 ) -> None:
-    """ ECVerify.ecverify returns the correct address
+    """ECVerify.ecverify returns the correct address
 
     This test checks if the signature test contract returns the correct
-    addresses on the balance hash signed by both ends of a channel """
+    addresses on the balance hash signed by both ends of a channel"""
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
 
@@ -69,11 +69,11 @@ def test_verify(
 def test_verify_fail(
     signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
 ) -> None:
-    """ ECVerify.ecverify on failure cases
+    """ECVerify.ecverify on failure cases
 
     the signature test contract returns the correct address on a correct
     message hash, returns a different address on a wrong message hash, and
-    fails on a too long signature """
+    fails on a too long signature"""
     A = get_accounts(1)[0]
     message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
     signature = sign(get_private_key(A), message_hash, v=27)

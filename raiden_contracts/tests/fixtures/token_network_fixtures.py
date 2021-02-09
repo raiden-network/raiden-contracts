@@ -77,7 +77,7 @@ def token_network_deposit_limit() -> int:
 
 @pytest.fixture
 def no_token_network(web3: Web3) -> None:
-    """ Some tests must be executed before a token network gets created
+    """Some tests must be executed before a token network gets created
 
     These tests should use this fixture. Otherwise a session level token
     network might already be registered.

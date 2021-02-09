@@ -149,7 +149,7 @@ class ContractDeployer(ContractVerifier):
         settle_timeout_min: int,
         settle_timeout_max: int,
     ) -> DeployedContracts:
-        """ Deploy all required raiden contracts and return a dict of contract_name:address
+        """Deploy all required raiden contracts and return a dict of contract_name:address
 
         Args:
             max_num_of_token_networks (Optional[int]): The max number of tokens that can be

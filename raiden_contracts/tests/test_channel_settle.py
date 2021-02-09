@@ -235,7 +235,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ Test settle of a channel with one direct transfer to the participant
+    """Test settle of a channel with one direct transfer to the participant
     that called close.
     """
     (A, B) = get_accounts(2)
@@ -315,7 +315,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ Test settle of a channel with one direct transfer to the participant
+    """Test settle of a channel with one direct transfer to the participant
     that did not call close.
     """
     (A, B) = get_accounts(2)

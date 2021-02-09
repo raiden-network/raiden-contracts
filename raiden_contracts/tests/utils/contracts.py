@@ -73,7 +73,8 @@ def get_token_network(
 
 
 def call_and_transact(
-    contract_function: ContractFunction, transaction_params: Optional[TxParams] = None,
+    contract_function: ContractFunction,
+    transaction_params: Optional[TxParams] = None,
 ) -> HexBytes:
     """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
     # First 'call' might raise an exception

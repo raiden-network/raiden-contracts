@@ -46,9 +46,9 @@ def validate_address(
 
 
 def error_removed_option(message: str) -> Callable:
-    """ Takes a message and returns a callback that raises NoSuchOption
+    """Takes a message and returns a callback that raises NoSuchOption
 
-    if the value is not None. The message is used as an argument to NoSuchOption. """
+    if the value is not None. The message is used as an argument to NoSuchOption."""
 
     def f(_: Any, param: Parameter, value: Any) -> None:
         if value is not None:
@@ -166,7 +166,9 @@ def check_version_dependent_parameters(
 @common_options
 @click.option("--save-info/--no-save-info", default=True, help="Save deployment info to a file.")
 @click.option(
-    "--max-token-networks", help="The maximum number of tokens that can be registered.", type=int,
+    "--max-token-networks",
+    help="The maximum number of tokens that can be registered.",
+    type=int,
 )
 @click.option(
     "--secret-registry-from-deployment-file",
@@ -417,7 +419,11 @@ def token(
     deployer = ctx.obj["deployer"]
     token_supply *= 10 ** token_decimals
     deployed_token = deployer.deploy_token_contract(
-        token_supply, token_decimals, token_name, token_symbol, token_type=ctx.obj["token_type"],
+        token_supply,
+        token_decimals,
+        token_name,
+        token_symbol,
+        token_type=ctx.obj["token_type"],
     )
     print(json.dumps(deployed_token, indent=4))
     ctx.obj["deployed_contracts"].update(deployed_token)
@@ -445,10 +451,14 @@ def token(
     help="Address of token network registry",
 )
 @click.option(
-    "--channel-participant-deposit-limit", type=int, help="Address of token network registry",
+    "--channel-participant-deposit-limit",
+    type=int,
+    help="Address of token network registry",
 )
 @click.option(
-    "--token-network-deposit-limit", type=int, help="Address of token network registry",
+    "--token-network-deposit-limit",
+    type=int,
+    help="Address of token network registry",
 )
 @click.pass_context
 def register(
@@ -521,7 +531,9 @@ def _add_token_network_deploy_info(
 
 @main.command()
 @click.option(
-    "--rpc-provider", default="http://127.0.0.1:8545", help="Address of the Ethereum RPC provider",
+    "--rpc-provider",
+    default="http://127.0.0.1:8545",
+    help="Address of the Ethereum RPC provider",
 )
 @click.option(
     "--contracts-version",

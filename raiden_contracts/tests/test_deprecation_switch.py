@@ -32,7 +32,7 @@ def test_deprecation_executor(
     token_network_deposit_limit: int,
     get_accounts: Callable,
 ) -> None:
-    """ A creates a TokenNetworkRegistry and B registers a TokenNetwork
+    """A creates a TokenNetworkRegistry and B registers a TokenNetwork
 
     This test is mainly a happy-path scenario. One Ethereum account creates a
     TokenNetworkRegistry, registers a TokenNetwork. TokenNetworkRegistry emits
