@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/venv
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+    - name: Install solidity compiler
+      run: |
+        export SOLC_VERSION='v0.6.4'
+        export SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
+        ./.github/workflows/download_solc.sh
+    - name: Install dependencies
+      run: |
+        if [ ! -x venv ]; then python3 -m venv venv; fi
+        source ./venv/bin/activate
+        python -m pip install --upgrade pip wheel codecov
+        make install-dev
+        python -m pip install --upgrade codecov pytest-travis-fold
+        pipdeptree --warn fail
+        pip check
+        make verify_contracts
+    - name: Lint
+      run: |
+        source ./venv/bin/activate
+        make lint
+    - name: Test
+      run: |
+        source ./venv/bin/activate
+        pytest --cov=./ raiden_contracts/tests/ -v -n 2 --cov-config setup.cfg
+    - name: Codecov
+      run: |
+        source ./venv/bin/activate
+        codecov
