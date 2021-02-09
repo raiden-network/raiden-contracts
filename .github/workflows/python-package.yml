@@ -39,9 +39,6 @@ jobs:
         source ./venv/bin/activate
         python -m pip install --upgrade pip wheel codecov
         make install-dev
-        python -m pip install --upgrade codecov pytest-travis-fold
-        pipdeptree --warn fail
-        pip check
         make verify_contracts
     - name: Lint
       run: |
