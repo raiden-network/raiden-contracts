@@ -21,7 +21,7 @@ install-dev:
 
 LINT_FILES = raiden_contracts/ setup.py
 
-ISORT_PARAMS = --ignore-whitespace --settings-path ./ --recursive raiden_contracts/
+ISORT_PARAMS = --ignore-whitespace --settings-path ./ raiden_contracts/
 
 BLACK_PARAMS = --line-length 99 raiden_contracts/
 
