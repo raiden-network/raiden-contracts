@@ -62,7 +62,7 @@ class ChannelValues:
 def get_participant_available_balance(
     participant1: ChannelValues, participant2: ChannelValues
 ) -> int:
-    """ Returns the available balance for participant1
+    """Returns the available balance for participant1
 
     The available balance is used in the Raiden client, in order to check if a
     participant is able to make transfers or not.
@@ -77,7 +77,7 @@ def get_participant_available_balance(
 
 
 def are_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelValues) -> bool:
-    """ Checks if balance proofs are valid or could have been valid at a certain point in time
+    """Checks if balance proofs are valid or could have been valid at a certain point in time
 
     Balance proof constraints are detailed in
     https://github.com/raiden-network/raiden-contracts/issues/188#issuecomment-404752095
@@ -134,7 +134,7 @@ def is_balance_proof_old(participant1: ChannelValues, participant2: ChannelValue
 def get_settlement_amounts(
     participant1: ChannelValues, participant2: ChannelValues
 ) -> SettlementValues:
-    """ Settlement algorithm
+    """Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
     a channel is settled.
@@ -188,7 +188,7 @@ def get_settlement_amounts(
 def get_expected_after_settlement_unlock_amounts(
     participant1: ChannelValues, participant2: ChannelValues
 ) -> Tuple[int, int]:
-    """ Get expected balances after the channel is settled and all locks are unlocked
+    """Get expected balances after the channel is settled and all locks are unlocked
 
     We make the assumption that both balance proofs provided are valid, meaning that both
     participants' balance proofs are the last known balance proofs from the channel.
@@ -244,7 +244,7 @@ def failsafe_sub(a: int, b: int) -> Tuple[int, int]:
 def get_onchain_settlement_amounts(
     participant1: ChannelValues, participant2: ChannelValues
 ) -> SettlementValues:
-    """ Settlement algorithm
+    """Settlement algorithm
 
     Calculates the token amounts to be transferred to the channel participants when
     a channel is settled.

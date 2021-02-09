@@ -251,8 +251,8 @@ def test_contract_manager_constructor_keeps_existing_versions(version: str) -> N
 
 
 def test_contract_manager_precompiled_load_error() -> None:
-    """ ContractManager's constructor raises ContractManagerLoadError when precompiled
-    contracts cannot be loaded """
+    """ContractManager's constructor raises ContractManagerLoadError when precompiled
+    contracts cannot be loaded"""
     with NamedTemporaryFile() as empty_file:
         with pytest.raises(ContractManagerLoadError):
             ContractManager(Path(empty_file.name))

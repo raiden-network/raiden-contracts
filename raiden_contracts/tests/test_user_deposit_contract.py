@@ -104,7 +104,7 @@ def test_deposit_after_transfer(
     custom_token: Contract,
     get_accounts: Callable[[int], Tuple],
 ) -> None:
-    """ Make sure that `total_deposit` and `balance` are not mixed up.
+    """Make sure that `total_deposit` and `balance` are not mixed up.
 
     When doing a deposit followed by a transfer, both variables start to differ
     and we can use another deposit to verify that each is handled correctly.
@@ -144,8 +144,7 @@ def test_withdraw(
     web3: Web3,
     event_handler: Callable,
 ) -> None:
-    """ Test the interaction between planWithdraw, widthdraw and effectiveBalance
-    """
+    """Test the interaction between planWithdraw, widthdraw and effectiveBalance"""
     ev_handler = event_handler(user_deposit_contract)
     (A,) = get_accounts(1)
     deposit_to_udc(A, 30)

@@ -106,7 +106,7 @@ api_of_chain_id = {
 
 
 def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
-    """ Use join_contracts.py to concatenate all imported Solidity files.
+    """Use join_contracts.py to concatenate all imported Solidity files.
 
     Args:
         source_module: a module name to look up contracts_source_path()
@@ -223,9 +223,12 @@ def etherscan_verify_contract(
 
 
 def _verify_singleton_contract(
-    chain_id: ChainID, apikey: str, source_module: DeploymentModule, contract_name: str,
+    chain_id: ChainID,
+    apikey: str,
+    source_module: DeploymentModule,
+    contract_name: str,
 ) -> None:
-    """ Calls Etherscan API for verifying the Solidity source of a contract.
+    """Calls Etherscan API for verifying the Solidity source of a contract.
 
     This function can only be used to verify contracts which are only deployed
     once. E.g. `TokenNetworkRegistry`, but not `TokenNetwork`.

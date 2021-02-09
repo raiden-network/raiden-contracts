@@ -68,7 +68,7 @@ def test_recover_address_from_withdraw_message(
 def test_recover_address_from_balance_proof(
     token_network_test_signatures: Contract, create_balance_proof: Callable, get_accounts: Callable
 ) -> None:
-    """ TokenNetwork can recover the signer's address from a balance proof
+    """TokenNetwork can recover the signer's address from a balance proof
 
     This test checks that the TokenNetwork contract
     1) can recover the signer's address from a balance proof
@@ -116,7 +116,7 @@ def test_recover_address_from_balance_proof_update(
     create_balance_proof_countersignature: Callable,
     get_accounts: Callable,
 ) -> None:
-    """ TokenNetwork can recover the signer's address from a balance proof update
+    """TokenNetwork can recover the signer's address from a balance proof update
 
     This test checks that the TokenNetwork contract
     1) can recover the signer's address from a balance proof update
@@ -192,7 +192,7 @@ def test_recover_address_from_balance_proof_close(
     create_balance_proof_countersignature: Callable,
     get_accounts: Callable,
 ) -> None:
-    """ TokenNetwork can recover the signer's address from a closing proof
+    """TokenNetwork can recover the signer's address from a closing proof
 
     This test checks that the TokenNetwork contract
     1) can recover the signer's address from a balance proof update

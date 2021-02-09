@@ -162,7 +162,7 @@ class ContractVerifier:
     def _verify_deployed_contract(
         self, deployment_data: DeployedContracts, contract_name: str
     ) -> Tuple[Contract, List[Any]]:
-        """ Verify deployment info against the chain
+        """Verify deployment info against the chain
 
         Verifies:
         - the runtime bytecode - precompiled data against the chain

@@ -22,7 +22,8 @@ _BASE = Path(__file__).parent
 
 
 CompiledContract = TypedDict(
-    "CompiledContract", {"abi": ABI, "bin-runtime": str, "bin": str, "metadata": str},
+    "CompiledContract",
+    {"abi": ABI, "bin-runtime": str, "bin": str, "metadata": str},
 )
 
 
@@ -50,14 +51,14 @@ class ContractManagerLoadError(RuntimeError):
 
 
 class ContractManager:
-    """ ContractManager holds compiled contracts of the same version
+    """ContractManager holds compiled contracts of the same version
 
     Provides access to the ABI and the bytecode.
     """
 
     def __init__(self, path: Path) -> None:
         """Params:
-            path: path to a precompiled contract JSON file,
+        path: path to a precompiled contract JSON file,
         """
         try:
             with path.open() as precompiled_file:
@@ -111,7 +112,7 @@ class ContractManager:
         return [arg["type"] for arg in constructor["inputs"]]
 
     def get_runtime_hexcode(self, contract_name: str) -> str:
-        """ Calculate the runtime hexcode with 0x prefix.
+        """Calculate the runtime hexcode with 0x prefix.
 
         Parameters:
             contract_name: name of the contract such as CONTRACT_TOKEN_NETWORK
@@ -156,7 +157,7 @@ def contracts_deployed_path(
 
 
 def merge_deployment_data(dict1: DeployedContracts, dict2: DeployedContracts) -> DeployedContracts:
-    """ Take contents of two deployment JSON files and merge them
+    """Take contents of two deployment JSON files and merge them
 
     The dictionary under 'contracts' key will be merged. The 'contracts'
     contents from different JSON files must not overlap. The contents
