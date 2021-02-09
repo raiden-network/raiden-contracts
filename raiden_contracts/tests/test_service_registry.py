@@ -60,7 +60,7 @@ def test_deposit_contract_without_service_registry_code(
     # In this case, the message of the TransactionFailed exception is ''.
     with pytest.raises(TransactionFailed) as ex:
         call_and_transact(depo.functions.withdraw(A), {"from": A})
-    assert str(ex.value) == "b''"
+    assert str(ex.value) == "execution reverted: b''"
 
     assert custom_token.functions.balanceOf(A).call() == 0
     assert custom_token.functions.balanceOf(depo.address).call() == 100
