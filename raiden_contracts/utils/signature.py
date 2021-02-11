@@ -1,13 +1,14 @@
 from typing import Union
 
 from coincurve import PrivateKey, PublicKey
+from eth_typing import HexStr
 from eth_utils import keccak, to_bytes, to_checksum_address
 from eth_utils.typing import ChecksumAddress
 
-sha3 = keccak
+from raiden_contracts.utils.type_aliases import PrivateKey as ContractsPrivateKey
 
 
-def sign(privkey: PrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
+def sign(privkey: ContractsPrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
     if not isinstance(msg_hash, bytes):
         raise TypeError("sign(): msg_hash is not an instance of bytes")
     if len(msg_hash) != 32:
@@ -30,13 +31,17 @@ def sign(privkey: PrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
     return sig
 
 
-def private_key_to_address(private_key: PrivateKey) -> ChecksumAddress:
+def private_key_to_address(
+    private_key: Union[PrivateKey, ContractsPrivateKey, bytes, str]
+) -> ChecksumAddress:
     """ Converts a private key to an Ethereum address. """
     if isinstance(private_key, str):
-        private_key_bytes = to_bytes(hexstr=private_key)
+        pk = PrivateKey(to_bytes(hexstr=HexStr(private_key)))
+    elif isinstance(private_key, bytes):
+        pk = PrivateKey(private_key)
     else:
-        private_key_bytes = private_key
-    pk = PrivateKey(private_key_bytes)
+        pk = private_key
+
     return public_key_to_address(pk.public_key)
 
 
@@ -45,4 +50,4 @@ def public_key_to_address(public_key: Union[PublicKey, bytes]) -> ChecksumAddres
     if isinstance(public_key, PublicKey):
         public_key = public_key.format(compressed=False)
     assert isinstance(public_key, bytes)
-    return to_checksum_address(sha3(public_key[1:])[-20:])
+    return to_checksum_address(keccak(public_key[1:])[-20:])
