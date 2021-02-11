@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 
-from coincurve import PrivateKey
+from coincurve import PrivateKey as CCPrivateKey
 from eth_tester import EthereumTester
 from eth_typing.evm import ChecksumAddress
 from hexbytes import HexBytes
@@ -15,7 +15,7 @@ from raiden_contracts.tests.utils.constants import FAUCET_ALLOWANCE
 from raiden_contracts.utils.signature import private_key_to_address
 
 
-def get_web3(eth_tester: EthereumTester, deployer_key: PrivateKey) -> Web3:
+def get_web3(eth_tester: EthereumTester, deployer_key: CCPrivateKey) -> Web3:
     """Returns an initialized Web3 instance"""
     provider = EthereumTesterProvider(eth_tester)
     web3 = Web3(provider)
@@ -40,7 +40,7 @@ def deploy_contract(
     web3: Web3,
     contracts_manager: ContractManager,
     contract_name: str,
-    deployer_key: PrivateKey,
+    deployer_key: CCPrivateKey,
     args: List[Any],
 ) -> Contract:
     deployer_address = private_key_to_address(deployer_key.to_hex())
@@ -53,7 +53,7 @@ def deploy_contract(
 
 
 def deploy_custom_token(
-    web3: Web3, deployer_key: PrivateKey, contract_manager: ContractManager
+    web3: Web3, deployer_key: CCPrivateKey, contract_manager: ContractManager
 ) -> Contract:
     return deploy_contract(
         web3=web3,

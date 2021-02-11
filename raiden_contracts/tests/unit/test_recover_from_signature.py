@@ -8,7 +8,8 @@ from web3.contract import Contract
 from raiden_contracts.constants import EMPTY_ADDRESS, MessageTypeId
 from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_proof
 from raiden_contracts.utils.signature import sign
-from raiden_contracts.utils.type_aliases import ChainID
+from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
+
 
 # pylint: disable=E1120
 
@@ -191,7 +192,7 @@ def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Cal
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(TypeError):
-        sign(bytes(privatekey, "ascii"), bytes("a" * 32, "ascii"), v=27)
+        sign(PrivateKey(bytes(privatekey, "ascii")), bytes("a" * 32, "ascii"), v=27)
 
 
 def test_sign_wrong_v(get_private_key: Callable, get_accounts: Callable) -> None:
