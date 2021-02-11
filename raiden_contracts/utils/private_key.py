@@ -36,19 +36,19 @@ def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Opt
     but deprecated."""
 
     if not key_path:
-        log.fatal(f"key_path has to be something but got {key_path}")
+        log.critical(f"key_path has to be something but got {key_path}")
         return None
 
     if not os.path.exists(key_path):
-        log.fatal("%s: no such file", key_path)
+        log.critical("%s: no such file", key_path)
         return None
 
     if not check_permission_safety(key_path):
-        log.fatal("Private key file %s must be readable only by its owner.", key_path)
+        log.critical("Private key file %s must be readable only by its owner.", key_path)
         return None
 
     if password_path and not check_permission_safety(password_path):
-        log.fatal("Password file %s must be readable only by its owner.", password_path)
+        log.critical("Password file %s must be readable only by its owner.", password_path)
         return None
 
     with open(key_path) as keyfile:
@@ -70,5 +70,5 @@ def get_private_key(key_path: Path, password_path: Optional[Path] = None) -> Opt
                     password = password.encode()  # type: ignore
                 return PrivateKey(decode_keyfile_json(json_data, password))
             except ValueError:
-                log.fatal("Invalid private key format or password!")
+                log.critical("Invalid private key format or password!")
                 return None
