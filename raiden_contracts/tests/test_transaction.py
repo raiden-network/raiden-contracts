@@ -14,7 +14,7 @@ def test_check_successful_tx_with_status_zero() -> None:
     with pytest.raises(ValueError):
         check_successful_tx(web3=web3_mock, txid=txid)
     web3_mock.eth.getTransactionReceipt.assert_called_with(txid)
-    web3_mock.eth.getTransaction.assert_called_with(txid)
+    web3_mock.eth.get_transaction.assert_called_with(txid)
 
 
 def test_check_successful_tx_with_nonexistent_status() -> None:
@@ -25,7 +25,7 @@ def test_check_successful_tx_with_nonexistent_status() -> None:
     with pytest.raises(KeyError):
         check_successful_tx(web3=web3_mock, txid=txid)
     web3_mock.eth.getTransactionReceipt.assert_called_with(txid)
-    web3_mock.eth.getTransaction.assert_called_with(txid)
+    web3_mock.eth.get_transaction.assert_called_with(txid)
 
 
 def test_check_successful_tx_with_gas_completely_used() -> None:
@@ -36,12 +36,12 @@ def test_check_successful_tx_with_gas_completely_used() -> None:
         "status": 1,
         "gasUsed": gas,
     }
-    web3_mock.eth.getTransaction.return_value = {"gas": gas}
+    web3_mock.eth.get_transaction.return_value = {"gas": gas}
     txid = HexBytes("abcdef")
     with pytest.raises(ValueError):
         check_successful_tx(web3=web3_mock, txid=txid)
     web3_mock.eth.getTransactionReceipt.assert_called_with(txid)
-    web3_mock.eth.getTransaction.assert_called_with(txid)
+    web3_mock.eth.get_transaction.assert_called_with(txid)
 
 
 def test_check_successful_tx_successful_case() -> None:
@@ -50,8 +50,8 @@ def test_check_successful_tx_successful_case() -> None:
     receipt = TxReceipt({"blockNumber": 300, "status": 1, "gasUsed": gas - 10})  # type: ignore
     web3_mock.eth.getTransactionReceipt.return_value = receipt
     txinfo = TxData({"gas": Wei(gas)})
-    web3_mock.eth.getTransaction.return_value = txinfo
+    web3_mock.eth.get_transaction.return_value = txinfo
     txid = HexBytes("abcdef")
     assert check_successful_tx(web3=web3_mock, txid=txid) == (receipt, txinfo)
     web3_mock.eth.getTransactionReceipt.assert_called_with(txid)
-    web3_mock.eth.getTransaction.assert_called_with(txid)
+    web3_mock.eth.get_transaction.assert_called_with(txid)
