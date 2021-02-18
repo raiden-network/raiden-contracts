@@ -10,7 +10,6 @@ contract OneToNInternalsTest is OneToN {
         address _service_registry_contract
     )
         OneToN(_deposit_contract, _chain_id, _service_registry_contract)
-        public
     {
     }
 

@@ -56,7 +56,6 @@ contract UserDeposit is Utils {
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
     constructor(address _token_address, uint256 _whole_balance_limit)
-        public
     {
         // check token contract
         require(_token_address != address(0x0), "token at address zero");

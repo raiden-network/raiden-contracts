@@ -45,9 +45,7 @@ contract OneToN is Utils {
         address _deposit_contract,
         uint256 _chain_id,
         address _service_registry_contract
-    )
-        public
-    {
+    ) {
         deposit_contract = UserDeposit(_deposit_contract);
         chain_id = _chain_id;
         service_registry_contract = ServiceRegistry(_service_registry_contract);

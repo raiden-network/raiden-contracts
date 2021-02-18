@@ -45,9 +45,7 @@ contract TokenNetworkRegistry is Utils {
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
         uint256 _max_token_networks
-    )
-        public
-    {
+    ) {
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > 0);

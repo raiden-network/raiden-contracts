@@ -185,7 +185,7 @@ contract Deposit {
         uint256 _release_at,
         address _withdrawer,
         ServiceRegistryConfigurableParameters _service_registry
-    ) public {
+    ) {
         token = _token;
         // Don't care even if it's in the past.
         release_at = _release_at;
@@ -245,7 +245,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             uint256 _decay_constant,
             uint256 _min_price,
             uint256 _registration_duration
-    ) public {
+    ) {
         require(address(_token_for_registration) != address(0x0), "token at address zero");
         require(contractExists(address(_token_for_registration)), "token has no code");
         require(_initial_price >= min_price, "initial price too low");

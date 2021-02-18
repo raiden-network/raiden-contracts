@@ -47,9 +47,7 @@ contract CustomToken is StandardToken {
         uint8 decimal_units,
         string memory token_name,
         string memory token_symbol
-    )
-        public
-    {
+    ) {
         // Set the name for display purposes
         name = token_name;
 

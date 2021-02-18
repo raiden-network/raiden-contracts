@@ -11,7 +11,6 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
-        public
         TokenNetwork(
             _token_address,
             _secret_registry,
@@ -23,7 +22,6 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             MAX_SAFE_UINT256
         )
     {
-
     }
 
     function updateBalanceProofDataPublic(
@@ -150,9 +148,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
         )
-        public
     {
-
     }
 
     function recoverAddressFromBalanceProofPublic(
@@ -260,9 +256,7 @@ contract TokenNetworkUtilsTest is TokenNetwork {
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
         )
-        public
     {
-
     }
 
     function getHashAndUnlockedAmountPublic(bytes memory locks)

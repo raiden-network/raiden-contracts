@@ -232,9 +232,7 @@ contract TokenNetwork is Utils {
         address _deprecation_executor,
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
-    )
-        public
-    {
+    ) {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
         require(_deprecation_executor != address(0x0));
