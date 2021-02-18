@@ -73,7 +73,7 @@ contract ServiceRegistryConfigurableParameters {
     // Updates set_price to be currentPrice() and set_price_at to be now
     function refreshPrice() private {
         set_price = currentPrice();
-        set_price_at = now;
+        set_price_at = block.timestamp;
     }
 
     function setPriceBumpParameters(
@@ -111,8 +111,8 @@ contract ServiceRegistryConfigurableParameters {
     /// The current price might change after you send a `deposit()` transaction
     /// before the transaction is executed.
     function currentPrice() public view returns (uint256) {
-        require(now >= set_price_at, "An underflow in price computation");
-        uint256 seconds_passed = now - set_price_at;
+        require(block.timestamp >= set_price_at, "An underflow in price computation");
+        uint256 seconds_passed = block.timestamp - set_price_at;
 
         return decayedPrice(set_price, seconds_passed);
     }
@@ -203,7 +203,7 @@ contract Deposit {
     function withdraw(address payable _to) external {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer, "the caller is not the withdrawer");
-        require(now >= release_at || service_registry.deprecated(), "deposit not released yet");
+        require(block.timestamp >= release_at || service_registry.deprecated(), "deposit not released yet");
         require(balance > 0, "nothing to withdraw");
         require(token.transfer(_to, balance), "token didn't transfer");
         selfdestruct(_to); // The contract can disappear.
@@ -258,7 +258,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
 
         // Set up the price and the set price timestamp
         set_price = _initial_price;
-        set_price_at = now;
+        set_price_at = block.timestamp;
 
         // Set the parameters
         changeParametersInternal(_price_bump_numerator, _price_bump_denominator, _decay_constant, _min_price, _registration_duration);
@@ -279,8 +279,8 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         if (valid_till == 0) { // a first time joiner
             ever_made_deposits.push(msg.sender);
         }
-        if (valid_till < now) { // a first time joiner or an expired service.
-            valid_till = now;
+        if (valid_till < block.timestamp) { // a first time joiner or an expired service.
+            valid_till = block.timestamp;
         }
         // Check against overflow.
         require(valid_till < valid_till + registration_duration, "overflow during extending the registration");
@@ -293,10 +293,10 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
         if (set_price > 2 ** 90) {
             set_price = 2 ** 90; // Preventing overflows.
         }
-        set_price_at = now;
+        set_price_at = block.timestamp;
 
         // Move the deposit in a new Deposit contract.
-        assert(now < valid_till);
+        assert(block.timestamp < valid_till);
         Deposit depo = new Deposit(token, valid_till, msg.sender, this);
         require(token.transferFrom(msg.sender, address(depo), amount), "Token transfer for deposit failed");
 
@@ -322,7 +322,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     }
 
     function hasValidRegistration(address _address) public view returns (bool _has_registration) {
-        return now < service_valid_till[_address];
+        return block.timestamp < service_valid_till[_address];
     }
 }
 
