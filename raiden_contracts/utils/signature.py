@@ -1,9 +1,8 @@
 from typing import Union
 
 from coincurve import PrivateKey, PublicKey
-from eth_typing import HexStr
+from eth_typing import ChecksumAddress, HexStr
 from eth_utils import keccak, to_bytes, to_checksum_address
-from eth_utils.typing import ChecksumAddress
 
 from raiden_contracts.utils.type_aliases import PrivateKey as ContractsPrivateKey
 
