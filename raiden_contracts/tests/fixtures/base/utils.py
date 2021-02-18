@@ -120,7 +120,7 @@ def event_handler(web3: Web3) -> Callable:
 @pytest.fixture
 def txn_cost(web3: Web3, txn_gas: Callable) -> Callable:
     def get(txn_hash: str) -> int:
-        return txn_gas(txn_hash) * web3.eth.gasPrice
+        return txn_gas(txn_hash) * web3.eth.gas_price
 
     return get
 
