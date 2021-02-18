@@ -50,7 +50,7 @@ class TokenOperations:
     def get_weth(self, token_address: ChecksumAddress, amount: int) -> TxReceipt:
         token_address = to_checksum_address(token_address)
         assert (
-            self.web3.eth.getBalance(self.owner) > amount
+            self.web3.eth.get_balance(self.owner) > amount
         ), "Not sufficient ether to make a deposit to WETH contract"
         assert self.is_valid_contract(
             token_address

@@ -118,7 +118,7 @@ def setup_ctx(
         raise RuntimeError("Could not access the private key.")
     owner = private_key_to_address(private_key_string)
     # pylint: disable=E1101
-    if web3.eth.getBalance(owner) == 0:
+    if web3.eth.get_balance(owner) == 0:
         raise RuntimeError("Account with insufficient funds.")
     deployer = ContractDeployer(
         web3=web3,

@@ -792,7 +792,7 @@ def test_deploy_token_no_balance(privkey_file: IO) -> None:
     with patch.object(
         ContractDeployer, "deploy_token_contract", spec=ContractDeployer
     ) as mock_deployer:
-        with patch.object(Eth, "getBalance", return_value=0):
+        with patch.object(Eth, "get_balance", return_value=0):
             runner = CliRunner()
             result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
             assert result.exit_code != 0
@@ -806,7 +806,7 @@ def test_deploy_token_with_balance(privkey_file: IO) -> None:
     with patch.object(
         ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
     ) as mock_deployer:
-        with patch.object(Eth, "getBalance", return_value=100):
+        with patch.object(Eth, "get_balance", return_value=100):
             runner = CliRunner()
             result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
             assert result.exit_code == 0
@@ -850,7 +850,7 @@ def test_deploy_raiden(
     privkey_file: IO,
 ) -> None:
     """ Calling deploy raiden command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             raiden,
@@ -880,7 +880,7 @@ def test_register_script(
         "raiden_contracts.deploy.__main__._add_token_network_deploy_info"
     ) as add_tn_info:
         get_deploy_info_mock.return_value = deployed_raiden_info
-        with patch.object(Eth, "getBalance", return_value=1), patch.object(Eth, "chainId", 61):
+        with patch.object(Eth, "get_balance", return_value=1), patch.object(Eth, "chainId", 61):
             runner = CliRunner()
             result = runner.invoke(
                 register,
@@ -910,7 +910,7 @@ def test_register_script(
 @patch.object(ContractDeployer, "register_token_network")
 def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             register,
@@ -944,7 +944,7 @@ def test_deploy_raiden_save_info_false(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command with --save_info False"""
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             raiden,
@@ -1009,7 +1009,7 @@ def deploy_services_arguments(
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
 def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             services,
@@ -1028,7 +1028,7 @@ def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey
 
 def test_deploy_old_services(privkey_file: IO) -> None:
     """ Calling deploy raiden command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             services,
@@ -1050,7 +1050,7 @@ def test_deploy_services_with_controller(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             services,
@@ -1073,7 +1073,7 @@ def test_deploy_services_save_info_false(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
     """ Calling deploy raiden command with --save_info False"""
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
             services,
@@ -1093,7 +1093,7 @@ def test_deploy_services_save_info_false(
 @patch.object(ContractVerifier, "verify_deployed_contracts_in_filesystem")
 def test_verify_script(mock_verify: MagicMock) -> None:
     """ Calling deploy verify command """
-    with patch.object(Eth, "getBalance", return_value=1):
+    with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(verify, ["--rpc-provider", "rpc-provider"])
         assert result.exception is None
