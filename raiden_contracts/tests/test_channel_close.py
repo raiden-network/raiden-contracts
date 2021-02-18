@@ -497,9 +497,9 @@ def test_close_channel_state(
     assert B_balance_hash == EMPTY_BALANCE_HASH
     assert B_nonce == 0
 
-    pre_eth_balance_A = web3.eth.getBalance(A)
-    pre_eth_balance_B = web3.eth.getBalance(B)
-    pre_eth_balance_contract = web3.eth.getBalance(token_network.address)
+    pre_eth_balance_A = web3.eth.get_balance(A)
+    pre_eth_balance_B = web3.eth.get_balance(B)
+    pre_eth_balance_contract = web3.eth.get_balance(token_network.address)
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
@@ -529,9 +529,9 @@ def test_close_channel_state(
 
     # Test that no balances have changed.
     # There are no transfers to be made in closeChannel.
-    assert web3.eth.getBalance(A) == pre_eth_balance_A - txn_cost(txn_hash)
-    assert web3.eth.getBalance(B) == pre_eth_balance_B
-    assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
+    assert web3.eth.get_balance(A) == pre_eth_balance_A - txn_cost(txn_hash)
+    assert web3.eth.get_balance(B) == pre_eth_balance_B
+    assert web3.eth.get_balance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract

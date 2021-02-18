@@ -422,10 +422,10 @@ def test_update_channel_state(
         {"from": A},
     )
 
-    pre_eth_balance_A = web3.eth.getBalance(A)
-    pre_eth_balance_B = web3.eth.getBalance(B)
-    pre_eth_balance_delegate = web3.eth.getBalance(Delegate)
-    pre_eth_balance_contract = web3.eth.getBalance(token_network.address)
+    pre_eth_balance_A = web3.eth.get_balance(A)
+    pre_eth_balance_B = web3.eth.get_balance(B)
+    pre_eth_balance_delegate = web3.eth.get_balance(Delegate)
+    pre_eth_balance_contract = web3.eth.get_balance(token_network.address)
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_delegate = custom_token.functions.balanceOf(Delegate).call()
@@ -444,10 +444,10 @@ def test_update_channel_state(
 
     # Test that no balances have changed.
     # There are no transfers to be made in updateNonClosingBalanceProof.
-    assert web3.eth.getBalance(A) == pre_eth_balance_A
-    assert web3.eth.getBalance(B) == pre_eth_balance_B
-    assert web3.eth.getBalance(Delegate) == pre_eth_balance_delegate - txn_cost(txn_hash)
-    assert web3.eth.getBalance(token_network.address) == pre_eth_balance_contract
+    assert web3.eth.get_balance(A) == pre_eth_balance_A
+    assert web3.eth.get_balance(B) == pre_eth_balance_B
+    assert web3.eth.get_balance(Delegate) == pre_eth_balance_delegate - txn_cost(txn_hash)
+    assert web3.eth.get_balance(token_network.address) == pre_eth_balance_contract
     assert custom_token.functions.balanceOf(A).call() == pre_balance_A
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(Delegate).call() == pre_balance_delegate

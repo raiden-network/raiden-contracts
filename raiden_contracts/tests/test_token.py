@@ -18,20 +18,20 @@ def test_token_mint(web3: Web3, custom_token: Contract, get_accounts: Callable) 
     multiplier = custom_token.functions.multiplier().call()
     supply = token.functions.totalSupply().call()
 
-    token_pre_balance = web3.eth.getBalance(token.address)
+    token_pre_balance = web3.eth.get_balance(token.address)
     tokens_a = 50 * multiplier
     call_and_transact(token.functions.mint(tokens_a), {"from": A})
     assert token.functions.balanceOf(A).call() == tokens_a
     assert token.functions.balanceOf(B).call() == 0
     assert token.functions.totalSupply().call() == supply + tokens_a
-    assert web3.eth.getBalance(token.address) == token_pre_balance
+    assert web3.eth.get_balance(token.address) == token_pre_balance
 
     tokens_b = 50 * multiplier
     call_and_transact(token.functions.mintFor(tokens_b, B), {"from": A})
     assert token.functions.balanceOf(A).call() == tokens_a
     assert token.functions.balanceOf(B).call() == tokens_b
     assert token.functions.totalSupply().call() == supply + tokens_a + tokens_b
-    assert web3.eth.getBalance(token.address) == token_pre_balance
+    assert web3.eth.get_balance(token.address) == token_pre_balance
 
 
 def test_approve_transfer(custom_token: Contract, get_accounts: Callable) -> None:
@@ -66,12 +66,12 @@ def test_token_transfer_funds(web3: Web3, custom_token: Contract, get_accounts: 
 
     owner = custom_token.functions.owner_address().call()
 
-    assert web3.eth.getBalance(token.address) == 0
+    assert web3.eth.get_balance(token.address) == 0
     with pytest.raises(TransactionFailed):
         token.functions.transferFunds().call({"from": owner})
 
     call_and_transact(token.functions.mint(50), {"from": A})
-    assert web3.eth.getBalance(token.address) == 0
+    assert web3.eth.get_balance(token.address) == 0
 
 
 def test_custom_token(
