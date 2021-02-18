@@ -151,7 +151,7 @@ def test_withdraw_call_near_expiration(
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
-    expiration = web3.eth.blockNumber + 1
+    expiration = web3.eth.block_number + 1
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier, A, withdraw_A, expiration
@@ -375,7 +375,7 @@ def test_withdraw_wrong_signature_content(
                 channel_identifier,
                 A,
                 withdraw_A,
-                web3.eth.blockNumber,
+                web3.eth.block_number,
                 signature_A_for_A,
                 signature_B_for_A,
             ),

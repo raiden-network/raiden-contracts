@@ -54,7 +54,7 @@ def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable)
         one_to_n_address: HexAddress = one_to_n_contract.address,
     ) -> dict:
         if expiration_block is None:
-            expiration_block = web3.eth.blockNumber + 10
+            expiration_block = web3.eth.block_number + 10
         iou = dict(
             sender=sender,
             receiver=receiver,

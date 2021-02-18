@@ -81,7 +81,7 @@ def test_1_item_unlockable(
         secret_registry_contract.functions.getSecretRevealBlockHeight(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.blockNumber
+        == web3.eth.block_number
     )
 
     (
@@ -117,7 +117,7 @@ def test_get_hash_length_fail(
         secret_registry_contract.functions.getSecretRevealBlockHeight(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.blockNumber
+        == web3.eth.block_number
     )
 
     packed = pending_transfers_tree.packed_transfers
@@ -302,13 +302,13 @@ def test_lock_data_from_packed_locks(
     mine_blocks(web3, 5)
     last_lock = pending_transfers_tree.expired[-1]
     # expiration
-    assert web3.eth.blockNumber > last_lock[0]
+    assert web3.eth.block_number > last_lock[0]
     # register secret
     call_and_transact(secret_registry_contract.functions.registerSecret(last_lock[3]))
     # ensure registration was done
     assert (
         secret_registry_contract.functions.getSecretRevealBlockHeight(last_lock[2]).call()
-        == web3.eth.blockNumber
+        == web3.eth.block_number
     )
 
     # Check that last secret is still regarded as expired
@@ -774,7 +774,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
         assert (
             secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
-            == web3.eth.blockNumber
+            == web3.eth.block_number
         )
 
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)

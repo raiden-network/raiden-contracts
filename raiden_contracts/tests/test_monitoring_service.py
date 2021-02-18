@@ -149,7 +149,7 @@ def test_claimReward_with_settle_call(
     channel_identifier = monitor_data["channel_identifier"]
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
 
     # MS updates closed channel on behalf of B
     txn_hash = call_and_transact(
@@ -239,7 +239,7 @@ def test_monitor(
 
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
-        assert web3.eth.blockNumber < monitor_data["first_allowed"]
+        assert web3.eth.block_number < monitor_data["first_allowed"]
         txn_hash = call_and_transact(
             monitoring_service_external.functions.monitor(
                 A,
@@ -254,7 +254,7 @@ def test_monitor(
         )
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
 
     # successful monitor call
     txn_hash = call_and_transact(
@@ -296,7 +296,7 @@ def test_monitor_by_unregistered_service(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
 
     # only registered service providers may call `monitor`
     with pytest.raises(TransactionFailed, match="service not registered"):
@@ -335,7 +335,7 @@ def test_monitor_on_wrong_token_network_registry(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.blockNumber)
+    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
 
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry
