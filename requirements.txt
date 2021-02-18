@@ -4,7 +4,6 @@ coincurve>=8.0.0
 py-solc>=3.0.0
 semver
 web3<6.0.0,>=5.7.0
-py_ecc<=1.5.0
 eth-abi<3.0.0,>=2.0.0
 eth-utils<2.0.0,>=1.8.4
 eth-typing<3.0.0,>=2.2.1
