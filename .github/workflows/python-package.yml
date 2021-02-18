@@ -30,7 +30,7 @@ jobs:
           ${{ runner.os }}-pip-${{ matrix.python-version }}-
     - name: Install solidity compiler
       run: |
-        export SOLC_VERSION='v0.6.4'
+        export SOLC_VERSION='v0.7.6'
         export SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
         ./.github/workflows/download_solc.sh
     - name: Install dependencies

@@ -1,6 +1,6 @@
 /* solium-disable indentation */
 /* solium-disable security/no-block-members */
-pragma solidity 0.6.4;
+pragma solidity 0.7.6;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
