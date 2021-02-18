@@ -66,9 +66,7 @@ contract MonitoringService is Utils {
         address _service_registry_address,
         address _udc_address,
         address _token_network_registry_address
-    )
-        public
-    {
+    ) {
         require(_token_address != address(0x0), "Token at address zero");
         require(_service_registry_address != address(0x0), "ServiceRegistry at address zero");
         require(_udc_address != address(0x0), "UDC at address zero");

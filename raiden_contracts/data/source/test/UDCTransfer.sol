@@ -10,7 +10,6 @@ contract UDCTransfer {
     UserDeposit user_deposit_contract;
 
     constructor(address udc_address)
-        public
     {
         require(udc_address != address(0x0), "udc_address is zero");
         user_deposit_contract = UserDeposit(udc_address);

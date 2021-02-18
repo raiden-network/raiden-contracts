@@ -16,7 +16,6 @@ contract MonitoringServiceInternalsTest is MonitoringService {
             _udc_address,
             _token_network_registry_address
         )
-        public
     {
     }
 
