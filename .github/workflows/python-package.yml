@@ -33,6 +33,11 @@ jobs:
         export SOLC_VERSION='v0.7.6'
         export SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
         ./.github/workflows/download_solc.sh
+    - name: Install ethlint
+      run: |
+        npm config set prefix "$GITHUB_WORKSPACE"
+        npm install -g ethlint
+        solium -V
     - name: Install dependencies
       run: |
         if [ ! -x venv ]; then python3 -m venv venv; fi
