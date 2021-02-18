@@ -205,7 +205,7 @@ def test_claim_by_unregistered_service(
 
     amount = TokenAmount(10)
     expiration = BlockExpiration(web3.eth.blockNumber + 2)
-    chain_id = web3.eth.chainId
+    chain_id = web3.eth.chain_id
 
     signature = sign_one_to_n_iou(
         get_private_key(A),
@@ -246,7 +246,7 @@ def test_claim_with_insufficient_deposit(
     A = create_account()
     B = create_service_account()
     deposit_to_udc(A, 6)
-    chain_id = web3.eth.chainId
+    chain_id = web3.eth.chain_id
 
     amount = TokenAmount(10)
     expiration = BlockExpiration(web3.eth.blockNumber + 1)

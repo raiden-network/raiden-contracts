@@ -519,7 +519,7 @@ def _add_token_network_deploy_info(
 ) -> None:
     """ Add deploy info dict to the deploy_*.json file """
     deployment_file_path = contracts_deployed_path(
-        chain_id=ChainID(deployer.web3.eth.chainId), version=contracts_version
+        chain_id=ChainID(deployer.web3.eth.chain_id), version=contracts_version
     )
     with deployment_file_path.open() as f:
         deployed_contracts_info: DeployedContracts = json.load(f)
