@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* solium-disable indentation */
 /* solium-disable security/no-block-members */
 pragma solidity 0.7.6;
