@@ -134,7 +134,7 @@ def token_network_contract(
 ) -> Contract:
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
-        [standard_token_contract.address, secret_registry_contract.address, web3.eth.chainId],
+        [standard_token_contract.address, secret_registry_contract.address, web3.eth.chain_id],
     )
 
 
@@ -150,7 +150,7 @@ def token_network_external(
     return get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=web3.eth.chainId,
+        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _deprecation_executor=DEPLOYER_ADDRESS,

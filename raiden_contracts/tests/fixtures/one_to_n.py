@@ -16,7 +16,7 @@ def one_to_n_contract(
     web3: Web3,
     service_registry: Contract,
 ) -> Contract:
-    chain_id = web3.eth.chainId
+    chain_id = web3.eth.chain_id
     return deploy_tester_contract(
         CONTRACT_ONE_TO_N,
         _deposit_contract=uninitialized_user_deposit_contract.address,
@@ -32,7 +32,7 @@ def one_to_n_internals(
     web3: Web3,
     service_registry: Contract,
 ) -> Contract:
-    chain_id = web3.eth.chainId
+    chain_id = web3.eth.chain_id
     return deploy_tester_contract(
         "OneToNInternalsTest",
         _deposit_contract=uninitialized_user_deposit_contract.address,
@@ -43,7 +43,7 @@ def one_to_n_internals(
 
 @pytest.fixture
 def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable) -> Callable:
-    chain_id = web3.eth.chainId
+    chain_id = web3.eth.chain_id
 
     def f(
         sender: HexAddress,

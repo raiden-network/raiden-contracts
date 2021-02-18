@@ -49,7 +49,7 @@ def test_deprecation_executor(
         json_contract["abi"],
         json_contract["bin"],
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=web3.eth.chainId,
+        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=1,

@@ -159,7 +159,7 @@ class ContractDeployer(ContractVerifier):
 
         deployed_contracts: DeployedContracts = {
             "contracts_version": self.contract_manager.contracts_version,
-            "chain_id": self.web3.eth.chainId,
+            "chain_id": self.web3.eth.chain_id,
             "contracts": {},
         }
 
@@ -233,7 +233,7 @@ class ContractDeployer(ContractVerifier):
         self.transact(command)
 
         LOG.debug("Collecting constructor parameters for later verification")
-        chain_id = ChainID(self.web3.eth.chainId)
+        chain_id = ChainID(self.web3.eth.chain_id)
         deployment_data = get_contracts_deployment_info(
             chain_id=chain_id,
             version=self.contract_manager.contracts_version,
@@ -291,7 +291,7 @@ class ContractDeployer(ContractVerifier):
         ):
             raise RuntimeError("Deployment of older service contracts is not suppported.")
 
-        chain_id = self.web3.eth.chainId
+        chain_id = self.web3.eth.chain_id
         deployed_contracts: DeployedContracts = {
             "contracts_version": self.contract_manager.contracts_version,
             "chain_id": chain_id,

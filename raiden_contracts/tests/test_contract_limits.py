@@ -27,7 +27,7 @@ def test_register_three_but_not_four(
     """ Check that TokenNetworkRegistry observes the max number of tokens """
     token_network_registry = get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=web3.eth.chainId,
+        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=3,

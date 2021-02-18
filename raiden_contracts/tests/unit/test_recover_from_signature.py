@@ -39,7 +39,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chainId),
+            chain_identifier=ChainID(web3.eth.chain_id),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,
@@ -55,7 +55,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chainId),
+            chain_identifier=ChainID(web3.eth.chain_id),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_B.balance_hash,
             nonce=balance_proof_B.nonce,
@@ -108,7 +108,7 @@ def test_ecrecover_output(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chainId),
+            chain_identifier=ChainID(web3.eth.chain_id),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,
