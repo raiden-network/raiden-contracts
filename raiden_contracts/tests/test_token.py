@@ -78,7 +78,7 @@ def test_custom_token(
     custom_token: Contract, web3: Web3, contracts_manager: ContractManager
 ) -> None:
     """ See custom_token.address contains the expected code """
-    blockchain_bytecode = web3.eth.getCode(custom_token.address)
+    blockchain_bytecode = web3.eth.get_code(custom_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_CUSTOM_TOKEN)
     assert blockchain_bytecode.hex() == compiled_bytecode
 
@@ -87,6 +87,6 @@ def test_human_standard_token(
     human_standard_token: Contract, web3: Web3, contracts_manager: ContractManager
 ) -> None:
     """ See human_standard_token.address contains the expected code """
-    blockchain_bytecode = web3.eth.getCode(human_standard_token.address)
+    blockchain_bytecode = web3.eth.get_code(human_standard_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_HUMAN_STANDARD_TOKEN)
     assert blockchain_bytecode.hex() == compiled_bytecode
