@@ -29,7 +29,7 @@ def test_claim(
 
     # IOU expired
     with pytest.raises(TransactionFailed, match="IOU expired"):
-        bad_expiration = web3.eth.blockNumber - 1
+        bad_expiration = web3.eth.block_number - 1
         one_to_n_contract.functions.claim(
             **make_iou(sender=A, receiver=B, expiration_block=bad_expiration)
         ).call({"from": A})
@@ -204,7 +204,7 @@ def test_claim_by_unregistered_service(
     deposit_to_udc(A, 30)
 
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.blockNumber + 2)
+    expiration = BlockExpiration(web3.eth.block_number + 2)
     chain_id = web3.eth.chain_id
 
     signature = sign_one_to_n_iou(
@@ -249,7 +249,7 @@ def test_claim_with_insufficient_deposit(
     chain_id = web3.eth.chain_id
 
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.blockNumber + 1)
+    expiration = BlockExpiration(web3.eth.block_number + 1)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -280,7 +280,7 @@ def test_claim_with_insufficient_deposit(
     assert user_deposit_contract.functions.balances(B).call() == 6
 
     # claim can be retried when transferred amount was 0
-    expiration = BlockExpiration(web3.eth.blockNumber + 10)
+    expiration = BlockExpiration(web3.eth.block_number + 10)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,

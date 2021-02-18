@@ -332,13 +332,13 @@ def create_settled_channel(
 def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
     def get(tx_from: HexAddress, transfers: List[Tuple]) -> None:
         for (expiration, _, secrethash, secret) in transfers:
-            assert web3.eth.blockNumber < expiration
+            assert web3.eth.block_number < expiration
             call_and_transact(
                 secret_registry_contract.functions.registerSecret(secret), {"from": tx_from}
             )
             assert (
                 secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
-                == web3.eth.blockNumber
+                == web3.eth.block_number
             )
 
     return get

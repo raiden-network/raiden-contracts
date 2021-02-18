@@ -25,7 +25,7 @@ def test_logfilter_with_nonexistent_event(web3: Web3) -> None:
 def test_call_and_transact_does_not_mine(web3: Web3, custom_token: Contract) -> None:
     """ See call_and_transact() does not mine a block """
 
-    before = web3.eth.blockNumber
+    before = web3.eth.block_number
     call_and_transact(custom_token.functions.multiplier())
-    after = web3.eth.blockNumber
+    after = web3.eth.block_number
     assert before + 1 == after

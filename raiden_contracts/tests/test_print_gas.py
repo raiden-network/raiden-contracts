@@ -382,7 +382,7 @@ def print_gas_one_to_n(
     # happy case
     chain_id = web3.eth.chain_id
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.blockNumber + 2)
+    expiration = BlockExpiration(web3.eth.block_number + 2)
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
