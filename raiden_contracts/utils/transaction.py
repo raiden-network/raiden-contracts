@@ -16,7 +16,7 @@ def check_successful_tx(
     receipt = wait_for_transaction_receipt(web3=web3, txid=txid, timeout=timeout)
     if receipt is None:
         raise RuntimeError("Could not obtain a transaction receipt.")
-    txinfo = web3.eth.getTransaction(txid)
+    txinfo = web3.eth.get_transaction(txid)
     if "status" not in receipt:
         raise KeyError(
             'A transaction receipt does not contain the "status" field. '
