@@ -17,6 +17,7 @@ PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
 CONTRACT_HUMAN_STANDARD_TOKEN = "HumanStandardToken"
 CONTRACT_TOKEN_NETWORK_REGISTRY = "TokenNetworkRegistry"
 CONTRACT_TOKEN_NETWORK = "TokenNetwork"
+LIBRARY_TOKEN_NETWORK_UTILS = "TokenNetworkUtils"
 CONTRACT_SECRET_REGISTRY = "SecretRegistry"
 CONTRACT_CUSTOM_TOKEN = "CustomToken"
 CONTRACT_CUSTOM_TOKEN_NO_DECIMALS = "CustomTokenNoDecimals"

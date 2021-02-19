@@ -14,11 +14,6 @@ from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
 # pylint: disable=E1120
 
 
-@pytest.fixture
-def signature_test_contract(deploy_tester_contract: Callable) -> Contract:
-    return deploy_tester_contract("SignatureVerifyTest")
-
-
 def test_verify(
     web3: Web3,
     token_network: Contract,

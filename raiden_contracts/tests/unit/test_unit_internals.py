@@ -8,7 +8,7 @@ from web3.exceptions import ValidationError
 from raiden_contracts.contract_source_manager import check_runtime_codesize
 
 
-def test_min_uses_usigned(token_network_test_utils: Contract) -> None:
+def test_min_uses_usigned(token_network_utils_library: Contract) -> None:
     """ Min cannot be called with negative values """
     INVALID_VALUES = [-UINT256_MAX, -1]
     VALID_VALUES = [UINT256_MIN, UINT256_MAX, UINT256_MAX]
@@ -19,15 +19,14 @@ def test_min_uses_usigned(token_network_test_utils: Contract) -> None:
 
     for a, b in all_invalid:
         with pytest.raises(ValidationError):
-            token_network_test_utils.functions.minPublic(a, b).call()
+            token_network_utils_library.functions.min(a, b).call()
 
 
-def test_min(token_network_test_utils: Contract) -> None:
+def test_min(token_network_utils_library: Contract) -> None:
     """ Min works like Python's min """
-
     VALUES = [UINT256_MIN, 1, UINT256_MAX, UINT256_MAX]
     for a, b in product(VALUES, VALUES):
-        assert token_network_test_utils.functions.minPublic(a, b).call() == min(a, b)
+        assert token_network_utils_library.functions.min(a, b).call() == min(a, b)
 
 
 def test_too_big_runtime_code() -> None:

@@ -10,6 +10,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
+    LIBRARY_TOKEN_NETWORK_UTILS,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -19,10 +20,27 @@ from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 from raiden_contracts.utils.transaction import check_successful_tx
 
 
+@pytest.fixture(scope="session")
+def token_network_utils_library(deploy_tester_contract: Callable) -> Contract:
+    """Deployed TokenNetworkUtils library"""
+    return deploy_tester_contract(LIBRARY_TOKEN_NETWORK_UTILS)
+
+
+@pytest.fixture(scope="session")
+def token_network_libs(token_network_utils_library: Contract) -> Dict:
+    """Deployed TokenNetworkUtils library"""
+    address = token_network_utils_library.address
+    return {"data/source/lib/TokenNetworkUtils.sol:TokenNetworkUtils": address}
+
+
 @pytest.fixture()
-def get_token_network_registry(deploy_tester_contract: Callable) -> Callable:
+def get_token_network_registry(
+    deploy_tester_contract: Callable, token_network_libs: Dict
+) -> Callable:
     def get(**arguments: Dict) -> Contract:
-        return deploy_tester_contract(CONTRACT_TOKEN_NETWORK_REGISTRY, **arguments)
+        return deploy_tester_contract(
+            CONTRACT_TOKEN_NETWORK_REGISTRY, token_network_libs, **arguments
+        )
 
     return get
 
@@ -42,23 +60,30 @@ def token_network_registry_constructor_args(
 
 @pytest.fixture(scope="session")
 def token_network_registry_contract(
-    deploy_tester_contract: Callable, token_network_registry_constructor_args: Dict
+    deploy_tester_contract: Callable,
+    token_network_registry_constructor_args: Dict,
+    token_network_libs: Dict,
 ) -> Contract:
     """Deployed TokenNetworkRegistry contract"""
     return deploy_tester_contract(
-        CONTRACT_TOKEN_NETWORK_REGISTRY, **token_network_registry_constructor_args
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        token_network_libs,
+        **token_network_registry_constructor_args
     )
 
 
 @pytest.fixture(scope="session")
 def token_network_registry_contract2(
-    deploy_tester_contract: Callable, token_network_registry_constructor_args: Dict
+    deploy_tester_contract: Callable,
+    token_network_registry_constructor_args: Dict,
+    token_network_libs: Dict,
 ) -> Contract:
-    """Another deployed TokenNetworkRegistry contract
-
-    to which service payment contracts should not collaborate."""
+    """Another deployed TokenNetworkRegistry contract to which service payment contracts
+    should not collaborate."""
     return deploy_tester_contract(
-        CONTRACT_TOKEN_NETWORK_REGISTRY, **token_network_registry_constructor_args
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
+        token_network_libs,
+        **token_network_registry_constructor_args
     )
 
 
