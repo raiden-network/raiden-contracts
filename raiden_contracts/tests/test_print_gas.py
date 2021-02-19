@@ -12,6 +12,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
+    LIBRARY_TOKEN_NETWORK_UTILS,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
     MessageTypeId,
@@ -30,6 +31,7 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
     """ Check is gas.json contains enough fields """
     doc = gas_measurements(version)
     keys = {
+        "TokenNetworkUtils DEPLOYMENT",
         "CustomToken.mint",
         "CustomToken.approve",
         "CustomToken.transfer",
@@ -65,15 +67,27 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
 
 
 @pytest.fixture
+def print_gas_token_network_utils(
+    deploy_tester_contract_txhash: Callable,
+    print_gas: Callable,
+) -> None:
+    """ Abusing pytest to print the deployment gas cost of TokenNetworkUtils """
+    txhash = deploy_tester_contract_txhash(LIBRARY_TOKEN_NETWORK_UTILS)
+    print_gas(txhash, LIBRARY_TOKEN_NETWORK_UTILS + " DEPLOYMENT")
+
+
+@pytest.fixture
 def print_gas_token_network_registry(
     web3: Web3,
     deploy_tester_contract_txhash: Callable,
     secret_registry_contract: Contract,
+    token_network_libs: Dict,
     print_gas: Callable,
 ) -> None:
     """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
+        libs=token_network_libs,
         _secret_registry_address=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
@@ -89,6 +103,7 @@ def print_gas_token_network_deployment(
     get_accounts: Callable,
     print_gas: Callable,
     custom_token: Contract,
+    token_network_libs: Dict,
     secret_registry_contract: Contract,
     deploy_tester_contract_txhash: Callable,
     channel_participant_deposit_limit: int,
@@ -98,6 +113,7 @@ def print_gas_token_network_deployment(
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
+        libs=token_network_libs,
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
@@ -503,6 +519,7 @@ def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: C
 # execution of multiple gas printing tests, you see a corrupted gas.json.
 @pytest.mark.slow
 @pytest.mark.usefixtures(
+    "print_gas_token_network_utils",
     "print_gas_token_network_registry",
     "print_gas_token_network_deployment",
     "print_gas_token_network_create",

@@ -3,6 +3,7 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "raiden/TokenNetwork.sol";
+import "lib/TokenNetworkUtils.sol";
 
 contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
@@ -278,17 +279,17 @@ contract TokenNetworkUtilsTest is TokenNetwork {
 
     function minPublic(uint256 a, uint256 b) public view returns (uint256)
     {
-        return min(a,b);
+        return TokenNetworkUtils.min(a,b);
     }
 
     function failsafe_subtractPublic(uint256 a, uint256 b) public view returns (uint256, uint256)
     {
-        return failsafe_subtract(a,b);
+        return TokenNetworkUtils.failsafe_subtract(a,b);
     }
 
     function failsafe_additionPublic(uint256 a, uint256 b) public view returns (uint256)
     {
-        return failsafe_addition(a, b);
+        return TokenNetworkUtils.failsafe_addition(a, b);
     }
 
     function get_max_safe_uint256() public pure returns (uint256) {
