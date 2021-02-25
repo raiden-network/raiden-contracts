@@ -146,6 +146,7 @@ def deployed_service_info(
         min_price=1000,
         registration_duration=180 * SECONDS_PER_DAY,
         token_network_registry_address=token_network_registry_contract.address,
+        reuse_service_registry_from_deploy_file=None,
     )
 
 
@@ -168,6 +169,7 @@ def test_deploy_service_0_37_0(
             min_price=1000,
             registration_duration=180 * SECONDS_PER_DAY,
             token_network_registry_address=token_network_registry_contract.address,
+            reuse_service_registry_from_deploy_file=None,
         )
 
 
@@ -332,6 +334,39 @@ def test_deploy_raiden_reuse_secret_registry(
         assert (
             new_deployment["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]
             != deployed_raiden_info["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY]
+        )
+
+
+def test_deploy_services_reuse_service_registry(
+    deployer: ContractDeployer,
+    deployed_service_info: DeployedContracts,
+    token_address: HexAddress,
+    token_network_registry_contract: Contract,
+) -> None:
+    """ Run deploy_service_contracts with a previous ServiceRegistry deployment data """
+    with NamedTemporaryFile() as previous_deployment_file:
+        previous_deployment_file.write(bytearray(json.dumps(deployed_service_info), "ascii"))
+        previous_deployment_file.flush()
+        new_deployment = deployer.deploy_service_contracts(
+            token_address=token_address,
+            user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+            service_registry_controller=DEPLOYER_ADDRESS,
+            initial_service_deposit_price=SERVICE_DEPOSIT // 2,
+            service_deposit_bump_numerator=6,
+            service_deposit_bump_denominator=5,
+            decay_constant=200 * SECONDS_PER_DAY,
+            min_price=1000,
+            registration_duration=180 * SECONDS_PER_DAY,
+            token_network_registry_address=token_network_registry_contract.address,
+            reuse_service_registry_from_deploy_file=Path(previous_deployment_file.name),
+        )
+        assert (
+            new_deployment["contracts"][CONTRACT_SERVICE_REGISTRY]
+            == deployed_service_info["contracts"][CONTRACT_SERVICE_REGISTRY]
+        )
+        assert (
+            new_deployment["contracts"][CONTRACT_ONE_TO_N]
+            != deployed_service_info["contracts"][CONTRACT_ONE_TO_N]
         )
 
 
