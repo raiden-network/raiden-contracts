@@ -5,7 +5,7 @@ from os import chdir
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-from solc import compile_files
+from solcx import compile_files
 
 from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS, DeploymentModule
 from raiden_contracts.contract_manager import ContractManager, contracts_data_path

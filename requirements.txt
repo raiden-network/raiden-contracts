@@ -1,7 +1,7 @@
 click>=7.0
 rlp>=1.0.0
 coincurve>=8.0.0
-py-solc>=3.0.0
+py-solc-x
 semver
 web3<6.0.0,>=5.7.0
 eth-abi<3.0.0,>=2.0.0
