@@ -284,6 +284,7 @@ class ContractDeployer(ContractVerifier):
         min_price: int,
         registration_duration: int,
         token_network_registry_address: HexAddress,
+        reuse_service_registry_from_deploy_file: Optional[Path],
     ) -> DeployedContracts:
         """Deploy 3rd party service contracts"""
         if not contracts_version_monitoring_service_takes_token_network_registry(
@@ -298,20 +299,39 @@ class ContractDeployer(ContractVerifier):
             "contracts": {},
         }
 
-        service_registry = self._deploy_and_remember(
-            CONTRACT_SERVICE_REGISTRY,
-            [
-                token_address,
-                service_registry_controller,
-                initial_service_deposit_price,
-                service_deposit_bump_numerator,
-                service_deposit_bump_denominator,
-                decay_constant,
-                min_price,
-                registration_duration,
-            ],
-            deployed_contracts,
-        )
+        if reuse_service_registry_from_deploy_file:
+            reused_doc = DeployedContracts(  # type: ignore
+                load_json_from_path(reuse_service_registry_from_deploy_file)
+            )
+            if not reused_doc:
+                raise RuntimeError(
+                    f"{reuse_service_registry_from_deploy_file} does not contain deployment data."
+                )
+            reused_contracts = reused_doc["contracts"]
+
+            service_registry = self.contract_instance_from_deployment_data(
+                reused_doc, CONTRACT_SERVICE_REGISTRY
+            )
+
+            deployed_contracts["contracts"][CONTRACT_SERVICE_REGISTRY] = deepcopy(
+                reused_contracts[CONTRACT_SERVICE_REGISTRY]
+            )
+        else:
+            service_registry = self._deploy_and_remember(
+                contract_name=CONTRACT_SERVICE_REGISTRY,
+                arguments=[
+                    token_address,
+                    service_registry_controller,
+                    initial_service_deposit_price,
+                    service_deposit_bump_numerator,
+                    service_deposit_bump_denominator,
+                    decay_constant,
+                    min_price,
+                    registration_duration,
+                ],
+                deployed_contracts=deployed_contracts,
+            )
+
         user_deposit = self._deploy_and_remember(
             contract_name=CONTRACT_USER_DEPOSIT,
             arguments=[token_address, user_deposit_whole_balance_limit],

@@ -311,6 +311,11 @@ def raiden(
     callback=validate_address,
     help="Address of TokenNetworkRegistry that MS contract looks at",
 )
+@click.option(
+    "--service-registry-from-deployment-file",
+    type=click.Path(exists=True),
+    help="The deployment file from which ServiceRegistry should be reused",
+)
 @click.pass_context
 def services(
     ctx: Context,
@@ -332,7 +337,12 @@ def services(
     service_deposit_min_price: int,
     service_registration_duration: int,
     token_network_registry_address: HexAddress,
+    service_registry_from_deployment_file: Optional[str],
 ) -> None:
+    service_registry_from_deployment_path: Optional[Path] = None
+    if service_registry_from_deployment_file:
+        service_registry_from_deployment_path = Path(service_registry_from_deployment_file)
+
     setup_ctx(
         ctx=ctx,
         private_key=private_key,
@@ -356,6 +366,7 @@ def services(
         min_price=service_deposit_min_price,
         registration_duration=service_registration_duration,
         token_network_registry_address=token_network_registry_address,
+        reuse_service_registry_from_deploy_file=service_registry_from_deployment_path,
     )
     deployed_contracts = {
         contract_name: info["address"]
