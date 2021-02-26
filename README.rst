@@ -201,7 +201,7 @@ Deploying the main Raiden Network contracts with the ``raiden`` command::
 
     python -m raiden_contracts.deploy raiden --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --max-token-networks 1
 
-When the ``raiden`` command takes an optional argument ``--secret-registry-from-deployment-file <deployment-file>``, the command tries to reuse ``SecretRegistry`` instance found in ``<deployment-file>``.  For example, some deployment files are found under ``raiden_contracts/data*/deployment_*.json``.
+When the ``raiden`` command is passed the optional argument ``--secret-registry-from-deployment-file <deployment-file>``, the command tries to reuse ``SecretRegistry`` instance found in ``<deployment-file>``.  For example, some deployment files are found under ``raiden_contracts/data*/deployment_*.json``.
 
 Deploying the mock token contract for paying for the services (not to be done on the mainnet)::
 
@@ -210,6 +210,8 @@ Deploying the mock token contract for paying for the services (not to be done on
 Deploying the 3rd party service contracts with the ``services`` command::
 
     python -m raiden_contracts.deploy services --rpc-provider http://127.0.0.1:8545 --private-key /path/to/your/private_key/file --gas-price 10 --gas-limit 6000000 --token-address TOKEN_USED_TO_PAY_SERVICES --user-deposit-whole-limit MAX_TOTAL_AMOUNT_OF_TOKENS_DEPOSITED_IN_USER_DEPOSIT --service-deposit-bump-numerator NUMERATOR_OF_PRICE_DUMP --service-deposit-bump-denominator DENOMINATOR_OF_PRICE_DUMP --service-deposit-decay-constant DECAY_CONSTANT --initial-service-deposit-price INITIAL_PRICE --service-deposit-min-price MIN_PRICE --service-registration-duration REGISTRATION_DURATION_IN_SECS --token-network-registry-address TOKEN_NETWORK_REGISTRY_ADDRESS
+
+When the ``services`` command is passed the optional argument ``--service-registry-from-deployment-file <deployment-file>``, the command tries to reuse ``ServiceRegistry`` instance found in ``<deployment-file>``.  For example, some deployment files are found under ``raiden_contracts/data*/deployment_*.json``.
 
 Deploying a token for testing purposes (please DO NOT use this for production purposes) with the ``token`` command::
 
