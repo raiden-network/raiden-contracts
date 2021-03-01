@@ -281,11 +281,6 @@ contract TokenNetworkUtilsTest is TokenNetwork {
         return min(a,b);
     }
 
-    function maxPublic(uint256 a, uint256 b) public view returns (uint256)
-    {
-        return max(a,b);
-    }
-
     function failsafe_subtractPublic(uint256 a, uint256 b) public view returns (uint256, uint256)
     {
         return failsafe_subtract(a,b);
