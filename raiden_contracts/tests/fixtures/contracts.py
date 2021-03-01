@@ -15,23 +15,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def deploy_tester_contract(
-    web3: Web3, contracts_manager: ContractManager, deploy_contract: Callable
-) -> Callable:
-    """Returns a function that can be used to deploy a named contract,
-    using conract manager to compile the bytecode and get the ABI"""
-
-    def f(contract_name: str, **kwargs: Dict) -> Contract:
-        json_contract = contracts_manager.get_contract(contract_name)
-        contract = deploy_contract(
-            web3, DEPLOYER_ADDRESS, json_contract["abi"], json_contract["bin"], **kwargs
-        )
-        return contract
-
-    return f
-
-
-@pytest.fixture(scope="session")
 def deploy_contract_txhash() -> Callable[..., str]:
     """Returns a function that deploys a compiled contract, returning a txhash"""
 
@@ -46,12 +29,19 @@ def deploy_contract_txhash() -> Callable[..., str]:
 
 
 @pytest.fixture(scope="session")
-def deploy_contract(deploy_contract_txhash: Callable) -> Callable:
-    """Returns a function that deploys a compiled contract"""
+def deploy_tester_contract(
+    web3: Web3, contracts_manager: ContractManager, deploy_contract_txhash: Callable
+) -> Callable:
+    """Returns a function that can be used to deploy a named contract,
+    using conract manager to compile the bytecode and get the ABI"""
 
-    def fn(
-        web3: Web3, deployer_address: HexAddress, abi: List, bytecode: str, **kwargs: Dict
+    def f(
+        contract_name: str, deployer_address: HexAddress = DEPLOYER_ADDRESS, **kwargs: Dict
     ) -> Contract:
+        json_contract = contracts_manager.get_contract(contract_name)
+        abi = json_contract["abi"]
+        bytecode = json_contract["bin"]
+
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
         txhash = deploy_contract_txhash(web3, deployer_address, abi, bytecode, **kwargs)
         contract_address = web3.eth.getTransactionReceipt(txhash)["contractAddress"]
@@ -62,7 +52,7 @@ def deploy_contract(deploy_contract_txhash: Callable) -> Callable:
 
         return contract(contract_address)
 
-    return fn
+    return f
 
 
 @pytest.fixture
