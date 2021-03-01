@@ -25,7 +25,7 @@ from raiden_contracts.utils.pending_transfers import (
 def test_deprecation_executor(
     web3: Web3,
     contracts_manager: ContractManager,
-    deploy_contract: Callable,
+    deploy_tester_contract: Callable,
     secret_registry_contract: Contract,
     custom_token: Contract,
     channel_participant_deposit_limit: int,
@@ -42,12 +42,9 @@ def test_deprecation_executor(
     """
     (deprecation_executor, B) = get_accounts(2)
 
-    json_contract = contracts_manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
-    token_network_registry = deploy_contract(
-        web3,
+    token_network_registry = deploy_tester_contract(
+        CONTRACT_TOKEN_NETWORK_REGISTRY,
         deprecation_executor,
-        json_contract["abi"],
-        json_contract["bin"],
         _secret_registry_address=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
