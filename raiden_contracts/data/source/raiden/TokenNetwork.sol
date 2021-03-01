@@ -1692,11 +1692,6 @@ contract TokenNetwork is Utils {
         return a > b ? b : a;
     }
 
-    function max(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        return a > b ? a : b;
-    }
-
     /// @dev Special subtraction function that does not fail when underflowing.
     /// @param a Minuend
     /// @param b Subtrahend
