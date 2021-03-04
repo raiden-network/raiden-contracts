@@ -11,6 +11,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
     LIBRARY_TOKEN_NETWORK_UTILS,
+    LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY,
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
@@ -29,8 +30,7 @@ def token_network_utils_library(deploy_tester_contract: Callable) -> Contract:
 @pytest.fixture(scope="session")
 def token_network_libs(token_network_utils_library: Contract) -> Dict:
     """Deployed TokenNetworkUtils library"""
-    address = token_network_utils_library.address
-    return {"data/source/lib/TokenNetworkUtils.sol:TokenNetworkUtils": address}
+    return {LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY: token_network_utils_library.address}
 
 
 @pytest.fixture()

@@ -28,6 +28,9 @@ CONTRACT_USER_DEPOSIT = "UserDeposit"
 CONTRACT_ONE_TO_N = "OneToN"
 CONTRACT_DEPOSIT = "Deposit"
 
+# IDs for linking
+LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY = "data/source/lib/TokenNetworkUtils.sol:TokenNetworkUtils"
+
 # Timeouts
 TEST_SETTLE_TIMEOUT_MIN = 5
 TEST_SETTLE_TIMEOUT_MAX = 100000
