@@ -206,4 +206,24 @@ library TokenNetworkUtils {
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
+
+    /// @dev Get the hash of the participant addresses, ordered
+    /// lexicographically
+    /// @param participant Address of a channel participant
+    /// @param partner Address of the other channel participant
+    function getParticipantsHash(address participant, address partner)
+        public
+        pure
+        returns (bytes32)
+    {
+        require(participant != address(0x0), "TNU: participant address invalid");
+        require(partner != address(0x0), "TNU: partner address invalid");
+        require(participant != partner, "TNU: participant & partner equal");
+
+        if (participant < partner) {
+            return keccak256(abi.encodePacked(participant, partner));
+        } else {
+            return keccak256(abi.encodePacked(partner, participant));
+        }
+    }
 }

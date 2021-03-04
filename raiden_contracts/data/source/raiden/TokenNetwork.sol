@@ -296,7 +296,7 @@ contract TokenNetwork is Utils {
         channel_counter += 1;
         channel_identifier = channel_counter;
 
-        pair_hash = getParticipantsHash(participant1, participant2);
+        pair_hash = TokenNetworkUtils.getParticipantsHash(participant1, participant2);
 
         // There must only be one channel opened between two participants at
         // any moment in time.
@@ -997,7 +997,7 @@ contract TokenNetwork is Utils {
         require(partner != address(0x0));
         require(participant != partner);
 
-        bytes32 pair_hash = getParticipantsHash(participant, partner);
+        bytes32 pair_hash = TokenNetworkUtils.getParticipantsHash(participant, partner);
         return participants_hash_to_channel_identifier[pair_hash];
     }
 
@@ -1089,26 +1089,6 @@ contract TokenNetwork is Utils {
             unlock_data.locksroot,
             unlock_data.locked_amount
         );
-    }
-
-    /// @dev Get the hash of the participant addresses, ordered
-    /// lexicographically
-    /// @param participant Address of a channel participant
-    /// @param partner Address of the other channel participant
-    function getParticipantsHash(address participant, address partner)
-        public
-        pure
-        returns (bytes32)
-    {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
-
-        if (participant < partner) {
-            return keccak256(abi.encodePacked(participant, partner));
-        } else {
-            return keccak256(abi.encodePacked(partner, participant));
-        }
     }
 
     /// @dev Get the hash of the channel identifier and the participant
@@ -1546,7 +1526,7 @@ contract TokenNetwork is Utils {
         delete channels[channel_identifier];
 
         // Remove the pair's channel counter
-        pair_hash = getParticipantsHash(participant1, participant2);
+        pair_hash = TokenNetworkUtils.getParticipantsHash(participant1, participant2);
         delete participants_hash_to_channel_identifier[pair_hash];
     }
 }
