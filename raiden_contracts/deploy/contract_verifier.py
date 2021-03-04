@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     LIBRARY_TOKEN_NETWORK_UTILS,
+    LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -23,6 +24,7 @@ from raiden_contracts.contract_manager import (
     contracts_precompiled_path,
     get_contracts_deployment_info,
 )
+from raiden_contracts.utils.linking import link_bytecode
 from raiden_contracts.utils.type_aliases import ChainID
 
 
@@ -204,10 +206,10 @@ class ContractVerifier:
         if contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
             # We need to link the libs into the contract bytecode.
             # As this is run in the tests in fake file systems, do poor mans linking here
-            lib_address = contracts[LIBRARY_TOKEN_NETWORK_UTILS]["address"]
-            normalized_address = lib_address[2:].lower()
-            compiled_bytecode = compiled_bytecode.replace(
-                "__$34600480520cb524a2c423e33a5b4dd437$__", normalized_address
+            compiled_bytecode = link_bytecode(
+                unlinked_bytecode=compiled_bytecode,
+                library_identifier=LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY,
+                library_address=contracts[LIBRARY_TOKEN_NETWORK_UTILS]["address"],
             )
 
         if blockchain_bytecode == compiled_bytecode:

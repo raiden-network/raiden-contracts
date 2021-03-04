@@ -23,6 +23,7 @@ from raiden_contracts.constants import (
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
     LIBRARY_TOKEN_NETWORK_UTILS,
+    LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -211,7 +212,6 @@ class ContractDeployer(ContractVerifier):
                 arguments=[],
                 deployed_contracts=deployed_contracts,
             )
-            token_network_libs_key = "data/source/lib/TokenNetworkUtils.sol:TokenNetworkUtils"
 
             token_network_registry_args = [
                 secret_registry.address,
@@ -224,7 +224,7 @@ class ContractDeployer(ContractVerifier):
                 contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
                 arguments=token_network_registry_args,
                 deployed_contracts=deployed_contracts,
-                libs={token_network_libs_key: token_network_libs.address},
+                libs={LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY: token_network_libs.address},
             )
         else:
             token_network_registry_args = [
