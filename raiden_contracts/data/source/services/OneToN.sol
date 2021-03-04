@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
 
+import "lib/ECVerify.sol";
+import "lib/MessageType.sol";
 import "raiden/Utils.sol";
 import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
-import "lib/ECVerify.sol";
 
 contract OneToN is Utils {
     UserDeposit public deposit_contract;
@@ -199,7 +200,7 @@ contract OneToN is Utils {
                 "\x19Ethereum Signed Message:\n188",
                 address(this),
                 chain_id,
-                uint256(MessageTypeId.IOU),
+                uint256(MessageType.MessageTypeId.IOU),
                 sender,
                 receiver,
                 amount,

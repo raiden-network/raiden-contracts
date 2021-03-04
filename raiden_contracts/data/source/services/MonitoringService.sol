@@ -2,6 +2,7 @@
 pragma solidity 0.7.6;
 
 import "lib/ECVerify.sol";
+import "lib/MessageType.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/TokenNetwork.sol";
@@ -400,7 +401,7 @@ contract MonitoringService is Utils {
                 "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
                 address(this),
                 chain_id,
-                uint256(MessageTypeId.MSReward),
+                uint256(MessageType.MessageTypeId.MSReward),
                 token_network_address,
                 non_closing_participant,
                 non_closing_signature,

@@ -403,7 +403,13 @@ def test_token_network_variables(
     assert max_safe_uint256 == UINT256_MAX
 
     assert token_network.functions.channel_counter().call() == 0
-    assert token_network.functions.signature_prefix().call() == "\x19Ethereum Signed Message:\n"
+
+
+def test_token_network_utils_variables(token_network_utils_library: Contract) -> None:
+    assert (
+        token_network_utils_library.functions.signature_prefix().call()
+        == "\x19Ethereum Signed Message:\n"
+    )
 
 
 @pytest.mark.usefixtures("no_token_network")
