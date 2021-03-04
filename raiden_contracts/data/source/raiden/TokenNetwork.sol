@@ -5,6 +5,7 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "lib/ECVerify.sol";
+import "lib/MessageType.sol";
 import "lib/TokenNetworkUtils.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
@@ -40,8 +41,6 @@ contract TokenNetwork is Utils {
     // Global, monotonically increasing counter that keeps track of all the
     // opened channels in this contract
     uint256 public channel_counter;
-
-    string public constant signature_prefix = "\x19Ethereum Signed Message:\n";
 
     // Only for the limited Red Eyes release
     address public deprecation_executor;
@@ -414,14 +413,16 @@ contract TokenNetwork is Utils {
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
-        require(participant == recoverAddressFromWithdrawMessage(
+        require(participant == TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+            chain_id,
             channel_identifier,
             participant,
             total_withdraw,
             expiration_block,
             participant_signature
         ));
-        partner = recoverAddressFromWithdrawMessage(
+        partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+            chain_id,
             channel_identifier,
             participant,
             total_withdraw,
@@ -525,8 +526,9 @@ contract TokenNetwork is Utils {
         channel.settle_block_number += uint256(block.number);
 
         // The closing participant must have signed the balance proof.
-        address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
-            MessageTypeId.BalanceProof,
+        address recovered_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
+            MessageType.MessageTypeId.BalanceProof,
+            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -541,7 +543,8 @@ contract TokenNetwork is Utils {
         // the latest transfer, in which case the closing party is going to
         // lose the tokens that were transferred to him.
         if (nonce > 0) {
-            recovered_non_closing_participant_address = recoverAddressFromBalanceProof(
+            recovered_non_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProof(
+                chain_id,
                 channel_identifier,
                 balance_hash,
                 nonce,
@@ -630,8 +633,9 @@ contract TokenNetwork is Utils {
 
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
-        recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
-            MessageTypeId.BalanceProofUpdate,
+        recovered_non_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
+            MessageType.MessageTypeId.BalanceProofUpdate,
+            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -641,7 +645,8 @@ contract TokenNetwork is Utils {
         );
         require(non_closing_participant == recovered_non_closing_participant);
 
-        recovered_closing_participant = recoverAddressFromBalanceProof(
+        recovered_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProof(
+            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -969,7 +974,7 @@ contract TokenNetwork is Utils {
 
         require(channel.state == ChannelState.Opened);
 
-        participant1 = recoverAddressFromCooperativeSettleSignature(
+        participant1 = TokenNetworkUtils.recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
             participant1_address,
             participant1_balance,
@@ -980,7 +985,7 @@ contract TokenNetwork is Utils {
         // The provided address must be the same as the recovered one
         require(participant1 == participant1_address);
 
-        participant2 = recoverAddressFromCooperativeSettleSignature(
+        participant2 = TokenNetworkUtils.recoverAddressFromCooperativeSettleSignature(
             channel_identifier,
             participant1_address,
             participant1_balance,
@@ -1463,127 +1468,6 @@ contract TokenNetwork is Utils {
             settle_input.locked_amount,
             settle_input.locksroot
         ));
-    }
-
-    function recoverAddressFromBalanceProof(
-        uint256 channel_identifier,
-        bytes32 balance_hash,
-        uint256 nonce,
-        bytes32 additional_hash,
-        bytes memory signature
-    )
-        internal
-        view
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
-        string memory message_length = "212";
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.BalanceProof),
-            channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, signature);
-    }
-
-    function recoverAddressFromBalanceProofCounterSignature(
-        MessageTypeId message_type_id,
-        uint256 channel_identifier,
-        bytes32 balance_hash,
-        uint256 nonce,
-        bytes32 additional_hash,
-        bytes memory closing_signature,
-        bytes memory non_closing_signature
-    )
-        internal
-        view
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
-        string memory message_length = "277";
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(message_type_id),
-            channel_identifier,
-            balance_hash,
-            nonce,
-            additional_hash,
-            closing_signature
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
-    }
-
-    /* function recoverAddressFromCooperativeSettleSignature(
-        uint256 channel_identifier,
-        address participant1,
-        uint256 participant1_balance,
-        address participant2,
-        uint256 participant2_balance,
-        bytes signature
-    )
-        view
-        internal
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
-        string memory message_length = '220';
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.CooperativeSettle),
-            channel_identifier,
-            participant1,
-            participant1_balance,
-            participant2,
-            participant2_balance
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, signature);
-    } */
-
-    function recoverAddressFromWithdrawMessage(
-        uint256 channel_identifier,
-        address participant,
-        uint256 total_withdraw,
-        uint256 expiration_block,
-        bytes memory signature
-    )
-        internal
-        view
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 32
-        string memory message_length = "200";
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.Withdraw),
-            channel_identifier,
-            participant,
-            total_withdraw,
-            expiration_block
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, signature);
     }
 
     /// @dev Calculates the hash of the pending transfers data and

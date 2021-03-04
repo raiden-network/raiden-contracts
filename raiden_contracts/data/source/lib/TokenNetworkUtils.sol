@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
+/* solium-disable indentation */
 pragma solidity 0.7.6;
 
+import "lib/ECVerify.sol";
+import "lib/MessageType.sol";
+
 library TokenNetworkUtils {
+    string public constant signature_prefix = "\x19Ethereum Signed Message:\n";
+
     function getMaxPossibleReceivableAmount(
         uint256 participant1_deposit,
         uint256 participant1_withdrawn,
@@ -106,5 +112,129 @@ library TokenNetworkUtils {
         );
         uint256 sum = a + b;
         return sum >= a ? sum : MAX_SAFE_UINT256;
+    }
+
+    function recoverAddressFromBalanceProof(
+        uint256 chain_id,
+        uint256 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes memory signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
+        string memory message_length = "212";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(MessageType.MessageTypeId.BalanceProof),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function recoverAddressFromBalanceProofCounterSignature(
+        MessageType.MessageTypeId message_type_id,
+        uint256 chain_id,
+        uint256 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes memory closing_signature,
+        bytes memory non_closing_signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
+        string memory message_length = "277";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(message_type_id),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
+    }
+
+    /* function recoverAddressFromCooperativeSettleSignature(
+        uint256 channel_identifier,
+        address participant1,
+        uint256 participant1_balance,
+        address participant2,
+        uint256 participant2_balance,
+        bytes signature
+    )
+        view
+        internal
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
+        string memory message_length = '220';
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(MessageTypeId.CooperativeSettle),
+            channel_identifier,
+            participant1,
+            participant1_balance,
+            participant2,
+            participant2_balance
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
+    } */
+
+    function recoverAddressFromWithdrawMessage(
+        uint256 chain_id,
+        uint256 channel_identifier,
+        address participant,
+        uint256 total_withdraw,
+        uint256 expiration_block,
+        bytes memory signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 32
+        string memory message_length = "200";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(MessageType.MessageTypeId.Withdraw),
+            channel_identifier,
+            participant,
+            total_withdraw,
+            expiration_block
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
     }
 }

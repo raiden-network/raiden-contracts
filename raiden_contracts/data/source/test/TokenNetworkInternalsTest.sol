@@ -2,8 +2,9 @@
 pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "raiden/TokenNetwork.sol";
+import "lib/MessageType.sol";
 import "lib/TokenNetworkUtils.sol";
+import "raiden/TokenNetwork.sol";
 
 contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
@@ -164,7 +165,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return recoverAddressFromBalanceProof(
+        return TokenNetworkUtils.recoverAddressFromBalanceProof(
+            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -174,7 +176,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     }
 
     function recoverAddressFromBalanceProofCounterSignaturePublic(
-        MessageTypeId message_type_id,
+        MessageType.MessageTypeId message_type_id,
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -186,8 +188,9 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return recoverAddressFromBalanceProofCounterSignature(
+        return TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
             message_type_id,
+            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -209,7 +212,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         public
         returns (address signature_address)
     {
-        return recoverAddressFromCooperativeSettleSignature(
+        return TokenNetworkUtils.recoverAddressFromCooperativeSettleSignature(
+            chain_id,
             channel_identifier,
             participant1,
             participant1_balance,
@@ -230,7 +234,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return recoverAddressFromWithdrawMessage(
+        return TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+            chain_id,
             channel_identifier,
             participant,
             total_withdraw,
