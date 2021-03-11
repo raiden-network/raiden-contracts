@@ -146,6 +146,7 @@ class DeploymentModule(Enum):
 START_QUERY_BLOCK_KEY = "DefaultStartBlock"
 
 ID_TO_CHAINNAME: Dict[ChainID, str] = {
+    ChainID(-5): "goerli_unstable",
     ChainID(1): "mainnet",
     ChainID(3): "ropsten",
     ChainID(4): "rinkeby",
