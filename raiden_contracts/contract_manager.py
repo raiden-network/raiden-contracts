@@ -1,4 +1,5 @@
 """ContractManager knows binaries and ABI of contracts."""
+import enum
 import json
 from copy import deepcopy
 from json import JSONDecodeError
@@ -146,12 +147,24 @@ def gas_measurements(version: Optional[str] = None) -> Dict[str, int]:
         return json.load(gas_file)
 
 
+class ContractDevEnvironment(enum.Enum):
+    DEMO = "demo"
+    UNSTABLE = "unstable"
+
+
 def contracts_deployed_path(
-    chain_id: ChainID, version: Optional[str] = None, services: bool = False
+    chain_id: ChainID,
+    version: Optional[str] = None,
+    services: bool = False,
+    development_environment: ContractDevEnvironment = ContractDevEnvironment.DEMO,
 ) -> Path:
     """Returns the path of the deplolyment data JSON file."""
     data_path = contracts_data_path(version)
     chain_name = ID_TO_CHAINNAME[chain_id] if chain_id in ID_TO_CHAINNAME else "private_net"
+
+    if development_environment == ContractDevEnvironment.UNSTABLE:
+        assert chain_name == "goerli", "Unstable contracts only available on goerli"
+        chain_name += "_unstable"
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
@@ -193,6 +206,7 @@ def get_contracts_deployment_info(
     chain_id: ChainID,
     version: Optional[str] = None,
     module: DeploymentModule = DeploymentModule.ALL,
+    development_environment: ContractDevEnvironment = ContractDevEnvironment.DEMO,
 ) -> Optional[DeployedContracts]:
     """Reads the deployment data. Returns None if the file is not found.
 
@@ -209,7 +223,14 @@ def get_contracts_deployment_info(
     files: List[Path] = []
 
     if module_chosen(DeploymentModule.RAIDEN):
-        files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=False))
+        files.append(
+            contracts_deployed_path(
+                chain_id=chain_id,
+                version=version,
+                services=False,
+                development_environment=development_environment,
+            )
+        )
 
     if module == DeploymentModule.SERVICES and not contracts_version_provides_services(version):
         raise ValueError(
@@ -218,8 +239,14 @@ def get_contracts_deployment_info(
         )
 
     if module_chosen(DeploymentModule.SERVICES) and contracts_version_provides_services(version):
-        files.append(contracts_deployed_path(chain_id=chain_id, version=version, services=True))
-
+        files.append(
+            contracts_deployed_path(
+                chain_id=chain_id,
+                version=version,
+                services=True,
+                development_environment=development_environment,
+            )
+        )
     deployment_data: Optional[DeployedContracts] = {}
 
     for f in files:
