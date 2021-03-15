@@ -164,7 +164,7 @@ def contracts_deployed_path(
 
     if development_environment == ContractDevEnvironment.UNSTABLE:
         assert chain_name == "goerli", "Unstable contracts only available on goerli"
-        chain_name += "_unstable"
+        chain_name = "goerli_unstable"
 
     return data_path.joinpath(f'deployment_{"services_" if services else ""}{chain_name}.json')
 
