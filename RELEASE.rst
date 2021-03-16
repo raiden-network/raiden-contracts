@@ -157,7 +157,7 @@ This command triggers a commit and a local tag is created. A PR must be made wit
 
 .. _release-package:
 
-Trigger Package Release
------------------------
+Upload Package to PyPI
+----------------------
 
-Push the newly created local tag (created at the previous step, e.g. ``v0.9.0``) directly to the ``master`` branch. This will trigger ``travis`` to upload the pypi package automatically, as seen here: https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/.travis.yml#L36-L47.
+Use `make upload-pypi` to build the python packages and upload them to PyPI. You will need access to the project at https://pypi.org/project/raiden-contracts/.

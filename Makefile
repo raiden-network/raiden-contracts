@@ -1,4 +1,4 @@
-.PHONY: all compile_contracts verify_contracts install install-dev lint isort black autopep8 format mypy clean release update_gas_costs
+.PHONY: all compile_contracts verify_contracts install install-dev lint isort black autopep8 format mypy clean release update_gas_costs dist upload-pypi
 
 all: verify_contracts install
 
@@ -53,3 +53,10 @@ clean:
 
 release: clean verify_contracts
 	python setup.py sdist bdist_wheel upload
+
+dist:
+	python setup.py sdist
+	python setup.py bdist_wheel
+
+upload-pypi: dist
+	twine upload dist/*
