@@ -5,6 +5,11 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.37.2]
+
+- [#1439](https://github.com/raiden-network/raiden-contracts/pull/1439) Provide additional unstable (development) deployment on goerli testnet
+- [#1430](https://github.com/raiden-network/raiden-contracts/pull/1430) Allow reusing the ServiceRegistry when deploying contracts
+
 ## [0.37.0]
 
 - New deployments for both mainnet and testnets (goerli, rinkeby, ropsten)
