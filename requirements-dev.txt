@@ -22,3 +22,5 @@ isort==5.7.0
 pipdeptree
 six~=1.12
 pip>=21
+twine
+wheel
