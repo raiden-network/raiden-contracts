@@ -53,7 +53,8 @@ def test_deposit(
     assert limit > 0
     call_and_transact(custom_token.functions.mint(limit + 1), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(user_deposit_contract.address, limit + 1), {"from": A}
+        custom_token.functions.approve(user_deposit_contract.address, limit + 1),
+        {"from": A},
     )
     with pytest.raises(TransactionFailed, match="too much deposit"):
         user_deposit_contract.functions.deposit(A, limit + 1).call({"from": A})
@@ -154,7 +155,9 @@ def test_withdraw(
     # plan withdraw of 20 tokens
     tx_hash = call_and_transact(user_deposit_contract.functions.planWithdraw(20), {"from": A})
     ev_handler.assert_event(
-        tx_hash, UserDepositEvent.WITHDRAW_PLANNED, dict(withdrawer=A, plannedBalance=10)
+        tx_hash,
+        UserDepositEvent.WITHDRAW_PLANNED,
+        dict(withdrawer=A, plannedBalance=10),
     )
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 10

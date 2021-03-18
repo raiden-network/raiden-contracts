@@ -298,7 +298,15 @@ def test_reopen_channel(
     # Settle channel
     call_and_transact(
         token_network.functions.settleChannel(
-            channel_identifier1, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+            channel_identifier1,
+            A,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
+            B,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
         ),
         {"from": A},
     )

@@ -51,7 +51,10 @@ def test_deposit_contract_without_service_registry_code(
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
-        _token=custom_token.address, _release_at=UINT256_MAX, _withdrawer=A, _service_registry=A
+        _token=custom_token.address,
+        _release_at=UINT256_MAX,
+        _withdrawer=A,
+        _service_registry=A,
     )
     call_and_transact(custom_token.functions.transfer(depo.address, 100), {"from": A})
     assert custom_token.functions.balanceOf(A).call() == 0
@@ -97,7 +100,8 @@ def test_deposit(
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": A},
     )
 
     # happy path
@@ -119,7 +123,8 @@ def test_deposit(
     # More minting and approving before extending the registration
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": A},
     )
 
     # Extending the registration
@@ -141,7 +146,8 @@ def test_setURL(
 
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": A}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": A},
     )
     tx = call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     tx_receipt = web3.eth.getTransactionReceipt(tx)
@@ -189,7 +195,8 @@ def test_changing_duration(
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT), {"from": A}
+        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT),
+        {"from": A},
     )
     call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
     first_expiration = service_registry.functions.service_valid_till(A).call()
@@ -218,7 +225,8 @@ def test_changing_duration_to_huge_value(
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT), {"from": A}
+        custom_token.functions.approve(service_registry.address, 2 * SERVICE_DEPOSIT),
+        {"from": A},
     )
     with pytest.raises(TransactionFailed, match="overflow during extending the registration"):
         call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
@@ -525,7 +533,8 @@ def test_deprecation_switch(
     minted_amount = service_registry.functions.currentPrice().call()
     call_and_transact(custom_token.functions.mint(minted_amount), {"from": A})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, minted_amount), {"from": A}
+        custom_token.functions.approve(service_registry.address, minted_amount),
+        {"from": A},
     )
     with pytest.raises(TransactionFailed, match="this contract was deprecated"):
         call_and_transact(service_registry.functions.deposit(minted_amount), {"from": A})

@@ -42,7 +42,8 @@ def validate_contract_name(_ctx: Context, _param: Any, value: Optional[str]) -> 
 @click.option("--chain-id", default=3, help="Chain id. E.g. --chain-id 3")
 @click.option("--apikey", required=True, help="A valid Etherscan APIKEY is required.")
 @click.option(
-    "--guid", help="GUID from a previous verification attempt. Tries to get the submission status."
+    "--guid",
+    help="GUID from a previous verification attempt. Tries to get the submission status.",
 )
 @click.option(
     "--contract-name",
@@ -138,7 +139,9 @@ def join_sources(source_module: DeploymentModule, contract_name: str) -> str:
 
 
 def get_constructor_args(
-    deployment_info: DeployedContracts, contract_name: str, contract_manager: ContractManager
+    deployment_info: DeployedContracts,
+    contract_name: str,
+    contract_manager: ContractManager,
 ) -> str:
     constructor_arguments = deployment_info["contracts"][contract_name]["constructor_arguments"]
     if constructor_arguments != []:

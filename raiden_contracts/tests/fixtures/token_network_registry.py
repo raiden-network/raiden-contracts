@@ -68,7 +68,7 @@ def token_network_registry_contract(
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_libs,
-        **token_network_registry_constructor_args
+        **token_network_registry_constructor_args,
     )
 
 
@@ -83,7 +83,7 @@ def token_network_registry_contract2(
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_libs,
-        **token_network_registry_constructor_args
+        **token_network_registry_constructor_args,
     )
 
 

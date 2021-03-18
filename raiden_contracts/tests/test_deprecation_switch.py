@@ -62,7 +62,9 @@ def test_deprecation_executor(
     # It can be deployed by anyone
     tx_hash = call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ),
         {"from": B},
     )
@@ -71,11 +73,15 @@ def test_deprecation_executor(
     # No other TokenNetworks can be deployed now
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).call({"from": B})
     with pytest.raises(TransactionFailed):
         token_network_registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).call({"from": deprecation_executor})
 
     tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
@@ -93,7 +99,10 @@ def test_deprecation_executor(
 
 
 def test_set_deprecation_switch(
-    get_accounts: Callable, token_network: Contract, web3: Web3, contracts_manager: ContractManager
+    get_accounts: Callable,
+    token_network: Contract,
+    web3: Web3,
+    contracts_manager: ContractManager,
 ) -> None:
     """ The deprecation executor deprecates a TokenNetwork contract """
     (A) = get_accounts(1)[0]

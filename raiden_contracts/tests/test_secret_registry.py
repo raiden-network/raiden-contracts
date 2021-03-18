@@ -135,6 +135,9 @@ def test_register_secret_batch_events(
     txn_hash = call_and_transact(secret_registry_contract.functions.registerSecretBatch(secrets))
 
     ev_handler.add(
-        txn_hash, EVENT_SECRET_REVEALED, check_secrets_revealed(secret_hashes, secrets), 3
+        txn_hash,
+        EVENT_SECRET_REVEALED,
+        check_secrets_revealed(secret_hashes, secrets),
+        3,
     )
     ev_handler.check()

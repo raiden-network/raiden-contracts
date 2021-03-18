@@ -84,7 +84,11 @@ def test_update_call(
     # Failure with the zero signature
     with pytest.raises(TransactionFailed):
         token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier, A, B, *balance_proof_A._asdict().values(), EMPTY_SIGNATURE
+            channel_identifier,
+            A,
+            B,
+            *balance_proof_A._asdict().values(),
+            EMPTY_SIGNATURE,
         ).call({"from": C})
 
     # Failure with the empty balance hash
@@ -300,7 +304,13 @@ def test_update_wrong_nonce_fail(
         ).call({"from": A})
 
     update_state_tests(
-        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1
+        channel_identifier,
+        A,
+        balance_proof_A,
+        B,
+        balance_proof_B,
+        settle_timeout,
+        txn_hash1,
     )
 
 
@@ -454,7 +464,13 @@ def test_update_channel_state(
     assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
     update_state_tests(
-        channel_identifier, A, balance_proof_A, B, balance_proof_B, settle_timeout, txn_hash1
+        channel_identifier,
+        A,
+        balance_proof_A,
+        B,
+        balance_proof_B,
+        settle_timeout,
+        txn_hash1,
     )
 
 
@@ -599,7 +615,11 @@ def test_update_not_allowed_for_the_closing_address(
     # A closes with the first balance proof
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof_B_0._asdict().values(), closing_sig_A_0
+            channel_identifier,
+            B,
+            A,
+            *balance_proof_B_0._asdict().values(),
+            closing_sig_A_0,
         ),
         {"from": A},
     )

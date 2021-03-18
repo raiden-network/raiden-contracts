@@ -33,7 +33,9 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
     non_existent_channel_identifier = 1
 
     (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier=non_existent_channel_identifier, participant1=A, participant2=B
+        channel_identifier=non_existent_channel_identifier,
+        participant1=A,
+        participant2=B,
     ).call()
     assert state == ChannelState.NONEXISTENT
     assert settle_block_number == 0
@@ -147,7 +149,11 @@ def test_close_wrong_signature(
 
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier, B, A, *balance_proof._asdict().values(), closing_signature_A
+            channel_identifier,
+            B,
+            A,
+            *balance_proof._asdict().values(),
+            closing_signature_A,
         ).call({"from": A})
 
 
@@ -645,7 +651,11 @@ def test_close_replay_reopened_channel(
     )
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier1, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier1,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            closing_sig_A,
         ),
         {"from": A},
     )
@@ -672,7 +682,11 @@ def test_close_replay_reopened_channel(
     assert channel_identifier1 != channel_identifier2
     with pytest.raises(TransactionFailed):
         token_network.functions.closeChannel(
-            channel_identifier2, B, A, *balance_proof_B._asdict().values(), closing_sig_A
+            channel_identifier2,
+            B,
+            A,
+            *balance_proof_B._asdict().values(),
+            closing_sig_A,
         ).call({"from": A})
 
     # Balance proof with correct channel_identifier must work
@@ -692,7 +706,11 @@ def test_close_replay_reopened_channel(
     )
     call_and_transact(
         token_network.functions.closeChannel(
-            channel_identifier2, B, A, *balance_proof_B2._asdict().values(), closing_sig_A2
+            channel_identifier2,
+            B,
+            A,
+            *balance_proof_B2._asdict().values(),
+            closing_sig_A2,
         ),
         {"from": A},
     )

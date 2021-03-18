@@ -129,7 +129,14 @@ def test_etherscan_verify_already_verified() -> None:
         runner = CliRunner()
         runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            [
+                "--chain-id",
+                str(chain_id),
+                "--apikey",
+                "API",
+                "--contract-name",
+                "SecretRegistry",
+            ],
             catch_exceptions=False,
         )
 
@@ -151,7 +158,14 @@ def test_etherscan_verify_unknown_error() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            [
+                "--chain-id",
+                str(chain_id),
+                "--apikey",
+                "API",
+                "--contract-name",
+                "SecretRegistry",
+            ],
         )
         assert result.exit_code != 0
 
@@ -183,7 +197,14 @@ def test_etherscan_verify_unable_to_verify() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            [
+                "--chain-id",
+                str(chain_id),
+                "--apikey",
+                "API",
+                "--contract-name",
+                "SecretRegistry",
+            ],
         )
         assert result.exit_code != 0
 
@@ -206,7 +227,14 @@ def test_etherscan_verify_success() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            [
+                "--chain-id",
+                str(chain_id),
+                "--apikey",
+                "API",
+                "--contract-name",
+                "SecretRegistry",
+            ],
         )
         assert result.exit_code == 0
 
@@ -232,7 +260,14 @@ def test_etherscan_verify_success_after_a_loop() -> None:
         runner = CliRunner()
         result = runner.invoke(
             etherscan_verify,
-            ["--chain-id", str(chain_id), "--apikey", "API", "--contract-name", "SecretRegistry"],
+            [
+                "--chain-id",
+                str(chain_id),
+                "--apikey",
+                "API",
+                "--contract-name",
+                "SecretRegistry",
+            ],
         )
         assert result.exit_code == 0
 

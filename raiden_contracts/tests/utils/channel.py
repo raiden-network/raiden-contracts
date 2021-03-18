@@ -11,7 +11,12 @@ from raiden_contracts.tests.utils.constants import EMPTY_ADDITIONAL_HASH, UINT25
 
 SettlementValues = namedtuple(
     "SettlementValues",
-    ["participant1_balance", "participant2_balance", "participant1_locked", "participant2_locked"],
+    [
+        "participant1_balance",
+        "participant2_balance",
+        "participant1_locked",
+        "participant2_locked",
+    ],
 )
 
 
@@ -120,9 +125,10 @@ def is_balance_proof_old(participant1: ChannelValues, participant2: ChannelValue
 
     total_available_deposit = get_total_available_deposit(participant1, participant2)
 
-    (participant1_balance, participant2_balance) = get_expected_after_settlement_unlock_amounts(
-        participant1, participant2
-    )
+    (
+        participant1_balance,
+        participant2_balance,
+    ) = get_expected_after_settlement_unlock_amounts(participant1, participant2)
 
     # Valid last balance proofs should ensure the following equality:
     if participant1_balance + participant2_balance == total_available_deposit:

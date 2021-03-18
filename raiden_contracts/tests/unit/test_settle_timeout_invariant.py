@@ -58,7 +58,15 @@ def test_settle_timeout_inrange(
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
-            channel_identifier, A, 0, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, 0, LOCKSROOT_OF_NO_LOCKS
+            channel_identifier,
+            A,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
+            B,
+            0,
+            0,
+            LOCKSROOT_OF_NO_LOCKS,
         ),
         {"from": A},
     )

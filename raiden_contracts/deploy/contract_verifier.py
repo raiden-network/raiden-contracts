@@ -247,10 +247,13 @@ class ContractVerifier:
         if chain_id != deployed_contracts_info["chain_id"]:
             raise RuntimeError("chain_id mismatch")
 
-        service_registry, service_registry_constructor_arguments = self._verify_deployed_contract(
+        (
+            service_registry,
+            service_registry_constructor_arguments,
+        ) = self._verify_deployed_contract(
             deployment_data=deployed_contracts_info, contract_name=CONTRACT_SERVICE_REGISTRY
         )
-        user_deposit, user_deposit_constructor_arguments = self._verify_deployed_contract(
+        (user_deposit, user_deposit_constructor_arguments,) = self._verify_deployed_contract(
             deployment_data=deployed_contracts_info, contract_name=CONTRACT_USER_DEPOSIT
         )
         one_to_n, one_to_n_constructor_arguments = self._verify_deployed_contract(
