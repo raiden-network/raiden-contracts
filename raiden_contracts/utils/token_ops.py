@@ -28,7 +28,8 @@ class TokenOperations:
         self.owner = private_key_to_address(self.private_key)
         self.wait = wait
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(self.private_key))
-        self.web3.eth.defaultAccount = self.owner
+        self.web3.eth.default_account = self.owner
+
         self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def is_valid_contract(self, token_address: ChecksumAddress) -> bool:
@@ -198,7 +199,10 @@ def transfer(
     type=click.STRING,
 )
 @click.option(
-    "--token-address", required=True, help="Address of the token contract", type=click.STRING
+    "--token-address",
+    required=True,
+    help="Address of the token contract",
+    type=click.STRING,
 )
 @click.option("--address", help="Address of account to get Balance", type=click.STRING)
 def balance(rpc_url: URI, token_address: str, address: str) -> None:

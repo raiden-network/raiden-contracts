@@ -23,7 +23,12 @@ def test_recover_address_from_withdraw_message(
     expiration_block = 492889
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     (signature_A, signature_B) = create_withdraw_signatures(
-        [A, B], channel_identifier, A, withdraw_A, expiration_block, token_network.address
+        [A, B],
+        channel_identifier,
+        A,
+        withdraw_A,
+        expiration_block,
+        token_network.address,
     )
 
     recovered_address_A = token_network.functions.recoverAddressFromWithdrawMessagePublic(
@@ -66,7 +71,9 @@ def test_recover_address_from_withdraw_message(
 
 
 def test_recover_address_from_balance_proof(
-    token_network_test_signatures: Contract, create_balance_proof: Callable, get_accounts: Callable
+    token_network_test_signatures: Contract,
+    create_balance_proof: Callable,
+    get_accounts: Callable,
 ) -> None:
     """TokenNetwork can recover the signer's address from a balance proof
 
@@ -85,7 +92,10 @@ def test_recover_address_from_balance_proof(
     balance_proof_wrong_token_network = create_balance_proof(channel_identifier, A)
 
     balance_proof_other_signer = create_balance_proof(
-        channel_identifier, A, signer=B, other_token_network=token_network_test_signatures
+        channel_identifier,
+        A,
+        signer=B,
+        other_token_network=token_network_test_signatures,
     )
 
     assert (

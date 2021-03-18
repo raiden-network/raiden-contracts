@@ -153,7 +153,8 @@ def deprecation_test_setup(
     )
 
     txhash = call_and_transact(
-        token_contract.functions.approve(token_network.address, token_amount), deployer.transaction
+        token_contract.functions.approve(token_network.address, token_amount),
+        deployer.transaction,
     )
     log.debug(f"Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}")
     check_successful_tx(deployer.web3, txhash, deployer.wait)

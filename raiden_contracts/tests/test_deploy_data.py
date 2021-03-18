@@ -74,7 +74,12 @@ def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: ChainID
         reasonable_deployment_of_a_contract(deployed)
 
 
-SERVICE_CONTRACT_NAMES = ("ServiceRegistry", "MonitoringService", "OneToN", "UserDeposit")
+SERVICE_CONTRACT_NAMES = (
+    "ServiceRegistry",
+    "MonitoringService",
+    "OneToN",
+    "UserDeposit",
+)
 
 
 @pytest.mark.parametrize("version", [None])

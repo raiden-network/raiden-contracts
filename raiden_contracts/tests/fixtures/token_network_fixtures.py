@@ -44,7 +44,9 @@ def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Ca
     ) -> Contract:
         tx_hash = call_and_transact(
             token_network_registry.functions.createERC20TokenNetwork(
-                token_address, channel_participant_deposit_limit, token_network_deposit_limit
+                token_address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
             ),
             {"from": DEPLOYER_ADDRESS},
         )
@@ -134,7 +136,11 @@ def token_network_contract(
 ) -> Contract:
     return deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK,
-        [standard_token_contract.address, secret_registry_contract.address, web3.eth.chain_id],
+        [
+            standard_token_contract.address,
+            secret_registry_contract.address,
+            web3.eth.chain_id,
+        ],
     )
 
 

@@ -60,9 +60,10 @@ def create_channel(token_network: Contract) -> Callable:
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
         # Test the channel state on chain
-        (channel_settle_timeout, channel_state) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
+        (
+            channel_settle_timeout,
+            channel_state,
+        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert channel_settle_timeout == settle_timeout
         assert channel_state == ChannelState.OPENED
 
@@ -334,7 +335,8 @@ def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.block_number < expiration
             call_and_transact(
-                secret_registry_contract.functions.registerSecret(secret), {"from": tx_from}
+                secret_registry_contract.functions.registerSecret(secret),
+                {"from": tx_from},
             )
             assert (
                 secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()

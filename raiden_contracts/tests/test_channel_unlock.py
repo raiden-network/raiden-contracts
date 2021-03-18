@@ -207,9 +207,10 @@ def test_locks_order(
     wrong_order = pending_transfers_tree.transfers
     wrong_order[1], wrong_order[0] = wrong_order[0], wrong_order[1]
     wrong_order_packed = get_packed_transfers(wrong_order, types)
-    (locksroot, unlocked_amount) = network_utils.functions.getHashAndUnlockedAmountPublic(
-        wrong_order_packed
-    ).call()
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getHashAndUnlockedAmountPublic(wrong_order_packed).call()
     # If we change the order, we change the computed hash.
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
@@ -219,9 +220,10 @@ def test_locks_order(
     wrong_order = pending_transfers_tree.transfers
     wrong_order[2], wrong_order[0] = wrong_order[0], wrong_order[2]
     wrong_order_packed = get_packed_transfers(wrong_order, types)
-    (locksroot, unlocked_amount) = network_utils.functions.getHashAndUnlockedAmountPublic(
-        wrong_order_packed
-    ).call()
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getHashAndUnlockedAmountPublic(wrong_order_packed).call()
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
     with pytest.raises(TransactionFailed):
@@ -230,15 +232,16 @@ def test_locks_order(
     wrong_order = pending_transfers_tree.transfers
     wrong_order[0], wrong_order[-1] = wrong_order[-1], wrong_order[0]
     wrong_order_packed = get_packed_transfers(wrong_order, types)
-    (locksroot, unlocked_amount) = network_utils.functions.getHashAndUnlockedAmountPublic(
-        wrong_order_packed
-    ).call()
+    (
+        locksroot,
+        unlocked_amount,
+    ) = network_utils.functions.getHashAndUnlockedAmountPublic(wrong_order_packed).call()
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
     with pytest.raises(TransactionFailed):
         token_network.functions.unlock(channel_identifier, B, A, wrong_order_packed).call()
 
-    (locksroot, unlocked_amount) = network_utils.functions.getHashAndUnlockedAmountPublic(
+    (locksroot, unlocked_amount,) = network_utils.functions.getHashAndUnlockedAmountPublic(
         pending_transfers_tree.packed_transfers
     ).call()
     assert locksroot == pending_transfers_tree.hash_of_packed_transfers

@@ -130,7 +130,8 @@ def test_bulk_claim_errors(
 
     # One value too many to `amounts`
     with pytest.raises(
-        TransactionFailed, match="Same number of elements required for all input parameters"
+        TransactionFailed,
+        match="Same number of elements required for all input parameters",
     ):
         call_and_transact(
             one_to_n_contract.functions.bulkClaim(

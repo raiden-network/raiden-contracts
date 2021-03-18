@@ -139,7 +139,9 @@ def print_gas_token_network_create(
     registry = get_token_network_registry(**token_network_registry_constructor_args)
     txn_hash = call_and_transact(
         registry.functions.createERC20TokenNetwork(
-            custom_token.address, channel_participant_deposit_limit, token_network_deposit_limit
+            custom_token.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ),
         {"from": DEPLOYER_ADDRESS},
     )
@@ -252,7 +254,15 @@ def print_gas_channel_cycle(
     mine_blocks(web3, settle_timeout)
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
-            channel_identifier, B, 5, locked_amount2, locksroot2, A, 10, locked_amount1, locksroot1
+            channel_identifier,
+            B,
+            5,
+            locked_amount2,
+            locksroot2,
+            A,
+            10,
+            locked_amount1,
+            locksroot1,
         )
     )
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".settleChannel")
@@ -308,7 +318,8 @@ def print_gas_monitoring_service(
     # register MS in the ServiceRegistry contract
     call_and_transact(custom_token.functions.mint(SERVICE_DEPOSIT * 2), {"from": MS})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": MS}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": MS},
     )
     call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": MS})
 

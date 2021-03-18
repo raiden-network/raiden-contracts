@@ -303,7 +303,11 @@ def test_deploy_script_raiden(
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
-        web3=web3, private_key=get_random_privkey(), gas_limit=GAS_LIMIT, gas_price=1, wait=10
+        web3=web3,
+        private_key=get_random_privkey(),
+        gas_limit=GAS_LIMIT,
+        gas_price=1,
+        wait=10,
     )
     with pytest.raises(ValidationError):
         deployer.deploy_raiden_contracts(
@@ -381,7 +385,11 @@ def test_deploy_script_token(web3: Web3) -> None:
     token_type = "CustomToken"
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
     )
 
     deployed_token = deployer.deploy_token_contract(
@@ -397,7 +405,11 @@ def test_deploy_script_token(web3: Web3) -> None:
 
     # check that it fails if sender has no eth
     deployer = ContractDeployer(
-        web3=web3, private_key=get_random_privkey(), gas_limit=gas_limit, gas_price=1, wait=10
+        web3=web3,
+        private_key=get_random_privkey(),
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
     )
     with pytest.raises(ValidationError):
         deployer.deploy_token_contract(
@@ -426,7 +438,11 @@ def test_deploy_script_register(
     # normal deployment
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
     )
 
     token_registry_abi = deployer.contract_manager.get_contract_abi(
@@ -463,7 +479,11 @@ def test_deploy_script_service(
     """
     gas_limit = 5860000
     deployer = ContractDeployer(
-        web3=web3, private_key=FAUCET_PRIVATE_KEY, gas_limit=gas_limit, gas_price=1, wait=10
+        web3=web3,
+        private_key=FAUCET_PRIVATE_KEY,
+        gas_limit=gas_limit,
+        gas_price=1,
+        wait=10,
     )
 
     token_supply = 10000000
@@ -705,7 +725,10 @@ def test_validate_address_happy_path() -> None:
 @pytest.fixture
 def fs_reload_deployer() -> Generator[FakeFilesystem, None, None]:
     patcher = Patcher(
-        modules_to_reload=[raiden_contracts.contract_manager, raiden_contracts.deploy.__main__]
+        modules_to_reload=[
+            raiden_contracts.contract_manager,
+            raiden_contracts.deploy.__main__,
+        ]
     )
     patcher.setUp()
     yield patcher.fs
@@ -839,7 +862,10 @@ def test_deploy_token_no_balance(privkey_file: IO) -> None:
 def test_deploy_token_with_balance(privkey_file: IO) -> None:
     """ Call deploy token command with a private key with some balance """
     with patch.object(
-        ContractDeployer, "deploy_token_contract", spec=ContractDeployer, return_value={}
+        ContractDeployer,
+        "deploy_token_contract",
+        spec=ContractDeployer,
+        return_value={},
     ) as mock_deployer:
         with patch.object(Eth, "get_balance", return_value=100):
             runner = CliRunner()

@@ -16,7 +16,9 @@ def user_deposit_whole_balance_limit() -> int:
 
 @pytest.fixture(scope="session")
 def uninitialized_user_deposit_contract(
-    deploy_tester_contract: Callable, custom_token: Contract, user_deposit_whole_balance_limit: int
+    deploy_tester_contract: Callable,
+    custom_token: Contract,
+    user_deposit_whole_balance_limit: int,
 ) -> Contract:
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
@@ -62,7 +64,8 @@ def deposit_to_udc(user_deposit_contract: Contract, custom_token: Contract) -> C
             {"from": receiver},
         )
         call_and_transact(
-            user_deposit_contract.functions.deposit(receiver, amount), {"from": receiver}
+            user_deposit_contract.functions.deposit(receiver, amount),
+            {"from": receiver},
         )
 
     return deposit

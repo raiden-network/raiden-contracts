@@ -36,7 +36,8 @@ def ms_address(
     # register MS in the ServiceRegistry contract
     call_and_transact(custom_token.functions.mint(2 * SERVICE_DEPOSIT), {"from": ms})
     call_and_transact(
-        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT), {"from": ms}
+        custom_token.functions.approve(service_registry.address, SERVICE_DEPOSIT),
+        {"from": ms},
     )
     call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": ms})
 
@@ -94,7 +95,11 @@ def setup_monitor_data(
         # close channel
         call_and_transact(
             token_network.functions.closeChannel(
-                channel_identifier, B, A, *balance_proof_A._asdict().values(), closing_signature_A
+                channel_identifier,
+                B,
+                A,
+                *balance_proof_A._asdict().values(),
+                closing_signature_A,
             ),
             {"from": A},
         )
@@ -204,7 +209,11 @@ def test_claimReward_with_settle_call(
     ms_ev_handler.assert_event(
         txn_hash,
         MonitoringServiceEvent.REWARD_CLAIMED,
-        dict(ms_address=ms_address, amount=REWARD_AMOUNT, reward_identifier=reward_identifier),
+        dict(
+            ms_address=ms_address,
+            amount=REWARD_AMOUNT,
+            reward_identifier=reward_identifier,
+        ),
     )
 
     # Check that MS balance has increased by claiming the reward

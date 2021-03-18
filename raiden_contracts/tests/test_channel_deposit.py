@@ -83,7 +83,8 @@ def test_deposit_channel_call(
         token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call({"from": A})
 
     call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B), {"from": A}
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B),
+        {"from": A},
     )
     assert (
         deposit_A
@@ -177,7 +178,8 @@ def test_deposit_wrong_channel(
         token_network.functions.setTotalDeposit(channel_identifier, A, 10, C).call({"from": A})
 
     call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, A, 10, B), {"from": A}
+        token_network.functions.setTotalDeposit(channel_identifier, A, 10, B),
+        {"from": A},
     )
     assert (
         10 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
@@ -341,12 +343,16 @@ def test_deposit_channel_event(
     )
 
     ev_handler.add(
-        txn_hash, ChannelEvent.DEPOSIT, check_new_deposit(channel_identifier, A, deposit_A)
+        txn_hash,
+        ChannelEvent.DEPOSIT,
+        check_new_deposit(channel_identifier, A, deposit_A),
     )
 
     txn_hash = channel_deposit(channel_identifier, B, deposit_B, A)
     ev_handler.add(
-        txn_hash, ChannelEvent.DEPOSIT, check_new_deposit(channel_identifier, B, deposit_B)
+        txn_hash,
+        ChannelEvent.DEPOSIT,
+        check_new_deposit(channel_identifier, B, deposit_B),
     )
 
     ev_handler.check()

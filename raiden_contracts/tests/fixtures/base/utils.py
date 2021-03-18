@@ -34,8 +34,12 @@ def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
 
         for faucet in web3.eth.accounts[:10]:
             try:
-                web3.eth.sendTransaction(
-                    {"from": faucet, "to": address, "value": Wei(1 * int(units["finney"]))}
+                web3.eth.send_transaction(
+                    {
+                        "from": faucet,
+                        "to": address,
+                        "value": Wei(1 * int(units["finney"])),
+                    }
                 )
                 break
             except TransactionFailed:
@@ -65,7 +69,8 @@ def create_service_account(
         deposit = service_registry.functions.currentPrice().call()
         call_and_transact(custom_token.functions.mint(deposit), {"from": account})
         call_and_transact(
-            custom_token.functions.approve(service_registry.address, deposit), {"from": account}
+            custom_token.functions.approve(service_registry.address, deposit),
+            {"from": account},
         )
         call_and_transact(service_registry.functions.deposit(deposit), {"from": account})
         assert service_registry.functions.hasValidRegistration(account).call()

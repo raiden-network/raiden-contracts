@@ -39,22 +39,30 @@ def test_register_three_but_not_four(
     token3 = custom_token_factory()
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token0.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token0.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         )
     )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token1.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token1.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         )
     )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
-            token2.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token2.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         )
     )
     with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
-            token3.address, channel_participant_deposit_limit, token_network_deposit_limit
+            token3.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
         ).call()
 
 
@@ -95,13 +103,15 @@ def test_participant_deposit_limit(
 
     # Deposit some tokens, under the limit
     call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B), {"from": A}
+        token_network.functions.setTotalDeposit(channel_identifier, A, deposit_A, B),
+        {"from": A},
     )
     info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert info_A[ParticipantInfoIndex.DEPOSIT] == deposit_A
 
     info_B = call_and_transact(
-        token_network.functions.setTotalDeposit(channel_identifier, B, deposit_B, A), {"from": B}
+        token_network.functions.setTotalDeposit(channel_identifier, B, deposit_B, A),
+        {"from": B},
     )
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.DEPOSIT] == deposit_B
