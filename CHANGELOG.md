@@ -5,7 +5,7 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## [0.37.4]
+## [0.37.5]
 - Add missing deployment files for the unstable deployment done in 0.37.2.
 
 ## [0.37.3]
