@@ -5,6 +5,9 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.37.4]
+- Add missing deployment files for the unstable deployment done in 0.37.2.
+
 ## [0.37.3]
 
 - [#1443](https://github.com/raiden-network/raiden-contracts/pull/1443) Remove `semver` dependency, which was causing version conflicts for other packages using `raiden-contracts`
