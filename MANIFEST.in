@@ -4,11 +4,13 @@ include raiden_contracts/constants.py
 include raiden_contracts/data*/contracts.json
 include raiden_contracts/data*/deployment_kovan.json
 include raiden_contracts/data*/deployment_goerli.json
+include raiden_contracts/data*/deployment_goerli_unstable.json
 include raiden_contracts/data*/deployment_rinkeby.json
 include raiden_contracts/data*/deployment_ropsten.json
 include raiden_contracts/data*/deployment_mainnet.json
 include raiden_contracts/data*/deployment_services_kovan.json
 include raiden_contracts/data*/deployment_services_goerli.json
+include raiden_contracts/data*/deployment_services_goerli_unstable.json
 include raiden_contracts/data*/deployment_services_rinkeby.json
 include raiden_contracts/data*/deployment_services_ropsten.json
 include raiden_contracts/data*/deployment_services_mainnet.json
