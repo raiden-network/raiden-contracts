@@ -4,13 +4,13 @@ from typing import Any, Callable, Dict, Tuple
 import pytest
 from eth_tester.exceptions import TransactionFailed
 from eth_typing import HexAddress
-from solcx import link_code
 from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
+from raiden_contracts.utils.linking import link_code
 
 log = logging.getLogger(__name__)
 

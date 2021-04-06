@@ -8,7 +8,6 @@ from eth_typing import ChecksumAddress, HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
 from eth_utils.units import units
 from hexbytes import HexBytes
-from solcx import link_code
 from web3 import Web3
 from web3.contract import Contract, ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
@@ -35,6 +34,7 @@ from raiden_contracts.contract_manager import (
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.file_ops import load_json_from_path
+from raiden_contracts.utils.linking import link_code
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
