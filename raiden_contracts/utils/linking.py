@@ -22,3 +22,14 @@ def link_bytecode(
         get_placeholder_for_library_identifier(library_identifier),
         normalized_address,
     )
+
+
+def link_code(unlinked_bytecode: str, libs: dict) -> str:
+    """Drop-in replacement for solcx.link_code based on link_code
+
+    The advantage is that no install solc is required.
+    """
+    for lib, address in libs.items():
+        unlinked_bytecode = link_bytecode(unlinked_bytecode, lib, address)
+
+    return unlinked_bytecode
