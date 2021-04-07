@@ -88,7 +88,7 @@ config = {
     "license": "MIT",
     "keywords": "raiden ethereum blockchain",
     "install_requires": requirements,
-    "setup_requires": _get_single_requirement(requirements, "py-solc"),
+    "setup_requires": requirements,
     "packages": find_packages(),
     "include_package_data": True,
     "classifiers": [
