@@ -25,9 +25,9 @@ jobs:
         path: |
           ~/.cache/pip
           ~/venv
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-
     - name: Install solidity compiler
       run: |
         export SOLC_VERSION='v0.7.6'
