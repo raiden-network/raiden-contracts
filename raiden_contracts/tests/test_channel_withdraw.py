@@ -151,7 +151,9 @@ def test_withdraw_call_near_expiration(
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
-    expiration = web3.eth.block_number + 1
+    # The block must still be one block in the future when the transaction is
+    # processed, so we have to choose an expiration two block in the future
+    expiration = web3.eth.block_number + 2
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier, A, withdraw_A, expiration
