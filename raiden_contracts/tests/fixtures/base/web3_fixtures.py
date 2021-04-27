@@ -40,7 +40,7 @@ def web3(ethereum_tester: EthereumTester) -> Web3:
     provider = EthereumTesterProvider(ethereum_tester)
     web3 = Web3(provider)
     # Improve test speed by skipping the gas cost estimation.
-    web3.eth.estimateGas = lambda txn: int(5.2e6)  # type: ignore  # pylint: disable=E1101
+    web3.eth.estimateGas = lambda txn: int(5.2e6)  # pylint: disable=E1101
 
     # add faucet account to tester
     ethereum_tester.add_account(FAUCET_PRIVATE_KEY.hex())
