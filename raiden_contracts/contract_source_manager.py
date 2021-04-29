@@ -5,12 +5,13 @@ from os import chdir
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-from solcx import compile_files
+import solcx
 
 from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS, DeploymentModule
 from raiden_contracts.contract_manager import ContractManager, contracts_data_path
 
 _BASE = Path(__file__).parent
+SOLC_VERSION = "0.7.6"
 
 
 class ContractSourceManagerCompilationError(RuntimeError):
@@ -38,6 +39,8 @@ class ContractSourceManager:
         and also the :ref:`ethereum.tools` python library.  The return value is a dict that
         should be written into contracts.json.
         """
+        solcx.install.install_solc(SOLC_VERSION)
+        solcx.set_solc_version(SOLC_VERSION)
         ret = {}
         old_working_dir = Path.cwd()
         chdir(_BASE)
@@ -51,7 +54,7 @@ class ContractSourceManager:
         import_dir_map.insert(0, ".=.")  # allow solc to compile contracts in all subdirs
         try:
             for contracts_dir in self.contracts_source_dirs.values():
-                res = compile_files(
+                res = solcx.compile_files(
                     [str(relativise(file)) for file in contracts_dir.glob("*.sol")],
                     output_values=PRECOMPILED_DATA_FIELDS + ["ast"],
                     import_remappings=import_dir_map,
