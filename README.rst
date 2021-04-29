@@ -137,7 +137,6 @@ Compile the contracts
 ^^^^^^^^^^^^^^^^^^^^^
 
 Needed if you have made changes to the source code.
-Make sure you have `solc` installed: https://solidity.readthedocs.io/en/latest/installing-solidity.html
 
 ::
 
