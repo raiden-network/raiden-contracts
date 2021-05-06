@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -52,7 +52,7 @@ jobs:
     - name: Test
       run: |
         source ./venv/bin/activate
-        pytest --cov=./ raiden_contracts/tests/ -v -n 4 --cov-config setup.cfg
+        pytest --cov=./ raiden_contracts/tests/ -v -n 2 --cov-config setup.cfg
     - name: Codecov
       run: |
         source ./venv/bin/activate
