@@ -318,6 +318,21 @@ def test_deploy_script_raiden(
         )
 
 
+@pytest.mark.slow
+def test_deploy_script_raiden_0_37_0(
+    deployer_0_37_0: ContractDeployer,
+) -> None:
+    """Checks that `verify_deployment_data` works fine with older contracts."""
+    data = deployer_0_37_0.deploy_raiden_contracts(
+        max_num_of_token_networks=1,
+        reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
+    )
+
+    deployer_0_37_0.verify_deployment_data(deployment_data=data)
+
+
 def test_deploy_raiden_reuse_secret_registry(
     deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
 ) -> None:
