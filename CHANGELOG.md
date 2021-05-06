@@ -5,6 +5,8 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+- [#1456](https://github.com/raiden-network/raiden-contracts/pull/1456) Add Python 3.9 support
+
 ## [0.37.5]
 - Add missing deployment files for the unstable deployment done in 0.37.2.
 
