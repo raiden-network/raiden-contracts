@@ -203,7 +203,10 @@ class ContractVerifier:
         blockchain_bytecode = self.web3.eth.get_code(contract_instance.address).hex()
         compiled_bytecode = self.contract_manager.get_runtime_hexcode(contract_name)
 
-        if contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY:
+        if (
+            contract_name == CONTRACT_TOKEN_NETWORK_REGISTRY
+            and LIBRARY_TOKEN_NETWORK_UTILS in contracts
+        ):
             # We need to link the libs into the contract bytecode.
             # As this is run in the tests in fake file systems, do poor mans linking here
             compiled_bytecode = link_bytecode(
