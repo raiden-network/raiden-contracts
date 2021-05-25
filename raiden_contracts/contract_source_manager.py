@@ -198,7 +198,7 @@ def _verify_single_precompiled_checksum(
     if precompiled_checksum != expected_checksum:
         raise ContractSourceManagerVerificationError(
             f"checksum of {contract_name} does not match. got {precompiled_checksum} != "
-            "expected {expected_checksum}"
+            f"expected {expected_checksum}"
         )
 
 
