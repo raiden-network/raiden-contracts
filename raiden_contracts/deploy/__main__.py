@@ -52,9 +52,8 @@ def error_removed_option(message: str) -> Callable:
 
     def f(_: Any, param: Parameter, value: Any) -> None:
         if value is not None:
-            raise click.NoSuchOption(
-                f'--{param.name.replace("_", "-")} is no longer a valid option. ' + message
-            )
+            param_name = param.name.replace("_", "-") if param.name else "unnamed-param"
+            raise click.NoSuchOption(f"--{param_name} is no longer a valid option. " + message)
 
     return f
 

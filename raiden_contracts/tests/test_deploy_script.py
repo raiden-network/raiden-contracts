@@ -856,6 +856,7 @@ def test_deploy_token_invalid_privkey() -> None:
         result = runner.invoke(token, deploy_token_arguments(privkey="wrong_priv_key"))
         assert result.exit_code != 0
         assert type(result.exception) == RuntimeError
+        assert result.exception
         assert result.exception.args == ("Could not access the private key.",)
         mock_deployer.assert_not_called()
 
@@ -870,6 +871,7 @@ def test_deploy_token_no_balance(privkey_file: IO) -> None:
             result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
             assert result.exit_code != 0
             assert type(result.exception) == RuntimeError
+            assert result.exception
             assert result.exception.args == ("Account with insufficient funds.",)
             mock_deployer.assert_not_called()
 
@@ -1007,6 +1009,7 @@ def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_f
         )
         assert result.exit_code != 0
         assert type(result.exception) == RuntimeError
+        assert result.exception
         assert result.exception.args == (
             "No TokenNetworkRegistry was specified. "
             "Add --token-network-registry-address <address>.",
