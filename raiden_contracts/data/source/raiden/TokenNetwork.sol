@@ -609,28 +609,6 @@ contract TokenNetwork is Utils {
 
         require(channel.state == ChannelState.Closed);
 
-        // Calling this function after the settlement window is forbidden to
-        // fix the following race condition:
-        //
-        // 1 A badly configured node A, that doesn't have a monitoring service
-        //   and is temporarily offline does not call update during the
-        //   settlement window.
-        // 2 The well behaved partner B, who called close, sees the
-        //   settlement window is over and calls settle. At this point the B's
-        //   balance proofs which should be provided by A is missing, so B will
-        //   call settle with its balance proof zeroed out.
-        // 3 A restarts and calls update, which will change B's balance
-        //   proof.
-        // 4 At this point, the transactions from 2 and 3 are racing, and one
-        //   of them will fail.
-        //
-        // To avoid the above race condition, which would require special
-        // handling on both nodes, the call to update is forbidden after the
-        // settlement window. This does not affect safety, since we assume the
-        // nodes are always properly configured and have a monitoring service
-        // available to call update on the user's behalf.
-        require(channel.settle_block_number >= block.number);
-
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
