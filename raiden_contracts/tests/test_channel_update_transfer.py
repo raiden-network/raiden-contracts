@@ -531,7 +531,7 @@ def test_update_channel_fail_no_offchain_transfers(
         ).call({"from": B})
 
 
-def test_update_not_allowed_after_settlement_period(
+def test_update_allowed_after_settlement_period(
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
@@ -540,7 +540,7 @@ def test_update_not_allowed_after_settlement_period(
     create_balance_proof_countersignature: Callable,
     web3: Web3,
 ) -> None:
-    """ updateNonClosingBalanceProof cannot be called after the settlement period. """
+    """ updateNonClosingBalanceProof can be called after the settlement period. """
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -567,14 +567,13 @@ def test_update_not_allowed_after_settlement_period(
         {"from": A},
     )
     mine_blocks(web3, settle_timeout + 1)
-    with pytest.raises(TransactionFailed):
-        token_network.functions.updateNonClosingBalanceProof(
-            channel_identifier,
-            A,
-            B,
-            *balance_proof_A._asdict().values(),
-            balance_proof_update_signature_B,
-        ).call({"from": A})
+    token_network.functions.updateNonClosingBalanceProof(
+        channel_identifier,
+        A,
+        B,
+        *balance_proof_A._asdict().values(),
+        balance_proof_update_signature_B,
+    ).call({"from": A})
 
 
 def test_update_not_allowed_for_the_closing_address(
