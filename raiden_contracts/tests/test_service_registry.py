@@ -150,7 +150,7 @@ def test_setURL(
         {"from": A},
     )
     tx = call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
-    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    tx_receipt = web3.eth.get_transaction_receipt(tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
     event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][-1])
@@ -553,7 +553,7 @@ def test_deprecation_immediate_payout(
     )
     deposit_tx = call_and_transact(service_registry.functions.deposit(minted), {"from": A})
     # The user obtains the deposit address
-    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_tx)
+    deposit_tx_receipt = web3.eth.get_transaction_receipt(deposit_tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
     event_data = get_event_data(web3.codec, event_abi, deposit_tx_receipt["logs"][-1])

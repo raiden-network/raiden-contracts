@@ -50,7 +50,7 @@ def register_token_network(web3: Web3, contracts_manager: ContractManager) -> Ca
             ),
             {"from": DEPLOYER_ADDRESS},
         )
-        tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
+        tx_receipt = web3.eth.get_transaction_receipt(tx_hash)
         event_abi = contracts_manager.get_event_abi(
             CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED
         )

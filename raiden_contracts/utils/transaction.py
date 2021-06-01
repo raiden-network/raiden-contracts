@@ -36,7 +36,7 @@ def wait_for_transaction_receipt(
     with Timeout(timeout) as time:
         while not receipt or not receipt["blockNumber"]:  # pylint: disable=E1136
             try:
-                receipt = web3.eth.getTransactionReceipt(txid)
+                receipt = web3.eth.get_transaction_receipt(txid)
             except TransactionNotFound:
                 pass
             time.sleep(5)

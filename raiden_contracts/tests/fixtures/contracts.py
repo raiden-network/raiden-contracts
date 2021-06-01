@@ -42,7 +42,7 @@ def deploy_contract_txhash(
     txhash = contract.constructor(**kwargs).transact({"from": deployer_address})
     mine_blocks(web3, 1)
 
-    receipt = web3.eth.getTransactionReceipt(txhash)
+    receipt = web3.eth.get_transaction_receipt(txhash)
     if receipt["status"] != 1:
         raise TransactionFailed("deployment failed")
 
