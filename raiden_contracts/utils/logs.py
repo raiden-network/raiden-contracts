@@ -188,7 +188,7 @@ class LogFilter:
 
     def get_logs(self) -> List[Any]:
         assert self.filter.filter_id is not None
-        logs = self.web3.eth.getFilterLogs(self.filter.filter_id)
+        logs = self.web3.eth.get_filter_logs(self.filter.filter_id)
         formatted_logs = []
         for log in [dict(log) for log in logs]:
             formatted_logs.append(self.set_log_data(log))
