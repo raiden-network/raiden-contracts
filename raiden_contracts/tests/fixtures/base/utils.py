@@ -133,7 +133,7 @@ def txn_cost(web3: Web3, txn_gas: Callable) -> Callable:
 @pytest.fixture
 def txn_gas(web3: Web3) -> Callable:
     def get(txn_hash: HexBytes) -> int:
-        receipt = web3.eth.getTransactionReceipt(txn_hash)
+        receipt = web3.eth.get_transaction_receipt(txn_hash)
         return receipt["gasUsed"]
 
     return get
@@ -177,7 +177,7 @@ def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
 @pytest.fixture()
 def get_block(web3: Web3) -> Callable:
     def get(txn_hash: HexBytes) -> int:
-        receipt = web3.eth.getTransactionReceipt(txn_hash)
+        receipt = web3.eth.get_transaction_receipt(txn_hash)
         return receipt["blockNumber"]
 
     return get

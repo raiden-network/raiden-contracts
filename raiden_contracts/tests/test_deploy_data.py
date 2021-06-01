@@ -170,7 +170,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
     """
     web3_mock = Mock()
     web3_mock.version.network = 5
-    web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
+    web3_mock.eth.get_transaction_receipt = lambda _: {"blockNumber": 0}
     verifier = ContractVerifier(web3=web3_mock, contracts_version=ALDERAAN_VERSION)
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
@@ -192,7 +192,7 @@ def test_verify_existent_deployment_with_wrong_code(
     """
     web3_mock = Mock()
     web3_mock.version.network = 5
-    web3_mock.eth.getTransactionReceipt = lambda _: {
+    web3_mock.eth.get_transaction_receipt = lambda _: {
         "blockNumber": 10711807,
         "gasUsed": 555366,
         "contractAddress": "0x8Ff327f7ed03cD6Bd5e611E9e404B47d8c9Db81E",

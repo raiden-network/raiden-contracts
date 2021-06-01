@@ -84,7 +84,7 @@ def test_deprecation_executor(
             token_network_deposit_limit,
         ).call({"from": deprecation_executor})
 
-    tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
+    tx_receipt = web3.eth.get_transaction_receipt(tx_hash)
     event_abi = contracts_manager.get_event_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED
     )
@@ -115,7 +115,7 @@ def test_set_deprecation_switch(
 
     tx = call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
-    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    tx_receipt = web3.eth.get_transaction_receipt(tx)
     event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
     event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][0])
     assert event_data["args"]["new_value"]
