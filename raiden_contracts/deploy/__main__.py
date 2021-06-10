@@ -250,7 +250,7 @@ def raiden(
 @common_options
 @click.option(
     "--token-address",
-    default=None,
+    default="0x255Aa6DF07540Cb5d3d297f0D0D4D84cb52bc8e6",
     callback=validate_address,
     help="Address of token used to pay for the services (MS, PFS).",
 )
