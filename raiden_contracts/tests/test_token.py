@@ -11,7 +11,7 @@ from raiden_contracts.tests.utils import call_and_transact
 
 
 def test_token_mint(web3: Web3, custom_token: Contract, get_accounts: Callable) -> None:
-    """ Use the mint() function of the custom token contract """
+    """Use the mint() function of the custom token contract"""
 
     (A, B) = get_accounts(2)
     token = custom_token
@@ -35,7 +35,7 @@ def test_token_mint(web3: Web3, custom_token: Contract, get_accounts: Callable) 
 
 
 def test_approve_transfer(custom_token: Contract, get_accounts: Callable) -> None:
-    """ Use the approve() function of the custom token contract """
+    """Use the approve() function of the custom token contract"""
 
     (A, B) = get_accounts(2)
     token = custom_token
@@ -55,7 +55,7 @@ def test_approve_transfer(custom_token: Contract, get_accounts: Callable) -> Non
 
 
 def test_token_transfer_funds(web3: Web3, custom_token: Contract, get_accounts: Callable) -> None:
-    """ transferFunds() should fail when the ETH balance of the contract is zero """
+    """transferFunds() should fail when the ETH balance of the contract is zero"""
 
     A = get_accounts(1)[0]
     token = custom_token
@@ -77,7 +77,7 @@ def test_token_transfer_funds(web3: Web3, custom_token: Contract, get_accounts: 
 def test_custom_token(
     custom_token: Contract, web3: Web3, contracts_manager: ContractManager
 ) -> None:
-    """ See custom_token.address contains the expected code """
+    """See custom_token.address contains the expected code"""
     blockchain_bytecode = web3.eth.get_code(custom_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_CUSTOM_TOKEN)
     assert blockchain_bytecode.hex() == compiled_bytecode
@@ -86,7 +86,7 @@ def test_custom_token(
 def test_human_standard_token(
     human_standard_token: Contract, web3: Web3, contracts_manager: ContractManager
 ) -> None:
-    """ See human_standard_token.address contains the expected code """
+    """See human_standard_token.address contains the expected code"""
     blockchain_bytecode = web3.eth.get_code(human_standard_token.address)
     compiled_bytecode = contracts_manager.get_runtime_hexcode(CONTRACT_HUMAN_STANDARD_TOKEN)
     assert blockchain_bytecode.hex() == compiled_bytecode

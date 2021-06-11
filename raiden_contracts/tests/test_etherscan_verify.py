@@ -31,7 +31,7 @@ contract_name = "DummyContract"
 
 
 def test_get_constructor_args_no_args() -> None:
-    """ Test get_constructor_args() on no arguments """
+    """Test get_constructor_args() on no arguments"""
     contract_manager = ContractManager(contracts_precompiled_path())
     deploy_info: Dict = {"contracts": {contract_name: {"constructor_arguments": []}}}
     assert get_constructor_args(deploy_info, contract_name, contract_manager) == ""  # type: ignore
@@ -42,7 +42,7 @@ def abi_with_constructor_input_types(types: List[str]) -> ABI:
 
 
 def test_get_constructor_args_one_arg() -> None:
-    """ Test get_constructor_args() on one argument """
+    """Test get_constructor_args() on one argument"""
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = CompiledContract(
         {
@@ -62,7 +62,7 @@ def test_get_constructor_args_one_arg() -> None:
 
 
 def test_get_constructor_args_two_args() -> None:
-    """ Test get_constructor_args() on two arguments """
+    """Test get_constructor_args() on two arguments"""
     contract_manager = ContractManager(contracts_precompiled_path())
     contract_manager.contracts[contract_name] = CompiledContract(
         {
@@ -83,7 +83,7 @@ def test_get_constructor_args_two_args() -> None:
 
 
 def test_run_join_contracts() -> None:
-    """ Just running join_sources() """
+    """Just running join_sources()"""
     join_sources(DeploymentModule.RAIDEN, CONTRACT_TOKEN_NETWORK_REGISTRY)
     join_sources(DeploymentModule.RAIDEN, CONTRACT_SECRET_REGISTRY)
     join_sources(DeploymentModule.SERVICES, CONTRACT_MONITORING_SERVICE)
@@ -240,7 +240,7 @@ def test_etherscan_verify_success() -> None:
 
 
 def first_fail_second_succeed(_: Any, context: Any) -> str:
-    """ Simulate Etherscan saying for the first time 'wait', but for the second time 'success'. """
+    """Simulate Etherscan saying for the first time 'wait', but for the second time 'success'."""
     context.status_code = 200
     try:
         if first_fail_second_succeed.called:  # type: ignore
@@ -273,7 +273,7 @@ def test_etherscan_verify_success_after_a_loop() -> None:
 
 
 def test_etherscan_verify_fail_unknown_contract() -> None:
-    """ When invoked with an unknown contract name, etherscan_verify should error """
+    """When invoked with an unknown contract name, etherscan_verify should error"""
     chain_id = 3
     runner = CliRunner()
     result = runner.invoke(

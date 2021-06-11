@@ -92,7 +92,7 @@ def test_ecrecover_output(
     create_channel: Callable,
     create_balance_proof: Callable,
 ) -> None:
-    """ ecrecover returns the address that was used to sign a balance proof """
+    """ecrecover returns the address that was used to sign a balance proof"""
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     balance_proof_A = create_balance_proof(channel_identifier, A, 2, 0, 3)
@@ -121,7 +121,7 @@ def test_ecrecover_output(
 def test_ecrecover_output_zero(
     signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
 ) -> None:
-    """ ecrecover returns 0 for an incorrect value of the v parameter """
+    """ecrecover returns 0 for an incorrect value of the v parameter"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
@@ -138,7 +138,7 @@ def test_ecrecover_output_zero(
 def test_ecrecover_output_fail(
     signature_test_contract: Contract, get_accounts: Callable, get_private_key: Callable
 ) -> None:
-    """ ecrecover detects a wrong message content and returns zero """
+    """ecrecover detects a wrong message content and returns zero"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     message_hash = Web3.solidityKeccak(["string", "uint256"], ["hello", 5])
@@ -167,7 +167,7 @@ def test_ecrecover_output_fail(
 
 
 def test_sign_not_bytes(get_private_key: Callable, get_accounts: Callable) -> None:
-    """ sign() raises when message is not bytes """
+    """sign() raises when message is not bytes"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(TypeError):
@@ -175,7 +175,7 @@ def test_sign_not_bytes(get_private_key: Callable, get_accounts: Callable) -> No
 
 
 def test_sign_not_32_bytes(get_private_key: Callable, get_accounts: Callable) -> None:
-    """ sign() raises when message is not exactly 32 bytes """
+    """sign() raises when message is not exactly 32 bytes"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(ValueError):
@@ -183,7 +183,7 @@ def test_sign_not_32_bytes(get_private_key: Callable, get_accounts: Callable) ->
 
 
 def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Callable) -> None:
-    """ sign() raises when the private key is not a string """
+    """sign() raises when the private key is not a string"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(TypeError):
@@ -191,7 +191,7 @@ def test_sign_privatekey_not_string(get_private_key: Callable, get_accounts: Cal
 
 
 def test_sign_wrong_v(get_private_key: Callable, get_accounts: Callable) -> None:
-    """ sign() raises when the private key is not a string """
+    """sign() raises when the private key is not a string"""
     A = get_accounts(1)[0]
     privatekey = get_private_key(A)
     with pytest.raises(ValueError):

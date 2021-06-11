@@ -47,7 +47,7 @@ def test_deposit_contract(
 def test_deposit_contract_without_service_registry_code(
     get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
 ) -> None:
-    """ If Deposit has no code in service registry, too early withdrawals fail """
+    """If Deposit has no code in service registry, too early withdrawals fail"""
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
@@ -543,7 +543,7 @@ def test_deprecation_switch(
 def test_deprecation_immediate_payout(
     create_account: Callable, custom_token: Contract, service_registry: Contract, web3: Web3
 ) -> None:
-    """ When the deprecation switch is on, deposits can be withdrawn immediately. """
+    """When the deprecation switch is on, deposits can be withdrawn immediately."""
     # A user makes a deposit
     A = create_account()
     minted = service_registry.functions.currentPrice().call()

@@ -124,7 +124,7 @@ class ContractDeployer(ContractVerifier):
         return receipt
 
     def transact(self, contract_method: ContractFunction) -> TxReceipt:
-        """ A wrapper around to_be_called.transact() that waits until the transaction succeeds. """
+        """A wrapper around to_be_called.transact() that waits until the transaction succeeds."""
         txhash = contract_method.transact(self.transaction)
         LOG.debug(f"Sending txHash={encode_hex(txhash)}")
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
@@ -249,7 +249,7 @@ class ContractDeployer(ContractVerifier):
         deployed_contracts: DeployedContracts,
         libs: Dict = None,
     ) -> Contract:
-        """ Deploys contract_name with arguments and store the result in deployed_contracts. """
+        """Deploys contract_name with arguments and store the result in deployed_contracts."""
         receipt = self.deploy(contract_name, libs, arguments)
         deployed_contracts["contracts"][contract_name] = _deployed_data_from_receipt(
             receipt=receipt, constructor_arguments=arguments

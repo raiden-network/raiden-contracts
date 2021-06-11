@@ -27,7 +27,7 @@ def test_deposit_channel_call(
     create_channel: Callable,
     get_accounts: Callable,
 ) -> None:
-    """ Calling setTotalDeposit() fails with various invalid inputs """
+    """Calling setTotalDeposit() fails with various invalid inputs"""
     (A, B) = get_accounts(2)
     deposit_A = 200
     channel_identifier = create_channel(A, B)[0]
@@ -102,7 +102,7 @@ def test_deposit_notapproved(
     get_accounts: Callable,
     web3: Web3,
 ) -> None:
-    """ Calling setTotalDeposit() fails without approving transfers on the token contract """
+    """Calling setTotalDeposit() fails without approving transfers on the token contract"""
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     deposit_A = 1
@@ -128,7 +128,7 @@ def test_null_or_negative_deposit_fail(
     assign_tokens: Callable,
     get_accounts: Callable,
 ) -> None:
-    """ setTotalDeposit() fails when the total deposit does not increase """
+    """setTotalDeposit() fails when the total deposit does not increase"""
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B)
@@ -151,7 +151,7 @@ def test_deposit_delegate_works(
     channel_deposit: Callable,
     token_network: Contract,
 ) -> None:
-    """ A third party can successfully call setTokenDeposit() """
+    """A third party can successfully call setTokenDeposit()"""
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 2, B, tx_from=C)
@@ -166,7 +166,7 @@ def test_deposit_wrong_channel(
     create_channel: Callable,
     assign_tokens: Callable,
 ) -> None:
-    """ setTotalDeposit() with a wrong channelID fails """
+    """setTotalDeposit() with a wrong channelID fails"""
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_identifier2 = create_channel(A, C)[0]
@@ -210,7 +210,7 @@ def test_deposit_channel_state(
     channel_deposit: Callable,
     get_accounts: Callable,
 ) -> None:
-    """ Observe how setTotalDeposit() changes the results of getChannelParticipantInfo() """
+    """Observe how setTotalDeposit() changes the results of getChannelParticipantInfo()"""
     (A, B) = get_accounts(2)
     A_planned_deposit = 10
     B_planned_deposit = 15
@@ -256,7 +256,7 @@ def test_deposit_wrong_state_fail(
     assign_tokens: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ setTotalDeposit() fails on Closed or Settled channels. """
+    """setTotalDeposit() fails on Closed or Settled channels."""
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=2, transferred=0)
     vals_B = ChannelValues(deposit=2, transferred=0)
@@ -328,7 +328,7 @@ def test_deposit_channel_event(
     channel_deposit: Callable,
     event_handler: Callable,
 ) -> None:
-    """ setTotalDeposit() from each participant causes a DEPOSIT event """
+    """setTotalDeposit() from each participant causes a DEPOSIT event"""
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10

@@ -6,7 +6,7 @@ from raiden_contracts.utils.join_contracts import ContractJoiner
 
 
 def test_contract_joiner_with_non_existent_import() -> None:
-    """ Using ContractJoiner on a source importing a nonexistent file """
+    """Using ContractJoiner on a source importing a nonexistent file"""
     joiner = ContractJoiner()
     source_with_missing_import = """
         import "NonExistent.sol";
@@ -19,7 +19,7 @@ def test_contract_joiner_with_non_existent_import() -> None:
 
 
 def test_contract_joiner_with_empty_file() -> None:
-    """ Using ContractJoiner on an empty source """
+    """Using ContractJoiner on an empty source"""
     joiner = ContractJoiner()
     with NamedTemporaryFile() as source_file:
         assert [] == joiner.join(open(source_file.name))

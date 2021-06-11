@@ -36,14 +36,14 @@ def check_precompiled_content(
 
 
 def test_nonexistent_precompiled_path() -> None:
-    """ An exception occurs when trying to access a field in a non-existent precompiled path """
+    """An exception occurs when trying to access a field in a non-existent precompiled path"""
     nonexistent_version = "0.6.0"
     with pytest.raises(FileNotFoundError):
         ContractManager(contracts_precompiled_path(nonexistent_version))
 
 
 def test_verification_overall_checksum() -> None:
-    """ Tamper with the overall checksum and see failures in verify_precompiled_checksums() """
+    """Tamper with the overall checksum and see failures in verify_precompiled_checksums()"""
     manager = ContractSourceManager(contracts_source_path(contracts_version=None))
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -76,7 +76,7 @@ def test_verification_overall_checksum() -> None:
 
 
 def test_verification_contracts_checksums() -> None:
-    """ Tamper with the contract checksums and see failures in verify_precompiled_checksums() """
+    """Tamper with the contract checksums and see failures in verify_precompiled_checksums()"""
     manager = ContractSourceManager(contracts_source_path(contracts_version=None))
     manager.verify_precompiled_checksums(contracts_precompiled_path())
 
@@ -106,7 +106,7 @@ def test_verification_contracts_checksums() -> None:
 
 
 def test_current_development_version() -> None:
-    """ contracts_source_path() exists and contains the expected files """
+    """contracts_source_path() exists and contains the expected files"""
     contracts_version = CONTRACTS_VERSION
     contract_names = [
         "Utils",
@@ -134,7 +134,7 @@ def test_current_development_version() -> None:
 
 
 def test_red_eyes_version() -> None:
-    """ contracts_source_path('0.4.0') exists and contains the expected files """
+    """contracts_source_path('0.4.0') exists and contains the expected files"""
     contracts_version = "0.4.0"
     contract_names = [
         "Utils",
@@ -155,7 +155,7 @@ def test_red_eyes_version() -> None:
 
 
 def test_alderaan_version() -> None:
-    """ contracts_source_path('0.37.0') exists and contains the expected files """
+    """contracts_source_path('0.37.0') exists and contains the expected files"""
     contract_names = [
         "Utils",
         "SecretRegistry",
@@ -179,7 +179,7 @@ def test_alderaan_version() -> None:
 
 
 def contract_manager_meta(contracts_path: Path) -> None:
-    """ See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED """
+    """See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED"""
     manager = ContractManager(contracts_path)
 
     abi = manager.get_contract_abi(CONTRACT_TOKEN_NETWORK)
@@ -196,7 +196,7 @@ def contract_manager_meta(contracts_path: Path) -> None:
 
 
 def contract_source_manager_meta(contracts_path: Dict[str, Path]) -> None:
-    """ See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED """
+    """See failures in looking up non-existent ABI entries of TokenNetwork and CLOSED"""
     with NamedTemporaryFile() as tmpfile:
         manager = ContractSourceManager(contracts_path).compile_contracts(Path(tmpfile.name))
 
@@ -214,7 +214,7 @@ def contract_source_manager_meta(contracts_path: Dict[str, Path]) -> None:
 
 
 def test_contract_manager_without_contracts() -> None:
-    """ ContractManager's constructor fails on a JSON with "contracts": null """
+    """ContractManager's constructor fails on a JSON with "contracts": null"""
     with NamedTemporaryFile() as tmpfile:
         tmpfile.write(b'{"contracts": null}')
         tmpfile.flush()
@@ -223,12 +223,12 @@ def test_contract_manager_without_contracts() -> None:
 
 
 def test_contract_manager_compile() -> None:
-    """ Check the ABI in the sources """
+    """Check the ABI in the sources"""
     contract_source_manager_meta(contracts_source_path(contracts_version=None))
 
 
 def test_contract_manager_json(tmpdir: LocalPath) -> None:
-    """ Check the ABI in contracts.json """
+    """Check the ABI in contracts.json"""
     precompiled_path = Path(tmpdir).joinpath("contracts.json")
     ContractSourceManager(contracts_source_path(contracts_version=None)).compile_contracts(
         precompiled_path
@@ -238,14 +238,14 @@ def test_contract_manager_json(tmpdir: LocalPath) -> None:
 
 
 def test_contract_manager_constructor_does_not_invent_version() -> None:
-    """ ContractManager should not invent a version string """
+    """ContractManager should not invent a version string"""
     manager = ContractManager(contracts_precompiled_path(version=None))
     assert manager.contracts_version is None
 
 
 @pytest.mark.parametrize("version", [CONTRACTS_VERSION, ALDERAAN_VERSION, "0.4.0"])
 def test_contract_manager_constructor_keeps_existing_versions(version: str) -> None:
-    """ ContractManager should keep an existing version string """
+    """ContractManager should keep an existing version string"""
     manager = ContractManager(contracts_precompiled_path(version=version))
     assert manager.contracts_version == version
 
@@ -259,7 +259,7 @@ def test_contract_manager_precompiled_load_error() -> None:
 
 
 def test_contract_source_manager_constructor_with_wrong_type() -> None:
-    """ ConstructSourceManager's constructor raises TypeError on a wrong kind of argument """
+    """ConstructSourceManager's constructor raises TypeError on a wrong kind of argument"""
     with pytest.raises(TypeError):
         ContractSourceManager(None)  # type: ignore
 

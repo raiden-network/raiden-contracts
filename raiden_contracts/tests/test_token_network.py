@@ -22,7 +22,7 @@ def test_constructor_call(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Try to deploy TokenNetwork with various wrong arguments """
+    """Try to deploy TokenNetwork with various wrong arguments"""
 
     (A, deprecation_executor) = get_accounts(2)
     chain_id = web3.eth.chain_id
@@ -396,7 +396,7 @@ def test_constructor_call(
 def test_token_network_variables(
     token_network: Contract, token_network_test_utils: Contract
 ) -> None:
-    """ Check values of storage variables of the TokenNetwork contract """
+    """Check values of storage variables of the TokenNetwork contract"""
     max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
 
     assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
@@ -419,7 +419,7 @@ def test_constructor_not_registered(
     token_network_registry_contract: Contract,
     token_network_external: Contract,
 ) -> None:
-    """ Check that the TokenNetwork refers to the right Token address and chain_id """
+    """Check that the TokenNetwork refers to the right Token address and chain_id"""
 
     token_network = token_network_external
     assert token_network.functions.token().call() == custom_token.address

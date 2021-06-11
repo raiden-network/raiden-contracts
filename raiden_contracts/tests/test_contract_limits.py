@@ -24,7 +24,7 @@ def test_register_three_but_not_four(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Check that TokenNetworkRegistry observes the max number of tokens """
+    """Check that TokenNetworkRegistry observes the max number of tokens"""
     token_network_registry = get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
@@ -67,13 +67,13 @@ def test_register_three_but_not_four(
 
 
 def test_channel_participant_deposit_limit_value(token_network: Contract) -> None:
-    """ Check the channel participant deposit limit """
+    """Check the channel participant deposit limit"""
     limit = token_network.functions.channel_participant_deposit_limit().call()
     assert limit == MAX_ETH_CHANNEL_PARTICIPANT
 
 
 def test_network_deposit_limit_value(token_network: Contract) -> None:
-    """ Check the token network deposit limit """
+    """Check the token network deposit limit"""
     limit = token_network.functions.token_network_deposit_limit().call()
     assert limit == MAX_ETH_TOKEN_NETWORK
 
@@ -84,7 +84,7 @@ def test_participant_deposit_limit(
     create_channel: Callable,
     assign_tokens: Callable,
 ) -> None:
-    """ Observe failure to deposit a bit more tokens than the participant deposit limit """
+    """Observe failure to deposit a bit more tokens than the participant deposit limit"""
     (A, B) = get_accounts(2)
     deposit_A = 100000
     deposit_B = 100000

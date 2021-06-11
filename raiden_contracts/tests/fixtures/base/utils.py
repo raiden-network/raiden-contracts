@@ -146,7 +146,7 @@ def gas_measurement_results() -> Dict:
 
 
 def sys_args_contain(searched: str) -> bool:
-    """ Returns True if 'searched' appears in any of the command line arguments. """
+    """Returns True if 'searched' appears in any of the command line arguments."""
     for arg in argv:
         if arg.find(searched) != -1:
             return True

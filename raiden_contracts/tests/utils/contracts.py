@@ -76,7 +76,7 @@ def call_and_transact(
     contract_function: ContractFunction,
     transaction_params: Optional[TxParams] = None,
 ) -> HexBytes:
-    """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
+    """Executes contract_function.{call, transaction}(transaction_params) and returns txhash"""
     # First 'call' might raise an exception
     contract_function.call(transaction_params)
     return contract_function.transact(transaction_params)

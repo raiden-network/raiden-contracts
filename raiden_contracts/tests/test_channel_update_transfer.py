@@ -34,7 +34,7 @@ def test_update_call(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ Call updateNonClosingBalanceProof() with various wrong arguments """
+    """Call updateNonClosingBalanceProof() with various wrong arguments"""
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 15, B)
@@ -152,7 +152,7 @@ def test_update_nonexistent_fail(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ updateNonClosingBalanceProof() on a not-yet openned channel should fail """
+    """updateNonClosingBalanceProof() on a not-yet openned channel should fail"""
     (A, B, C) = get_accounts(3)
     channel_identifier = 1
 
@@ -188,7 +188,7 @@ def test_update_notclosed_fail(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ updateNonClosingBalanceProof() on an Opened channel should fail """
+    """updateNonClosingBalanceProof() on an Opened channel should fail"""
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
@@ -323,7 +323,7 @@ def test_update_wrong_signatures(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ updateNonClosingBalanceProof() should fail with wrong signatures """
+    """updateNonClosingBalanceProof() should fail with wrong signatures"""
     (A, B, C) = get_accounts(3)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 25, B)
@@ -404,7 +404,7 @@ def test_update_channel_state(
     update_state_tests: Callable,
     txn_cost: Callable,
 ) -> None:
-    """ A successful updateNonClosingBalanceProof() call should not change token/ETH balances """
+    """A successful updateNonClosingBalanceProof() call should not change token/ETH balances"""
     (A, B, Delegate) = get_accounts(3)
     settle_timeout = 6
     deposit_A = 20
@@ -482,7 +482,7 @@ def test_update_channel_fail_no_offchain_transfers(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ Calls to updateNonClosingBalanceProof() fail with the zero nonce """
+    """Calls to updateNonClosingBalanceProof() fail with the zero nonce"""
     (A, B) = get_accounts(2)
 
     channel_identifier = create_channel(A, B)[0]
@@ -540,7 +540,7 @@ def test_update_allowed_after_settlement_period(
     create_balance_proof_countersignature: Callable,
     web3: Web3,
 ) -> None:
-    """ updateNonClosingBalanceProof can be called after the settlement period. """
+    """updateNonClosingBalanceProof can be called after the settlement period."""
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -584,7 +584,7 @@ def test_update_not_allowed_for_the_closing_address(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ Closing address cannot call updateNonClosingBalanceProof. """
+    """Closing address cannot call updateNonClosingBalanceProof."""
     (A, B, M) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -660,7 +660,7 @@ def test_update_invalid_balance_proof_arguments(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ updateNonClosingBalanceProof() should fail on balance proofs with various wrong params """
+    """updateNonClosingBalanceProof() should fail on balance proofs with various wrong params"""
     (A, B, C) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -898,7 +898,7 @@ def test_update_signature_on_invalid_arguments(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ Call updateNonClosingBalanceProof with signature on invalid argument fails """
+    """Call updateNonClosingBalanceProof with signature on invalid argument fails"""
     (A, B, C) = get_accounts(3)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
@@ -1086,7 +1086,7 @@ def test_update_replay_reopened_channel(
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id """
+    """updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id"""
     (A, B) = get_accounts(2)
     nonce_B = 5
     values_A = ChannelValues(deposit=10, transferred=0)
@@ -1226,7 +1226,7 @@ def test_update_channel_event(
     create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
-    """ Successful updateNonClosingBalanceProof() emit BALANCE_PROOF_UPDATED events """
+    """Successful updateNonClosingBalanceProof() emit BALANCE_PROOF_UPDATED events"""
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
