@@ -12,7 +12,7 @@ from raiden_contracts.utils.events import check_secret_revealed, check_secrets_r
 
 
 def test_register_secret_call(secret_registry_contract: Contract) -> None:
-    """ Test the registrable and not registrable secrets """
+    """Test the registrable and not registrable secrets"""
     with pytest.raises(ValidationError):
         secret_registry_contract.functions.registerSecret()
     with pytest.raises(ValidationError):
@@ -37,7 +37,7 @@ def test_register_secret_call(secret_registry_contract: Contract) -> None:
 def test_register_secret_return_value(
     secret_registry_contract: Contract, get_accounts: Callable
 ) -> None:
-    """ The same secret cannot be registered twice """
+    """The same secret cannot be registered twice"""
     (A, B) = get_accounts(2)
     secret = b"secretsecretsecretsecretsecretse"
 
@@ -55,7 +55,7 @@ def test_register_secret_return_value(
 def test_register_secret(
     secret_registry_contract: Contract, get_accounts: Callable, get_block: Callable
 ) -> None:
-    """ Register a secret and see it's registered """
+    """Register a secret and see it's registered"""
     A = get_accounts(1)[0]
     secret = b"secretsecretsecretsecretsecretse"
     secret2 = b"secretsecretsecretsecretsecretss"
@@ -78,7 +78,7 @@ def test_register_secret(
 def test_register_secret_batch(
     secret_registry_contract: Contract, get_accounts: Callable, get_block: Callable
 ) -> None:
-    """ Register four secrets and see them registered """
+    """Register four secrets and see them registered"""
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, fill) for fill in ("02", "03", "04", "05")]
     secret_hashes = [sha256(secret).digest() for secret in secrets]
@@ -98,7 +98,7 @@ def test_register_secret_batch(
 def test_register_secret_batch_return_value(
     secret_registry_contract: Contract, get_accounts: Callable
 ) -> None:
-    """ See registerSecret returns True only when all secrets are registered """
+    """See registerSecret returns True only when all secrets are registered"""
     (A,) = get_accounts(1)
     secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32)]
 
@@ -112,7 +112,7 @@ def test_register_secret_batch_return_value(
 
 
 def test_events(secret_registry_contract: Contract, event_handler: Callable) -> None:
-    """ A successful registerSecret() call causes an EVENT_SECRET_REVEALED event """
+    """A successful registerSecret() call causes an EVENT_SECRET_REVEALED event"""
     secret = b"secretsecretsecretsecretsecretse"
     secrethash = sha256(secret).digest()
     ev_handler = event_handler(secret_registry_contract)
@@ -126,7 +126,7 @@ def test_events(secret_registry_contract: Contract, event_handler: Callable) -> 
 def test_register_secret_batch_events(
     secret_registry_contract: Contract, event_handler: Callable
 ) -> None:
-    """ A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events """
+    """A registerSecretBatch() with three secrets causes three EVENT_SECRET_REVEALED events"""
     secrets = [fake_bytes(32, "02"), fake_bytes(32, "03"), fake_bytes(32, "04")]
     secret_hashes = [sha256(secret).digest() for secret in secrets]
 

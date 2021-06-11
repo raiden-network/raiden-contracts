@@ -40,7 +40,7 @@ def deprecation_test(
     gas_price: int,
     gas_limit: int,
 ) -> None:
-    """ Turn on the deprecation switch and see channel opening fails """
+    """Turn on the deprecation switch and see channel opening fails"""
     setup_ctx(
         ctx=ctx,
         private_key=private_key,

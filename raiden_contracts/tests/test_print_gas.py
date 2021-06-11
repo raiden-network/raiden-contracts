@@ -28,7 +28,7 @@ from raiden_contracts.utils.type_aliases import BlockExpiration, ChainID, TokenA
 
 @pytest.mark.parametrize("version", [None])
 def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
-    """ Check is gas.json contains enough fields """
+    """Check is gas.json contains enough fields"""
     doc = gas_measurements(version)
     keys = {
         "TokenNetworkUtils DEPLOYMENT",
@@ -71,7 +71,7 @@ def print_gas_token_network_utils(
     deploy_tester_contract_txhash: Callable,
     print_gas: Callable,
 ) -> None:
-    """ Abusing pytest to print the deployment gas cost of TokenNetworkUtils """
+    """Abusing pytest to print the deployment gas cost of TokenNetworkUtils"""
     txhash = deploy_tester_contract_txhash(LIBRARY_TOKEN_NETWORK_UTILS)
     print_gas(txhash, LIBRARY_TOKEN_NETWORK_UTILS + " DEPLOYMENT")
 
@@ -84,7 +84,7 @@ def print_gas_token_network_registry(
     token_network_libs: Dict,
     print_gas: Callable,
 ) -> None:
-    """ Abusing pytest to print the deployment gas cost of TokenNetworkRegistry """
+    """Abusing pytest to print the deployment gas cost of TokenNetworkRegistry"""
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         libs=token_network_libs,
@@ -109,7 +109,7 @@ def print_gas_token_network_deployment(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Abusing pytest to print the deployment gas cost of TokenNetwork """
+    """Abusing pytest to print the deployment gas cost of TokenNetwork"""
     deprecation_executor = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
@@ -135,7 +135,7 @@ def print_gas_token_network_create(
     token_network_deposit_limit: int,
     token_network_registry_constructor_args: Dict,
 ) -> None:
-    """ Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork() """
+    """Abusing pytest to print gas cost of TokenNetworkRegistry's createERC20TokenNetwork()"""
     registry = get_token_network_registry(**token_network_registry_constructor_args)
     txn_hash = call_and_transact(
         registry.functions.createERC20TokenNetwork(
@@ -151,7 +151,7 @@ def print_gas_token_network_create(
 
 @pytest.fixture
 def print_gas_secret_registry(secret_registry_contract: Contract, print_gas: Callable) -> None:
-    """ Abusing pytest to print gas cost of SecretRegistry's registerSecret() """
+    """Abusing pytest to print gas cost of SecretRegistry's registerSecret()"""
     secret = b"secretsecretsecretsecretsecretse"
     txn_hash = call_and_transact(secret_registry_contract.functions.registerSecret(secret))
     print_gas(txn_hash, CONTRACT_SECRET_REGISTRY + ".registerSecret")
@@ -175,7 +175,7 @@ def print_gas_channel_cycle(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
 ) -> None:
-    """ Abusing pytest to print gas costs of TokenNetwork's operations """
+    """Abusing pytest to print gas costs of TokenNetwork's operations"""
     (A, B, C, D) = get_accounts(4)
     settle_timeout = 11
 
@@ -308,7 +308,7 @@ def print_gas_monitoring_service(
     create_service_account: Callable,
     web3: Web3,
 ) -> None:
-    """ Abusing pytest to print gas cost of MonitoringService functions """
+    """Abusing pytest to print gas cost of MonitoringService functions"""
     # setup: two parties + MS
     (A, MS) = get_accounts(2)
     B = create_service_account()
@@ -401,7 +401,7 @@ def print_gas_one_to_n(
     create_service_account: Callable,
     create_account: Callable,
 ) -> None:
-    """ Abusing pytest to print gas cost of OneToN functions """
+    """Abusing pytest to print gas cost of OneToN functions"""
     A = create_account()
     B = create_service_account()
     deposit_to_udc(A, 30)

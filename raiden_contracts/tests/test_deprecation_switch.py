@@ -104,7 +104,7 @@ def test_set_deprecation_switch(
     web3: Web3,
     contracts_manager: ContractManager,
 ) -> None:
-    """ The deprecation executor deprecates a TokenNetwork contract """
+    """The deprecation executor deprecates a TokenNetwork contract"""
     (A) = get_accounts(1)[0]
     deprecation_executor = token_network.functions.deprecation_executor().call()
 
@@ -131,7 +131,7 @@ def test_deprecation_switch(
     create_channel: Callable,
     channel_deposit: Callable,
 ) -> None:
-    """ Test the effects of the deprecation switch on deposits and channel opening """
+    """Test the effects of the deprecation switch on deposits and channel opening"""
 
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B, C, D) = get_accounts(4)
@@ -166,7 +166,7 @@ def test_deprecation_switch_settle(
     channel_deposit: Callable,
     close_and_update_channel: Callable,
 ) -> None:
-    """ Channel close and settlement still work after the depracation switch is turned on """
+    """Channel close and settlement still work after the depracation switch is turned on"""
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B) = get_accounts(2)
     deposit = 100

@@ -527,7 +527,7 @@ def register(
 def _add_token_network_deploy_info(
     token_network: Dict[str, Any], deployer: ContractDeployer, contracts_version: str
 ) -> None:
-    """ Add deploy info dict to the deploy_*.json file """
+    """Add deploy info dict to the deploy_*.json file"""
     deployment_file_path = contracts_deployed_path(
         chain_id=ChainID(deployer.web3.eth.chain_id), version=contracts_version
     )

@@ -306,7 +306,7 @@ def _verify_user_deposit_deployment(
     one_to_n_address: HexAddress,
     monitoring_service_address: HexAddress,
 ) -> None:
-    """ Check an onchain deployment of UserDeposit and constructor arguments at deployment time """
+    """Check an onchain deployment of UserDeposit and constructor arguments at deployment time"""
     if len(constructor_arguments) != 2:
         raise RuntimeError("UserDeposit has a wrong number of constructor arguments.")
     if token_address != constructor_arguments[0]:
@@ -335,7 +335,7 @@ def _verify_monitoring_service_deployment(
     user_deposit_address: HexAddress,
     token_network_registry_address: HexAddress,
 ) -> None:
-    """ Check an onchain deployment of MonitoringService and constructor arguments """
+    """Check an onchain deployment of MonitoringService and constructor arguments"""
     if len(constructor_arguments) != 4:
         raise RuntimeError("MonitoringService has a wrong number of constructor arguments.")
     if to_checksum_address(monitoring_service.functions.token().call()) != token_address:
@@ -377,7 +377,7 @@ def _verify_one_to_n_deployment(
     service_registry_address: HexAddress,
     chain_id: int,
 ) -> None:
-    """ Check an onchain deployment of OneToN and constructor arguments """
+    """Check an onchain deployment of OneToN and constructor arguments"""
     if to_checksum_address(one_to_n.functions.deposit_contract().call()) != user_deposit_address:
         raise RuntimeError("OneToN has a wrong UserDeposit address onchain.")
     if user_deposit_address != constructor_arguments[0]:
@@ -393,7 +393,7 @@ def _verify_one_to_n_deployment(
 def _verify_service_registry_deployment(
     service_registry: Contract, constructor_arguments: List, token_address: HexAddress
 ) -> None:
-    """ Check an onchain deployment of ServiceRegistry and constructor arguments """
+    """Check an onchain deployment of ServiceRegistry and constructor arguments"""
     if len(constructor_arguments) != 8:
         raise RuntimeError(
             "ServiceRegistry was deployed with a wrong number of constructor arguments"

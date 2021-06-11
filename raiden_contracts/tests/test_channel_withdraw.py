@@ -30,7 +30,7 @@ def test_withdraw_call(
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
 ) -> None:
-    """ setTotalWithdraw() fails with various wrong arguments """
+    """setTotalWithdraw() fails with various wrong arguments"""
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
@@ -147,7 +147,7 @@ def test_withdraw_call_near_expiration(
     create_withdraw_signatures: Callable,
     web3: Web3,
 ) -> None:
-    """ setTotalWithdraw() succeeds when expiration_block is one block in the future """
+    """setTotalWithdraw() succeeds when expiration_block is one block in the future"""
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
@@ -180,7 +180,7 @@ def test_withdraw_wrong_state(
     withdraw_channel: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ setTotalWithdraw() should fail on a closed or settled channel """
+    """setTotalWithdraw() should fail on a closed or settled channel"""
     (A, B) = get_accounts(2)
     withdraw_A = 1
 

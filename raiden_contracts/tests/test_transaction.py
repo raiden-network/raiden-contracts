@@ -18,7 +18,7 @@ def test_check_successful_tx_with_status_zero() -> None:
 
 
 def test_check_successful_tx_with_nonexistent_status() -> None:
-    """ check_successful_tx() with a receipt without status field should raise a KeyError """
+    """check_successful_tx() with a receipt without status field should raise a KeyError"""
     web3_mock = Mock()
     web3_mock.eth.get_transaction_receipt.return_value = {"blockNumber": 300}
     txid = HexBytes("abcdef")
