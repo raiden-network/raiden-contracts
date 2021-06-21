@@ -7,4 +7,3 @@ web3~=5.20
 eth-abi<3.0.0,>=2.0.0
 eth-utils<2.0.0,>=1.8.4
 eth-typing<3.0.0,>=2.2.1
-mypy-extensions==0.4.3
