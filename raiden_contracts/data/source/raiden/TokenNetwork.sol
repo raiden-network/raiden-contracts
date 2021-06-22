@@ -475,7 +475,65 @@ contract TokenNetwork is Utils {
         // balance proof in storage. This should never fail as we use isOpen.
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
+    }
 
+    struct CoopData {
+        address participant;
+        uint256 total_withdraw;
+        uint256 expiration_block;
+        bytes participant_signature;
+        bytes partner_signature;
+    }
+
+    function cooperativeSettle(
+        uint256 channel_identifier,
+        CoopData memory data1,
+        CoopData memory data2
+    )
+        external
+        isOpen(channel_identifier)
+    {
+        bytes32 pair_hash;
+
+        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant), "P1");
+
+        if (data1.total_withdraw > 0) {
+            this.setTotalWithdraw(
+                channel_identifier,
+                data1.participant,
+                data1.total_withdraw,
+                data1.expiration_block,
+                data1.participant_signature,
+                data1.partner_signature
+            );
+        }
+        if (data2.total_withdraw > 0) {
+            this.setTotalWithdraw(
+                channel_identifier,
+                data2.participant,
+                data2.total_withdraw,
+                data2.expiration_block,
+                data2.participant_signature,
+                data2.partner_signature
+            );
+        }
+
+        // Validate that authenticated partners and the channel identifier match
+        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant));
+
+        // Remove channel data from storage
+        Channel storage channel = channels[channel_identifier];
+        delete channel.participants[data1.participant];
+        delete channel.participants[data2.participant];
+        delete channels[channel_identifier];
+
+        // Remove the pair's channel counter
+        pair_hash = getParticipantsHash(data1.participant, data2.participant);
+        delete participants_hash_to_channel_identifier[pair_hash];
+
+        // Emit channel lifecycle events
+        emit ChannelClosed(channel_identifier, data1.participant, 0, 0);  // FIXME: nonce?
+        emit ChannelSettled(channel_identifier, 0, 0, 0, 0); // FIXME
     }
 
     /// @notice Close the channel defined by the two participant addresses.
