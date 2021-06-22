@@ -20,7 +20,7 @@ pylint-quotes
 requests_mock
 isort==5.7.0
 pipdeptree
-six~=1.12
+six~=1.16
 pip>=21
 twine
 wheel
