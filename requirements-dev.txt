@@ -18,7 +18,7 @@ mypy==0.800
 pylint<2.9
 pylint-quotes
 requests_mock
-isort==5.7.0
+isort==5.9.1
 pipdeptree
 six~=1.16
 pip>=21
