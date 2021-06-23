@@ -336,7 +336,7 @@ def test_deploy_script_raiden_0_37_0(
 def test_deploy_raiden_reuse_secret_registry(
     deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
 ) -> None:
-    """ Run deploy_raiden_contracts with a previous SecretRegistry deployment data """
+    """Run deploy_raiden_contracts with a previous SecretRegistry deployment data"""
     with NamedTemporaryFile() as previous_deployment_file:
         previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
         previous_deployment_file.flush()
@@ -362,7 +362,7 @@ def test_deploy_services_reuse_service_registry(
     token_address: HexAddress,
     token_network_registry_contract: Contract,
 ) -> None:
-    """ Run deploy_service_contracts with a previous ServiceRegistry deployment data """
+    """Run deploy_service_contracts with a previous ServiceRegistry deployment data"""
     with NamedTemporaryFile() as previous_deployment_file:
         previous_deployment_file.write(bytearray(json.dumps(deployed_service_info), "ascii"))
         previous_deployment_file.flush()
@@ -714,25 +714,25 @@ def test_deploy_script_service(
 
 
 def test_validate_address_on_none() -> None:
-    """ validate_address(x, y, None) should return None """
+    """validate_address(x, y, None) should return None"""
     mock_command = MagicMock()
     mock_parameter = MagicMock()
     assert validate_address(mock_command, mock_parameter, None) is None
 
 
 def test_validate_address_empty_string() -> None:
-    """ validate_address(x, y, '') should return None """
+    """validate_address(x, y, '') should return None"""
     assert validate_address(MagicMock(), MagicMock(), "") is None
 
 
 def test_validate_address_not_an_address() -> None:
-    """ validate_address(x, y, 'not an address') should raise click.BadParameter """
+    """validate_address(x, y, 'not an address') should raise click.BadParameter"""
     with pytest.raises(BadParameter):
         validate_address(MagicMock(), MagicMock(), "not an address")
 
 
 def test_validate_address_happy_path() -> None:
-    """ validate_address(x, y, address) should return the same address checksumed """
+    """validate_address(x, y, address) should return the same address checksumed"""
     address = DEPLOYER_ADDRESS
     assert validate_address(MagicMock(), MagicMock(), address) == to_checksum_address(address)
 
@@ -756,7 +756,7 @@ def test_store_and_verify_raiden(
     deployed_raiden_info: DeployedContracts,
     deployer: ContractDeployer,
 ) -> None:
-    """ Store some raiden contract deployment information and verify them """
+    """Store some raiden contract deployment information and verify them"""
     fs_reload_deployer.add_real_directory(
         contracts_precompiled_path(version=None).parent, read_only=False
     )
@@ -777,7 +777,7 @@ def test_store_and_verify_services(
     token_address: HexAddress,
     token_network_registry_contract: Contract,
 ) -> None:
-    """ Store some service contract deployment information and verify them """
+    """Store some service contract deployment information and verify them"""
     fs_reload_deployer.add_real_directory(
         contracts_precompiled_path(version=None).parent, read_only=False
     )
@@ -798,7 +798,7 @@ def test_store_and_verify_services(
 
 @pytest.mark.slow
 def test_alderaan_deployer(web3: Web3) -> None:
-    """ A smoke test for deploying Alderaan version contracts """
+    """A smoke test for deploying Alderaan version contracts"""
     deployer = ContractDeployer(
         web3=web3,
         private_key=FAUCET_PRIVATE_KEY,
@@ -848,7 +848,7 @@ def deploy_token_arguments(privkey: str) -> List[str]:
 
 
 def test_deploy_token_invalid_privkey() -> None:
-    """ Call deploy token command with invalid private key """
+    """Call deploy token command with invalid private key"""
     with patch.object(
         ContractDeployer, "deploy_token_contract", spec=ContractDeployer
     ) as mock_deployer:
@@ -856,12 +856,13 @@ def test_deploy_token_invalid_privkey() -> None:
         result = runner.invoke(token, deploy_token_arguments(privkey="wrong_priv_key"))
         assert result.exit_code != 0
         assert type(result.exception) == RuntimeError
+        assert result.exception
         assert result.exception.args == ("Could not access the private key.",)
         mock_deployer.assert_not_called()
 
 
 def test_deploy_token_no_balance(privkey_file: IO) -> None:
-    """ Call deploy token command with a private key with no balance """
+    """Call deploy token command with a private key with no balance"""
     with patch.object(
         ContractDeployer, "deploy_token_contract", spec=ContractDeployer
     ) as mock_deployer:
@@ -870,12 +871,13 @@ def test_deploy_token_no_balance(privkey_file: IO) -> None:
             result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
             assert result.exit_code != 0
             assert type(result.exception) == RuntimeError
+            assert result.exception
             assert result.exception.args == ("Account with insufficient funds.",)
             mock_deployer.assert_not_called()
 
 
 def test_deploy_token_with_balance(privkey_file: IO) -> None:
-    """ Call deploy token command with a private key with some balance """
+    """Call deploy token command with a private key with some balance"""
     with patch.object(
         ContractDeployer,
         "deploy_token_contract",
@@ -925,7 +927,7 @@ def test_deploy_raiden(
     reuse_secret_registry: bool,
     privkey_file: IO,
 ) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -949,7 +951,7 @@ def test_register_script(
     deployed_raiden_info: DeployedContracts,
     privkey_file: IO,
 ) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch(
         "raiden_contracts.deploy.contract_deployer.get_contracts_deployment_info"
     ) as get_deploy_info_mock, patch(
@@ -985,7 +987,7 @@ def test_register_script(
 
 @patch.object(ContractDeployer, "register_token_network")
 def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_file: IO) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1007,6 +1009,7 @@ def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_f
         )
         assert result.exit_code != 0
         assert type(result.exception) == RuntimeError
+        assert result.exception
         assert result.exception.args == (
             "No TokenNetworkRegistry was specified. "
             "Add --token-network-registry-address <address>.",
@@ -1019,7 +1022,7 @@ def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_f
 def test_deploy_raiden_save_info_false(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
-    """ Calling deploy raiden command with --save_info False"""
+    """Calling deploy raiden command with --save_info False"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1084,7 +1087,7 @@ def deploy_services_arguments(
 @patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
 def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1103,7 +1106,7 @@ def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey
 
 
 def test_deploy_old_services(privkey_file: IO) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1125,7 +1128,7 @@ def test_deploy_old_services(privkey_file: IO) -> None:
 def test_deploy_services_with_controller(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
-    """ Calling deploy raiden command """
+    """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1148,7 +1151,7 @@ def test_deploy_services_with_controller(
 def test_deploy_services_save_info_false(
     mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
 ) -> None:
-    """ Calling deploy raiden command with --save_info False"""
+    """Calling deploy raiden command with --save_info False"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(
@@ -1168,7 +1171,7 @@ def test_deploy_services_save_info_false(
 
 @patch.object(ContractVerifier, "verify_deployed_contracts_in_filesystem")
 def test_verify_script(mock_verify: MagicMock) -> None:
-    """ Calling deploy verify command """
+    """Calling deploy verify command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
         result = runner.invoke(verify, ["--rpc-provider", "rpc-provider"])
@@ -1214,7 +1217,7 @@ def test_verify_monitoring_service_deployment_with_wrong_onchain_token_address(
 
 
 def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
-    """ ContractVerifier.verify_user_deposit_deployment raises on a wrong OneToN address """
+    """ContractVerifier.verify_user_deposit_deployment raises on a wrong OneToN address"""
     token_addr = HexAddress(HexStr("0xDa12Dc74D2d0881749CCd9330ac4f0aecda5686a"))
     user_deposit_constructor_arguments = [token_addr, UINT256_MAX]
     wrong_one_to_n_address = FAKE_ADDRESS

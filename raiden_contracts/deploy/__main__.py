@@ -52,9 +52,8 @@ def error_removed_option(message: str) -> Callable:
 
     def f(_: Any, param: Parameter, value: Any) -> None:
         if value is not None:
-            raise click.NoSuchOption(
-                f'--{param.name.replace("_", "-")} is no longer a valid option. ' + message
-            )
+            param_name = param.name.replace("_", "-") if param.name else "unnamed-param"
+            raise click.NoSuchOption(f"--{param_name} is no longer a valid option. " + message)
 
     return f
 
@@ -251,7 +250,7 @@ def raiden(
 @common_options
 @click.option(
     "--token-address",
-    default=None,
+    default="0x255Aa6DF07540Cb5d3d297f0D0D4D84cb52bc8e6",
     callback=validate_address,
     help="Address of token used to pay for the services (MS, PFS).",
 )
@@ -528,7 +527,7 @@ def register(
 def _add_token_network_deploy_info(
     token_network: Dict[str, Any], deployer: ContractDeployer, contracts_version: str
 ) -> None:
-    """ Add deploy info dict to the deploy_*.json file """
+    """Add deploy info dict to the deploy_*.json file"""
     deployment_file_path = contracts_deployed_path(
         chain_id=ChainID(deployer.web3.eth.chain_id), version=contracts_version
     )

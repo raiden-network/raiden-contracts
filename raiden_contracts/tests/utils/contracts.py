@@ -47,7 +47,7 @@ def deploy_contract(
     json_contract = contracts_manager.get_contract(contract_name)
     contract = web3.eth.contract(abi=json_contract["abi"], bytecode=json_contract["bin"])
     tx_hash = contract.constructor(*args).transact(TxParams({"from": deployer_address}))
-    contract_address = web3.eth.getTransactionReceipt(tx_hash)["contractAddress"]
+    contract_address = web3.eth.get_transaction_receipt(tx_hash)["contractAddress"]
 
     return contract(contract_address)
 
@@ -76,7 +76,7 @@ def call_and_transact(
     contract_function: ContractFunction,
     transaction_params: Optional[TxParams] = None,
 ) -> HexBytes:
-    """ Executes contract_function.{call, transaction}(transaction_params) and returns txhash """
+    """Executes contract_function.{call, transaction}(transaction_params) and returns txhash"""
     # First 'call' might raise an exception
     contract_function.call(transaction_params)
     return contract_function.transact(transaction_params)

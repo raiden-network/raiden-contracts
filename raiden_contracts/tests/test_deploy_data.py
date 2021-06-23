@@ -24,14 +24,14 @@ from raiden_contracts.utils.versions import contracts_version_provides_services
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
 def test_deploy_data_dir_exists(version: Optional[str]) -> None:
-    """ Make sure directories exist for deployment data """
+    """Make sure directories exist for deployment data"""
     assert contracts_data_path(version).exists(), "deployment data do not exist"
     assert contracts_data_path(version).is_dir()
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
 def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
-    """ Make sure 'data' directories do not contain 'data*' recursively """
+    """Make sure 'data' directories do not contain 'data*' recursively"""
     assert list(contracts_data_path(version).glob("./data*")) == []
 
 
@@ -41,12 +41,12 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
 def test_deploy_data_file_exists(
     version: Optional[str], chain_id: ChainID, services: bool
 ) -> None:
-    """ Make sure files exist for deployment data of each chain_id """
+    """Make sure files exist for deployment data of each chain_id"""
     assert contracts_deployed_path(chain_id, version, services).exists()
 
 
 def reasonable_deployment_of_a_contract(deployed: DeployedContract) -> None:
-    """ Checks an entry under deployment_*.json under a contract name """
+    """Checks an entry under deployment_*.json under a contract name"""
     assert isinstance(deployed["address"], str)
     assert len(deployed["address"]) == 42
     assert isinstance(deployed["transaction_hash"], str)
@@ -121,20 +121,20 @@ def test_deploy_data_not_deployed() -> None:
 
 @pytest.mark.parametrize("chain_id", [3, 4, 42])
 def test_deploy_data_for_redeyes_succeed(chain_id: ChainID) -> None:
-    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    """get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary"""
     assert get_contracts_deployment_info(chain_id, "0.4.0")
 
 
 @pytest.mark.parametrize("chain_id", [3, 4, 5, 42])
 def test_service_deploy_data_for_redeyes_fail(chain_id: ChainID) -> None:
-    """ get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary """
+    """get_contracts_deployment_info() on RedEyes version should return a non-empty dictionary"""
     with pytest.raises(ValueError):
         assert get_contracts_deployment_info(chain_id, "0.4.0", DeploymentModule.SERVICES)
 
 
 @pytest.mark.parametrize("chain_id", [1, 3, 4, 5])
 def test_deploy_data_for_alderaan_exist(chain_id: ChainID) -> None:
-    """ get_contracts_deployment_info() on Alderaan version should have data """
+    """get_contracts_deployment_info() on Alderaan version should have data"""
     assert get_contracts_deployment_info(chain_id, ALDERAAN_VERSION)
     assert get_contracts_deployment_info(chain_id, ALDERAAN_VERSION, DeploymentModule.SERVICES)
 
@@ -148,7 +148,7 @@ def test_version_provides_services() -> None:
 def test_verify_nonexistent_deployment(
     user_deposit_whole_balance_limit: int, token_network_registry_address: HexAddress
 ) -> None:
-    """ Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data. """
+    """Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data."""
     web3_mock = Mock()
     web3_mock.version.network = 42
     # contracts_version 0.37.0 does not contain a kovan deployment.
@@ -170,7 +170,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
     """
     web3_mock = Mock()
     web3_mock.version.network = 5
-    web3_mock.eth.getTransactionReceipt = lambda _: {"blockNumber": 0}
+    web3_mock.eth.get_transaction_receipt = lambda _: {"blockNumber": 0}
     verifier = ContractVerifier(web3=web3_mock, contracts_version=ALDERAAN_VERSION)
     # The Mock returns a wrong block number, so the comparison fails.
     with pytest.raises(RuntimeError):
@@ -192,7 +192,7 @@ def test_verify_existent_deployment_with_wrong_code(
     """
     web3_mock = Mock()
     web3_mock.version.network = 5
-    web3_mock.eth.getTransactionReceipt = lambda _: {
+    web3_mock.eth.get_transaction_receipt = lambda _: {
         "blockNumber": 10711807,
         "gasUsed": 555366,
         "contractAddress": "0x8Ff327f7ed03cD6Bd5e611E9e404B47d8c9Db81E",

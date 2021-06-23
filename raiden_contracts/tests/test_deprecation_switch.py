@@ -84,7 +84,7 @@ def test_deprecation_executor(
             token_network_deposit_limit,
         ).call({"from": deprecation_executor})
 
-    tx_receipt = web3.eth.getTransactionReceipt(tx_hash)
+    tx_receipt = web3.eth.get_transaction_receipt(tx_hash)
     event_abi = contracts_manager.get_event_abi(
         CONTRACT_TOKEN_NETWORK_REGISTRY, EVENT_TOKEN_NETWORK_CREATED
     )
@@ -104,7 +104,7 @@ def test_set_deprecation_switch(
     web3: Web3,
     contracts_manager: ContractManager,
 ) -> None:
-    """ The deprecation executor deprecates a TokenNetwork contract """
+    """The deprecation executor deprecates a TokenNetwork contract"""
     (A) = get_accounts(1)[0]
     deprecation_executor = token_network.functions.deprecation_executor().call()
 
@@ -115,7 +115,7 @@ def test_set_deprecation_switch(
 
     tx = call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
     assert token_network.functions.safety_deprecation_switch().call() is True
-    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    tx_receipt = web3.eth.get_transaction_receipt(tx)
     event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
     event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][0])
     assert event_data["args"]["new_value"]
@@ -131,7 +131,7 @@ def test_deprecation_switch(
     create_channel: Callable,
     channel_deposit: Callable,
 ) -> None:
-    """ Test the effects of the deprecation switch on deposits and channel opening """
+    """Test the effects of the deprecation switch on deposits and channel opening"""
 
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B, C, D) = get_accounts(4)
@@ -166,7 +166,7 @@ def test_deprecation_switch_settle(
     channel_deposit: Callable,
     close_and_update_channel: Callable,
 ) -> None:
-    """ Channel close and settlement still work after the depracation switch is turned on """
+    """Channel close and settlement still work after the depracation switch is turned on"""
     deprecation_executor = token_network.functions.deprecation_executor().call()
     (A, B) = get_accounts(2)
     deposit = 100

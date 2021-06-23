@@ -1,7 +1,7 @@
 -r requirements.txt
 autopep8>=1.4.3
-black==20.8b1
-eth-tester[py-evm]==0.5.0b3
+black==21.6b0
+eth-tester[py-evm]==0.5.0b4
 coverage
 pytest
 pytest-cov
@@ -14,13 +14,14 @@ flake8-bugbear>=20.1.2
 attrs>=19.2.0
 bump2version
 requests
-mypy==0.800
-pylint<2.7
+mypy==0.910
+types-requests==2.25.0
+pylint<2.9
 pylint-quotes
 requests_mock
-isort==5.7.0
+isort==5.9.1
 pipdeptree
-six~=1.12
+six~=1.16
 pip>=21
 twine
 wheel

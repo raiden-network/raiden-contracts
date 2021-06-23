@@ -24,7 +24,7 @@ def test_constructor_call(
     secret_registry_contract: Contract,
     get_accounts: Callable,
 ) -> None:
-    """ Try to create a TokenNetworkRegistry with various wrong arguments. """
+    """Try to create a TokenNetworkRegistry with various wrong arguments."""
     A = get_accounts(1)[0]
     chain_id = web3.eth.chain_id
     settle_min = TEST_SETTLE_TIMEOUT_MIN
@@ -254,7 +254,7 @@ def test_constructor_call(
 def test_constructor_call_state(
     web3: Web3, get_token_network_registry: Callable, secret_registry_contract: Contract
 ) -> None:
-    """ The constructor should set the parameters into the storage of the contract """
+    """The constructor should set the parameters into the storage of the contract"""
 
     chain_id = web3.eth.chain_id
 
@@ -280,7 +280,7 @@ def test_create_erc20_token_network_call(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Calling createERC20TokenNetwork() with various wrong arguments """
+    """Calling createERC20TokenNetwork() with various wrong arguments"""
 
     A = get_accounts(1)[0]
     fake_token_contract = token_network_registry_contract.address
@@ -366,7 +366,7 @@ def test_create_erc20_token_network(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Create a TokenNetwork through a TokenNetworkRegistry """
+    """Create a TokenNetwork through a TokenNetworkRegistry"""
 
     assert (
         token_network_registry_contract.functions.token_to_token_networks(
@@ -410,7 +410,7 @@ def test_create_erc20_token_network_twice_fails(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ Only one TokenNetwork should be creatable from a TokenNetworkRegistry """
+    """Only one TokenNetwork should be creatable from a TokenNetworkRegistry"""
 
     call_and_transact(
         token_network_registry_contract.functions.createERC20TokenNetwork(
@@ -438,7 +438,7 @@ def test_events(
     channel_participant_deposit_limit: int,
     token_network_deposit_limit: int,
 ) -> None:
-    """ TokenNetworkRegistry should raise an event when deploying a new TokenNetwork """
+    """TokenNetworkRegistry should raise an event when deploying a new TokenNetwork"""
 
     ev_handler = event_handler(token_network_registry_contract)
 

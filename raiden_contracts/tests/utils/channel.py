@@ -108,7 +108,7 @@ def are_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelV
 
 
 def were_balance_proofs_valid(participant1: ChannelValues, participant2: ChannelValues) -> bool:
-    """ Checks if balance proofs were ever valid. """
+    """Checks if balance proofs were ever valid."""
     deposit = participant1.deposit + participant2.deposit
 
     # Regardless of issuance time, the locked amount must be smaller than the
@@ -120,7 +120,7 @@ def were_balance_proofs_valid(participant1: ChannelValues, participant2: Channel
 
 
 def is_balance_proof_old(participant1: ChannelValues, participant2: ChannelValues) -> bool:
-    """ Checks if balance proofs are valid, with at least one old. """
+    """Checks if balance proofs are valid, with at least one old."""
     assert were_balance_proofs_valid(participant1, participant2)
 
     total_available_deposit = get_total_available_deposit(participant1, participant2)

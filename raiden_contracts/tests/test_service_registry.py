@@ -47,7 +47,7 @@ def test_deposit_contract(
 def test_deposit_contract_without_service_registry_code(
     get_deposit_contract: Callable, custom_token: Contract, get_accounts: Callable
 ) -> None:
-    """ If Deposit has no code in service registry, too early withdrawals fail """
+    """If Deposit has no code in service registry, too early withdrawals fail"""
     (A,) = get_accounts(1)
     call_and_transact(custom_token.functions.mint(100), {"from": A})
     depo = get_deposit_contract(
@@ -150,7 +150,7 @@ def test_setURL(
         {"from": A},
     )
     tx = call_and_transact(service_registry.functions.deposit(SERVICE_DEPOSIT), {"from": A})
-    tx_receipt = web3.eth.getTransactionReceipt(tx)
+    tx_receipt = web3.eth.get_transaction_receipt(tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
     event_data = get_event_data(web3.codec, event_abi, tx_receipt["logs"][-1])
@@ -543,7 +543,7 @@ def test_deprecation_switch(
 def test_deprecation_immediate_payout(
     create_account: Callable, custom_token: Contract, service_registry: Contract, web3: Web3
 ) -> None:
-    """ When the deprecation switch is on, deposits can be withdrawn immediately. """
+    """When the deprecation switch is on, deposits can be withdrawn immediately."""
     # A user makes a deposit
     A = create_account()
     minted = service_registry.functions.currentPrice().call()
@@ -553,7 +553,7 @@ def test_deprecation_immediate_payout(
     )
     deposit_tx = call_and_transact(service_registry.functions.deposit(minted), {"from": A})
     # The user obtains the deposit address
-    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_tx)
+    deposit_tx_receipt = web3.eth.get_transaction_receipt(deposit_tx)
     contract_manager = ContractManager(contracts_precompiled_path(version=None))
     event_abi = contract_manager.get_event_abi(CONTRACT_SERVICE_REGISTRY, EVENT_REGISTERED_SERVICE)
     event_data = get_event_data(web3.codec, event_abi, deposit_tx_receipt["logs"][-1])

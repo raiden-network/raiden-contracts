@@ -32,7 +32,7 @@ from .utils.blockchain import mine_blocks
 
 
 def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> None:
-    """ Calling openChannel() with various wrong arguments """
+    """Calling openChannel() with various wrong arguments"""
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
@@ -88,7 +88,7 @@ def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> N
 def test_max_1_channel(
     token_network: Contract, get_accounts: Callable, create_channel: Callable
 ) -> None:
-    """ For two participants, at most one channel can be opened """
+    """For two participants, at most one channel can be opened"""
     (A, B) = get_accounts(2)
     create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
 
@@ -99,7 +99,7 @@ def test_max_1_channel(
 
 
 def test_participants_hash(token_network: Contract, get_accounts: Callable) -> None:
-    """ getParticipantsHash() behaves as get_participants_hash """
+    """getParticipantsHash() behaves as get_participants_hash"""
     (A, B) = get_accounts(2)
 
     AB_hash = get_participants_hash(A, B)
@@ -108,7 +108,7 @@ def test_participants_hash(token_network: Contract, get_accounts: Callable) -> N
 
 
 def test_participants_hash_equal(token_network: Contract, get_accounts: Callable) -> None:
-    """ getParticipantsHash() behaves as get_participants_hash on equal addresses """
+    """getParticipantsHash() behaves as get_participants_hash on equal addresses"""
     (A,) = get_accounts(1)
 
     with pytest.raises(ValueError):
@@ -120,7 +120,7 @@ def test_participants_hash_equal(token_network: Contract, get_accounts: Callable
 def test_counter(
     token_network: Contract, get_accounts: Callable, create_channel: Callable
 ) -> None:
-    """ Open three channels and observe states """
+    """Open three channels and observe states"""
     (A, B, C, D) = get_accounts(4)
 
     AB_hash = token_network.functions.getParticipantsHash(A, B).call()
@@ -161,7 +161,7 @@ def test_counter(
 def test_state_channel_identifier_invalid(
     token_network: Contract, get_accounts: Callable, create_channel: Callable
 ) -> None:
-    """ getChannelInfo() returns the empty channel state for ont-too-big channelID """
+    """getChannelInfo() returns the empty channel state for ont-too-big channelID"""
     (A, B, C) = get_accounts(3)
     channel_id = 0
 
@@ -190,7 +190,7 @@ def test_state_channel_identifier_invalid(
 
 
 def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> None:
-    """ Observe the state of the channel after a openChannel() call """
+    """Observe the state of the channel after a openChannel() call"""
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
@@ -258,7 +258,7 @@ def test_reopen_channel(
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ Open a second channel after settling one """
+    """Open a second channel after settling one"""
     (A, B) = get_accounts(2)
     settle_timeout = TEST_SETTLE_TIMEOUT_MIN
 
@@ -366,7 +366,7 @@ def test_reopen_channel(
 def test_open_channel_event(
     get_accounts: Callable, token_network: Contract, event_handler: Callable
 ) -> None:
-    """ A successful openChannel() causes an OPENED event """
+    """A successful openChannel() causes an OPENED event"""
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 

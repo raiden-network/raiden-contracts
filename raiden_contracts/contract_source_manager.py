@@ -24,10 +24,10 @@ class ContractSourceManagerVerificationError(RuntimeError):
 
 
 class ContractSourceManager:
-    """ ContractSourceManager knows how to compile contracts """
+    """ContractSourceManager knows how to compile contracts"""
 
     def __init__(self, path: Dict[str, Path]) -> None:
-        """ Params: path: a dictionary of directories which contain solidity files to compile """
+        """Params: path: a dictionary of directories which contain solidity files to compile"""
         if not isinstance(path, dict):
             raise TypeError("Wrong type of argument given for ContractSourceManager()")
         self.contracts_source_dirs = path
@@ -82,7 +82,7 @@ class ContractSourceManager:
         return ret
 
     def compile_contracts(self, target_path: Path) -> ContractManager:
-        """ Store compiled contracts JSON at `target_path`. """
+        """Store compiled contracts JSON at `target_path`."""
         assert self.overall_checksum is not None
 
         contracts_compiled = self._compile_all_contracts()
@@ -180,7 +180,7 @@ def _fix_contract_key_names(d: Dict) -> Dict:
 
 
 def check_runtime_codesize(d: Dict) -> None:
-    """ Raises a RuntimeError if the runtime codesize exceeds the EIP-170 limit """
+    """Raises a RuntimeError if the runtime codesize exceeds the EIP-170 limit"""
     for name, compilation in d.items():
         runtime_code_len = len(compilation["bin-runtime"]) // 2
         if runtime_code_len > 0x6000:
@@ -190,7 +190,7 @@ def check_runtime_codesize(d: Dict) -> None:
 def _verify_single_precompiled_checksum(
     checked_checksums: Dict[str, str], contract_name: str, expected_checksum: str
 ) -> None:
-    """ Get `checked_checksums[contract_name]` and compare it against `expected_checksum` """
+    """Get `checked_checksums[contract_name]` and compare it against `expected_checksum`"""
     try:
         precompiled_checksum = checked_checksums[contract_name]
     except KeyError:
@@ -198,12 +198,12 @@ def _verify_single_precompiled_checksum(
     if precompiled_checksum != expected_checksum:
         raise ContractSourceManagerVerificationError(
             f"checksum of {contract_name} does not match. got {precompiled_checksum} != "
-            "expected {expected_checksum}"
+            f"expected {expected_checksum}"
         )
 
 
 def verify_single_precompiled_checksum_on_nonexistent_contract_name() -> None:
-    """ A functiohn for testing the case where the contract name is not found """
+    """A functiohn for testing the case where the contract name is not found"""
     _verify_single_precompiled_checksum(
         checked_checksums={}, contract_name="a", expected_checksum="abc"
     )

@@ -133,7 +133,7 @@ def txn_cost(web3: Web3, txn_gas: Callable) -> Callable:
 @pytest.fixture
 def txn_gas(web3: Web3) -> Callable:
     def get(txn_hash: HexBytes) -> int:
-        receipt = web3.eth.getTransactionReceipt(txn_hash)
+        receipt = web3.eth.get_transaction_receipt(txn_hash)
         return receipt["gasUsed"]
 
     return get
@@ -146,7 +146,7 @@ def gas_measurement_results() -> Dict:
 
 
 def sys_args_contain(searched: str) -> bool:
-    """ Returns True if 'searched' appears in any of the command line arguments. """
+    """Returns True if 'searched' appears in any of the command line arguments."""
     for arg in argv:
         if arg.find(searched) != -1:
             return True
@@ -177,7 +177,7 @@ def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
 @pytest.fixture()
 def get_block(web3: Web3) -> Callable:
     def get(txn_hash: HexBytes) -> int:
-        receipt = web3.eth.getTransactionReceipt(txn_hash)
+        receipt = web3.eth.get_transaction_receipt(txn_hash)
         return receipt["blockNumber"]
 
     return get

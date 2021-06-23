@@ -81,7 +81,7 @@ class ContractManager:
             ) from ex
 
     def get_contract(self, contract_name: str) -> CompiledContract:
-        """ Return ABI, BIN of the given contract. """
+        """Return ABI, BIN of the given contract."""
         assert self.contracts, "ContractManager should have contracts compiled"
         try:
             return self.contracts[contract_name]
@@ -94,12 +94,12 @@ class ContractManager:
         return contract_name in self.contracts
 
     def get_contract_abi(self, contract_name: str) -> ABI:
-        """ Returns the ABI for a given contract. """
+        """Returns the ABI for a given contract."""
         assert self.contracts, "ContractManager should have contracts compiled"
         return self.contracts[contract_name]["abi"]
 
     def get_event_abi(self, contract_name: str, event_name: str) -> ABIEvent:
-        """ Returns the ABI for a given event. """
+        """Returns the ABI for a given event."""
         # Import locally to avoid web3 dependency during installation via `compile_contracts`
         from web3._utils.contracts import find_matching_event_abi
 

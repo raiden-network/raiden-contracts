@@ -33,7 +33,7 @@ def sign(privkey: ContractsPrivateKey, msg_hash: bytes, v: int = 0) -> bytes:
 def private_key_to_address(
     private_key: Union[PrivateKey, ContractsPrivateKey, bytes, str]
 ) -> ChecksumAddress:
-    """ Converts a private key to an Ethereum address. """
+    """Converts a private key to an Ethereum address."""
     if isinstance(private_key, str):
         pk = PrivateKey(to_bytes(hexstr=HexStr(private_key)))
     elif isinstance(private_key, bytes):
@@ -45,7 +45,7 @@ def private_key_to_address(
 
 
 def public_key_to_address(public_key: Union[PublicKey, bytes]) -> ChecksumAddress:
-    """ Converts a public key to an Ethereum address. """
+    """Converts a public key to an Ethereum address."""
     if isinstance(public_key, PublicKey):
         public_key = public_key.format(compressed=False)
     assert isinstance(public_key, bytes)

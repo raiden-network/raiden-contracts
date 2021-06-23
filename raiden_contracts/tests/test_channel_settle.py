@@ -41,7 +41,7 @@ def test_settle_no_bp_success(
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ The simplest settlement without any balance proofs provided """
+    """The simplest settlement without any balance proofs provided"""
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
@@ -97,7 +97,7 @@ def test_settle2_no_bp_success(
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ The simplest settlement, tested against the V2 ABI settle """
+    """The simplest settlement, tested against the V2 ABI settle"""
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
@@ -159,7 +159,7 @@ def test_settle_channel_state(
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
 ) -> None:
-    """ settleChannel() with some balance proofs """
+    """settleChannel() with some balance proofs"""
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(
         deposit=40,
@@ -413,7 +413,7 @@ def test_settlement_with_unauthorized_token_transfer(
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
 ) -> None:
-    """ A participant transfers some tokens to the contract and so loses them """
+    """A participant transfers some tokens to the contract and so loses them"""
     externally_transferred_amount = 5
     (A, B) = get_accounts(2)
     (vals_A, vals_B) = (
@@ -486,7 +486,7 @@ def test_settle_wrong_state_fail(
     get_block: Callable,
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
-    """ settleChannel() fails on OPENED state and on CLOSED state before the settlement block """
+    """settleChannel() fails on OPENED state and on CLOSED state before the settlement block"""
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(deposit=35)
     vals_B = ChannelValues(deposit=40)
@@ -547,7 +547,7 @@ def test_settle_wrong_balance_hash(
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
 ) -> None:
-    """ Calling settleChannel() with various wrong arguments and see failures """
+    """Calling settleChannel() with various wrong arguments and see failures"""
     (A, B) = get_accounts(2)
     vals_A = ChannelValues(
         deposit=35,
@@ -676,7 +676,7 @@ def test_settle_channel_event(
     create_balance_proof_countersignature: Callable,
     event_handler: Callable,
 ) -> None:
-    """ A successful settleChannel() call causes a SETTLED event """
+    """A successful settleChannel() call causes a SETTLED event"""
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10

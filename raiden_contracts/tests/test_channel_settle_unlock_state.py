@@ -246,7 +246,7 @@ def test_channel_settle_old_balance_proof_values(
     test_settlement_outcome: Callable,
     tested_range: str,
 ) -> None:
-    """ Test the settlement implementation when both/one of the balance proofs are outdated """
+    """Test the settlement implementation when both/one of the balance proofs are outdated"""
     (A, B, C, D) = get_accounts(4)
     (vals_A0, vals_B0) = channel_test_values["valid_last"]
     assert are_balance_proofs_valid(vals_A0, vals_B0)
@@ -348,7 +348,7 @@ def test_channel_settle_invalid_balance_proof_values(
     reveal_secrets: Callable,
     channel_test_values: Tuple,
 ) -> None:
-    """ Check the settlement results with invalid balance proofs """
+    """Check the settlement results with invalid balance proofs"""
     (A, B, C, D) = get_accounts(4)
     (vals_A, vals_B) = channel_test_values
 
