@@ -7,14 +7,17 @@ from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
 from raiden_contracts.tests.utils import call_and_transact
-from raiden_contracts.utils.events import check_channel_settled
+from raiden_contracts.utils.events import (
+    check_channel_closed,
+    check_channel_settled,
+    check_withdraw,
+)
 
 
 def test_cooperative_settle_channel_call(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
     create_withdraw_signatures: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
@@ -22,128 +25,168 @@ def test_cooperative_settle_channel_call(
     deposit_B = 10
     balance_A = 5
     balance_B = 25
+    expiration = 100
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A, B, balance_B
-    )
     (signature_A1, signature_B1) = create_withdraw_signatures(
-        [A, B], channel_identifier, A, balance_A, 100
+        [A, B], channel_identifier, A, balance_A, expiration
     )
     (signature_A2, signature_B2) = create_withdraw_signatures(
-        [A, B], channel_identifier, B, balance_B, 100
+        [A, B], channel_identifier, B, balance_B, expiration
     )
 
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, A, -1, B, balance_B, signature_A, signature_B
-    #     )
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, A, balance_A, B, -1, signature_A, signature_B
-    #     )
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, 0x0, balance_A, B, balance_B, signature_A, signature_B
-    #     )
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, A, balance_A, 0x0, balance_B, signature_A, signature_B
-    #     )
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, A, balance_A, B, balance_B, 0x0, signature_B
-    #     )
-    # with pytest.raises(ValidationError):
-    #     token_network.functions.cooperativeSettle(
-    #         channel_identifier, A, balance_A, B, balance_B, signature_A, 0x0
-    #     )
-    #
-    # with pytest.raises(TransactionFailed):
-    #     call_and_transact(
-    #         token_network.functions.cooperativeSettle(
-    #             channel_identifier,
-    #             EMPTY_ADDRESS,
-    #             balance_A,
-    #             B,
-    #             balance_B,
-    #             signature_A,
-    #             signature_B,
-    #         ),
-    #         {"from": C},
-    #     )
-    # with pytest.raises(TransactionFailed):
-    #     call_and_transact(
-    #         token_network.functions.cooperativeSettle(
-    #             channel_identifier,
-    #             A,
-    #             balance_A,
-    #             EMPTY_ADDRESS,
-    #             balance_B,
-    #             signature_A,
-    #             signature_B,
-    #         ),
-    #         {"from": C},
-    #     )
+    # negative balances
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, -1, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
+        )
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, -1, expiration, signature_B2, signature_A2),
+        )
+    # wrong participant addresses
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (0x0, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
+        )
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (0x0, balance_B, expiration, signature_B2, signature_A2),
+        )
+    # invalid signatures
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, 0x0, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
+        )
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, 0x0),
+            (B, balance_B, expiration, signature_B2, signature_A2),
+        )
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, 0x0, signature_A2),
+        )
+    with pytest.raises(ValidationError):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, 0x0),
+        )
+    # empty addresses
+    with pytest.raises(TransactionFailed):
+        call_and_transact(
+            token_network.functions.cooperativeSettle(
+                channel_identifier,
+                (EMPTY_ADDRESS, balance_A, expiration, signature_A1, signature_B1),
+                (B, balance_B, expiration, signature_B2, signature_A2),
+            ),
+            {"from": C},
+        )
+    with pytest.raises(TransactionFailed):
+        call_and_transact(
+            token_network.functions.cooperativeSettle(
+                channel_identifier,
+                (A, balance_A, expiration, signature_A1, signature_B1),
+                (EMPTY_ADDRESS, balance_B, expiration, signature_B2, signature_A2),
+            ),
+            {"from": C},
+        )
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, (A, balance_A, 100, signature_A1, signature_B1), (B, balance_B, 100, signature_B2, signature_A2)
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
 
-    # breakpoint()
 
-
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_signatures(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
     deposit_B = 10
     balance_A = 4
     balance_B = 26
+    expiration = 100
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B, signature_C) = create_cooperative_settle_signatures(
-        [A, B, C], channel_identifier, A, balance_A, B, balance_B
+    (signature_A1, signature_B1, signature_C1) = create_withdraw_signatures(
+        [A, B, C], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2, signature_C2) = create_withdraw_signatures(
+        [A, B, C], channel_identifier, B, balance_B, expiration
     )
 
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_C, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_C1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ).call({"from": C})
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_C
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_C1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ).call({"from": C})
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_B, B, balance_A, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_C2, signature_A2),
+        ).call({"from": C})
+    with pytest.raises(TransactionFailed):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_C2),
+        ).call({"from": C})
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_B, expiration, signature_A1, signature_B1),
+            (B, balance_A, expiration, signature_B2, signature_A2),
         ).call({"from": C})
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_0(
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
     cooperative_settle_state_tests: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
@@ -151,11 +194,15 @@ def test_cooperative_settle_channel_0(
     deposit_B = 10
     balance_A = 0
     balance_B = 30
+    expiration = 100
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B, _) = create_cooperative_settle_signatures(
-        [A, B, C], channel_identifier, A, balance_A, B, balance_B
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
     )
 
     pre_account_balance_A = custom_token.functions.balanceOf(A).call()
@@ -164,7 +211,9 @@ def test_cooperative_settle_channel_0(
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
@@ -181,13 +230,12 @@ def test_cooperative_settle_channel_0(
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_00(
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
     cooperative_settle_state_tests: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
@@ -195,11 +243,15 @@ def test_cooperative_settle_channel_00(
     deposit_B = 0
     balance_A = 0
     balance_B = 0
+    expiration = 100
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B, _) = create_cooperative_settle_signatures(
-        [A, B, C], channel_identifier, A, balance_A, B, balance_B
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
     )
 
     pre_account_balance_A = custom_token.functions.balanceOf(A).call()
@@ -208,7 +260,9 @@ def test_cooperative_settle_channel_00(
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
@@ -225,13 +279,12 @@ def test_cooperative_settle_channel_00(
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_state(
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
     cooperative_settle_state_tests: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
@@ -240,11 +293,15 @@ def test_cooperative_settle_channel_state(
     balance_A = 5
     balance_B = 25
     assert deposit_A + deposit_B == balance_A + balance_B
+    expiration = 100
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A, B, balance_B
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
     )
 
     pre_account_balance_A = custom_token.functions.balanceOf(A).call()
@@ -253,7 +310,9 @@ def test_cooperative_settle_channel_state(
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
@@ -270,14 +329,13 @@ def test_cooperative_settle_channel_state(
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_state_withdraw(
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
     cooperative_settle_state_tests: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
@@ -289,12 +347,19 @@ def test_cooperative_settle_channel_state_withdraw(
     balance_B = 15
     assert deposit_A + deposit_B == withdraw_A + withdraw_B + balance_A + balance_B
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
-    withdraw_channel(channel_identifier, A, withdraw_A, B)
-    withdraw_channel(channel_identifier, B, withdraw_B, A)
+    expiration = 100
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A, B, balance_B
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    withdraw_channel(channel_identifier, A, withdraw_A, expiration, B)
+    withdraw_channel(channel_identifier, B, withdraw_B, expiration, A)
+
+    # We need to add the already withdrawn amount to the balance as `withdraw_amount`
+    # is a monotonic value
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A + withdraw_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B + withdraw_B, expiration
     )
 
     pre_account_balance_A = custom_token.functions.balanceOf(A).call()
@@ -303,7 +368,9 @@ def test_cooperative_settle_channel_state_withdraw(
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A + withdraw_A, expiration, signature_A1, signature_B1),
+            (B, balance_B + withdraw_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
@@ -320,13 +387,12 @@ def test_cooperative_settle_channel_state_withdraw(
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_bigger_withdraw(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -337,26 +403,33 @@ def test_cooperative_settle_channel_bigger_withdraw(
     balance_B = 15
     assert deposit_A + deposit_B < withdraw_A + withdraw_B + balance_A + balance_B
 
-    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
-    withdraw_channel(channel_identifier, A, withdraw_A, B)
-    withdraw_channel(channel_identifier, B, withdraw_B, A)
+    expiration = 100
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A, B, balance_B
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+    withdraw_channel(channel_identifier, A, withdraw_A, expiration, B)
+    withdraw_channel(channel_identifier, B, withdraw_B, expiration, A)
+
+    # Adding `withdraw_?` is neccessary, as `withdraw_amount` is monotonic increasing
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A + withdraw_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B + withdraw_B, expiration
     )
 
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A + withdraw_A, expiration, signature_A1, signature_B1),
+            (B, balance_B + withdraw_B, expiration, signature_B2, signature_A2),
         ).call({"from": C})
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_wrong_balances(
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
 ) -> None:
     (A, B, C) = get_accounts(3)
     deposit_A = 20
@@ -369,72 +442,84 @@ def test_cooperative_settle_channel_wrong_balances(
     balance_A_fail2 = 6
     balance_B_fail2 = 8
 
+    expiration = 100
+
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A, B, balance_B
+    (signature_A1_fail1, signature_B1_fail1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A_fail1, expiration
     )
-    (signature_A_fail1, signature_B_fail1) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A_fail1, B, balance_B_fail1
-    )
-    (signature_A_fail2, signature_B_fail2) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, A, balance_A_fail2, B, balance_B_fail2
+    (signature_A2_fail1, signature_B2_fail1) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B_fail1, expiration
     )
 
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
             channel_identifier,
-            A,
-            balance_A_fail1,
-            B,
-            balance_B_fail1,
-            signature_A_fail1,
-            signature_B_fail1,
+            (A, balance_A_fail1, expiration, signature_A1_fail1, signature_B1_fail1),
+            (B, balance_B_fail1, expiration, signature_B2_fail1, signature_A2_fail1),
         ).call({"from": C})
+
+    (signature_A1_fail2, signature_B1_fail2) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A_fail2, expiration
+    )
+    (signature_A2_fail2, signature_B2_fail2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B_fail2, expiration
+    )
+
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
             channel_identifier,
-            A,
-            balance_A_fail2,
-            B,
-            balance_B_fail2,
-            signature_A_fail2,
-            signature_B_fail2,
+            (A, balance_A_fail1, expiration, signature_A1_fail2, signature_B1_fail2),
+            (B, balance_B_fail1, expiration, signature_B2_fail2, signature_A2_fail2),
         ).call({"from": C})
 
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
+    )
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, A, balance_A, B, balance_B, signature_A, signature_B
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
         ),
         {"from": C},
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_close_replay_reopened_channel(
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 15
     deposit_B = 10
     balance_A = 2
     balance_B = 23
+    expiration = 100
 
     channel_identifier1 = create_channel(A, B)[0]
     channel_deposit(channel_identifier1, A, deposit_A, B)
     channel_deposit(channel_identifier1, B, deposit_B, A)
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier1, B, balance_B, A, balance_A
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier1, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier1, B, balance_B, expiration
     )
 
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier1, B, balance_B, A, balance_A, signature_B, signature_A
+            channel_identifier1,
+            (B, balance_B, expiration, signature_B2, signature_A2),
+            (A, balance_A, expiration, signature_A1, signature_B1),
         ),
         {"from": B},
     )
@@ -447,28 +532,34 @@ def test_cooperative_close_replay_reopened_channel(
     assert channel_identifier1 != channel_identifier2
     with pytest.raises(TransactionFailed):
         token_network.functions.cooperativeSettle(
-            channel_identifier2, B, balance_B, A, balance_A, signature_B, signature_A
+            channel_identifier2,
+            (B, balance_B, expiration, signature_B2, signature_A2),
+            (A, balance_A, expiration, signature_A1, signature_B1),
         ).call({"from": B})
 
     # Signed message with the correct channel identifier must work
-    (signature_A2, signature_B2) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier2, B, balance_B, A, balance_A
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier2, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier2, B, balance_B, expiration
     )
     call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier2, B, balance_B, A, balance_A, signature_B2, signature_A2
+            channel_identifier2,
+            (B, balance_B, expiration, signature_B2, signature_A2),
+            (A, balance_A, expiration, signature_A1, signature_B1),
         ),
         {"from": B},
     )
 
 
-@pytest.mark.skip(reason="Delayed until another milestone")
 def test_cooperative_settle_channel_event(
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
-    create_cooperative_settle_signatures: Callable,
+    create_withdraw_signatures: Callable,
     event_handler: Callable,
 ) -> None:
     ev_handler = event_handler(token_network)
@@ -476,20 +567,36 @@ def test_cooperative_settle_channel_event(
     deposit_A = 10
     balance_A = 2
     balance_B = 8
+    expiration = 100
+
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    (signature_A, signature_B) = create_cooperative_settle_signatures(
-        [A, B], channel_identifier, B, balance_B, A, balance_A
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
     )
 
     txn_hash = call_and_transact(
         token_network.functions.cooperativeSettle(
-            channel_identifier, B, balance_B, A, balance_A, signature_B, signature_A
+            channel_identifier,
+            (B, balance_B, expiration, signature_B2, signature_A2),
+            (A, balance_A, expiration, signature_A1, signature_B1),
         ),
         {"from": B},
     )
 
+    ev_handler.add(
+        txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, B, balance_B)
+    )
+    # ev_handler.add(
+    #     txn_hash, ChannelEvent.WITHDRAW, check_withdraw(channel_identifier, A, balance_A)
+    # )
+    ev_handler.add(
+        txn_hash, ChannelEvent.CLOSED, check_channel_closed(channel_identifier, B, 0, b"\x00" * 32)
+    )
     ev_handler.add(
         txn_hash,
         ChannelEvent.SETTLED,

@@ -533,7 +533,7 @@ contract TokenNetwork is Utils {
 
         // Emit channel lifecycle events
         emit ChannelClosed(channel_identifier, data1.participant, 0, 0);  // FIXME: nonce?
-        emit ChannelSettled(channel_identifier, 0, 0, 0, 0); // FIXME
+        emit ChannelSettled(channel_identifier, data1.total_withdraw, 0, data2.total_withdraw, 0); // FIXME
     }
 
     /// @notice Close the channel defined by the two participant addresses.
