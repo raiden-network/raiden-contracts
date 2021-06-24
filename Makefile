@@ -12,12 +12,12 @@ update_gas_costs:
 	pytest "raiden_contracts/tests/test_print_gas.py::test_print_gas" -s
 
 install:
-	pip install --use-deprecated=legacy-resolver -r requirements.txt
-	pip install --use-deprecated=legacy-resolver -e .
+	pip install -r requirements.txt
+	pip install -e .
 
 install-dev:
-	pip install --use-deprecated=legacy-resolver -U -r requirements-dev.txt
-	pip install --use-deprecated=legacy-resolver -e .
+	pip install -U -r requirements-dev.txt
+	pip install -e .
 
 LINT_FILES = raiden_contracts/ setup.py
 
