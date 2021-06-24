@@ -28,13 +28,9 @@ jobs:
         key: ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ matrix.python-version }}-v2-
-    - name: Install solidity compiler
-      run: |
-        export SOLC_VERSION='v0.7.6'
-        export SOLC_URL="https://github.com/ethereum/solidity/releases/download/$SOLC_VERSION/solc-static-linux"
-        ./.github/workflows/download_solc.sh
     - name: Install ethlint
       run: |
+        echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
         npm config set prefix "$GITHUB_WORKSPACE"
         npm install -g ethlint
         solium -V
