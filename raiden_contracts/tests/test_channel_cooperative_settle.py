@@ -387,6 +387,37 @@ def test_cooperative_settle_channel_state_withdraw(
     )
 
 
+def test_cooperative_settle_channel_smaller_total_amount(
+    token_network: Contract,
+    create_channel_and_deposit: Callable,
+    get_accounts: Callable,
+    create_withdraw_signatures: Callable,
+) -> None:
+    (A, B, C) = get_accounts(3)
+    deposit_A = 20
+    deposit_B = 10
+    balance_A = 15 - 1
+    balance_B = 15
+
+    expiration = 100
+    channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
+
+    # Adding `withdraw_?` is neccessary, as `withdraw_amount` is monotonic increasing
+    (signature_A1, signature_B1) = create_withdraw_signatures(
+        [A, B], channel_identifier, A, balance_A, expiration
+    )
+    (signature_A2, signature_B2) = create_withdraw_signatures(
+        [A, B], channel_identifier, B, balance_B, expiration
+    )
+
+    with pytest.raises(TransactionFailed):
+        token_network.functions.cooperativeSettle(
+            channel_identifier,
+            (A, balance_A, expiration, signature_A1, signature_B1),
+            (B, balance_B, expiration, signature_B2, signature_A2),
+        ).call({"from": C})
+
+
 def test_cooperative_settle_channel_bigger_withdraw(
     token_network: Contract,
     create_channel_and_deposit: Callable,

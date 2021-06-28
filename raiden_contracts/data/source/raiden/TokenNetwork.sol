@@ -493,9 +493,25 @@ contract TokenNetwork is Utils {
         external
         isOpen(channel_identifier)
     {
+        uint256 total_deposit;
         bytes32 pair_hash;
 
-        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant), "P1");
+        // Validate that authenticated partners and the channel identifier match
+        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant));
+        Channel storage channel = channels[channel_identifier];
+
+        Participant storage participant1_state = channel.participants[data1.participant];
+        Participant storage participant2_state = channel.participants[data2.participant];
+        total_deposit = participant1_state.deposit + participant2_state.deposit;
+
+        // The sum of the provided balances must be equal to the total
+        // available deposit
+        require((data1.total_withdraw + data2.total_withdraw) == total_deposit, "CS: incomplete amounts");
+        // Overflow check for the balances addition from the above check.
+        // This overflow should never happen if the token.transfer function is implemented
+        // correctly. We do not control the token implementation, therefore we add this
+        // check for safety.
+        require(data1.total_withdraw <= data1.total_withdraw + data2.total_withdraw);
 
         if (data1.total_withdraw > 0) {
             this.setTotalWithdraw(
@@ -518,11 +534,7 @@ contract TokenNetwork is Utils {
             );
         }
 
-        // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant));
-
         // Remove channel data from storage
-        Channel storage channel = channels[channel_identifier];
         delete channel.participants[data1.participant];
         delete channel.participants[data2.participant];
         delete channels[channel_identifier];
@@ -532,8 +544,8 @@ contract TokenNetwork is Utils {
         delete participants_hash_to_channel_identifier[pair_hash];
 
         // Emit channel lifecycle events
-        emit ChannelClosed(channel_identifier, data1.participant, 0, 0);  // FIXME: nonce?
-        emit ChannelSettled(channel_identifier, data1.total_withdraw, 0, data2.total_withdraw, 0); // FIXME
+        emit ChannelClosed(channel_identifier, data1.participant, 0, 0);
+        emit ChannelSettled(channel_identifier, data1.total_withdraw, 0, data2.total_withdraw, 0);
     }
 
     /// @notice Close the channel defined by the two participant addresses.
