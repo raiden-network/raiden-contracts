@@ -195,32 +195,6 @@ def sign_balance_proof_message(
     return sign(privkey=privatekey, msg_hash=message_hash, v=v)
 
 
-def sign_cooperative_settle_message(
-    privatekey: PrivateKey,
-    token_network_address: HexAddress,
-    chain_identifier: ChainID,
-    channel_identifier: ChannelID,
-    participant1_address: HexAddress,
-    participant1_balance: TokenAmount,
-    participant2_address: HexAddress,
-    participant2_balance: TokenAmount,
-    v: int = 27,
-) -> bytes:
-    message_hash = eth_sign_hash_message(
-        pack_cooperative_settle_message(
-            token_network_address=token_network_address,
-            chain_identifier=chain_identifier,
-            channel_identifier=channel_identifier,
-            participant1_address=participant1_address,
-            participant1_balance=participant1_balance,
-            participant2_address=participant2_address,
-            participant2_balance=participant2_balance,
-        )
-    )
-
-    return sign(privkey=privatekey, msg_hash=message_hash, v=v)
-
-
 def sign_withdraw_message(
     privatekey: PrivateKey,
     token_network_address: HexAddress,
