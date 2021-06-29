@@ -200,29 +200,6 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     }
 
-    /* function recoverAddressFromCooperativeSettleSignaturePublic(
-        uint256 channel_identifier,
-        address participant1,
-        uint256 participant1_balance,
-        address participant2,
-        uint256 participant2_balance,
-        bytes signature
-    )
-        view
-        public
-        returns (address signature_address)
-    {
-        return TokenNetworkUtils.recoverAddressFromCooperativeSettleSignature(
-            chain_id,
-            channel_identifier,
-            participant1,
-            participant1_balance,
-            participant2,
-            participant2_balance,
-            signature
-        );
-    } */
-
     function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,
         address participant,

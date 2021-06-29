@@ -177,37 +177,6 @@ library TokenNetworkUtils {
         signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
     }
 
-    /* function recoverAddressFromCooperativeSettleSignature(
-        uint256 channel_identifier,
-        address participant1,
-        uint256 participant1_balance,
-        address participant2,
-        uint256 participant2_balance,
-        bytes signature
-    )
-        view
-        internal
-        returns (address signature_address)
-    {
-        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 20 + 32
-        string memory message_length = '220';
-
-        bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
-            address(this),
-            chain_id,
-            uint256(MessageTypeId.CooperativeSettle),
-            channel_identifier,
-            participant1,
-            participant1_balance,
-            participant2,
-            participant2_balance
-        ));
-
-        signature_address = ECVerify.ecverify(message_hash, signature);
-    } */
-
     function recoverAddressFromWithdrawMessage(
         uint256 chain_id,
         uint256 channel_identifier,

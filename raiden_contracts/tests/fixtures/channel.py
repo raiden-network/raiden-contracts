@@ -29,7 +29,6 @@ from raiden_contracts.utils.proofs import (
     hash_balance_data,
     sign_balance_proof,
     sign_balance_proof_message,
-    sign_cooperative_settle_message,
     sign_withdraw_message,
 )
 from raiden_contracts.utils.type_aliases import (
@@ -762,41 +761,6 @@ def create_close_signature_for_no_balance_proof(
             v,
         )
         return non_closing_signature
-
-    return get
-
-
-@pytest.fixture()
-def create_cooperative_settle_signatures(
-    token_network: Contract, get_private_key: Callable
-) -> Callable:
-    def get(
-        participants_to_sign: HexAddress,
-        channel_identifier: ChannelID,
-        participant1_address: HexAddress,
-        participant1_balance: TokenAmount,
-        participant2_address: HexAddress,
-        participant2_balance: TokenAmount,
-        v: int = 27,
-        other_token_network: Optional[Contract] = None,
-    ) -> List[bytes]:
-        _token_network = other_token_network or token_network
-        signatures = []
-        for participant in participants_to_sign:
-            private_key = get_private_key(participant)
-            signature = sign_cooperative_settle_message(
-                private_key,
-                _token_network.address,
-                _token_network.functions.chain_id().call(),
-                channel_identifier,
-                participant1_address,
-                participant1_balance,
-                participant2_address,
-                participant2_balance,
-                v,
-            )
-            signatures.append(signature)
-        return signatures
 
     return get
 
