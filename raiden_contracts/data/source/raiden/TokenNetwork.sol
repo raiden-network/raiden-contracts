@@ -416,7 +416,7 @@ contract TokenNetwork is Utils {
             total_withdraw,
             expiration_block,
             participant_signature
-        ));
+        ), "WD: invalid participant sig");
         partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
@@ -427,7 +427,7 @@ contract TokenNetwork is Utils {
         );
 
         // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(participant, partner));
+        require(channel_identifier == getChannelIdentifier(participant, partner), "WD: channel id not matching");
 
         // Read channel state after validating the function input
         Channel storage channel = channels[channel_identifier];
