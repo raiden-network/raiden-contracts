@@ -533,15 +533,7 @@ contract TokenNetwork is Utils {
                 data2.partner_signature
             );
         }
-
-        // Remove channel data from storage
-        delete channel.participants[data1.participant];
-        delete channel.participants[data2.participant];
-        delete channels[channel_identifier];
-
-        // Remove the pair's channel counter
-        pair_hash = getParticipantsHash(data1.participant, data2.participant);
-        delete participants_hash_to_channel_identifier[pair_hash];
+        removeChannelData(channel, channel_identifier, data1.participant, data2.participant);
 
         // Emit channel lifecycle events
         emit ChannelClosed(channel_identifier, data1.participant, 0, 0);
@@ -794,9 +786,6 @@ contract TokenNetwork is Utils {
         address participant2 = participant2_settlement.participant;
         require(channel_identifier == getChannelIdentifier(participant1, participant2));
 
-        bytes32 pair_hash;
-
-        pair_hash = getParticipantsHash(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
 
         require(channel.state == ChannelState.Closed);
@@ -845,13 +834,7 @@ contract TokenNetwork is Utils {
             participant2_settlement.locked_amount
         );
 
-        // Remove the channel data from storage
-        delete channel.participants[participant1];
-        delete channel.participants[participant2];
-        delete channels[channel_identifier];
-
-        // Remove the pair's channel counter
-        delete participants_hash_to_channel_identifier[pair_hash];
+        removeChannelData(channel, channel_identifier, participant1, participant2);
 
         // Store balance data needed for `unlock`, including the calculated
         // locked amounts remaining in the contract.
@@ -1627,5 +1610,20 @@ contract TokenNetwork is Utils {
         }
 
         return locked_amount;
+    }
+
+    function removeChannelData(Channel storage channel, uint256 channel_identifier, address participant1, address participant2)
+        internal
+    {
+        bytes32 pair_hash;
+
+        // Remove channel data from storage
+        delete channel.participants[participant1];
+        delete channel.participants[participant2];
+        delete channels[channel_identifier];
+
+        // Remove the pair's channel counter
+        pair_hash = getParticipantsHash(participant1, participant2);
+        delete participants_hash_to_channel_identifier[pair_hash];
     }
 }
