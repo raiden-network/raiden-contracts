@@ -40,10 +40,7 @@ isort:
 black:
 	black $(BLACK_PARAMS)
 
-autopep8:
-	autopep8 --in-place --recursive raiden_contracts/
-
-format: autopep8 isort black
+format: isort black
 
 solium:
 	command -v solium > /dev/null  || { echo 'solium not installed, skipping'; exit 0; }; solium -d raiden_contracts/data/source/
