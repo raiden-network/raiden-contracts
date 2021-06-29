@@ -485,6 +485,17 @@ contract TokenNetwork is Utils {
         bytes partner_signature;
     }
 
+    /// @notice Cooperatively settles the balances between the two channel
+    /// participants and transfers the agreed upon token amounts to the
+    /// participants. After this the channel lifecycle has ended and no more
+    /// operations can be done on it.
+    /// An important constraint is that this function checks that all tokens
+    /// in this channel are withdrawn. This means that the channel can *not*
+    /// have any outstanding locked transfers.
+    /// @param channel_identifier Identifier for the channel on which this
+    /// operation takes place
+    /// @param data1 Withdraw data of the participant initiating the cooperative settlement
+    /// @param data2 Withdraw data of the second participant
     function cooperativeSettle(
         uint256 channel_identifier,
         CoopData memory data1,
@@ -505,7 +516,9 @@ contract TokenNetwork is Utils {
         total_deposit = participant1_state.deposit + participant2_state.deposit;
 
         // The sum of the provided balances must be equal to the total
-        // available deposit
+        // available deposit. This also implies that no locks must exist in the channel
+        // when this is called, as otherwise the withdrawable amount would be smaller
+        // than required.
         require((data1.total_withdraw + data2.total_withdraw) == total_deposit, "CS: incomplete amounts");
         // Overflow check for the balances addition from the above check.
         // This overflow should never happen if the token.transfer function is implemented
