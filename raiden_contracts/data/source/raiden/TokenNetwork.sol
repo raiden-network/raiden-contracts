@@ -112,6 +112,14 @@ contract TokenNetwork is Utils {
         mapping(address => Participant) participants;
     }
 
+    struct WithdrawInput {
+        address participant;
+        uint256 total_withdraw;
+        uint256 expiration_block;
+        bytes participant_signature;
+        bytes partner_signature;
+    }
+
     struct SettlementData {
         uint256 deposit;
         uint256 withdrawn;
@@ -400,53 +408,72 @@ contract TokenNetwork is Utils {
         external
         isOpen(channel_identifier)
     {
+        this.setTotalWithdraw2(
+            channel_identifier,
+            WithdrawInput({
+                participant: participant,
+                total_withdraw: total_withdraw,
+                expiration_block: expiration_block,
+                participant_signature: participant_signature,
+                partner_signature: partner_signature
+            })
+        );
+    }
+
+    function setTotalWithdraw2(
+        uint256 channel_identifier,
+        WithdrawInput memory withdraw_data
+    )
+        external
+        isOpen(channel_identifier)
+    {
         uint256 total_deposit;
         uint256 current_withdraw;
         address partner;
 
-        require(total_withdraw > 0);
-        require(block.number < expiration_block);
+        require(withdraw_data.total_withdraw > 0);
+        require(block.number < withdraw_data.expiration_block);
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
-        require(participant == TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+        require(withdraw_data.participant == TokenNetworkUtils.recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
-            participant,
-            total_withdraw,
-            expiration_block,
-            participant_signature
+            withdraw_data.participant,
+            withdraw_data.total_withdraw,
+            withdraw_data.expiration_block,
+            withdraw_data.participant_signature
         ), "WD: invalid participant sig");
         partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
-            participant,
-            total_withdraw,
-            expiration_block,
-            partner_signature
+            withdraw_data.participant,
+            withdraw_data.total_withdraw,
+            withdraw_data.expiration_block,
+            withdraw_data.partner_signature
         );
 
         // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(participant, partner), "WD: channel id not matching");
+        require(channel_identifier == getChannelIdentifier(withdraw_data.participant, partner), "WD: channel id not matching");
 
         // Read channel state after validating the function input
         Channel storage channel = channels[channel_identifier];
-        Participant storage participant_state = channel.participants[participant];
+        Participant storage participant_state = channel.participants[withdraw_data.participant];
         Participant storage partner_state = channel.participants[partner];
 
         total_deposit = participant_state.deposit + partner_state.deposit;
 
         // Entire withdrawn amount must not be bigger than the current channel deposit
-        require((total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
-        require(total_withdraw <= (total_withdraw + partner_state.withdrawn_amount));
+        require((withdraw_data.total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
+        require(withdraw_data.total_withdraw <= (withdraw_data.total_withdraw + partner_state.withdrawn_amount));
 
         // Using the total_withdraw (monotonically increasing) in the signed
         // message ensures that we do not allow replay attack to happen, by
         // using the same withdraw proof twice.
         // Next two lines enforce the monotonicity of total_withdraw and check for an underflow:
         // (we use <= because current_withdraw == total_withdraw for the first withdraw)
-        current_withdraw = total_withdraw - participant_state.withdrawn_amount;
-        require(current_withdraw <= total_withdraw);
+        current_withdraw = withdraw_data.total_withdraw - participant_state.withdrawn_amount;
+        require(current_withdraw <= withdraw_data.total_withdraw);
 
         // The actual amount of tokens that will be transferred must be > 0 to disable the reuse of
         // withdraw messages completely.
@@ -455,17 +482,17 @@ contract TokenNetwork is Utils {
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.withdrawn_amount = total_withdraw,
         // while we transfer `current_withdraw` tokens.
-        assert(participant_state.withdrawn_amount + current_withdraw == total_withdraw);
+        assert(participant_state.withdrawn_amount + current_withdraw == withdraw_data.total_withdraw);
 
         emit ChannelWithdraw(
             channel_identifier,
-            participant,
-            total_withdraw
+            withdraw_data.participant,
+            withdraw_data.total_withdraw
         );
 
         // Do the state change and tokens transfer
-        participant_state.withdrawn_amount = total_withdraw;
-        require(token.transfer(participant, current_withdraw));
+        participant_state.withdrawn_amount = withdraw_data.total_withdraw;
+        require(token.transfer(withdraw_data.participant, current_withdraw));
 
         // This should never happen, as we have an overflow check in setTotalDeposit
         assert(total_deposit >= participant_state.deposit);
@@ -475,14 +502,6 @@ contract TokenNetwork is Utils {
         // balance proof in storage. This should never fail as we use isOpen.
         assert(participant_state.nonce == 0);
         assert(partner_state.nonce == 0);
-    }
-
-    struct CoopData {
-        address participant;
-        uint256 total_withdraw;
-        uint256 expiration_block;
-        bytes participant_signature;
-        bytes partner_signature;
     }
 
     /// @notice Cooperatively settles the balances between the two channel
@@ -498,8 +517,8 @@ contract TokenNetwork is Utils {
     /// @param data2 Withdraw data of the second participant
     function cooperativeSettle(
         uint256 channel_identifier,
-        CoopData memory data1,
-        CoopData memory data2
+        WithdrawInput memory data1,
+        WithdrawInput memory data2
     )
         external
         isOpen(channel_identifier)
@@ -527,23 +546,15 @@ contract TokenNetwork is Utils {
         require(data1.total_withdraw <= data1.total_withdraw + data2.total_withdraw);
 
         if (data1.total_withdraw > 0) {
-            this.setTotalWithdraw(
+            this.setTotalWithdraw2(
                 channel_identifier,
-                data1.participant,
-                data1.total_withdraw,
-                data1.expiration_block,
-                data1.participant_signature,
-                data1.partner_signature
+                data1
             );
         }
         if (data2.total_withdraw > 0) {
-            this.setTotalWithdraw(
+            this.setTotalWithdraw2(
                 channel_identifier,
-                data2.participant,
-                data2.total_withdraw,
-                data2.expiration_block,
-                data2.participant_signature,
-                data2.partner_signature
+                data2
             );
         }
         removeChannelData(channel, channel_identifier, data1.participant, data2.participant);
