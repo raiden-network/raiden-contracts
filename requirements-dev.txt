@@ -15,7 +15,7 @@ bump2version
 requests
 mypy==0.910
 types-requests==2.25.0
-pylint<2.9
+pylint<2.10
 pylint-quotes
 requests_mock
 isort==5.9.1
