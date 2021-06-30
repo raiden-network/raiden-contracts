@@ -1,6 +1,7 @@
 from typing import Callable, Tuple
 
 import pytest
+from eth.constants import ZERO_ADDRESS
 from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
@@ -145,7 +146,7 @@ def test_withdraw(
     web3: Web3,
     event_handler: Callable,
 ) -> None:
-    """Test the interaction between planWithdraw, widthdraw and effectiveBalance"""
+    """Test the interaction between planWithdraw, withdraw and effectiveBalance"""
     ev_handler = event_handler(user_deposit_contract)
     (A,) = get_accounts(1)
     deposit_to_udc(A, 30)
@@ -177,3 +178,52 @@ def test_withdraw(
     call_and_transact(user_deposit_contract.functions.withdraw(18), {"from": A})
     assert user_deposit_contract.functions.balances(A).call() == 12
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
+
+
+def test_withdraw_to_beneficiary(
+    user_deposit_contract: Contract,
+    deposit_to_udc: Callable,
+    get_accounts: Callable,
+    web3: Web3,
+    event_handler: Callable,
+    custom_token: Contract,
+) -> None:
+    """Test the interaction between planWithdraw, withdrawToBeneficiary and effectiveBalance"""
+    ev_handler = event_handler(user_deposit_contract)
+    (A, B) = get_accounts(2)
+    deposit_to_udc(A, 30)
+    assert user_deposit_contract.functions.balances(A).call() == 30
+    assert user_deposit_contract.functions.effectiveBalance(A).call() == 30
+
+    # plan withdraw of 20 tokens
+    tx_hash = call_and_transact(user_deposit_contract.functions.planWithdraw(20), {"from": A})
+    ev_handler.assert_event(
+        tx_hash,
+        UserDepositEvent.WITHDRAW_PLANNED,
+        dict(withdrawer=A, plannedBalance=10),
+    )
+    assert user_deposit_contract.functions.balances(A).call() == 30
+    assert user_deposit_contract.functions.effectiveBalance(A).call() == 10
+
+    # beneficiary can not be zero address
+    with pytest.raises(TransactionFailed, match="beneficiary is zero"):
+        user_deposit_contract.functions.withdrawToBeneficiary(18, ZERO_ADDRESS).call({"from": A})
+
+    # withdraw won't work before withdraw_delay elapsed
+    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
+    mine_blocks(web3, withdraw_delay - 1)
+    with pytest.raises(TransactionFailed, match="withdrawing too early"):
+        user_deposit_contract.functions.withdrawToBeneficiary(18, B).call({"from": A})
+
+    # can't withdraw more then planned
+    mine_blocks(web3, 1)  # now withdraw_delay is over
+    with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
+        user_deposit_contract.functions.withdrawToBeneficiary(21, B).call({"from": A})
+
+    # actually withdraw 18 tokens
+    assert custom_token.functions.balanceOf(B).call() == 0
+    call_and_transact(user_deposit_contract.functions.withdrawToBeneficiary(18, B), {"from": A})
+    assert user_deposit_contract.functions.balances(A).call() == 12
+    assert user_deposit_contract.functions.effectiveBalance(A).call() == 12
+
+    assert custom_token.functions.balanceOf(B).call() == 18

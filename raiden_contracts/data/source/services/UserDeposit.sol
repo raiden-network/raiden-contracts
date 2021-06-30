@@ -167,23 +167,23 @@ contract UserDeposit is Utils {
     /// Removes the withdraw plan even if not the full amount has been
     /// withdrawn.
     /// @param amount Amount of tokens to be withdrawn
+    /// @param beneficiary Address to send withdrawn tokens to
+    function withdrawToBeneficiary(uint256 amount, address beneficiary)
+        external
+    {
+        withdrawHelper(amount, msg.sender, beneficiary);
+    }
+
+    /// @notice Execute a planned withdrawal
+    /// Will only work after the withdraw_delay has expired.
+    /// An amount lower or equal to the planned amount may be withdrawn.
+    /// Removes the withdraw plan even if not the full amount has been
+    /// withdrawn.
+    /// @param amount Amount of tokens to be withdrawn
     function withdraw(uint256 amount)
         external
     {
-        WithdrawPlan storage withdraw_plan = withdraw_plans[msg.sender];
-        require(amount <= withdraw_plan.amount, "withdrawing more than planned");
-        require(withdraw_plan.withdraw_block <= block.number, "withdrawing too early");
-        uint256 withdrawable = min(amount, balances[msg.sender]);
-        balances[msg.sender] -= withdrawable;
-
-        // Update whole_balance, but take care against underflows.
-        require(whole_balance - withdrawable <= whole_balance, "underflow in whole_balance");
-        whole_balance -= withdrawable;
-
-        emit BalanceReduced(msg.sender, balances[msg.sender]);
-        delete withdraw_plans[msg.sender];
-
-        require(token.transfer(msg.sender, withdrawable), "tokens didn't transfer");
+        withdrawHelper(amount, msg.sender, msg.sender);
     }
 
     /// @notice The owner's balance with planned withdrawals deducted
@@ -204,6 +204,26 @@ contract UserDeposit is Utils {
     function min(uint256 a, uint256 b) internal pure returns (uint256)
     {
         return a > b ? b : a;
+    }
+
+    function withdrawHelper(uint256 amount, address deposit_holder, address beneficiary)
+        internal
+    {
+        require(beneficiary != address(0x0), "beneficiary is zero");
+        WithdrawPlan storage withdraw_plan = withdraw_plans[deposit_holder];
+        require(amount <= withdraw_plan.amount, "withdrawing more than planned");
+        require(withdraw_plan.withdraw_block <= block.number, "withdrawing too early");
+        uint256 withdrawable = min(amount, balances[deposit_holder]);
+        balances[deposit_holder] -= withdrawable;
+
+        // Update whole_balance, but take care against underflows.
+        require(whole_balance - withdrawable <= whole_balance, "underflow in whole_balance");
+        whole_balance -= withdrawable;
+
+        emit BalanceReduced(deposit_holder, balances[deposit_holder]);
+        delete withdraw_plans[deposit_holder];
+
+        require(token.transfer(beneficiary, withdrawable), "tokens didn't transfer");
     }
 }
 
