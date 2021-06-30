@@ -49,6 +49,7 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "ServiceRegistry.setURL",
         "TokenNetwork DEPLOYMENT",
         "TokenNetwork.closeChannel",
+        "TokenNetwork.cooperativeSettle",
         "TokenNetwork.openChannel",
         "TokenNetwork.openChannelWithDeposit",
         "TokenNetwork.setTotalDeposit",
@@ -314,6 +315,25 @@ def print_gas_channel_open_with_deposit(
 
 
 @pytest.fixture
+def print_gas_coop_settle(
+    create_channel: Callable,
+    channel_deposit: Callable,
+    cooperative_settle_channel: Callable,
+    get_accounts: Callable,
+    print_gas: Callable,
+) -> None:
+    """Abusing pytest to print gas costs of cooperative settle"""
+    (A, B) = get_accounts(2)
+    settle_timeout = 11
+
+    (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
+    channel_deposit(channel_identifier, A, 20, B)
+
+    txn_hash = cooperative_settle_channel(channel_identifier, A, B, 10, 10, UINT256_MAX, A)
+    print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".cooperativeSettle")
+
+
+@pytest.fixture
 def print_gas_monitoring_service(
     token_network: Contract,
     monitoring_service_external: Contract,
@@ -558,6 +578,7 @@ def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: C
     "print_gas_secret_registry",
     "print_gas_channel_cycle",
     "print_gas_channel_open_with_deposit",
+    "print_gas_coop_settle",
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
     "print_gas_service_registry",

@@ -189,6 +189,58 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
 
 
 @pytest.fixture()
+def cooperative_settle_channel(
+    token_network: Contract, create_withdraw_signatures: Callable
+) -> Callable:
+    def get(
+        channel_identifier: int,
+        participant: HexAddress,
+        partner: HexAddress,
+        withdraw_amount_participant: int,
+        withdraw_amount_partner: int,
+        expiration_block: int,
+        delegate: Optional[HexAddress] = None,
+    ) -> HexBytes:
+        delegate = delegate or participant
+        channel_identifier = token_network.functions.getChannelIdentifier(
+            participant, partner
+        ).call()
+
+        (signature_A1, signature_B1) = create_withdraw_signatures(
+            [participant, partner],
+            channel_identifier,
+            participant,
+            withdraw_amount_participant,
+            expiration_block,
+        )
+        (signature_A2, signature_B2) = create_withdraw_signatures(
+            [participant, partner],
+            channel_identifier,
+            partner,
+            withdraw_amount_partner,
+            expiration_block,
+        )
+
+        txn_hash = call_and_transact(
+            token_network.functions.cooperativeSettle(
+                channel_identifier,
+                (
+                    participant,
+                    withdraw_amount_participant,
+                    expiration_block,
+                    signature_A1,
+                    signature_B1,
+                ),
+                (partner, withdraw_amount_partner, expiration_block, signature_B2, signature_A2),
+            ),
+            {"from": delegate},
+        )
+        return txn_hash
+
+    return get
+
+
+@pytest.fixture()
 def close_and_update_channel(
     token_network: Contract,
     create_balance_proof: Callable,
