@@ -75,6 +75,20 @@ def check_withdraw(
     return get
 
 
+def check_withdraw_2(
+    channel_identifier: int, participant: HexAddress, withdrawn_amount: int
+) -> Callable[[Dict[str, Any]], bool]:
+    def get(event: Dict[str, Any]) -> bool:
+        is_match = (
+            event["args"]["channel_identifier"] == channel_identifier
+            and event["args"]["participant"] == participant
+            and event["args"]["total_withdraw"] == withdrawn_amount
+        )
+        return is_match
+
+    return get
+
+
 def check_channel_closed(
     channel_identifier: int, closing_participant: HexAddress, nonce: int, balance_hash: bytes
 ) -> Callable[[Dict[str, Any]], None]:
