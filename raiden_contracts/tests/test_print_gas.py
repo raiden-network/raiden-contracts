@@ -50,6 +50,7 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
         "TokenNetwork DEPLOYMENT",
         "TokenNetwork.closeChannel",
         "TokenNetwork.openChannel",
+        "TokenNetwork.openChannelWithDeposit",
         "TokenNetwork.setTotalDeposit",
         "TokenNetwork.setTotalWithdraw",
         "TokenNetwork.settleChannel",
@@ -290,6 +291,26 @@ def print_gas_channel_cycle(
             CONTRACT_TOKEN_NETWORK, len(pending_transfers_tree1.transfers)
         ),
     )
+
+
+@pytest.fixture
+def print_gas_channel_open_with_deposit(
+    token_network: Contract,
+    get_accounts: Callable,
+    print_gas: Callable,
+    assign_tokens: Callable,
+) -> None:
+    """Abusing pytest to print gas costs of TokenNetwork's `openChannelWithDeposit`"""
+    (A, B) = get_accounts(2)
+    settle_timeout = 11
+    deposit = 20
+
+    assign_tokens(A, deposit)
+    tx_hash = call_and_transact(
+        token_network.functions.openChannelWithDeposit(A, B, settle_timeout, deposit),
+        {"from": A},
+    )
+    print_gas(tx_hash, CONTRACT_TOKEN_NETWORK + ".openChannelWithDeposit")
 
 
 @pytest.fixture
@@ -536,6 +557,7 @@ def print_gas_token(get_accounts: Callable, custom_token: Contract, print_gas: C
     "print_gas_token_network_create",
     "print_gas_secret_registry",
     "print_gas_channel_cycle",
+    "print_gas_channel_open_with_deposit",
     "print_gas_monitoring_service",
     "print_gas_one_to_n",
     "print_gas_service_registry",
