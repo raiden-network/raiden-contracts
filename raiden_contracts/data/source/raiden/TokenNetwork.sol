@@ -316,6 +316,39 @@ contract TokenNetwork is Utils {
         return channel_identifier;
     }
 
+    /// @notice Opens a new channel between `participant1` and `participant2`
+    /// and deposits for `participant1`. Can be called by anyone
+    /// @param participant1 Ethereum address of a channel participant
+    /// @param participant2 Ethereum address of the other channel participant
+    /// @param settle_timeout Number of blocks that need to be mined between a
+    /// call to closeChannel and settleChannel
+    /// @param participant1_total_deposit The total amount of tokens that
+    /// `participant1` will have as deposit
+    function openChannelWithDeposit(
+        address participant1,
+        address participant2,
+        uint256 settle_timeout,
+        uint256 participant1_total_deposit
+    )
+        public
+        isSafe
+        settleTimeoutValid(settle_timeout)
+        returns (uint256)
+    {
+        uint256 channel_identifier;
+
+        channel_identifier = openChannel(participant1, participant2, settle_timeout);
+        setTotalDepositFor(
+            channel_identifier,
+            participant1,
+            participant1_total_deposit,
+            participant2,
+            msg.sender
+        );
+
+        return channel_identifier;
+    }
+
     /// @notice Sets the channel participant total deposit value.
     /// Can be called by anyone.
     /// @param channel_identifier Identifier for the channel on which this
@@ -335,50 +368,13 @@ contract TokenNetwork is Utils {
         isSafe
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_deposit > 0);
-        require(total_deposit <= channel_participant_deposit_limit);
-
-        uint256 added_deposit;
-        uint256 channel_deposit;
-
-        Channel storage channel = channels[channel_identifier];
-        Participant storage participant_state = channel.participants[participant];
-        Participant storage partner_state = channel.participants[partner];
-
-        // Calculate the actual amount of tokens that will be transferred
-        added_deposit = total_deposit - participant_state.deposit;
-
-        // The actual amount of tokens that will be transferred must be > 0
-        require(added_deposit > 0);
-
-        // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
-
-        require(added_deposit <= total_deposit);
-
-        // This should never fail at this point. Added check for security, because we directly set
-        // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens
-        assert(participant_state.deposit + added_deposit == total_deposit);
-
-        // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
-
-        // Update the participant's channel deposit
-        participant_state.deposit = total_deposit;
-
-        // Calculate the entire channel deposit, to avoid overflow
-        channel_deposit = participant_state.deposit + partner_state.deposit;
-        // Overflow check
-        require(channel_deposit >= participant_state.deposit);
-
-        emit ChannelNewDeposit(
+        setTotalDepositFor(
             channel_identifier,
             participant,
-            participant_state.deposit
+            total_deposit,
+            partner,
+            msg.sender
         );
-
-        // Do the transfer
-        require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
     /// @notice Allows `participant` to withdraw tokens from the channel that he
@@ -1159,6 +1155,60 @@ contract TokenNetwork is Utils {
     {
         require(sender != receiver);
         return keccak256(abi.encodePacked(channel_identifier, sender, receiver));
+    }
+
+    function setTotalDepositFor(
+        uint256 channel_identifier,
+        address participant,
+        uint256 total_deposit,
+        address partner,
+        address token_owner
+    )
+        internal
+    {
+        require(channel_identifier == getChannelIdentifier(participant, partner));
+        require(total_deposit > 0);
+        require(total_deposit <= channel_participant_deposit_limit);
+
+        uint256 added_deposit;
+        uint256 channel_deposit;
+
+        Channel storage channel = channels[channel_identifier];
+        Participant storage participant_state = channel.participants[participant];
+        Participant storage partner_state = channel.participants[partner];
+
+        // Calculate the actual amount of tokens that will be transferred
+        added_deposit = total_deposit - participant_state.deposit;
+
+        // The actual amount of tokens that will be transferred must be > 0
+        require(added_deposit > 0);
+
+        // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
+        require(added_deposit <= total_deposit);
+
+        // This should never fail at this point. Added check for security, because we directly set
+        // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens
+        assert(participant_state.deposit + added_deposit == total_deposit);
+
+        // Red Eyes release token network limit
+        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
+
+        // Update the participant's channel deposit
+        participant_state.deposit = total_deposit;
+
+        // Calculate the entire channel deposit, to avoid overflow
+        channel_deposit = participant_state.deposit + partner_state.deposit;
+        // Overflow check
+        require(channel_deposit >= participant_state.deposit);
+
+        emit ChannelNewDeposit(
+            channel_identifier,
+            participant,
+            participant_state.deposit
+        );
+
+        // Do the transfer
+        require(token.transferFrom(token_owner, address(this), added_deposit));
     }
 
     function updateBalanceProofData(
