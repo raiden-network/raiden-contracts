@@ -5,6 +5,9 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+- [#1436](https://github.com/raiden-network/raiden-contracts/issues/1436) Add `TokenNetwork.openChannelWithDeposit`, which combines opening and depositing to a channel
+- [#1482](https://github.com/raiden-network/raiden-contracts/issues/1482) Add `UserDeposit.withdrawToBeneficiary`, which allows withdrawing to a beneficiary
+
 ## [0.38.0]
 - [#1462](https://github.com/raiden-network/raiden-contracts/pull/1462) TokenNetwork: allow updating channel state anytime before a channel is settled
 - [#1464](https://github.com/raiden-network/raiden-contracts/pull/1464) Use RDN as default token for service payments
