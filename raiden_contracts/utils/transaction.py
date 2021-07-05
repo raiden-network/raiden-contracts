@@ -38,7 +38,6 @@ def wait_for_transaction_receipt(
             try:
                 receipt = web3.eth.get_transaction_receipt(txid)
             except TransactionNotFound:
-                pass
-            time.sleep(5)
+                time.sleep(5)
 
     return receipt
