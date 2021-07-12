@@ -3,7 +3,7 @@ rlp>=1.0.0
 coincurve>=8.0.0
 py-solc-x
 semantic_version>=2.8
-web3~=5.20
+web3~=5.21
 eth-abi<3.0.0,>=2.0.0
 eth-utils<2.0.0,>=1.8.4
 eth-typing<3.0.0,>=2.2.1
