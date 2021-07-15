@@ -559,8 +559,6 @@ contract TokenNetwork is Utils {
         }
         removeChannelData(channel, channel_identifier, data1.participant, data2.participant);
 
-        // Emit channel lifecycle events
-        emit ChannelClosed(channel_identifier, data1.participant, 0, 0);
         emit ChannelSettled(channel_identifier, data1.total_withdraw, 0, data2.total_withdraw, 0);
     }
 
