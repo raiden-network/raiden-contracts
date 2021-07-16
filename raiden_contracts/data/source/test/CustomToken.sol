@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solium-disable error-reason */
-pragma solidity 0.7.6;
+pragma solidity 0.8.6;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
@@ -60,7 +60,7 @@ contract CustomToken is StandardToken {
         symbol = token_symbol;
 
         // Initial supply is assigned to the owner
-        owner_address = msg.sender;
+        owner_address = payable(msg.sender);
         balances[owner_address] = initial_supply;
         _total_supply = initial_supply;
     }

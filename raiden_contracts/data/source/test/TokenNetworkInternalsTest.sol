@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.6;
+pragma solidity 0.8.6;
 pragma experimental ABIEncoderV2;
 
 import "lib/MessageType.sol";
@@ -267,6 +267,6 @@ contract TokenNetworkUtilsTest is TokenNetwork {
     }
 
     function get_max_safe_uint256() public pure returns (uint256) {
-        return uint256(0 - 1);
+        return MAX_SAFE_UINT256;
     }
 }

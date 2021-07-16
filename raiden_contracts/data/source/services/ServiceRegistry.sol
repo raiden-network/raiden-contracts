@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solium-disable indentation */
 /* solium-disable security/no-block-members */
-pragma solidity 0.7.6;
+pragma solidity 0.8.6;
 pragma abicoder v2;
 
 import "raiden/Token.sol";
@@ -280,7 +280,9 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
             valid_till = block.timestamp;
         }
         // Check against overflow.
-        require(valid_till < valid_till + registration_duration, "overflow during extending the registration");
+        unchecked {
+            require(valid_till < valid_till + registration_duration, "overflow during extending the registration");
+        }
         valid_till = valid_till + registration_duration;
         assert(valid_till > service_valid_till[msg.sender]);
         service_valid_till[msg.sender] = valid_till;
