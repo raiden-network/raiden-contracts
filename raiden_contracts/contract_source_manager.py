@@ -11,7 +11,7 @@ from raiden_contracts.constants import PRECOMPILED_DATA_FIELDS, DeploymentModule
 from raiden_contracts.contract_manager import ContractManager, contracts_data_path
 
 _BASE = Path(__file__).parent
-SOLC_VERSION = "0.7.6"
+SOLC_VERSION = "0.8.6"
 
 
 class ContractSourceManagerCompilationError(RuntimeError):

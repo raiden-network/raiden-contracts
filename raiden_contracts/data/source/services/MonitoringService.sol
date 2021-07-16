@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.6;
+pragma solidity 0.8.6;
 pragma abicoder v2;
 
 import "lib/ECVerify.sol";
@@ -296,9 +296,9 @@ contract MonitoringService is Utils {
 
         // Offset for this specific MS within the range
         uint256 ms_offset = (
-            uint256(participant1) +
-            uint256(participant2) +
-            uint256(monitoring_service_address)
+            uint256(uint160(participant1)) +
+            uint256(uint160(participant2)) +
+            uint256(uint160(monitoring_service_address))
         ) % range_length;
 
         return best_case_block + ms_offset;
