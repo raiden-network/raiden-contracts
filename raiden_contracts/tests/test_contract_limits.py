@@ -14,7 +14,7 @@ from raiden_contracts.constants import (
     ParticipantInfoIndex,
 )
 from raiden_contracts.tests.utils import call_and_transact
-from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, UINT256_MAX
 
 
 def test_register_three_but_not_four(
@@ -69,11 +69,19 @@ def test_register_three_but_not_four(
 
     # Now remove the limit and try again
     call_and_transact(token_network_registry.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
+    with pytest.raises(TransactionFailed, match="Limits must be set to MAX_INT"):
+        call_and_transact(
+            token_network_registry.functions.createERC20TokenNetwork(
+                token4.address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+            )
+        )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
             token4.address,
-            channel_participant_deposit_limit,
-            token_network_deposit_limit,
+            UINT256_MAX,
+            UINT256_MAX,
         )
     )
 

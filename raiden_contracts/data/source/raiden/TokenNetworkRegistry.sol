@@ -75,6 +75,13 @@ contract TokenNetworkRegistry is Utils {
         canCreateTokenNetwork
         returns (address token_network_address)
     {
+        // After the limits have been removed, new token networks must be created without limits
+        // See https://github.com/raiden-network/raiden-contracts/issues/1416
+        if (max_token_networks == MAX_INT) {
+            require(_channel_participant_deposit_limit == MAX_INT, "Limits must be set to MAX_INT");
+            require(_token_network_deposit_limit == MAX_INT, "Limits must be set to MAX_INT");
+        }
+
         require(token_to_token_networks[_token_address] == address(0x0));
 
         // We limit the number of token networks to 1 for the Bug Bounty release
