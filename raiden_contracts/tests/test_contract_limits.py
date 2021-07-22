@@ -14,6 +14,7 @@ from raiden_contracts.constants import (
     ParticipantInfoIndex,
 )
 from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 
 
 def test_register_three_but_not_four(
@@ -37,6 +38,7 @@ def test_register_three_but_not_four(
     token1 = custom_token_factory()
     token2 = custom_token_factory()
     token3 = custom_token_factory()
+    token4 = custom_token_factory()
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
             token0.address,
@@ -64,6 +66,18 @@ def test_register_three_but_not_four(
             channel_participant_deposit_limit,
             token_network_deposit_limit,
         ).call()
+
+    # Now remove the limit and try again
+    with pytest.raises(TransactionFailed, match="Can only be called by"):
+        call_and_transact(token_network_registry.functions.removeLimits())
+    call_and_transact(token_network_registry.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
+    call_and_transact(
+        token_network_registry.functions.createERC20TokenNetwork(
+            token4.address,
+            channel_participant_deposit_limit,
+            token_network_deposit_limit,
+        )
+    )
 
 
 def test_channel_participant_deposit_limit_value(token_network: Contract) -> None:

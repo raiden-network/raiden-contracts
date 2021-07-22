@@ -112,6 +112,15 @@ contract TokenNetworkRegistry is Utils {
     {
         return createERC20TokenNetwork(_token_address, MAX_INT, MAX_INT);
     }
+
+    /// @notice Removes the limit on the number of token networks.
+    /// Can only be called by the deprecation_executor.
+    function removeLimits()
+        external
+    {
+        require(msg.sender == deprecation_executor, "Can only be called by deprecation_executor");
+        max_token_networks = MAX_INT;
+    }
 }
 
 // MIT License
