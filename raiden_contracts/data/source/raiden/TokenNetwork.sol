@@ -45,7 +45,7 @@ contract TokenNetwork is Utils {
     uint256 public channel_counter;
 
     // Only for the limited Red Eyes release
-    address public deprecation_executor;
+    address public controller;
     bool public safety_deprecation_switch = false;
 
     // channel_identifier => Channel
@@ -202,8 +202,8 @@ contract TokenNetwork is Utils {
         bytes32 participant2_locksroot
     );
 
-    modifier onlyDeprecationExecutor() {
-        require(msg.sender == deprecation_executor, "Can only be called by deprecation_executor");
+    modifier onlyController() {
+        require(msg.sender == controller, "Can only be called by controller");
         _;
     }
 
@@ -230,7 +230,7 @@ contract TokenNetwork is Utils {
     /// that can be chosen at the channel opening
     /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
     /// that can be chosen at the channel opening
-    /// @param _deprecation_executor The Ethereum address that can disable new deposits and channel creation
+    /// @param _controller The Ethereum address that can disable new deposits and channel creation
     /// @param _channel_participant_deposit_limit The maximum amount of tokens that can be deposited by each
     /// participant of each channel. MAX_SAFE_UINT256 means no limits
     /// @param _token_network_deposit_limit The maximum amount of tokens that this contract can hold
@@ -241,13 +241,13 @@ contract TokenNetwork is Utils {
         uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
-        address _deprecation_executor,
+        address _controller,
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
     ) {
         require(_token_address != address(0x0));
         require(_secret_registry != address(0x0));
-        require(_deprecation_executor != address(0x0));
+        require(_controller != address(0x0));
         require(_chain_id > 0);
         require(_settlement_timeout_min > 0);
         require(_settlement_timeout_max > _settlement_timeout_min);
@@ -267,12 +267,12 @@ contract TokenNetwork is Utils {
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0);
 
-        deprecation_executor = _deprecation_executor;
+        controller = _controller;
         channel_participant_deposit_limit = _channel_participant_deposit_limit;
         token_network_deposit_limit = _token_network_deposit_limit;
     }
 
-    function deprecate() public isSafe onlyDeprecationExecutor {
+    function deprecate() public isSafe onlyController {
         safety_deprecation_switch = true;
         emit DeprecationSwitch(safety_deprecation_switch);
     }
@@ -1557,10 +1557,10 @@ contract TokenNetwork is Utils {
     }
 
     /// @notice Removes the balance limits.
-    /// Can only be called by the deprecation_executor.
+    /// Can only be called by the controller.
     function removeLimits()
         external
-        onlyDeprecationExecutor
+        onlyController
     {
         channel_participant_deposit_limit = MAX_INT;
         token_network_deposit_limit = MAX_INT;

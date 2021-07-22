@@ -22,7 +22,7 @@ from raiden_contracts.utils.pending_transfers import (
 )
 
 
-def test_deprecation_executor(
+def test_controller(
     web3: Web3,
     contracts_manager: ContractManager,
     deploy_tester_contract: Callable,
@@ -41,12 +41,12 @@ def test_deprecation_executor(
     original account as the deprecation executor. During these, this test also
     tries to register more than one TokenNetworks and see a failure.
     """
-    (deprecation_executor, B) = get_accounts(2)
+    (controller, B) = get_accounts(2)
 
     token_network_registry = deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         token_network_libs,
-        deprecation_executor,
+        controller,
         _secret_registry_address=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
@@ -54,8 +54,8 @@ def test_deprecation_executor(
         _max_token_networks=1,
     )
 
-    # Make sure deployer is deprecation_executor
-    assert token_network_registry.functions.deprecation_executor().call() == deprecation_executor
+    # Make sure deployer is controller
+    assert token_network_registry.functions.controller().call() == controller
     assert token_network_registry.functions.token_network_created().call() == 0
 
     # We can only deploy one TokenNetwork contract
@@ -82,7 +82,7 @@ def test_deprecation_executor(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
-        ).call({"from": deprecation_executor})
+        ).call({"from": controller})
 
     tx_receipt = web3.eth.get_transaction_receipt(tx_hash)
     event_abi = contracts_manager.get_event_abi(
@@ -95,7 +95,7 @@ def test_deprecation_executor(
         address=token_network_address,
     )
 
-    assert token_network.functions.deprecation_executor().call() == deprecation_executor
+    assert token_network.functions.controller().call() == controller
 
 
 def test_set_deprecation_switch(
@@ -106,14 +106,14 @@ def test_set_deprecation_switch(
 ) -> None:
     """The deprecation executor deprecates a TokenNetwork contract"""
     (A) = get_accounts(1)[0]
-    deprecation_executor = token_network.functions.deprecation_executor().call()
+    controller = token_network.functions.controller().call()
 
     assert token_network.functions.safety_deprecation_switch().call() is False
 
     with pytest.raises(TransactionFailed):
         token_network.functions.deprecate().call({"from": A})
 
-    tx = call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
+    tx = call_and_transact(token_network.functions.deprecate(), {"from": controller})
     assert token_network.functions.safety_deprecation_switch().call() is True
     tx_receipt = web3.eth.get_transaction_receipt(tx)
     event_abi = contracts_manager.get_event_abi(CONTRACT_TOKEN_NETWORK, EVENT_DEPRECATION_SWITCH)
@@ -133,7 +133,7 @@ def test_deprecation_switch(
 ) -> None:
     """Test the effects of the deprecation switch on deposits and channel opening"""
 
-    deprecation_executor = token_network.functions.deprecation_executor().call()
+    controller = token_network.functions.controller().call()
     (A, B, C, D) = get_accounts(4)
     deposit = 100
     bigger_deposit = 200
@@ -142,7 +142,7 @@ def test_deprecation_switch(
     channel_deposit(channel_identifier, A, deposit, B)
     channel_deposit(channel_identifier, B, deposit, A)
 
-    call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
+    call_and_transact(token_network.functions.deprecate(), {"from": controller})
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # Now we cannot deposit in existent channels
@@ -167,7 +167,7 @@ def test_deprecation_switch_settle(
     close_and_update_channel: Callable,
 ) -> None:
     """Channel close and settlement still work after the depracation switch is turned on"""
-    deprecation_executor = token_network.functions.deprecation_executor().call()
+    controller = token_network.functions.controller().call()
     (A, B) = get_accounts(2)
     deposit = 100
 
@@ -215,7 +215,7 @@ def test_deprecation_switch_settle(
     reveal_secrets(B, pending_transfers_tree_B.unlockable)
 
     # Set the deprecation switch to true
-    call_and_transact(token_network.functions.deprecate(), {"from": deprecation_executor})
+    call_and_transact(token_network.functions.deprecate(), {"from": controller})
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # We need to make sure we can still close, settle & unlock the channels
