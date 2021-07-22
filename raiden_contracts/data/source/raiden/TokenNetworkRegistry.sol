@@ -119,6 +119,15 @@ contract TokenNetworkRegistry is Utils {
         require(msg.sender == controller, "Can only be called by controller");
         max_token_networks = MAX_INT;
     }
+
+    /// @notice Changes the controller who is allowed to deprecate or remove limits.
+    /// Can only be called by the controller.
+    function changeController(address new_controller)
+        external
+    {
+        require(msg.sender == controller, "Can only be called by controller");
+        controller = new_controller;
+    }
 }
 
 // MIT License

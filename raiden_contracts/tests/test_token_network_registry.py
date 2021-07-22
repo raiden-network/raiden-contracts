@@ -455,3 +455,29 @@ def test_events(
         check_token_network_created(custom_token.address, new_token_network.address),
     )
     ev_handler.check()
+
+
+@pytest.mark.usefixtures("no_token_network")
+def test_change_owner(
+    token_network_registry_contract: Contract,
+    get_accounts: Callable,
+) -> None:
+    """Address must be allowed to remove limits after if became owner"""
+    new_controller = get_accounts(1)[0]
+
+    # Must fail when controller is still DEPLOYER_ADDRESS
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
+        call_and_transact(
+            token_network_registry_contract.functions.removeLimits(),
+            {"from": new_controller},
+        )
+
+    # Must succeed after change of controller
+    call_and_transact(
+        token_network_registry_contract.functions.changeController(new_controller),
+        {"from": DEPLOYER_ADDRESS},
+    )
+    call_and_transact(
+        token_network_registry_contract.functions.removeLimits(),
+        {"from": new_controller},
+    )
