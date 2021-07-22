@@ -6,6 +6,7 @@ import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
 
+uint256 constant MAX_INT = 2**256 - 1;
 
 /// @title TokenNetworkRegistry
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
@@ -72,7 +73,7 @@ contract TokenNetworkRegistry is Utils {
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
     )
-        external
+        public
         canCreateTokenNetwork
         returns (address token_network_address)
     {
@@ -101,6 +102,15 @@ contract TokenNetworkRegistry is Utils {
         emit TokenNetworkCreated(_token_address, token_network_address);
 
         return token_network_address;
+    }
+
+    function createERC20TokenNetworkWithoutLimits(
+        address _token_address
+    )
+        external
+        returns (address token_network_address)
+    {
+        return createERC20TokenNetwork(_token_address, MAX_INT, MAX_INT);
     }
 }
 
