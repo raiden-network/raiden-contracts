@@ -1565,4 +1565,13 @@ contract TokenNetwork is Utils {
         channel_participant_deposit_limit = MAX_INT;
         token_network_deposit_limit = MAX_INT;
     }
+
+    /// @notice Changes the controller who is allowed to deprecate or remove limits.
+    /// Can only be called by the controller.
+    function changeController(address new_controller)
+        external
+        onlyController
+    {
+        controller = new_controller;
+    }
 }
