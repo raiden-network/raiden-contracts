@@ -68,8 +68,6 @@ def test_register_three_but_not_four(
         ).call()
 
     # Now remove the limit and try again
-    with pytest.raises(TransactionFailed, match="Can only be called by"):
-        call_and_transact(token_network_registry.functions.removeLimits())
     call_and_transact(token_network_registry.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
