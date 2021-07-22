@@ -11,12 +11,13 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/SecretRegistry.sol";
 
-uint256 constant MAX_INT = 2**256 - 1;
-
 /// @title TokenNetwork
 /// @notice Stores and manages all the Raiden Network channels that use the
 /// token specified in this TokenNetwork contract.
 contract TokenNetwork is Utils {
+    // I would like to put this constant outside the contract, but solium complains.
+    uint256 constant MAX_INT = 2**256 - 1;
+
     // Instance of the token used by the channels
     Token public token;
 

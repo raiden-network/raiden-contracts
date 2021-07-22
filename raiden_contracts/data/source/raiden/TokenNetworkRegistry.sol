@@ -10,6 +10,9 @@ import "raiden/TokenNetwork.sol";
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils {
+    // I would like to put this constant outside the contract, but solium complains.
+    uint256 constant MAX_INT = 2**256 - 1;
+
     address public secret_registry_address;
     uint256 public chain_id;
     uint256 public settlement_timeout_min;
