@@ -10,7 +10,8 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import NOT_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.contracts import call_and_transact
 
 
 def test_constructor_call(
@@ -435,4 +436,30 @@ def test_constructor_not_registered(
             custom_token.address
         ).call()
         == EMPTY_ADDRESS
+    )
+
+
+def test_change_owner(
+    token_network_external: Contract,
+    get_accounts: Callable,
+) -> None:
+    """Address must be allowed to remove limits after if became owner"""
+    token_network = token_network_external
+    new_controller = get_accounts(1)[0]
+
+    # Must fail when controller is still DEPLOYER_ADDRESS
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
+        call_and_transact(
+            token_network.functions.removeLimits(),
+            {"from": new_controller},
+        )
+
+    # Must succeed after change of controller
+    call_and_transact(
+        token_network.functions.changeController(new_controller),
+        {"from": DEPLOYER_ADDRESS},
+    )
+    call_and_transact(
+        token_network.functions.removeLimits(),
+        {"from": new_controller},
     )
