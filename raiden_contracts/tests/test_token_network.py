@@ -24,7 +24,7 @@ def test_constructor_call(
 ) -> None:
     """Try to deploy TokenNetwork with various wrong arguments"""
 
-    (A, deprecation_executor) = get_accounts(2)
+    (A, controller) = get_accounts(2)
     chain_id = web3.eth.chain_id
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
@@ -42,7 +42,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -55,7 +55,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -70,7 +70,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -83,7 +83,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -98,7 +98,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -111,7 +111,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -126,7 +126,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -139,7 +139,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -154,7 +154,7 @@ def test_constructor_call(
                 "",
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -167,7 +167,7 @@ def test_constructor_call(
                 -3,
                 settle_min,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -182,7 +182,7 @@ def test_constructor_call(
                 chain_id,
                 "",
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -195,7 +195,7 @@ def test_constructor_call(
                 chain_id,
                 -3,
                 settle_max,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -210,7 +210,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 "",
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -223,7 +223,7 @@ def test_constructor_call(
                 chain_id,
                 settle_min,
                 -3,
-                deprecation_executor,
+                controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
             ]
@@ -237,7 +237,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -248,7 +248,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -259,7 +259,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -272,7 +272,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -283,7 +283,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -296,7 +296,7 @@ def test_constructor_call(
             _chain_id=0,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -309,7 +309,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MAX,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -322,7 +322,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=0,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -335,7 +335,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=0,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -348,7 +348,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
@@ -361,7 +361,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=0,
         )
@@ -375,7 +375,7 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _deprecation_executor=deprecation_executor,
+            _controller=controller,
             _channel_participant_deposit_limit=token_network_deposit_limit,
             _token_network_deposit_limit=channel_participant_deposit_limit,
         )
@@ -387,7 +387,7 @@ def test_constructor_call(
         _chain_id=chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-        _deprecation_executor=deprecation_executor,
+        _controller=controller,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
     )

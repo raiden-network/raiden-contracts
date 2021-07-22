@@ -112,7 +112,7 @@ def print_gas_token_network_deployment(
     token_network_deposit_limit: int,
 ) -> None:
     """Abusing pytest to print the deployment gas cost of TokenNetwork"""
-    deprecation_executor = get_accounts(1)[0]
+    controller = get_accounts(1)[0]
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK,
         libs=token_network_libs,
@@ -121,7 +121,7 @@ def print_gas_token_network_deployment(
         _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-        _deprecation_executor=deprecation_executor,
+        _controller=controller,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
     )

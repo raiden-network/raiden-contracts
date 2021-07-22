@@ -17,7 +17,7 @@ contract TokenNetworkRegistry is Utils {
     uint256 public max_token_networks;
 
     // Only for the limited Red Eyes release
-    address public deprecation_executor;
+    address public controller;
     uint256 public token_network_created = 0;
 
     // Token address => TokenNetwork address
@@ -59,7 +59,7 @@ contract TokenNetworkRegistry is Utils {
         settlement_timeout_max = _settlement_timeout_max;
         max_token_networks = _max_token_networks;
 
-        deprecation_executor = msg.sender;
+        controller = msg.sender;
     }
 
     /// @notice Deploy a new TokenNetwork contract for the Token deployed at
@@ -89,7 +89,7 @@ contract TokenNetworkRegistry is Utils {
             chain_id,
             settlement_timeout_min,
             settlement_timeout_max,
-            deprecation_executor,
+            controller,
             _channel_participant_deposit_limit,
             _token_network_deposit_limit
         );
@@ -112,11 +112,11 @@ contract TokenNetworkRegistry is Utils {
     }
 
     /// @notice Removes the limit on the number of token networks.
-    /// Can only be called by the deprecation_executor.
+    /// Can only be called by the controller.
     function removeLimits()
         external
     {
-        require(msg.sender == deprecation_executor, "Can only be called by deprecation_executor");
+        require(msg.sender == controller, "Can only be called by controller");
         max_token_networks = MAX_INT;
     }
 }

@@ -299,7 +299,7 @@ class ContractDeployer(ContractVerifier):
             _chain_id=chain_id,
             _settlement_timeout_min=settle_timeout_min,
             _settlement_timeout_max=settle_timeout_max,
-            _deprecation_executor=self.owner,
+            _controller=self.owner,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )

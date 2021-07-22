@@ -159,7 +159,7 @@ def token_network_external(
         _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-        _deprecation_executor=DEPLOYER_ADDRESS,
+        _controller=DEPLOYER_ADDRESS,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
     )
