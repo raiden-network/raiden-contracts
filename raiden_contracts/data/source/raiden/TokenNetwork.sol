@@ -11,6 +11,8 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/SecretRegistry.sol";
 
+uint256 constant MAX_INT = 2**256 - 1;
+
 /// @title TokenNetwork
 /// @notice Stores and manages all the Raiden Network channels that use the
 /// token specified in this TokenNetwork contract.
@@ -201,7 +203,7 @@ contract TokenNetwork is Utils {
     );
 
     modifier onlyDeprecationExecutor() {
-        require(msg.sender == deprecation_executor);
+        require(msg.sender == deprecation_executor, "Can only be called by deprecation_executor");
         _;
     }
 
@@ -1552,5 +1554,15 @@ contract TokenNetwork is Utils {
         // Remove the pair's channel counter
         pair_hash = getParticipantsHash(participant1, participant2);
         delete participants_hash_to_channel_identifier[pair_hash];
+    }
+
+    /// @notice Removes the balance limits.
+    /// Can only be called by the deprecation_executor.
+    function removeLimits()
+        external
+        onlyDeprecationExecutor
+    {
+        channel_participant_deposit_limit = MAX_INT;
+        token_network_deposit_limit = MAX_INT;
     }
 }
