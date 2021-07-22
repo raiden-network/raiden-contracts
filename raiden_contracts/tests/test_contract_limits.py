@@ -152,6 +152,14 @@ def test_participant_deposit_limit(
         {"from": B},
     )
 
+    # Now disable the limits and try again
+    with pytest.raises(TransactionFailed, match="Can only be called by"):
+        call_and_transact(token_network.functions.removeLimits())
+    call_and_transact(token_network.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
+    token_network.functions.setTotalDeposit(
+        channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
+    ).call({"from": B})
+
 
 @pytest.mark.skip(reason="Only for local testing, otherwise it takes too much time to run.")
 def test_network_deposit_limit(
@@ -243,3 +251,7 @@ def test_network_deposit_limit(
     D = create_account()
     with pytest.raises(TransactionFailed):
         create_channel(C, D)
+
+    # Now disable the limits and try again
+    call_and_transact(token_network.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
+    token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})

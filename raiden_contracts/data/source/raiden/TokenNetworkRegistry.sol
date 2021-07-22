@@ -6,8 +6,6 @@ import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
 
-uint256 constant MAX_INT = 2**256 - 1;
-
 /// @title TokenNetworkRegistry
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
