@@ -6,7 +6,7 @@ from web3.contract import Contract
 from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import EMPTY_ADDRESS, ChannelEvent
-from raiden_contracts.tests.utils import call_and_transact
+from raiden_contracts.tests.utils import EMPTY_LOCKSROOT, call_and_transact
 from raiden_contracts.utils.events import check_channel_settled, check_withdraw_2
 from raiden_contracts.utils.type_aliases import BlockExpiration
 
@@ -611,6 +611,14 @@ def test_cooperative_settle_channel_event(
     ev_handler.add(
         txn_hash,
         ChannelEvent.SETTLED,
-        check_channel_settled(channel_identifier, balance_B, balance_A),
+        check_channel_settled(
+            channel_identifier,
+            B,
+            balance_B,
+            EMPTY_LOCKSROOT,
+            A,
+            balance_A,
+            EMPTY_LOCKSROOT,
+        ),
     )
     ev_handler.check()

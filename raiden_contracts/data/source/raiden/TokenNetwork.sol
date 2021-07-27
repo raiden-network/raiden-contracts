@@ -192,8 +192,10 @@ contract TokenNetwork is Utils {
 
     event ChannelSettled(
         uint256 indexed channel_identifier,
+        address participant1,
         uint256 participant1_amount,
         bytes32 participant1_locksroot,
+        address participant2,
         uint256 participant2_amount,
         bytes32 participant2_locksroot
     );
@@ -559,7 +561,7 @@ contract TokenNetwork is Utils {
         }
         removeChannelData(channel, channel_identifier, data1.participant, data2.participant);
 
-        emit ChannelSettled(channel_identifier, data1.total_withdraw, 0, data2.total_withdraw, 0);
+        emit ChannelSettled(channel_identifier, data1.participant, data1.total_withdraw, 0, data2.participant, data2.total_withdraw, 0);
     }
 
     /// @notice Close the channel defined by the two participant addresses.
@@ -873,8 +875,10 @@ contract TokenNetwork is Utils {
 
         emit ChannelSettled(
             channel_identifier,
+            participant1,
             participant1_settlement.transferred_amount,
             participant1_settlement.locksroot,
+            participant2,
             participant2_settlement.transferred_amount,
             participant2_settlement.locksroot
         );
