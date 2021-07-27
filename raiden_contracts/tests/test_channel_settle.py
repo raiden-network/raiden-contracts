@@ -733,5 +733,11 @@ def test_settle_channel_event(
         {"from": A},
     )
 
-    ev_handler.add(txn_hash, ChannelEvent.SETTLED, check_channel_settled(channel_identifier, 5, 5))
+    ev_handler.add(
+        txn_hash,
+        ChannelEvent.SETTLED,
+        check_channel_settled(
+            channel_identifier, B, 5, LOCKSROOT_OF_NO_LOCKS, A, 5, LOCKSROOT_OF_NO_LOCKS
+        ),
+    )
     ev_handler.check()

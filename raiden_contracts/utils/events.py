@@ -133,11 +133,21 @@ def check_transfer_updated(
 
 
 def check_channel_settled(
-    channel_identifier: int, participant1_amount: int, participant2_amount: int
+    channel_identifier: int,
+    participant1: HexAddress,
+    participant1_amount: int,
+    participant1_locksroot: bytes,
+    participant2: HexAddress,
+    participant2_amount: int,
+    participant2_locksroot: bytes,
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
+        assert event["args"]["participant1"] == participant1
         assert event["args"]["participant1_amount"] == participant1_amount
+        assert event["args"]["participant1_locksroot"] == participant1_locksroot
+        assert event["args"]["participant2"] == participant2
         assert event["args"]["participant2_amount"] == participant2_amount
+        assert event["args"]["participant2_locksroot"] == participant2_locksroot
 
     return get
