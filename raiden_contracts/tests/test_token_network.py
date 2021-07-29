@@ -231,7 +231,7 @@ def test_constructor_call(
         )
 
     # failures with Ethereum addresses that don't contain a Token contract
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid token address"):
         get_token_network(
             _token_address=EMPTY_ADDRESS,
             _secret_registry=secret_registry_contract.address,
@@ -242,7 +242,7 @@ def test_constructor_call(
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid token"):
         get_token_network(
             _token_address=A,
             _secret_registry=secret_registry_contract.address,
@@ -266,7 +266,7 @@ def test_constructor_call(
         )
 
     # failures with Ethereum addresses that don't contain the SecretRegistry contract
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid SR address"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=EMPTY_ADDRESS,
@@ -277,7 +277,7 @@ def test_constructor_call(
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid SR contract"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=A,
@@ -290,7 +290,7 @@ def test_constructor_call(
         )
 
     # failure with chain_id zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="invalid chain id"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -303,7 +303,7 @@ def test_constructor_call(
         )
 
     # failure with a timeout min and max swapped
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid settle timeouts"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -316,7 +316,7 @@ def test_constructor_call(
         )
 
     # failure with settle_timeout_min being zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid settle timeout min"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -329,7 +329,7 @@ def test_constructor_call(
         )
 
     # failure with settle_timeout_max being zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid settle timeouts"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -342,7 +342,7 @@ def test_constructor_call(
         )
 
     # failure with channel_participant_deposit_limit being zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid participant limit"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -355,7 +355,7 @@ def test_constructor_call(
         )
 
     # failure with both limits being zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid participant limit"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
@@ -369,7 +369,7 @@ def test_constructor_call(
 
     # failure with channel_participant_deposit_limit being bigger than
     # token_network_deposit_limit.
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid deposit limits"):
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,

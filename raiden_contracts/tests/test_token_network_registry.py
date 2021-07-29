@@ -310,13 +310,13 @@ def test_create_erc20_token_network_call(
         )
 
     # failures with addresses where no Token contract can be found
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid token address"):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             EMPTY_ADDRESS,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
         ).call()
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid token contract"):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             A, channel_participant_deposit_limit, token_network_deposit_limit
         ).call()
@@ -328,17 +328,17 @@ def test_create_erc20_token_network_call(
         ).call()
 
     # failures with invalid deposit limits
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid participant limit"):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             custom_token.address, 0, token_network_deposit_limit
         ).call({"from": DEPLOYER_ADDRESS})
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid network deposit limit"):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             custom_token.address, channel_participant_deposit_limit, 0
         ).call({"from": DEPLOYER_ADDRESS})
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: invalid deposit limits"):
         # fails because token_network_deposit_limit is smaller than
         # channel_participant_deposit_limit.
         token_network_registry_contract.functions.createERC20TokenNetwork(
