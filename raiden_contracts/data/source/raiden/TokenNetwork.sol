@@ -988,9 +988,9 @@ contract TokenNetwork is Utils, Controllable {
         view
         returns (uint256)
     {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
+        require(participant != address(0x0), "TN: participant address zero");
+        require(partner != address(0x0), "TN: partner address zero");
+        require(participant != partner, "TN: identical addresses");
 
         bytes32 pair_hash = getParticipantsHash(participant, partner);
         return participants_hash_to_channel_identifier[pair_hash];
@@ -1137,9 +1137,9 @@ contract TokenNetwork is Utils, Controllable {
     )
         internal
     {
-        require(channel_identifier == getChannelIdentifier(participant, partner));
-        require(total_deposit > 0);
-        require(total_deposit <= channel_participant_deposit_limit);
+        require(channel_identifier == getChannelIdentifier(participant, partner), "TN/deposit: channel id mismatch");
+        require(total_deposit > 0, "TN/deposit: total_deposit is zero");
+        require(total_deposit <= channel_participant_deposit_limit, "TN/deposit: deposit limit reached");
 
         uint256 added_deposit;
         uint256 channel_deposit;
@@ -1152,17 +1152,20 @@ contract TokenNetwork is Utils, Controllable {
         added_deposit = total_deposit - participant_state.deposit;
 
         // The actual amount of tokens that will be transferred must be > 0
-        require(added_deposit > 0);
+        require(added_deposit > 0, "TN/deposit: no deposit added");
 
         // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
-        require(added_deposit <= total_deposit);
+        require(added_deposit <= total_deposit, "TN/deposit: deposit underflow");
 
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens
         assert(participant_state.deposit + added_deposit == total_deposit);
 
         // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit);
+        require(
+            token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit,
+            "TN/deposit: network limit reached"
+        );
 
         // Update the participant's channel deposit
         participant_state.deposit = total_deposit;
@@ -1170,7 +1173,7 @@ contract TokenNetwork is Utils, Controllable {
         // Calculate the entire channel deposit, to avoid overflow
         channel_deposit = participant_state.deposit + partner_state.deposit;
         // Overflow check
-        require(channel_deposit >= participant_state.deposit);
+        require(channel_deposit >= participant_state.deposit, "TN/deposit: deposit overflow");
 
         emit ChannelNewDeposit(
             channel_identifier,
@@ -1179,7 +1182,7 @@ contract TokenNetwork is Utils, Controllable {
         );
 
         // Do the transfer
-        require(token.transferFrom(token_owner, address(this), added_deposit));
+        require(token.transferFrom(token_owner, address(this), added_deposit), "TN/deposit: transfer failed");
     }
 
     function updateBalanceProofData(
