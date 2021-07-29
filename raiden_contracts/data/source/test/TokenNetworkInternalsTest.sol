@@ -166,7 +166,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         returns (address signature_address)
     {
         return TokenNetworkUtils.recoverAddressFromBalanceProof(
-            chain_id,
+            getChainID(),
             channel_identifier,
             balance_hash,
             nonce,
@@ -190,7 +190,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     {
         return TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
             message_type_id,
-            chain_id,
+            getChainID(),
             channel_identifier,
             balance_hash,
             nonce,
@@ -212,7 +212,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         returns (address signature_address)
     {
         return TokenNetworkUtils.recoverAddressFromWithdrawMessage(
-            chain_id,
+            getChainID(),
             channel_identifier,
             participant,
             total_withdraw,

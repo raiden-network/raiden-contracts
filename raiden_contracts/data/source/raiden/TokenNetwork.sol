@@ -424,7 +424,7 @@ contract TokenNetwork is Utils, Controllable {
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
         require(withdraw_data.participant == TokenNetworkUtils.recoverAddressFromWithdrawMessage(
-            chain_id,
+            getChainID(),
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
@@ -432,7 +432,7 @@ contract TokenNetwork is Utils, Controllable {
             withdraw_data.participant_signature
         ), "WD: invalid participant sig");
         partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
-            chain_id,
+            getChainID(),
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
@@ -595,7 +595,7 @@ contract TokenNetwork is Utils, Controllable {
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProof,
-            chain_id,
+            getChainID(),
             channel_identifier,
             balance_hash,
             nonce,
@@ -611,7 +611,7 @@ contract TokenNetwork is Utils, Controllable {
         // lose the tokens that were transferred to him.
         if (nonce > 0) {
             recovered_non_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProof(
-                chain_id,
+                getChainID(),
                 channel_identifier,
                 balance_hash,
                 nonce,
@@ -680,7 +680,7 @@ contract TokenNetwork is Utils, Controllable {
         // anyone to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProofUpdate,
-            chain_id,
+            getChainID(),
             channel_identifier,
             balance_hash,
             nonce,
@@ -691,7 +691,7 @@ contract TokenNetwork is Utils, Controllable {
         require(non_closing_participant == recovered_non_closing_participant);
 
         recovered_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProof(
-            chain_id,
+            getChainID(),
             channel_identifier,
             balance_hash,
             nonce,

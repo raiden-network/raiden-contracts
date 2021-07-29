@@ -37,7 +37,16 @@ def patch_genesis_gas_limit() -> None:
 @pytest.fixture(scope="session")
 def web3(ethereum_tester: EthereumTester) -> Web3:
     """Returns an initialized Web3 instance"""
-    provider = EthereumTesterProvider(ethereum_tester)
+
+    # Workaround different chain_ids used by web3 and eth tester by forcing
+    # web3 to use zero as chain_id. See
+    # https://github.com/ethereum/web3.py/issues/1677#issuecomment-656764267
+    from web3.providers.eth_tester.defaults import API_ENDPOINTS
+
+    api = dict(API_ENDPOINTS)
+    api["eth"]["chainId"] = lambda *args, **kwargs: 1
+
+    provider = EthereumTesterProvider(ethereum_tester, api_endpoints=api)
     web3 = Web3(provider)
     # Improve test speed by skipping the gas cost estimation.
     web3.eth.estimateGas = lambda txn: int(5.2e6)  # pylint: disable=E1101
