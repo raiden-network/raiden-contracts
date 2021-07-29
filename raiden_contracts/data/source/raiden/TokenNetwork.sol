@@ -282,7 +282,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 channel_identifier;
 
         // Red Eyes release token network limit
-        require(token.balanceOf(address(this)) < token_network_deposit_limit);
+        require(token.balanceOf(address(this)) < token_network_deposit_limit, "TN/open: network deposit limit reached");
 
         // First increment the counter
         // There will never be a channel with channel_identifier == 0
@@ -293,7 +293,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // There must only be one channel opened between two participants at
         // any moment in time.
-        require(participants_hash_to_channel_identifier[pair_hash] == 0);
+        require(participants_hash_to_channel_identifier[pair_hash] == 0, "TN/open: channel exists for participants");
         participants_hash_to_channel_identifier[pair_hash] = channel_identifier;
 
         Channel storage channel = channels[channel_identifier];
@@ -1095,9 +1095,9 @@ contract TokenNetwork is Utils, Controllable {
         pure
         returns (bytes32)
     {
-        require(participant != address(0x0));
-        require(partner != address(0x0));
-        require(participant != partner);
+        require(participant != address(0x0), "TN: participant address zero");
+        require(partner != address(0x0), "TN: partner address zero");
+        require(participant != partner, "TN: identical addresses");
 
         if (participant < partner) {
             return keccak256(abi.encodePacked(participant, partner));
