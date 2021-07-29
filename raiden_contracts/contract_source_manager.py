@@ -56,21 +56,11 @@ class ContractSourceManager:
             for contracts_dir in self.contracts_source_dirs.values():
                 res = solcx.compile_files(
                     [str(relativise(file)) for file in contracts_dir.glob("*.sol")],
-                    output_values=PRECOMPILED_DATA_FIELDS + ["ast"],
+                    output_values=PRECOMPILED_DATA_FIELDS,
                     import_remappings=import_dir_map,
                     optimize=False,
                 )
 
-                # Strip `ast` part from result
-                # TODO: Remove after https://github.com/ethereum/py-solc/issues/56 is fixed
-                res = {
-                    contract_name: {
-                        content_key: content_value
-                        for content_key, content_value in contract_content.items()
-                        if content_key != "ast"
-                    }
-                    for contract_name, contract_content in res.items()
-                }
                 ret.update(_fix_contract_key_names(res))
         except FileNotFoundError as ex:
             raise ContractSourceManagerCompilationError(
