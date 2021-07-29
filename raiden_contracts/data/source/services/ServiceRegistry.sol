@@ -5,14 +5,9 @@ pragma solidity 0.7.6;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
+import "raiden/Controllable.sol";
 
-contract ServiceRegistryConfigurableParameters {
-    address public controller;
-
-    modifier onlyController() {
-        require(msg.sender == controller, "caller is not the controller");
-        _;
-    }
+contract ServiceRegistryConfigurableParameters is Controllable {
 
     // After a price is set to set_price at timestamp set_price_at,
     // the price decays according to decayedPrice().
