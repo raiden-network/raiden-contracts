@@ -447,7 +447,7 @@ def test_internal_min_price(service_registry: Contract) -> None:
 def test_unauthorized_parameter_change(service_registry: Contract, get_accounts: Callable) -> None:
     """A random address's changeParameters() call should fail"""
     (A,) = get_accounts(1)
-    with pytest.raises(TransactionFailed, match="caller is not the controller"):
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
         call_and_transact(
             service_registry.functions.changeParameters(
                 _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
@@ -463,7 +463,7 @@ def test_unauthorized_parameter_change(service_registry: Contract, get_accounts:
 
 def test_parameter_change_on_no_controller(service_registry_without_controller: Contract) -> None:
     """A random address's changeParameters() call should fail"""
-    with pytest.raises(TransactionFailed, match="caller is not the controller"):
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
         call_and_transact(
             service_registry_without_controller.functions.changeParameters(
                 _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
@@ -578,7 +578,7 @@ def test_unauthorized_deprecation_switch(
 ) -> None:
     """A random account cannot turn on the deprecation switch"""
     (A,) = get_accounts(1)
-    with pytest.raises(TransactionFailed, match="caller is not the controller"):
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
         call_and_transact(service_registry.functions.setDeprecationSwitch(), {"from": A})
 
 
