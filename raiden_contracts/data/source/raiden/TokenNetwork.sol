@@ -30,10 +30,6 @@ contract TokenNetwork is Utils, Controllable {
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
-    uint256 constant public MAX_SAFE_UINT256 = (
-        115792089237316195423570985008687907853269984665640564039457584007913129639935
-    );
-
     // The deposit limit per channel per participant.
     uint256 public channel_participant_deposit_limit;
     // The total combined deposit of all channels across the whole network
