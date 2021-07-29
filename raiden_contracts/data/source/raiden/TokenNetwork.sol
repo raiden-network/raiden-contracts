@@ -10,11 +10,12 @@ import "lib/TokenNetworkUtils.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/SecretRegistry.sol";
+import "services/Controllable.sol";
 
 /// @title TokenNetwork
 /// @notice Stores and manages all the Raiden Network channels that use the
 /// token specified in this TokenNetwork contract.
-contract TokenNetwork is Utils {
+contract TokenNetwork is Utils, Controllable {
     // I would like to put this constant outside the contract, but solium complains.
     uint256 constant MAX_INT = 2**256 - 1;
 
@@ -46,7 +47,6 @@ contract TokenNetwork is Utils {
     uint256 public channel_counter;
 
     // Only for the limited Red Eyes release
-    address public controller;
     bool public safety_deprecation_switch = false;
 
     // channel_identifier => Channel
@@ -202,11 +202,6 @@ contract TokenNetwork is Utils {
         uint256 participant2_amount,
         bytes32 participant2_locksroot
     );
-
-    modifier onlyController() {
-        require(msg.sender == controller, "Can only be called by controller");
-        _;
-    }
 
     modifier isSafe() {
         require(safety_deprecation_switch == false);
@@ -1565,14 +1560,5 @@ contract TokenNetwork is Utils {
     {
         channel_participant_deposit_limit = MAX_INT;
         token_network_deposit_limit = MAX_INT;
-    }
-
-    /// @notice Changes the controller who is allowed to deprecate or remove limits.
-    /// Can only be called by the controller.
-    function changeController(address new_controller)
-        external
-        onlyController
-    {
-        controller = new_controller;
     }
 }

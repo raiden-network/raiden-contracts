@@ -5,11 +5,12 @@ pragma solidity 0.7.6;
 import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
+import "services/Controllable.sol";
 
 /// @title TokenNetworkRegistry
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
-contract TokenNetworkRegistry is Utils {
+contract TokenNetworkRegistry is Utils, Controllable {
     // I would like to put this constant outside the contract, but solium complains.
     uint256 constant MAX_INT = 2**256 - 1;
 
@@ -20,7 +21,6 @@ contract TokenNetworkRegistry is Utils {
     uint256 public max_token_networks;
 
     // Only for the limited Red Eyes release
-    address public controller;
     uint256 public token_network_created = 0;
 
     // Token address => TokenNetwork address
@@ -125,18 +125,9 @@ contract TokenNetworkRegistry is Utils {
     /// Can only be called by the controller.
     function removeLimits()
         external
+        onlyController
     {
-        require(msg.sender == controller, "Can only be called by controller");
         max_token_networks = MAX_INT;
-    }
-
-    /// @notice Changes the controller who is allowed to deprecate or remove limits.
-    /// Can only be called by the controller.
-    function changeController(address new_controller)
-        external
-    {
-        require(msg.sender == controller, "Can only be called by controller");
-        controller = new_controller;
     }
 }
 
