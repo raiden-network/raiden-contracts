@@ -16,9 +16,6 @@ import "services/Controllable.sol";
 /// @notice Stores and manages all the Raiden Network channels that use the
 /// token specified in this TokenNetwork contract.
 contract TokenNetwork is Utils, Controllable {
-    // I would like to put this constant outside the contract, but solium complains.
-    uint256 constant MAX_INT = 2**256 - 1;
-
     // Instance of the token used by the channels
     Token public token;
 
@@ -1558,7 +1555,7 @@ contract TokenNetwork is Utils, Controllable {
         external
         onlyController
     {
-        channel_participant_deposit_limit = MAX_INT;
-        token_network_deposit_limit = MAX_INT;
+        channel_participant_deposit_limit = MAX_SAFE_UINT256;
+        token_network_deposit_limit = MAX_SAFE_UINT256;
     }
 }
