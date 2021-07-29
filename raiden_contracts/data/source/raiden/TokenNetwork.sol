@@ -197,18 +197,18 @@ contract TokenNetwork is Utils, Controllable {
     );
 
     modifier isSafe() {
-        require(safety_deprecation_switch == false);
+        require(safety_deprecation_switch == false, "TN: network is deprecated");
         _;
     }
 
     modifier isOpen(uint256 channel_identifier) {
-        require(channels[channel_identifier].state == ChannelState.Opened);
+        require(channels[channel_identifier].state == ChannelState.Opened, "TN: channel not open");
         _;
     }
 
     modifier settleTimeoutValid(uint256 timeout) {
-        require(timeout >= settlement_timeout_min);
-        require(timeout <= settlement_timeout_max);
+        require(timeout >= settlement_timeout_min, "TN: settle timeout < min");
+        require(timeout <= settlement_timeout_max, "TN: settle timeout > max");
         _;
     }
 
@@ -234,17 +234,17 @@ contract TokenNetwork is Utils, Controllable {
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
     ) {
-        require(_token_address != address(0x0));
-        require(_secret_registry != address(0x0));
-        require(_controller != address(0x0));
-        require(_chain_id > 0);
-        require(_settlement_timeout_min > 0);
-        require(_settlement_timeout_max > _settlement_timeout_min);
-        require(contractExists(_token_address));
-        require(contractExists(_secret_registry));
-        require(_channel_participant_deposit_limit > 0);
-        require(_token_network_deposit_limit > 0);
-        require(_token_network_deposit_limit >= _channel_participant_deposit_limit);
+        require(_token_address != address(0x0), "TN: invalid token address");
+        require(_secret_registry != address(0x0), "TN: invalid SR address");
+        require(_controller != address(0x0), "TN: invalid controller address");
+        require(_chain_id > 0, "TN: invalid chain id");
+        require(_settlement_timeout_min > 0, "TN: invalid settle timeout min");
+        require(_settlement_timeout_max > _settlement_timeout_min, "TN: invalid settle timeouts");
+        require(contractExists(_token_address), "TN: invalid token contract");
+        require(contractExists(_secret_registry), "TN: invalid SR contract");
+        require(_channel_participant_deposit_limit > 0, "TN: invalid participant limit");
+        require(_token_network_deposit_limit > 0, "TN: invalid network deposit limit");
+        require(_token_network_deposit_limit >= _channel_participant_deposit_limit, "TN: invalid deposit limits");
 
         token = Token(_token_address);
 
@@ -254,7 +254,7 @@ contract TokenNetwork is Utils, Controllable {
         settlement_timeout_max = _settlement_timeout_max;
 
         // Make sure the contract is indeed a token contract
-        require(token.totalSupply() > 0);
+        require(token.totalSupply() > 0, "TN: no supply for token");
 
         controller = _controller;
         channel_participant_deposit_limit = _channel_participant_deposit_limit;
