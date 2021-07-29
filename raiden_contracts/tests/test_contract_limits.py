@@ -46,6 +46,15 @@ def test_register_three_but_not_four(
             token_network_deposit_limit,
         )
     )
+    # Registering the same token again must fail
+    with pytest.raises(TransactionFailed, match="TNR: token already registered"):
+        call_and_transact(
+            token_network_registry.functions.createERC20TokenNetwork(
+                token0.address,
+                channel_participant_deposit_limit,
+                token_network_deposit_limit,
+            )
+        )
     call_and_transact(
         token_network_registry.functions.createERC20TokenNetwork(
             token1.address,
@@ -60,7 +69,7 @@ def test_register_three_but_not_four(
             token_network_deposit_limit,
         )
     )
-    with pytest.raises(TransactionFailed, match="registry full"):
+    with pytest.raises(TransactionFailed, match="TNR: registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             token3.address,
             channel_participant_deposit_limit,
@@ -69,7 +78,7 @@ def test_register_three_but_not_four(
 
     # Now remove the limit and try again
     call_and_transact(token_network_registry.functions.removeLimits(), {"from": DEPLOYER_ADDRESS})
-    with pytest.raises(TransactionFailed, match="Limits must be set to MAX_INT"):
+    with pytest.raises(TransactionFailed, match="TNR: limits must be set to MAX_INT"):
         call_and_transact(
             token_network_registry.functions.createERC20TokenNetwork(
                 token4.address,
