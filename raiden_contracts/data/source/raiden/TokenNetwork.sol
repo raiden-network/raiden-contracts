@@ -10,7 +10,7 @@ import "lib/TokenNetworkUtils.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/SecretRegistry.sol";
-import "services/Controllable.sol";
+import "raiden/Controllable.sol";
 
 /// @title TokenNetwork
 /// @notice Stores and manages all the Raiden Network channels that use the

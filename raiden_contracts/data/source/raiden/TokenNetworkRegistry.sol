@@ -5,7 +5,7 @@ pragma solidity 0.7.6;
 import "raiden/Utils.sol";
 import "raiden/Token.sol";
 import "raiden/TokenNetwork.sol";
-import "services/Controllable.sol";
+import "raiden/Controllable.sol";
 
 /// @title TokenNetworkRegistry
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
