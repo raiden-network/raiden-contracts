@@ -105,7 +105,7 @@ def test_constructor_call(
         )
 
     # failure with chain ID zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=0,
@@ -154,7 +154,7 @@ def test_constructor_call(
         )
 
     # failure with Ethereum accounts that doesn't look like a SecretRegistry
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid SR address"):
         get_token_network_registry(
             _secret_registry_address=EMPTY_ADDRESS,
             _chain_id=chain_id,
@@ -162,7 +162,7 @@ def test_constructor_call(
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid SR"):
         get_token_network_registry(
             _secret_registry_address=A,
             _chain_id=chain_id,
@@ -172,7 +172,7 @@ def test_constructor_call(
         )
 
     # failures with chain_id zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=0,
@@ -180,7 +180,7 @@ def test_constructor_call(
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=0,
@@ -188,7 +188,7 @@ def test_constructor_call(
             _settlement_timeout_max=0,
             _max_token_networks=1,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=0,
@@ -198,7 +198,7 @@ def test_constructor_call(
         )
 
     # failures with nonsense challenge periods
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout min"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=chain_id,
@@ -206,7 +206,7 @@ def test_constructor_call(
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout max"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=chain_id,
@@ -214,7 +214,7 @@ def test_constructor_call(
             _settlement_timeout_max=0,
             _max_token_networks=1,
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeouts"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=chain_id,
@@ -224,11 +224,11 @@ def test_constructor_call(
         )
 
     # failures with nonsense token number limits
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: invalid TN limit"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
             _chain_id=chain_id,
-            _settlement_timeout_min=0,
+            _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=0,
         )
@@ -421,7 +421,7 @@ def test_create_erc20_token_network_twice_fails(
         {"from": DEPLOYER_ADDRESS},
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: registry full"):
         token_network_registry_contract.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
