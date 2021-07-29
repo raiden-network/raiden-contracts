@@ -58,7 +58,8 @@ class ContractSourceManager:
                     [str(relativise(file)) for file in contracts_dir.glob("*.sol")],
                     output_values=PRECOMPILED_DATA_FIELDS + ["ast"],
                     import_remappings=import_dir_map,
-                    optimize=False,
+                    optimize=True,
+                    optimize_runs=200,
                 )
 
                 # Strip `ast` part from result
