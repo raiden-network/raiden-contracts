@@ -11,9 +11,6 @@ import "services/Controllable.sol";
 /// @notice The TokenNetwork Registry deploys new TokenNetwork contracts for the
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils, Controllable {
-    // I would like to put this constant outside the contract, but solium complains.
-    uint256 constant MAX_INT = 2**256 - 1;
-
     address public secret_registry_address;
     uint256 public chain_id;
     uint256 public settlement_timeout_min;
@@ -80,9 +77,9 @@ contract TokenNetworkRegistry is Utils, Controllable {
     {
         // After the limits have been removed, new token networks must be created without limits
         // See https://github.com/raiden-network/raiden-contracts/issues/1416
-        if (max_token_networks == MAX_INT) {
-            require(_channel_participant_deposit_limit == MAX_INT, "Limits must be set to MAX_INT");
-            require(_token_network_deposit_limit == MAX_INT, "Limits must be set to MAX_INT");
+        if (max_token_networks == MAX_SAFE_UINT256) {
+            require(_channel_participant_deposit_limit == MAX_SAFE_UINT256, "Limits must be set to MAX_INT");
+            require(_token_network_deposit_limit == MAX_SAFE_UINT256, "Limits must be set to MAX_INT");
         }
 
         require(token_to_token_networks[_token_address] == address(0x0));
@@ -118,7 +115,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
         external
         returns (address token_network_address)
     {
-        return createERC20TokenNetwork(_token_address, MAX_INT, MAX_INT);
+        return createERC20TokenNetwork(_token_address, MAX_SAFE_UINT256, MAX_SAFE_UINT256);
     }
 
     /// @notice Removes the limit on the number of token networks.
@@ -127,7 +124,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
         external
         onlyController
     {
-        max_token_networks = MAX_INT;
+        max_token_networks = MAX_SAFE_UINT256;
     }
 }
 
