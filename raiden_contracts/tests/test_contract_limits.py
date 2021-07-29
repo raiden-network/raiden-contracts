@@ -121,11 +121,11 @@ def test_participant_deposit_limit(
     assign_tokens(A, MAX_ETH_CHANNEL_PARTICIPANT + 10)
     assign_tokens(B, MAX_ETH_CHANNEL_PARTICIPANT + 10)
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT + 1, B
         ).call({"from": A})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
         ).call({"from": B})
@@ -138,18 +138,18 @@ def test_participant_deposit_limit(
     info_A = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
     assert info_A[ParticipantInfoIndex.DEPOSIT] == deposit_A
 
-    info_B = call_and_transact(
+    call_and_transact(
         token_network.functions.setTotalDeposit(channel_identifier, B, deposit_B, A),
         {"from": B},
     )
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.DEPOSIT] == deposit_B
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT + 1, B
         ).call({"from": A})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
         ).call({"from": B})
@@ -258,13 +258,13 @@ def test_network_deposit_limit(
     )
 
     # After token network limit is reached, we cannot deposit anymore tokens in existent channels
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="abc"):
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})
 
     # After token network limit is reached, we cannot open new channels
     C = create_account()
     D = create_account()
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="abc"):
         create_channel(C, D)
 
     # Now disable the limits and try again
