@@ -10,7 +10,7 @@ from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
-from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS, UINT256_MAX
+from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS
 from raiden_contracts.tests.utils.contracts import call_and_transact
 
 
@@ -394,15 +394,8 @@ def test_constructor_call(
     )
 
 
-def test_token_network_variables(
-    token_network: Contract, token_network_test_utils: Contract
-) -> None:
+def test_token_network_variables(token_network: Contract) -> None:
     """Check values of storage variables of the TokenNetwork contract"""
-    max_safe_uint256 = token_network_test_utils.functions.get_max_safe_uint256().call()
-
-    assert token_network.functions.MAX_SAFE_UINT256().call() == max_safe_uint256
-    assert max_safe_uint256 == UINT256_MAX
-
     assert token_network.functions.channel_counter().call() == 0
 
 

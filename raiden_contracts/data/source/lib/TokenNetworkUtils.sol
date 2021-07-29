@@ -5,6 +5,8 @@ pragma solidity 0.7.6;
 import "lib/ECVerify.sol";
 import "lib/MessageType.sol";
 
+uint256 constant MAX_SAFE_UINT256 = 2**256 - 1;
+
 library TokenNetworkUtils {
     string public constant signature_prefix = "\x19Ethereum Signed Message:\n";
 
@@ -107,9 +109,6 @@ library TokenNetworkUtils {
         pure
         returns (uint256)
     {
-        uint256 MAX_SAFE_UINT256 = (
-            115792089237316195423570985008687907853269984665640564039457584007913129639935
-        );
         uint256 sum = a + b;
         return sum >= a ? sum : MAX_SAFE_UINT256;
     }
