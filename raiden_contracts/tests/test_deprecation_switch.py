@@ -71,13 +71,13 @@ def test_controller(
     assert token_network_registry.functions.token_network_created().call() == 1
 
     # No other TokenNetworks can be deployed now
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
         ).call({"from": B})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TNR: registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
@@ -110,7 +110,7 @@ def test_set_deprecation_switch(
 
     assert token_network.functions.safety_deprecation_switch().call() is False
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="Can only be called by controller"):
         token_network.functions.deprecate().call({"from": A})
 
     tx = call_and_transact(token_network.functions.deprecate(), {"from": controller})
@@ -121,7 +121,7 @@ def test_set_deprecation_switch(
     assert event_data["args"]["new_value"]
 
     # We should not be able to call it again
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
         token_network.functions.deprecate().call({"from": A})
 
 
@@ -146,13 +146,13 @@ def test_deprecation_switch(
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # Now we cannot deposit in existent channels
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
         channel_deposit(channel_identifier, A, bigger_deposit, B)
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
         channel_deposit(channel_identifier, B, bigger_deposit, A)
 
     # Now we cannot open channels anymore
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
         channel_identifier = create_channel(C, D)[0]
 
 
