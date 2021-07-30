@@ -942,12 +942,18 @@ contract TokenNetwork is Utils, Controllable {
     {
         // Channel represented by channel_identifier must be settled and
         // channel data deleted
-        require(channel_identifier != getChannelIdentifier(receiver, sender));
+        require(
+            channel_identifier != getChannelIdentifier(receiver, sender),
+            "TN/unlock: channel id still exists"
+        );
 
         // After the channel is settled the storage is cleared, therefore the
         // value will be NonExistent and not Settled. The value Settled is used
         // for the external APIs
-        require(channels[channel_identifier].state == ChannelState.NonExistent);
+        require(
+            channels[channel_identifier].state == ChannelState.NonExistent,
+            "TN/unlock: channel not settled"
+        );
 
         bytes32 unlock_key;
         bytes32 computed_locksroot;
@@ -971,11 +977,11 @@ contract TokenNetwork is Utils, Controllable {
         locked_amount = unlock_data.locked_amount;
 
         // Locksroot must be the same as the computed locksroot
-        require(unlock_data.locksroot == computed_locksroot);
+        require(unlock_data.locksroot == computed_locksroot, "TN/unlock: locksroot mismatch");
 
         // There are no pending transfers if the locked_amount is 0.
         // Transaction must fail
-        require(locked_amount > 0);
+        require(locked_amount > 0, "TN/unlock: zero locked amount");
 
         // Make sure we don't transfer more tokens than previously reserved in
         // the smart contract.
@@ -999,12 +1005,12 @@ contract TokenNetwork is Utils, Controllable {
         // Transfer the unlocked tokens to the receiver. unlocked_amount can
         // be 0
         if (unlocked_amount > 0) {
-            require(token.transfer(receiver, unlocked_amount));
+            require(token.transfer(receiver, unlocked_amount), "TN/unlock: unlocked transfer failed");
         }
 
         // Transfer the rest of the tokens back to the sender
         if (returned_tokens > 0) {
-            require(token.transfer(sender, returned_tokens));
+            require(token.transfer(sender, returned_tokens), "TN/unlock: returned transfer failed");
         }
 
         // At this point, this should always be true
@@ -1159,7 +1165,7 @@ contract TokenNetwork is Utils, Controllable {
         pure
         returns (bytes32)
     {
-        require(sender != receiver);
+        require(sender != receiver, "TN: sender/receiver mismatch");
         return keccak256(abi.encodePacked(channel_identifier, sender, receiver));
     }
 
@@ -1519,7 +1525,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // each lock has this form:
         // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
-        require(length % 96 == 0);
+        require(length % 96 == 0, "TN: invalid locks size");
 
         uint256 i;
         uint256 total_unlocked_amount;
