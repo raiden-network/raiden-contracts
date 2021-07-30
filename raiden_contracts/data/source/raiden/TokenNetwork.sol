@@ -825,27 +825,30 @@ contract TokenNetwork is Utils, Controllable {
 
         address participant1 = participant1_settlement.participant;
         address participant2 = participant2_settlement.participant;
-        require(channel_identifier == getChannelIdentifier(participant1, participant2));
+        require(
+            channel_identifier == getChannelIdentifier(participant1, participant2),
+            "TN/settle: channel id mismatch"
+        );
 
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, "TN/settle: channel not closed");
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number);
+        require(channel.settle_block_number < block.number, "TN/settle: settlement timeout");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
 
-        require(verifyBalanceHashData(
-            participant1_state,
-            participant1_settlement
-        ));
+        require(
+            verifyBalanceHashData(participant1_state, participant1_settlement),
+            "TN/settle: invalid data for participant 1"
+        );
 
-        require(verifyBalanceHashData(
-            participant2_state,
-            participant2_settlement
-        ));
+        require(
+            verifyBalanceHashData(participant2_state, participant2_settlement),
+            "TN/settle: invalid data for participant 2"
+        );
 
         // We are calculating the final token amounts that need to be
         // transferred to the participants now and the amount of tokens that
@@ -902,11 +905,17 @@ contract TokenNetwork is Utils, Controllable {
 
         // Do the actual token transfers
         if (participant1_settlement.transferred_amount > 0) {
-            require(token.transfer(participant1, participant1_settlement.transferred_amount));
+            require(
+                token.transfer(participant1, participant1_settlement.transferred_amount),
+                "TN/settle: transfer for participant 1 failed"
+            );
         }
 
         if (participant2_settlement.transferred_amount > 0) {
-            require(token.transfer(participant2, participant2_settlement.transferred_amount));
+            require(
+                token.transfer(participant2, participant2_settlement.transferred_amount),
+                "TN/settle: transfer for participant 2 failed"
+            );
         }
     }
 

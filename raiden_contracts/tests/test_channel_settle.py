@@ -498,7 +498,7 @@ def test_settle_wrong_state_fail(
     assert state == ChannelState.OPENED
     assert settle_timeout == TEST_SETTLE_TIMEOUT_MIN
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: channel not closed"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
@@ -523,7 +523,7 @@ def test_settle_wrong_state_fail(
     assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(txn_hash)
     assert web3.eth.block_number < settle_block_number
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: settlement timeout"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
@@ -587,61 +587,61 @@ def test_settle_wrong_balance_hash(
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.transferred += 1
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = 0
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.transferred = UINT256_MAX
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locked_amounts.claimable_locked += 1
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked_amounts.claimable_locked = 0
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locked_amounts.unclaimable_locked = 0
     vals_A_fail.locked_amounts.claimable_locked = UINT256_MAX
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, B, vals_B, A, vals_A_fail)
 
     vals_A_fail = deepcopy(vals_A)
     vals_A_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_A_fail.locksroot = fake_bytes(32, "01")
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, A, vals_A_fail, B, vals_B)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.transferred += 1
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.transferred = 0
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, B, vals_B_fail, A, vals_A)
 
     vals_B_fail.transferred = UINT256_MAX
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locked_amounts.claimable_locked += 1
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locked_amounts.claimable_locked = 0
@@ -650,16 +650,16 @@ def test_settle_wrong_balance_hash(
 
     vals_B_fail.locked_amounts.unclaimable_locked = 0
     vals_B_fail.locked_amounts.claimable_locked = UINT256_MAX
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail = deepcopy(vals_B)
     vals_B_fail.locksroot = LOCKSROOT_OF_NO_LOCKS
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     vals_B_fail.locksroot = fake_bytes(32, "01")
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 2"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B_fail)
 
     # Channel is settled
