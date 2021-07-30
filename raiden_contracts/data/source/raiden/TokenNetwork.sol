@@ -424,8 +424,8 @@ contract TokenNetwork is Utils, Controllable {
         uint256 current_withdraw;
         address partner;
 
-        require(withdraw_data.total_withdraw > 0);
-        require(block.number < withdraw_data.expiration_block);
+        require(withdraw_data.total_withdraw > 0, "TN/withdraw: total withdraw is zero");
+        require(block.number < withdraw_data.expiration_block, "TN/withdraw: expired");
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -436,7 +436,7 @@ contract TokenNetwork is Utils, Controllable {
             withdraw_data.total_withdraw,
             withdraw_data.expiration_block,
             withdraw_data.participant_signature
-        ), "WD: invalid participant sig");
+        ), "TN/withdraw: invalid participant sig");
         partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
@@ -447,7 +447,10 @@ contract TokenNetwork is Utils, Controllable {
         );
 
         // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(withdraw_data.participant, partner), "WD: channel id not matching");
+        require(
+            channel_identifier == getChannelIdentifier(withdraw_data.participant, partner),
+            "TN/withdraw: channel id mismatch"
+        );
 
         // Read channel state after validating the function input
         Channel storage channel = channels[channel_identifier];
@@ -457,8 +460,14 @@ contract TokenNetwork is Utils, Controllable {
         total_deposit = participant_state.deposit + partner_state.deposit;
 
         // Entire withdrawn amount must not be bigger than the current channel deposit
-        require((withdraw_data.total_withdraw + partner_state.withdrawn_amount) <= total_deposit);
-        require(withdraw_data.total_withdraw <= (withdraw_data.total_withdraw + partner_state.withdrawn_amount));
+        require(
+            (withdraw_data.total_withdraw + partner_state.withdrawn_amount) <= total_deposit,
+            "TN/withdraw: withdraw > deposit"
+        );
+        require(
+            withdraw_data.total_withdraw <= (withdraw_data.total_withdraw + partner_state.withdrawn_amount),
+            "TN/withdraw: overflow"
+        );
 
         // Using the total_withdraw (monotonically increasing) in the signed
         // message ensures that we do not allow replay attack to happen, by
@@ -466,11 +475,11 @@ contract TokenNetwork is Utils, Controllable {
         // Next two lines enforce the monotonicity of total_withdraw and check for an underflow:
         // (we use <= because current_withdraw == total_withdraw for the first withdraw)
         current_withdraw = withdraw_data.total_withdraw - participant_state.withdrawn_amount;
-        require(current_withdraw <= withdraw_data.total_withdraw);
+        require(current_withdraw <= withdraw_data.total_withdraw, "TN/withdraw: underflow");
 
         // The actual amount of tokens that will be transferred must be > 0 to disable the reuse of
         // withdraw messages completely.
-        require(current_withdraw > 0);
+        require(current_withdraw > 0, "TN/withdraw: amount is zero");
 
         // This should never fail at this point. Added check for security, because we directly set
         // the participant_state.withdrawn_amount = total_withdraw,
@@ -485,7 +494,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // Do the state change and tokens transfer
         participant_state.withdrawn_amount = withdraw_data.total_withdraw;
-        require(token.transfer(withdraw_data.participant, current_withdraw));
+        require(token.transfer(withdraw_data.participant, current_withdraw), "TN/withdraw: transfer failed");
 
         // This should never happen, as we have an overflow check in setTotalDeposit
         assert(total_deposit >= participant_state.deposit);
