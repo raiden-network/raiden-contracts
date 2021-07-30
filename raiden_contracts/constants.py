@@ -17,7 +17,6 @@ PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
 CONTRACT_HUMAN_STANDARD_TOKEN = "HumanStandardToken"
 CONTRACT_TOKEN_NETWORK_REGISTRY = "TokenNetworkRegistry"
 CONTRACT_TOKEN_NETWORK = "TokenNetwork"
-LIBRARY_TOKEN_NETWORK_UTILS = "TokenNetworkUtils"
 CONTRACT_SECRET_REGISTRY = "SecretRegistry"
 CONTRACT_CUSTOM_TOKEN = "CustomToken"
 CONTRACT_CUSTOM_TOKEN_NO_DECIMALS = "CustomTokenNoDecimals"
@@ -27,9 +26,6 @@ CONTRACT_SERVICE_REGISTRY = "ServiceRegistry"
 CONTRACT_USER_DEPOSIT = "UserDeposit"
 CONTRACT_ONE_TO_N = "OneToN"
 CONTRACT_DEPOSIT = "Deposit"
-
-# IDs for linking
-LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY = "data/source/lib/TokenNetworkUtils.sol:TokenNetworkUtils"
 
 # Timeouts
 TEST_SETTLE_TIMEOUT_MIN = 5
