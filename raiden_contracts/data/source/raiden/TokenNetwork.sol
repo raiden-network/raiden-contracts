@@ -606,7 +606,10 @@ contract TokenNetwork is Utils, Controllable {
         public
         isOpen(channel_identifier)
     {
-        require(channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant));
+        require(
+            channel_identifier == getChannelIdentifier(closing_participant, non_closing_participant),
+            "TN/close: channel id mismatch"
+        );
 
         address recovered_non_closing_participant_address;
 
@@ -629,7 +632,7 @@ contract TokenNetwork is Utils, Controllable {
             non_closing_signature,
             closing_signature
         );
-        require(closing_participant == recovered_closing_participant_address);
+        require(closing_participant == recovered_closing_participant_address, "TN/close: invalid closing sig");
 
         // Nonce 0 means that the closer never received a transfer, therefore
         // never received a balance proof, or he is intentionally not providing
@@ -645,7 +648,10 @@ contract TokenNetwork is Utils, Controllable {
                 non_closing_signature
             );
             // Signature must be from the channel partner
-            require(non_closing_participant == recovered_non_closing_participant_address);
+            require(
+                non_closing_participant == recovered_non_closing_participant_address,
+                "TN/close: invalid non-closing sig"
+            );
 
             updateBalanceProofData(
                 channel,
