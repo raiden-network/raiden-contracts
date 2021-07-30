@@ -60,6 +60,7 @@ class ContractSourceManager:
                     import_remappings=import_dir_map,
                     optimize=True,
                     optimize_runs=200,
+                    no_optimize_yul=True
                 )
 
                 ret.update(_fix_contract_key_names(res))
