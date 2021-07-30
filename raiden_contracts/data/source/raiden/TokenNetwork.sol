@@ -529,7 +529,10 @@ contract TokenNetwork is Utils, Controllable {
         bytes32 pair_hash;
 
         // Validate that authenticated partners and the channel identifier match
-        require(channel_identifier == getChannelIdentifier(data1.participant, data2.participant));
+        require(
+            channel_identifier == getChannelIdentifier(data1.participant, data2.participant),
+            "TN/coopSettle: channel id mismatch"
+        );
         Channel storage channel = channels[channel_identifier];
 
         Participant storage participant1_state = channel.participants[data1.participant];
@@ -540,12 +543,12 @@ contract TokenNetwork is Utils, Controllable {
         // available deposit. This also implies that no locks must exist in the channel
         // when this is called, as otherwise the withdrawable amount would be smaller
         // than required.
-        require((data1.total_withdraw + data2.total_withdraw) == total_deposit, "CS: incomplete amounts");
+        require((data1.total_withdraw + data2.total_withdraw) == total_deposit, "TN/coopSettle: incomplete amounts");
         // Overflow check for the balances addition from the above check.
         // This overflow should never happen if the token.transfer function is implemented
         // correctly. We do not control the token implementation, therefore we add this
         // check for safety.
-        require(data1.total_withdraw <= data1.total_withdraw + data2.total_withdraw);
+        require(data1.total_withdraw <= data1.total_withdraw + data2.total_withdraw, "TN/coopSettle: overflow");
 
         if (data1.total_withdraw > 0) {
             this.setTotalWithdraw2(
@@ -561,7 +564,15 @@ contract TokenNetwork is Utils, Controllable {
         }
         removeChannelData(channel, channel_identifier, data1.participant, data2.participant);
 
-        emit ChannelSettled(channel_identifier, data1.participant, data1.total_withdraw, 0, data2.participant, data2.total_withdraw, 0);
+        emit ChannelSettled(
+            channel_identifier,
+            data1.participant,
+            data1.total_withdraw,
+            0,
+            data2.participant,
+            data2.total_withdraw,
+            0
+        );
     }
 
     /// @notice Close the channel defined by the two participant addresses.
