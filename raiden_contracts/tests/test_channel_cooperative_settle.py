@@ -86,7 +86,7 @@ def test_cooperative_settle_channel_call(
             (B, balance_B, EXPIRATION, signature_B2, 0x0),
         )
     # empty addresses
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: participant address zero"):
         call_and_transact(
             token_network.functions.cooperativeSettle(
                 channel_identifier,
@@ -95,7 +95,7 @@ def test_cooperative_settle_channel_call(
             ),
             {"from": C},
         )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: partner address zero"):
         call_and_transact(
             token_network.functions.cooperativeSettle(
                 channel_identifier,
@@ -136,32 +136,32 @@ def test_cooperative_settle_channel_signatures(
         [A, B, C], channel_identifier, B, balance_B, EXPIRATION
     )
 
-    with pytest.raises(TransactionFailed, match="WD: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A, EXPIRATION, signature_C1, signature_B1),
             (B, balance_B, EXPIRATION, signature_B2, signature_A2),
         ).call({"from": C})
-    with pytest.raises(TransactionFailed, match="WD: channel id not matching"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A, EXPIRATION, signature_A1, signature_C1),
             (B, balance_B, EXPIRATION, signature_B2, signature_A2),
         ).call({"from": C})
-    with pytest.raises(TransactionFailed, match="WD: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A, EXPIRATION, signature_A1, signature_B1),
             (B, balance_B, EXPIRATION, signature_C2, signature_A2),
         ).call({"from": C})
-    with pytest.raises(TransactionFailed, match="WD: channel id not matching"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A, EXPIRATION, signature_A1, signature_B1),
             (B, balance_B, EXPIRATION, signature_B2, signature_C2),
         ).call({"from": C})
 
-    with pytest.raises(TransactionFailed, match="WD: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_B, EXPIRATION, signature_A1, signature_B1),
@@ -400,7 +400,7 @@ def test_cooperative_settle_channel_smaller_total_amount(
         [A, B], channel_identifier, B, balance_B, EXPIRATION
     )
 
-    with pytest.raises(TransactionFailed, match="CS: incomplete amounts"):
+    with pytest.raises(TransactionFailed, match="TN/coopSettle: incomplete amount"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A, EXPIRATION, signature_A1, signature_B1),
@@ -437,7 +437,7 @@ def test_cooperative_settle_channel_bigger_withdraw(
         [A, B], channel_identifier, B, balance_B + withdraw_B, EXPIRATION
     )
 
-    with pytest.raises(TransactionFailed, match="CS: incomplete amounts"):
+    with pytest.raises(TransactionFailed, match="TN/coopSettle: incomplete amount"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A + withdraw_A, EXPIRATION, signature_A1, signature_B1),
@@ -471,7 +471,7 @@ def test_cooperative_settle_channel_wrong_balances(
         [A, B], channel_identifier, B, balance_B_fail1, EXPIRATION
     )
 
-    with pytest.raises(TransactionFailed, match="CS: incomplete amounts"):
+    with pytest.raises(TransactionFailed, match="TN/coopSettle: incomplete amount"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A_fail1, EXPIRATION, signature_A1_fail1, signature_B1_fail1),
@@ -485,7 +485,7 @@ def test_cooperative_settle_channel_wrong_balances(
         [A, B], channel_identifier, B, balance_B_fail2, EXPIRATION
     )
 
-    with pytest.raises(TransactionFailed, match="CS: incomplete amounts"):
+    with pytest.raises(TransactionFailed, match="TN/coopSettle: incomplete amount"):
         token_network.functions.cooperativeSettle(
             channel_identifier,
             (A, balance_A_fail1, EXPIRATION, signature_A1_fail2, signature_B1_fail2),
@@ -547,7 +547,7 @@ def test_cooperative_close_replay_reopened_channel(
     channel_deposit(channel_identifier2, B, deposit_B, A)
 
     assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed, match="WD: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
         token_network.functions.cooperativeSettle(
             channel_identifier2,
             (B, balance_B, EXPIRATION, signature_B2, signature_A2),
