@@ -62,7 +62,7 @@ def test_update_call(
     )
 
     # Failure with the zero address instead of A's address
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: participant address zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             EMPTY_ADDRESS,
@@ -72,7 +72,7 @@ def test_update_call(
         ).call({"from": C})
 
     # Failure with the zero address instead of B's address
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: partner address zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -82,7 +82,7 @@ def test_update_call(
         ).call({"from": C})
 
     # Failure with the zero signature
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed):  # TODO: sig check
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -92,7 +92,7 @@ def test_update_call(
         ).call({"from": C})
 
     # Failure with the empty balance hash
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: balance hash is zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -105,7 +105,7 @@ def test_update_call(
         ).call({"from": C})
 
     # Failure with nonce zero
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: nonce is zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -118,7 +118,7 @@ def test_update_call(
         ).call({"from": C})
 
     # Failure with the empty signature
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -170,7 +170,7 @@ def test_update_nonexistent_fail(
         **balance_proof_A._asdict(),
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: channel id mismatch"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -207,7 +207,7 @@ def test_update_notclosed_fail(
     assert settle_block_number > 0
     assert state == ChannelState.OPENED
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: channel not closed"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -264,7 +264,7 @@ def test_update_wrong_nonce_fail(
     )
 
     # updateNonClosingBalanceProof should fail for the same nonce as provided previously
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: nonce reused"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -275,7 +275,7 @@ def test_update_wrong_nonce_fail(
     balance_proof_A_same_nonce = create_balance_proof(
         channel_identifier, A, 12, 2, balance_proof_A.nonce, fake_bytes(32, "03")
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -294,7 +294,7 @@ def test_update_wrong_nonce_fail(
         msg_type=MessageTypeId.BALANCE_PROOF_UPDATE,
         **balance_proof_A_lower_nonce._asdict(),
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN: nonce reused"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -362,7 +362,7 @@ def test_update_wrong_signatures(
         {"from": A},
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -370,7 +370,7 @@ def test_update_wrong_signatures(
             *balance_proof_A_fake._asdict().values(),
             balance_proof_update_signature_B,
         ).call({"from": C})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -509,7 +509,7 @@ def test_update_channel_fail_no_offchain_transfers(
         {"from": A},
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: balance hash is zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -521,7 +521,7 @@ def test_update_channel_fail_no_offchain_transfers(
             EMPTY_SIGNATURE,
         ).call({"from": B})
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: nonce is zero"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -624,7 +624,7 @@ def test_update_not_allowed_for_the_closing_address(
     )
 
     # Someone wants to update with later balance proof - not possible
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -632,7 +632,7 @@ def test_update_not_allowed_for_the_closing_address(
             *balance_proof_B_1._asdict().values(),
             balance_proof_update_signature_B,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -640,7 +640,7 @@ def test_update_not_allowed_for_the_closing_address(
             *balance_proof_B_1._asdict().values(),
             balance_proof_update_signature_B,
         ).call({"from": B})
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -728,7 +728,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.signature,
         other_token_network=token_network_test_utils,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -753,7 +753,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -778,7 +778,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -796,7 +796,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -818,7 +818,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.signature,
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -840,7 +840,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.signature,
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -862,7 +862,7 @@ def test_update_invalid_balance_proof_arguments(
         balance_proof_valid.signature[::-1],
     )
 
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed):  # TODO: fixme
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -940,7 +940,7 @@ def test_update_signature_on_invalid_arguments(
         *balance_proof_valid._asdict().values(),
         other_token_network=token_network_test_utils,  # invalid token_network_address
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -958,7 +958,7 @@ def test_update_signature_on_invalid_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -976,7 +976,7 @@ def test_update_signature_on_invalid_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -994,7 +994,7 @@ def test_update_signature_on_invalid_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -1012,7 +1012,7 @@ def test_update_signature_on_invalid_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -1030,7 +1030,7 @@ def test_update_signature_on_invalid_arguments(
         b"\x00" * 32,  # invalid additional_hash
         balance_proof_valid.signature,
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -1048,7 +1048,7 @@ def test_update_signature_on_invalid_arguments(
         balance_proof_valid.additional_hash,
         balance_proof_valid.signature[::-1],
     )
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier,
             A,
@@ -1152,7 +1152,7 @@ def test_update_replay_reopened_channel(
     )
 
     # Make sure we cannot update balance proofs after settleChannel is called
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: channel id mismatch"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier1,
             B,
@@ -1180,7 +1180,7 @@ def test_update_replay_reopened_channel(
     )
 
     assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed):
+    with pytest.raises(TransactionFailed, match="TN/update: invalid non-closing sig"):
         token_network.functions.updateNonClosingBalanceProof(
             channel_identifier2,
             B,
