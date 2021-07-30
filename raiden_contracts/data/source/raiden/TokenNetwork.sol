@@ -694,19 +694,19 @@ contract TokenNetwork is Utils, Controllable {
     )
         external
     {
-        require(channel_identifier == getChannelIdentifier(
-            closing_participant,
-            non_closing_participant
-        ));
-        require(balance_hash != bytes32(0x0));
-        require(nonce > 0);
+        require(
+            channel_identifier == getChannelIdentifier(closing_participant,non_closing_participant),
+             "TN/update: channel id mismatch"
+        );
+        require(balance_hash != bytes32(0x0), "TN/update: balance hash is zero");
+        require(nonce > 0, "TN/update: nonce is zero");
 
         address recovered_non_closing_participant;
         address recovered_closing_participant;
 
         Channel storage channel = channels[channel_identifier];
 
-        require(channel.state == ChannelState.Closed);
+        require(channel.state == ChannelState.Closed, "TN/update: channel not closed");
 
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
@@ -720,7 +720,7 @@ contract TokenNetwork is Utils, Controllable {
             closing_signature,
             non_closing_signature
         );
-        require(non_closing_participant == recovered_non_closing_participant);
+        require(non_closing_participant == recovered_non_closing_participant, "TN/update: invalid non-closing sig");
 
         recovered_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProof(
             chain_id,
@@ -730,11 +730,11 @@ contract TokenNetwork is Utils, Controllable {
             additional_hash,
             closing_signature
         );
-        require(closing_participant == recovered_closing_participant);
+        require(closing_participant == recovered_closing_participant, "TN/update: invalid closing sig");
 
         Participant storage closing_participant_state = channel.participants[closing_participant];
         // Make sure the first signature is from the closing participant
-        require(closing_participant_state.is_the_closer);
+        require(closing_participant_state.is_the_closer, "TN/update: incorrect signature order");
 
         // Update the balance proof data for the closing_participant
         updateBalanceProofData(channel, closing_participant, nonce, balance_hash);
@@ -1225,7 +1225,7 @@ contract TokenNetwork is Utils, Controllable {
         // need to store the last known balance proof data.
         // This line prevents Monitoring Services from getting rewards
         // again and again using the same reward proof.
-        require(nonce > participant_state.nonce);
+        require(nonce > participant_state.nonce, "TN: nonce reused");
 
         participant_state.nonce = nonce;
         participant_state.balance_hash = balance_hash;
