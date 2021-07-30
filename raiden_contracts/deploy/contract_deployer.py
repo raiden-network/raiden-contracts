@@ -21,8 +21,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
-    LIBRARY_TOKEN_NETWORK_UTILS,
-    LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -34,7 +32,6 @@ from raiden_contracts.contract_manager import (
 from raiden_contracts.contract_source_manager import ContractSourceManager, contracts_source_path
 from raiden_contracts.deploy.contract_verifier import ContractVerifier
 from raiden_contracts.utils.file_ops import load_json_from_path
-from raiden_contracts.utils.linking import link_code
 from raiden_contracts.utils.signature import private_key_to_address
 from raiden_contracts.utils.transaction import check_successful_tx
 from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
@@ -79,9 +76,7 @@ class ContractDeployer(ContractVerifier):
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
 
-    def deploy(
-        self, contract_name: str, libs: Dict = None, args: Optional[List] = None
-    ) -> TxReceipt:
+    def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
             args = list()
         contract_interface: CompiledContract = self.contract_manager.get_contract(contract_name)
@@ -89,10 +84,6 @@ class ContractDeployer(ContractVerifier):
         abi = contract_interface["abi"]
         bytecode = contract_interface["bin"]
         bytecode_runtime = None
-
-        if isinstance(libs, dict) and len(libs.keys()) > 0:
-            bytecode = link_code(bytecode, libs)
-            bytecode_runtime = link_code(contract_interface["bin-runtime"], libs)
 
         # Instantiate and deploy contract
         if bytecode_runtime:
@@ -206,39 +197,18 @@ class ContractDeployer(ContractVerifier):
                 deployed_contracts=deployed_contracts,
             )
 
-        if self.contracts_version != "0.37.0":
-            token_network_libs = self._deploy_and_remember(
-                contract_name=LIBRARY_TOKEN_NETWORK_UTILS,
-                arguments=[],
-                deployed_contracts=deployed_contracts,
-            )
-
-            token_network_registry_args = [
-                secret_registry.address,
-                deployed_contracts["chain_id"],
-                settle_timeout_min,
-                settle_timeout_max,
-                max_num_of_token_networks,
-            ]
-            self._deploy_and_remember(
-                contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
-                arguments=token_network_registry_args,
-                deployed_contracts=deployed_contracts,
-                libs={LIBRARY_TOKEN_NETWORK_UTILS_LINK_KEY: token_network_libs.address},
-            )
-        else:
-            token_network_registry_args = [
-                secret_registry.address,
-                deployed_contracts["chain_id"],
-                settle_timeout_min,
-                settle_timeout_max,
-                max_num_of_token_networks,
-            ]
-            self._deploy_and_remember(
-                contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
-                arguments=token_network_registry_args,
-                deployed_contracts=deployed_contracts,
-            )
+        token_network_registry_args = [
+            secret_registry.address,
+            deployed_contracts["chain_id"],
+            settle_timeout_min,
+            settle_timeout_max,
+            max_num_of_token_networks,
+        ]
+        self._deploy_and_remember(
+            contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
+            arguments=token_network_registry_args,
+            deployed_contracts=deployed_contracts,
+        )
 
         return deployed_contracts
 
@@ -247,10 +217,9 @@ class ContractDeployer(ContractVerifier):
         contract_name: str,
         arguments: List,
         deployed_contracts: DeployedContracts,
-        libs: Dict = None,
     ) -> Contract:
         """Deploys contract_name with arguments and store the result in deployed_contracts."""
-        receipt = self.deploy(contract_name, libs, arguments)
+        receipt = self.deploy(contract_name, arguments)
         deployed_contracts["contracts"][contract_name] = _deployed_data_from_receipt(
             receipt=receipt, constructor_arguments=arguments
         )

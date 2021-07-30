@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Tuple
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
@@ -10,7 +10,6 @@ from web3.contract import Contract
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
-from raiden_contracts.utils.linking import link_code
 
 log = logging.getLogger(__name__)
 
@@ -20,17 +19,12 @@ def deploy_contract_txhash(
     contracts_manager: ContractManager,
     deployer_address: HexAddress,
     contract_name: str,
-    libs: Dict = None,
     **kwargs: Any,
 ) -> Tuple[HexAddress, Contract]:
     json_contract = contracts_manager.get_contract(contract_name)
     abi = json_contract["abi"]
     bytecode = json_contract["bin"]
     bytecode_runtime = None
-
-    if isinstance(libs, dict) and len(libs.keys()) > 0:
-        bytecode = link_code(bytecode, libs)
-        bytecode_runtime = link_code(json_contract["bin-runtime"], libs)
 
     if bytecode_runtime is not None:
         contract = web3.eth.contract(abi=abi, bytecode=bytecode, bytecode_runtime=bytecode_runtime)
@@ -57,7 +51,6 @@ def deploy_tester_contract_txhash(web3: Web3, contracts_manager: ContractManager
     def f(
         contract_name: str,
         deployer_address: HexAddress = DEPLOYER_ADDRESS,
-        libs: Dict = None,
         **kwargs: Any,
     ) -> HexAddress:
         txhash, _ = deploy_contract_txhash(
@@ -65,7 +58,6 @@ def deploy_tester_contract_txhash(web3: Web3, contracts_manager: ContractManager
             contracts_manager,
             deployer_address,
             contract_name,
-            libs,
             **kwargs,
         )
         return txhash
@@ -80,7 +72,6 @@ def deploy_tester_contract(web3: Web3, contracts_manager: ContractManager) -> Ca
 
     def f(
         contract_name: str,
-        libs: Dict = None,
         deployer_address: HexAddress = DEPLOYER_ADDRESS,
         **kwargs: Any,
     ) -> Contract:
@@ -89,7 +80,6 @@ def deploy_tester_contract(web3: Web3, contracts_manager: ContractManager) -> Ca
             contracts_manager,
             deployer_address,
             contract_name,
-            libs,
             **kwargs,
         )
         return contract

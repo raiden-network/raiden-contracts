@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
@@ -26,7 +26,6 @@ def test_controller(
     web3: Web3,
     contracts_manager: ContractManager,
     deploy_tester_contract: Callable,
-    token_network_libs: Dict,
     secret_registry_contract: Contract,
     custom_token: Contract,
     channel_participant_deposit_limit: int,
@@ -45,7 +44,6 @@ def test_controller(
 
     token_network_registry = deploy_tester_contract(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
-        token_network_libs,
         controller,
         _secret_registry_address=secret_registry_contract.address,
         _chain_id=web3.eth.chain_id,
