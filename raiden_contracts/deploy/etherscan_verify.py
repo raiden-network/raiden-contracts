@@ -165,6 +165,7 @@ def etherscan_verify_contract(
     source = (
         join_sources(source_module=MODULE_OF_CONTRACT[contract_name], contract_name=contract_name),
     )
+    optimization_details = metadata["settings"]["optimizer"].get("details")
     data = {
         # A valid API-Key is required
         "apikey": apikey,
@@ -177,7 +178,7 @@ def etherscan_verify_contract(
         "contractname": contract_name,
         "compilerversion": "v" + metadata["compiler"]["version"],
         # 0 = Optimization used, 1 = No Optimization
-        "optimizationUsed": 0 if metadata["settings"]["optimizer"]["enabled"] is False else 1,
+        "optimizationUsed": 0 if optimization_details is not None else 1,
         "runs": metadata["settings"]["optimizer"]["runs"],
         # Typo is intentional. Etherscan does not like the correct spelling.
         "constructorArguements": constructor_args,
