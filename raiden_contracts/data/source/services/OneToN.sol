@@ -197,7 +197,8 @@ contract OneToN is Utils {
     {
         bytes32 message_hash = keccak256(
             abi.encodePacked(
-                "\x19Ethereum Signed Message:\n188",
+                signature_prefix,
+                "188",
                 address(this),
                 chain_id,
                 uint256(MessageType.MessageTypeId.IOU),
@@ -209,12 +210,6 @@ contract OneToN is Utils {
         );
         return ECVerify.ecverify(message_hash, signature);
     }
-
-    function min(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        return a > b ? b : a;
-    }
-
 }
 
 

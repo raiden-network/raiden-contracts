@@ -280,8 +280,8 @@ contract MonitoringService is Utils {
         returns (uint256)
     {
         // avoid overflows when multiplying with percentages
-        require(settle_timeout < uint256(2**256 - 1) / 100, "maliciously big settle timeout");
-        require(closed_at_block < uint256(2**256 - 1) / 100, "maliciously big closed_at_block");
+        require(settle_timeout < MAX_SAFE_UINT256 / 100, "maliciously big settle timeout");
+        require(closed_at_block < MAX_SAFE_UINT256 / 100, "maliciously big closed_at_block");
 
         // First allowed block as percentage of settle_timeout. We're using
         // integers here to avoid accuracy loss during calculations.
@@ -398,7 +398,8 @@ contract MonitoringService is Utils {
         // what the payload means.)
         bytes32 message_hash = keccak256(
             abi.encodePacked(
-                "\x19Ethereum Signed Message:\n221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
+                signature_prefix,
+                "221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
                 address(this),
                 chain_id,
                 uint256(MessageType.MessageTypeId.MSReward),

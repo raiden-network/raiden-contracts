@@ -3,7 +3,6 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "lib/MessageType.sol";
-import "lib/TokenNetworkUtils.sol";
 import "raiden/TokenNetwork.sol";
 
 contract TokenNetworkInternalStorageTest is TokenNetwork {
@@ -77,21 +76,16 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
-        SettlementData memory participant1_settlement;
-        SettlementData memory participant2_settlement;
 
-        participant1_settlement.deposit = participant1_state.deposit;
-        participant1_settlement.withdrawn = participant1_state.withdrawn_amount;
-        participant1_settlement.transferred = participant1_transferred_amount;
-        participant1_settlement.locked = participant1_locked_amount;
-
-        participant2_settlement.deposit = participant2_state.deposit;
-        participant2_settlement.withdrawn = participant2_state.withdrawn_amount;
-        participant2_settlement.transferred = participant2_transferred_amount;
-        participant2_settlement.locked = participant2_locked_amount;
         return getMaxPossibleReceivableAmount(
-            participant1_settlement,
-            participant2_settlement
+            participant1_state.deposit,
+            participant1_state.withdrawn_amount,
+            participant1_transferred_amount,
+            participant1_locked_amount,
+            participant2_state.deposit,
+            participant2_state.withdrawn_amount,
+            participant2_transferred_amount,
+            participant2_locked_amount
         );
     }
 
@@ -165,7 +159,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return TokenNetworkUtils.recoverAddressFromBalanceProof(
+        return recoverAddressFromBalanceProof(
             chain_id,
             channel_identifier,
             balance_hash,
@@ -188,7 +182,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
+        return recoverAddressFromBalanceProofCounterSignature(
             message_type_id,
             chain_id,
             channel_identifier,
@@ -211,7 +205,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+        return recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
             participant,
@@ -261,17 +255,17 @@ contract TokenNetworkUtilsTest is TokenNetwork {
 
     function minPublic(uint256 a, uint256 b) public view returns (uint256)
     {
-        return TokenNetworkUtils.min(a,b);
+        return min(a,b);
     }
 
     function failsafe_subtractPublic(uint256 a, uint256 b) public view returns (uint256, uint256)
     {
-        return TokenNetworkUtils.failsafe_subtract(a,b);
+        return failsafe_subtract(a,b);
     }
 
     function failsafe_additionPublic(uint256 a, uint256 b) public view returns (uint256)
     {
-        return TokenNetworkUtils.failsafe_addition(a, b);
+        return failsafe_addition(a, b);
     }
 
     function get_max_safe_uint256() public pure returns (uint256) {
