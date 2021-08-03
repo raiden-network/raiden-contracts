@@ -201,11 +201,6 @@ contract UserDeposit is Utils {
         return balances[owner] - withdraw_plan.amount;
     }
 
-    function min(uint256 a, uint256 b) internal pure returns (uint256)
-    {
-        return a > b ? b : a;
-    }
-
     function withdrawHelper(uint256 amount, address deposit_holder, address beneficiary)
         internal
     {
