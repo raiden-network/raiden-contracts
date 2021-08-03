@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 
 import "lib/ECVerify.sol";
 import "lib/MessageType.sol";
-import "lib/TokenNetworkUtils.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 import "raiden/SecretRegistry.sol";
@@ -429,7 +428,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
-        require(withdraw_data.participant == TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+        require(withdraw_data.participant == recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
             withdraw_data.participant,
@@ -437,7 +436,7 @@ contract TokenNetwork is Utils, Controllable {
             withdraw_data.expiration_block,
             withdraw_data.participant_signature
         ), "TN/withdraw: invalid participant sig");
-        partner = TokenNetworkUtils.recoverAddressFromWithdrawMessage(
+        partner = recoverAddressFromWithdrawMessage(
             chain_id,
             channel_identifier,
             withdraw_data.participant,
@@ -622,7 +621,7 @@ contract TokenNetwork is Utils, Controllable {
         channel.settle_block_number += uint256(block.number);
 
         // The closing participant must have signed the balance proof.
-        address recovered_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
+        address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProof,
             chain_id,
             channel_identifier,
@@ -639,7 +638,7 @@ contract TokenNetwork is Utils, Controllable {
         // the latest transfer, in which case the closing party is going to
         // lose the tokens that were transferred to him.
         if (nonce > 0) {
-            recovered_non_closing_participant_address = TokenNetworkUtils.recoverAddressFromBalanceProof(
+            recovered_non_closing_participant_address = recoverAddressFromBalanceProof(
                 chain_id,
                 channel_identifier,
                 balance_hash,
@@ -710,7 +709,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // We need the signature from the non-closing participant to allow
         // anyone to make this transaction. E.g. a monitoring service.
-        recovered_non_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProofCounterSignature(
+        recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProofUpdate,
             chain_id,
             channel_identifier,
@@ -722,7 +721,7 @@ contract TokenNetwork is Utils, Controllable {
         );
         require(non_closing_participant == recovered_non_closing_participant, "TN/update: invalid non-closing sig");
 
-        recovered_closing_participant = TokenNetworkUtils.recoverAddressFromBalanceProof(
+        recovered_closing_participant = recoverAddressFromBalanceProof(
             chain_id,
             channel_identifier,
             balance_hash,
@@ -985,7 +984,7 @@ contract TokenNetwork is Utils, Controllable {
 
         // Make sure we don't transfer more tokens than previously reserved in
         // the smart contract.
-        unlocked_amount = TokenNetworkUtils.min(unlocked_amount, locked_amount);
+        unlocked_amount = min(unlocked_amount, locked_amount);
 
         // Transfer the rest of the tokens back to the sender
         returned_tokens = locked_amount - unlocked_amount;
@@ -1412,15 +1411,21 @@ contract TokenNetwork is Utils, Controllable {
         // receive at settlement time and also contains the entire locked amount
         //  of the pending transfers from participant2 to participant1.
         participant1_amount = getMaxPossibleReceivableAmount(
-            participant1_settlement,
-            participant2_settlement
+            participant1_settlement.deposit,
+            participant1_settlement.withdrawn,
+            participant1_settlement.transferred,
+            participant1_settlement.locked,
+            participant2_settlement.deposit,
+            participant2_settlement.withdrawn,
+            participant2_settlement.transferred,
+            participant2_settlement.locked
         );
 
         // RmaxP1 = min(TAD, RmaxP1)
         // We need to bound this to the available channel deposit in order to
         // not send tokens from other channels. The only case where TAD is
         // smaller than RmaxP1 is when at least one balance proof is old.
-        participant1_amount = TokenNetworkUtils.min(participant1_amount, total_available_deposit);
+        participant1_amount = min(participant1_amount, total_available_deposit);
 
         // RmaxP2 = TAD - RmaxP1
         // Now it is safe to subtract without underflow
@@ -1431,7 +1436,7 @@ contract TokenNetwork is Utils, Controllable {
         // Both operations are done by failsafe_subtract
         // We take out participant2's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant1
-        (participant1_amount, participant2_locked_amount) = TokenNetworkUtils.failsafe_subtract(
+        (participant1_amount, participant2_locked_amount) = failsafe_subtract(
             participant1_amount,
             participant2_locked_amount
         );
@@ -1441,7 +1446,7 @@ contract TokenNetwork is Utils, Controllable {
         // Both operations are done by failsafe_subtract
         // We take out participant1's pending transfers locked amount, bounding
         // it by the maximum receivable amount of participant2
-        (participant2_amount, participant1_locked_amount) = TokenNetworkUtils.failsafe_subtract(
+        (participant2_amount, participant1_locked_amount) = failsafe_subtract(
             participant2_amount,
             participant1_locked_amount
         );
@@ -1463,26 +1468,6 @@ contract TokenNetwork is Utils, Controllable {
             participant2_amount,
             participant1_locked_amount,
             participant2_locked_amount
-        );
-    }
-
-    function getMaxPossibleReceivableAmount(
-        SettlementData memory participant1_settlement,
-        SettlementData memory participant2_settlement
-    )
-        internal
-        pure
-        returns (uint256)
-    {
-        return TokenNetworkUtils.getMaxPossibleReceivableAmount(
-            participant1_settlement.deposit,
-            participant1_settlement.withdrawn,
-            participant1_settlement.transferred,
-            participant1_settlement.locked,
-            participant2_settlement.deposit,
-            participant2_settlement.withdrawn,
-            participant2_settlement.transferred,
-            participant2_settlement.locked
         );
     }
 
@@ -1587,6 +1572,165 @@ contract TokenNetwork is Utils, Controllable {
         // Remove the pair's channel counter
         pair_hash = getParticipantsHash(participant1, participant2);
         delete participants_hash_to_channel_identifier[pair_hash];
+    }
+
+    function recoverAddressFromBalanceProof(
+        uint256 chain_id,
+        uint256 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes memory signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32
+        string memory message_length = "212";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(MessageType.MessageTypeId.BalanceProof),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function recoverAddressFromBalanceProofCounterSignature(
+        MessageType.MessageTypeId message_type_id,
+        uint256 chain_id,
+        uint256 channel_identifier,
+        bytes32 balance_hash,
+        uint256 nonce,
+        bytes32 additional_hash,
+        bytes memory closing_signature,
+        bytes memory non_closing_signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
+        string memory message_length = "277";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(message_type_id),
+            channel_identifier,
+            balance_hash,
+            nonce,
+            additional_hash,
+            closing_signature
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, non_closing_signature);
+    }
+
+    function recoverAddressFromWithdrawMessage(
+        uint256 chain_id,
+        uint256 channel_identifier,
+        address participant,
+        uint256 total_withdraw,
+        uint256 expiration_block,
+        bytes memory signature
+    )
+        internal
+        view
+        returns (address signature_address)
+    {
+        // Length of the actual message: 20 + 32 + 32 + 32 + 20 + 32 + 32
+        string memory message_length = "200";
+
+        bytes32 message_hash = keccak256(abi.encodePacked(
+            signature_prefix,
+            message_length,
+            address(this),
+            chain_id,
+            uint256(MessageType.MessageTypeId.Withdraw),
+            channel_identifier,
+            participant,
+            total_withdraw,
+            expiration_block
+        ));
+
+        signature_address = ECVerify.ecverify(message_hash, signature);
+    }
+
+    function getMaxPossibleReceivableAmount(
+        uint256 participant1_deposit,
+        uint256 participant1_withdrawn,
+        uint256 participant1_transferred,
+        uint256 participant1_locked,
+        uint256 participant2_deposit,
+        uint256 participant2_withdrawn,
+        uint256 participant2_transferred,
+        uint256 participant2_locked
+    )
+        public
+        pure
+        returns (uint256)
+    {
+        uint256 participant1_max_transferred;
+        uint256 participant2_max_transferred;
+        uint256 participant1_net_max_received;
+        uint256 participant1_max_amount;
+
+        // This is the maximum possible amount that participant1 could transfer
+        // to participant2, if all the pending lock secrets have been
+        // registered
+        participant1_max_transferred = failsafe_addition(
+            participant1_transferred,
+            participant1_locked
+        );
+
+        // This is the maximum possible amount that participant2 could transfer
+        // to participant1, if all the pending lock secrets have been
+        // registered
+        participant2_max_transferred = failsafe_addition(
+            participant2_transferred,
+            participant2_locked
+        );
+
+        // We enforce this check artificially, in order to get rid of hard
+        // to deal with over/underflows. Settlement balance calculation is
+        // symmetric (we can calculate either RmaxP1 and RmaxP2 first, order does
+        // not affect result). This means settleChannel must be called with
+        // ordered values.
+        require(participant2_max_transferred >= participant1_max_transferred, "TN: transfers not ordered");
+
+        assert(participant1_max_transferred >= participant1_transferred);
+        assert(participant2_max_transferred >= participant2_transferred);
+
+        // This is the maximum amount that participant1 can receive at settlement time
+        participant1_net_max_received = (
+            participant2_max_transferred -
+            participant1_max_transferred
+        );
+
+        // Next, we add the participant1's deposit and subtract the already
+        // withdrawn amount
+        participant1_max_amount = failsafe_addition(
+            participant1_net_max_received,
+            participant1_deposit
+        );
+
+        // Subtract already withdrawn amount
+        (participant1_max_amount, ) = failsafe_subtract(
+            participant1_max_amount,
+            participant1_withdrawn
+        );
+        return participant1_max_amount;
     }
 
     /// @notice Removes the balance limits.
