@@ -1619,11 +1619,10 @@ contract TokenNetwork is Utils, Controllable {
         returns (address signature_address)
     {
         // Length of the actual message: 20 + 32 + 32 + 32 + 32 + 32 + 32 + 65
-        string memory message_length = "277";
+        string memory message_prefix = "\x19Ethereum Signed Message:\n277";
 
         bytes32 message_hash = keccak256(abi.encodePacked(
-            signature_prefix,
-            message_length,
+            message_prefix,
             address(this),
             chain_id,
             uint256(message_type_id),
