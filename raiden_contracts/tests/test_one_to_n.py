@@ -95,7 +95,6 @@ def test_bulk_claim_happy_path(
                 receivers=[x["receiver"] for x in ious],
                 amounts=[x["amount"] for x in ious],
                 expiration_blocks=[x["expiration_block"] for x in ious],
-                one_to_n_address=one_to_n_contract.address,
                 signatures=b"".join(x["signature"] for x in ious),
             ),
             {"from": A},
@@ -139,7 +138,6 @@ def test_bulk_claim_errors(
                 receivers=receivers,
                 amounts=amounts + [1],
                 expiration_blocks=expiration_blocks,
-                one_to_n_address=one_to_n_contract.address,
                 signatures=signatures,
             ),
             {"from": A},
@@ -156,7 +154,6 @@ def test_bulk_claim_errors(
                     receivers=receivers,
                     amounts=amounts,
                     expiration_blocks=expiration_blocks,
-                    one_to_n_address=one_to_n_contract.address,
                     signatures=sig,
                 ),
                 {"from": A},
@@ -170,7 +167,6 @@ def test_bulk_claim_errors(
                 receivers=receivers,
                 amounts=[amounts[0], amounts[1] + 1],
                 expiration_blocks=expiration_blocks,
-                one_to_n_address=one_to_n_contract.address,
                 signatures=signatures,
             ),
             {"from": A},
@@ -226,7 +222,6 @@ def test_claim_by_unregistered_service(
                 receiver=B,
                 amount=amount,
                 expiration_block=expiration,
-                one_to_n_address=one_to_n_contract.address,
                 signature=signature,
             ),
             {"from": A},
@@ -264,16 +259,12 @@ def test_claim_with_insufficient_deposit(
     # amount is 10, but only 6 are in deposit
     # check return value (transactions don't give back return values, so use call)
     assert (
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, signature
-        ).call({"from": A})
+        one_to_n_contract.functions.claim(A, B, amount, expiration, signature).call({"from": A})
         == 6
     )
     # check that transaction succeeds
     call_and_transact(
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, signature
-        ),
+        one_to_n_contract.functions.claim(A, B, amount, expiration, signature),
         {"from": A},
     )
 
@@ -292,16 +283,12 @@ def test_claim_with_insufficient_deposit(
         chain_id=ChainID(chain_id),
     )
     call_and_transact(
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, signature
-        ),
+        one_to_n_contract.functions.claim(A, B, amount, expiration, signature),
         {"from": A},
     )
     deposit_to_udc(A, 6 + 4)
     tx_hash = call_and_transact(
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, signature
-        ),
+        one_to_n_contract.functions.claim(A, B, amount, expiration, signature),
         {"from": A},
     )
     ev_handler.assert_event(

@@ -65,6 +65,7 @@ def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable)
         )
         iou["signature"] = sign_one_to_n_iou(get_private_key(sender), **iou)  # type: ignore
         del iou["chain_id"]
+        del iou["one_to_n_address"]
         return iou
 
     return f
