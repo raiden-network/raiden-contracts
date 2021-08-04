@@ -60,7 +60,6 @@ contract OneToN is Utils {
     /// @param receiver Address to which the amount is transferred
     /// @param amount Owed amount of tokens
     /// @param expiration_block Tokens can only be claimed before this time
-    /// @param one_to_n_address Address of this contract
     /// @param signature Sender's signature over keccak256(sender, receiver, amount, expiration_block)
     /// @return Amount of transferred tokens
     function claim(
@@ -68,7 +67,6 @@ contract OneToN is Utils {
         address receiver,
         uint256 amount,
         uint256 expiration_block,
-        address one_to_n_address,
         bytes memory signature
     )
         public
@@ -111,7 +109,6 @@ contract OneToN is Utils {
     /// @param receivers Addresses to which the amounts are transferred
     /// @param amounts Owed amounts of tokens
     /// @param expiration_blocks Tokens can only be claimed before this time
-    /// @param one_to_n_address Address of this contract
     /// @param signatures Sender's signatures concatenated into a single bytes array
     /// @return Amount of transferred tokens
     function bulkClaim(
@@ -119,7 +116,6 @@ contract OneToN is Utils {
         address[] calldata receivers,
         uint256[] calldata amounts,
         uint256[] calldata expiration_blocks,
-        address one_to_n_address,
         bytes calldata signatures
     )
         external
@@ -142,7 +138,6 @@ contract OneToN is Utils {
                 receivers[i],
                 amounts[i],
                 expiration_blocks[i],
-                one_to_n_address,
                 getSingleSignature(signatures, i)
             );
         }
