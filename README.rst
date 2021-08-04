@@ -89,7 +89,7 @@ find the already deployed contract instances like::
     compiled_contract_data = manager.get_contract(CONTRACT_TOKEN_NETWORK_REGISTRY)
 
     deployment_data = get_contracts_deployment_info(web3.eth.chainId)
-    TOKEN_NETWORK_REGISTRY_ADDRESS = deployment_data['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY].address
+    TOKEN_NETWORK_REGISTRY_ADDRESS = deployment_data['contracts'][CONTRACT_TOKEN_NETWORK_REGISTRY]["address"]
 
     # And then use:
     # compiled_contract_data['abi']
@@ -99,8 +99,7 @@ find the already deployed contract instances like::
 
     # To use one of the 3rd party services contracts:
     compiled_ms_contract = manager.get_contract(CONTRACT_MONITORING_SERVICE)
-    deployed_services = get_contracts_deployed(web3.eth.chainId, services=True)
-    MONITORING_SERVICE_ADDRESS = deployment_data['contracts'][CONTRACT_MONITORING_SERVICE].address
+    MONITORING_SERVICE_ADDRESS = deployment_data['contracts'][CONTRACT_MONITORING_SERVICE]["address"]
 
 Looking Up Gas Consumption
 --------------------------
