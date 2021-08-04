@@ -69,13 +69,13 @@ def test_controller(
     assert token_network_registry.functions.token_network_created().call() == 1
 
     # No other TokenNetworks can be deployed now
-    with pytest.raises(TransactionFailed, match="TNR: registry full"):
+    with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,
             token_network_deposit_limit,
         ).call({"from": B})
-    with pytest.raises(TransactionFailed, match="TNR: registry full"):
+    with pytest.raises(TransactionFailed, match="registry full"):
         token_network_registry.functions.createERC20TokenNetwork(
             custom_token.address,
             channel_participant_deposit_limit,

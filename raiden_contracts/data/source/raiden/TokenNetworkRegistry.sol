@@ -26,7 +26,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     modifier canCreateTokenNetwork() {
-        require(token_network_created < max_token_networks, "TNR: registry full");
+        require(token_network_created < max_token_networks, "registry full");
         _;
     }
 
@@ -46,13 +46,13 @@ contract TokenNetworkRegistry is Utils, Controllable {
         uint256 _settlement_timeout_max,
         uint256 _max_token_networks
     ) {
-        require(_chain_id > 0, "TNR: invalid chain id");
-        require(_settlement_timeout_min > 0, "TNR: invalid settle timeout min");
-        require(_settlement_timeout_max > 0, "TNR: invalid settle timeout max");
-        require(_settlement_timeout_max > _settlement_timeout_min, "TNR: invalid settle timeouts");
-        require(_secret_registry_address != address(0x0), "TNR: invalid SR address");
-        require(contractExists(_secret_registry_address), "TNR: invalid SR");
-        require(_max_token_networks > 0, "TNR: invalid TN limit");
+        require(_chain_id > 0, "invalid chain id");
+        require(_settlement_timeout_min > 0, "invalid settle timeout min");
+        require(_settlement_timeout_max > 0, "invalid settle timeout max");
+        require(_settlement_timeout_max > _settlement_timeout_min, "invalid settle timeouts");
+        require(_secret_registry_address != address(0x0), "invalid SR address");
+        require(contractExists(_secret_registry_address), "invalid SR");
+        require(_max_token_networks > 0, "invalid TN limit");
         secret_registry_address = _secret_registry_address;
         chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
@@ -78,11 +78,11 @@ contract TokenNetworkRegistry is Utils, Controllable {
         // After the limits have been removed, new token networks must be created without limits
         // See https://github.com/raiden-network/raiden-contracts/issues/1416
         if (max_token_networks == MAX_SAFE_UINT256) {
-            require(_channel_participant_deposit_limit == MAX_SAFE_UINT256, "TNR: limits must be set to MAX_INT");
-            require(_token_network_deposit_limit == MAX_SAFE_UINT256, "TNR: limits must be set to MAX_INT");
+            require(_channel_participant_deposit_limit == MAX_SAFE_UINT256, "limits must be set to MAX_INT");
+            require(_token_network_deposit_limit == MAX_SAFE_UINT256, "limits must be set to MAX_INT");
         }
 
-        require(token_to_token_networks[_token_address] == address(0x0), "TNR: token already registered");
+        require(token_to_token_networks[_token_address] == address(0x0), "token already registered");
 
         // We limit the number of token networks to 1 for the Bug Bounty release
         token_network_created = token_network_created + 1;
