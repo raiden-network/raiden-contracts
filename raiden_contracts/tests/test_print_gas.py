@@ -445,9 +445,7 @@ def print_gas_one_to_n(
         chain_id=ChainID(chain_id),
     )
     txn_hash = call_and_transact(
-        one_to_n_contract.functions.claim(
-            A, B, amount, expiration, one_to_n_contract.address, signature
-        ),
+        one_to_n_contract.functions.claim(A, B, amount, expiration, signature),
         {"from": A},
     )
 
@@ -474,7 +472,6 @@ def print_gas_one_to_n(
                 concat_iou_data(ious, "receiver"),
                 concat_iou_data(ious, "amount"),
                 concat_iou_data(ious, "expiration_block"),
-                one_to_n_contract.address,
                 concat_iou_signatures(ious),
             ),
             {"from": A},
