@@ -65,23 +65,23 @@ def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> N
         token_network.functions.openChannel(A, NOT_ADDRESS, settle_timeout)
 
     # Transaction failure with the zero address
-    with pytest.raises(TransactionFailed, match="TN: participant address zero"):
+    with pytest.raises(TransactionFailed, match="participant address zero"):
         token_network.functions.openChannel(EMPTY_ADDRESS, B, settle_timeout).call()
 
     # Transaction failure with the zero address
-    with pytest.raises(TransactionFailed, match="TN: partner address zero"):
+    with pytest.raises(TransactionFailed, match="partner address zero"):
         token_network.functions.openChannel(A, EMPTY_ADDRESS, settle_timeout).call()
 
     # Cannot open a channel between 2 participants with the same address
-    with pytest.raises(TransactionFailed, match="TN: identical addresses"):
+    with pytest.raises(TransactionFailed, match="identical addresses"):
         token_network.functions.openChannel(A, A, settle_timeout).call()
 
     # Cannot open a channel for one-too-small settle timeout
-    with pytest.raises(TransactionFailed, match="TN: settle timeout < min"):
+    with pytest.raises(TransactionFailed, match="settle timeout < min"):
         token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN - 1).call()
 
     # Cannot open a channel for one-too-big settle timeout
-    with pytest.raises(TransactionFailed, match="TN: settle timeout > max"):
+    with pytest.raises(TransactionFailed, match="settle timeout > max"):
         token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).call()
 
 
@@ -92,9 +92,9 @@ def test_max_1_channel(
     (A, B) = get_accounts(2)
     create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
 
-    with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
+    with pytest.raises(TransactionFailed, match="open: channel exists for participants"):
         token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).call()
-    with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
+    with pytest.raises(TransactionFailed, match="open: channel exists for participants"):
         token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).call()
 
 
@@ -113,7 +113,7 @@ def test_participants_hash_equal(token_network: Contract, get_accounts: Callable
 
     with pytest.raises(ValueError):
         get_participants_hash(A, A)
-    with pytest.raises(TransactionFailed, match="TN: identical addresses"):
+    with pytest.raises(TransactionFailed, match="identical addresses"):
         token_network.functions.getParticipantsHash(A, A).call()
 
 
@@ -269,7 +269,7 @@ def test_reopen_channel(
     ).call()
 
     # Opening twice fails
-    with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
+    with pytest.raises(TransactionFailed, match="open: channel exists for participants"):
         token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Close channel
@@ -289,7 +289,7 @@ def test_reopen_channel(
     )
 
     # Reopen Channel before settlement fails
-    with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
+    with pytest.raises(TransactionFailed, match="open: channel exists for participants"):
         token_network.functions.openChannel(A, B, settle_timeout).call()
 
     # Settlement window must be over before settling the channel

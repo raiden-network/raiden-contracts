@@ -121,11 +121,11 @@ def test_participant_deposit_limit(
     assign_tokens(A, MAX_ETH_CHANNEL_PARTICIPANT + 10)
     assign_tokens(B, MAX_ETH_CHANNEL_PARTICIPANT + 10)
 
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT + 1, B
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
         ).call({"from": B})
@@ -145,11 +145,11 @@ def test_participant_deposit_limit(
     info_B = token_network.functions.getChannelParticipantInfo(channel_identifier, B, A).call()
     assert info_B[ParticipantInfoIndex.DEPOSIT] == deposit_B
 
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, A, MAX_ETH_CHANNEL_PARTICIPANT + 1, B
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit limit reached"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit limit reached"):
         token_network.functions.setTotalDeposit(
             channel_identifier, B, MAX_ETH_CHANNEL_PARTICIPANT + 1, A
         ).call({"from": B})

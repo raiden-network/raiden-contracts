@@ -123,13 +123,13 @@ def test_get_hash_length_fail(
     packed = pending_transfers_tree.packed_transfers
 
     # packed length must be a multiple of 96
-    with pytest.raises(TransactionFailed, match="TN: invalid locks size"):
+    with pytest.raises(TransactionFailed, match="invalid locks size"):
         network_utils.functions.getHashAndUnlockedAmountPublic(packed[0:-1]).call()
     # last lock only contains expiration + locked_amount
-    with pytest.raises(TransactionFailed, match="TN: invalid locks size"):
+    with pytest.raises(TransactionFailed, match="invalid locks size"):
         network_utils.functions.getHashAndUnlockedAmountPublic(packed[0:-32]).call()
     # last lock only contains expiration
-    with pytest.raises(TransactionFailed, match="TN: invalid locks size"):
+    with pytest.raises(TransactionFailed, match="invalid locks size"):
         network_utils.functions.getHashAndUnlockedAmountPublic(packed[0:-64]).call()
 
     assert len(packed) % 96 == 0
@@ -214,7 +214,7 @@ def test_locks_order(
     # If we change the order, we change the computed hash.
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(channel_identifier, B, A, wrong_order_packed).call()
 
     wrong_order = pending_transfers_tree.transfers
@@ -226,7 +226,7 @@ def test_locks_order(
     ) = network_utils.functions.getHashAndUnlockedAmountPublic(wrong_order_packed).call()
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(channel_identifier, B, A, wrong_order_packed).call()
 
     wrong_order = pending_transfers_tree.transfers
@@ -238,7 +238,7 @@ def test_locks_order(
     ) = network_utils.functions.getHashAndUnlockedAmountPublic(wrong_order_packed).call()
     assert locksroot != pending_transfers_tree.hash_of_packed_transfers
     assert unlocked_amount == 9
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(channel_identifier, B, A, wrong_order_packed).call()
 
     (locksroot, unlocked_amount,) = network_utils.functions.getHashAndUnlockedAmountPublic(
@@ -347,13 +347,13 @@ def test_unlock_wrong_locksroot(
         settle_timeout,
     )
 
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_A_fake.packed_transfers
         ).call()
 
     # Fails for an empty packed locks
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(channel_identifier, B, A, b"").call()
 
     call_and_transact(
@@ -555,9 +555,9 @@ def test_channel_unlock_no_locked_amount_fail(
         A, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, LOCKSROOT_OF_NO_LOCKS, settle_timeout
     )
 
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(channel_identifier, B, A, b"").call()
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_A.packed_transfers
         ).call()
@@ -890,7 +890,7 @@ def test_channel_unlock_before_settlement_fails(
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
     # Unlock fails before channel is not settled
-    with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
+    with pytest.raises(TransactionFailed, match="unlock: channel id still exists"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree.packed_transfers
         ).call()
@@ -899,7 +899,7 @@ def test_channel_unlock_before_settlement_fails(
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
     # Unlock fails before channel is not settled
-    with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
+    with pytest.raises(TransactionFailed, match="unlock: channel id still exists"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree.packed_transfers
         ).call()
@@ -907,7 +907,7 @@ def test_channel_unlock_before_settlement_fails(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Unlock fails before settlement window is over and channel is not settled
-    with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
+    with pytest.raises(TransactionFailed, match="unlock: channel id still exists"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree.packed_transfers
         ).call()
@@ -916,7 +916,7 @@ def test_channel_unlock_before_settlement_fails(
     mine_blocks(web3, settle_timeout)
 
     # Unlock fails before settle is called
-    with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
+    with pytest.raises(TransactionFailed, match="unlock: channel id still exists"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree.packed_transfers
         ).call()
@@ -975,7 +975,7 @@ def test_unlock_fails_with_partial_locks(
         pending_transfers = list(pending_transfers_tree.transfers)
         del pending_transfers[index]
         packed_transfers_tampered = get_packed_transfers(tuple(pending_transfers), types)
-        with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+        with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
             token_network.functions.unlock(
                 channel_identifier, B, A, packed_transfers_tampered
             ).call({"from": A})
@@ -1021,7 +1021,7 @@ def test_unlock_tampered_proof_fails(
         pending_transfers = list(pending_transfers_tree.transfers)
         pending_transfers[index][2:] = random_secret()
         packed_transfers_tampered = get_packed_transfers(tuple(pending_transfers), types)
-        with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+        with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
             token_network.functions.unlock(
                 channel_identifier, B, A, packed_transfers_tampered
             ).call({"from": A})
@@ -1164,7 +1164,7 @@ def test_unlock_twice_fails(
     )
 
     # Calling unlock twice does not work
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_1.packed_transfers
         ).call({"from": A})
@@ -1203,7 +1203,7 @@ def test_unlock_no_locks(
     )
 
     # Calling unlock twice does not work
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree.packed_transfers
         ).call({"from": A})
@@ -1304,35 +1304,35 @@ def test_reverse_participants_unlock(
     )
 
     # A trying to unlock its own locksroot & locked amount MUST fail
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree_A.packed_transfers
         ).call({"from": A})
 
     # Delegate trying to unlock A's own locksroot & locked amount on behalf of A MUST fail
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, A, B, pending_transfers_tree_A.packed_transfers
         ).call({"from": C})
 
     # B trying to unlock its own locksroot & locked amount MUST fail
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_B.packed_transfers
         ).call({"from": B})
 
     # Delegate trying to unlock B's own locksroot & locked amount on behalf of B MUST fail
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_B.packed_transfers
         ).call({"from": B})
 
-    with pytest.raises(TransactionFailed, match="TN: identical addresses"):
+    with pytest.raises(TransactionFailed, match="identical addresses"):
         token_network.functions.unlock(
             channel_identifier, A, A, pending_transfers_tree_A.packed_transfers
         ).call({"from": A})
 
-    with pytest.raises(TransactionFailed, match="TN: identical addresses"):
+    with pytest.raises(TransactionFailed, match="identical addresses"):
         token_network.functions.unlock(
             channel_identifier, B, B, pending_transfers_tree_B.packed_transfers
         ).call({"from": B})
@@ -1391,11 +1391,11 @@ def test_unlock_different_channel_same_participants_fail(
         settle_timeout,
     )
 
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier, B, A, pending_transfers_tree_2.packed_transfers
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
+    with pytest.raises(TransactionFailed, match="unlock: locksroot mismatch"):
         token_network.functions.unlock(
             channel_identifier2, B, A, pending_transfers_tree_1.packed_transfers
         ).call({"from": A})

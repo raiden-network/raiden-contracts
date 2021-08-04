@@ -40,7 +40,7 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
     assert state == ChannelState.NONEXISTENT
     assert settle_block_number == 0
 
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.closeChannel(
             channel_identifier=non_existent_channel_identifier,
             closing_participant=A,
@@ -105,7 +105,7 @@ def test_close_settled_channel_fail(
     assert state == ChannelState.REMOVED
     assert settle_block_number == 0
 
-    with pytest.raises(TransactionFailed, match=" TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.closeChannel(
             channel_identifier=channel_identifier,
             non_closing_participant=B,
@@ -147,7 +147,7 @@ def test_close_wrong_signature(
         **balance_proof._asdict(),
     )
 
-    with pytest.raises(TransactionFailed, match="TN/close: invalid non-closing sig"):
+    with pytest.raises(TransactionFailed, match="close: invalid non-closing sig"):
         token_network.functions.closeChannel(
             channel_identifier,
             B,
@@ -185,7 +185,7 @@ def test_close_call_twice_fail(
         {"from": A},
     )
 
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.closeChannel(
             channel_identifier=channel_identifier,
             non_closing_participant=B,
@@ -339,7 +339,7 @@ def test_close_first_argument_is_for_partner_transfer(
     )
 
     # closeChannel fails, if the provided balance proof is from the same participant who closes
-    with pytest.raises(TransactionFailed, match="TN/close: invalid closing sig"):
+    with pytest.raises(TransactionFailed, match="close: invalid closing sig"):
         token_network.functions.closeChannel(
             channel_identifier, B, A, *balance_proof._asdict().values(), closing_sig_B
         ).call({"from": B})
@@ -680,7 +680,7 @@ def test_close_replay_reopened_channel(
     channel_deposit(channel_identifier2, B, values_B.deposit, A)
 
     assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed, match="TN/close: invalid closing sig"):
+    with pytest.raises(TransactionFailed, match="close: invalid closing sig"):
         token_network.functions.closeChannel(
             channel_identifier2,
             B,

@@ -119,7 +119,7 @@ def test_set_deprecation_switch(
     assert event_data["args"]["new_value"]
 
     # We should not be able to call it again
-    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
+    with pytest.raises(TransactionFailed, match="network is deprecated"):
         token_network.functions.deprecate().call({"from": A})
 
 
@@ -144,13 +144,13 @@ def test_deprecation_switch(
     assert token_network.functions.safety_deprecation_switch().call() is True
 
     # Now we cannot deposit in existent channels
-    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
+    with pytest.raises(TransactionFailed, match="network is deprecated"):
         channel_deposit(channel_identifier, A, bigger_deposit, B)
-    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
+    with pytest.raises(TransactionFailed, match="network is deprecated"):
         channel_deposit(channel_identifier, B, bigger_deposit, A)
 
     # Now we cannot open channels anymore
-    with pytest.raises(TransactionFailed, match="TN: network is deprecated"):
+    with pytest.raises(TransactionFailed, match="network is deprecated"):
         channel_identifier = create_channel(C, D)[0]
 
 

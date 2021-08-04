@@ -84,7 +84,7 @@ def test_withdraw_call(
         )
 
     # Failure with the zero address insted of a participant's address
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier=channel_identifier,
             participant=EMPTY_ADDRESS,
@@ -95,7 +95,7 @@ def test_withdraw_call(
         ).call({"from": A})
 
     # Failure with zero as the total withdrawn amount
-    with pytest.raises(TransactionFailed, match="TN/withdraw: total withdraw is zero"):
+    with pytest.raises(TransactionFailed, match="withdraw: total withdraw is zero"):
         token_network.functions.setTotalWithdraw(
             channel_identifier=channel_identifier,
             participant=A,
@@ -210,7 +210,7 @@ def test_withdraw_wrong_state(
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
 
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
@@ -231,7 +231,7 @@ def test_withdraw_wrong_state(
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
 
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
 
@@ -244,16 +244,16 @@ def test_withdraw_bigger(
 
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
 
-    with pytest.raises(TransactionFailed, match="TN/withdraw: withdraw > deposit"):
+    with pytest.raises(TransactionFailed, match="withdraw: withdraw > deposit"):
         withdraw_channel(channel_identifier, A, deposit_A + deposit_B + 1, UINT256_MAX, B)
-    with pytest.raises(TransactionFailed, match="TN/withdraw: withdraw > deposit"):
+    with pytest.raises(TransactionFailed, match="withdraw: withdraw > deposit"):
         withdraw_channel(channel_identifier, B, deposit_A + deposit_B + 1, UINT256_MAX, A)
 
     withdraw_channel(channel_identifier, A, 3, UINT256_MAX, B)
     withdraw_channel(channel_identifier, B, 6, UINT256_MAX, A)
-    with pytest.raises(TransactionFailed, match="TN/withdraw: withdraw > deposit"):
+    with pytest.raises(TransactionFailed, match="withdraw: withdraw > deposit"):
         withdraw_channel(channel_identifier, A, deposit_A + deposit_B - 5, UINT256_MAX, B)
-    with pytest.raises(TransactionFailed, match="TN/withdraw: withdraw > deposit"):
+    with pytest.raises(TransactionFailed, match="withdraw: withdraw > deposit"):
         withdraw_channel(channel_identifier, B, deposit_A + deposit_B - 2, UINT256_MAX, A)
 
     withdraw_channel(channel_identifier, A, deposit_A + deposit_B - 7, UINT256_MAX, B)
@@ -276,7 +276,7 @@ def test_withdraw_wrong_signers(
         signature_B_for_A,
         signature_C_for_A,
     ) = create_withdraw_signatures([A, B, C], channel_identifier, A, withdraw_A, UINT256_MAX)
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -285,7 +285,7 @@ def test_withdraw_wrong_signers(
             signature_C_for_A,
             signature_B_for_A,
         ).call({"from": C})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="withdraw: channel id mismatch"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -335,7 +335,7 @@ def test_withdraw_wrong_signature_content(
         [A, B], channel_identifier, A, withdraw_A - 1, UINT256_MAX
     )
 
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -344,7 +344,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A_fake1,
             signature_B_for_A,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="withdraw: channel id mismatch"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -353,7 +353,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A,
             signature_B_for_A_fake1,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -362,7 +362,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A_fake2,
             signature_B_for_A,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="withdraw: channel id mismatch"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -371,7 +371,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A,
             signature_B_for_A_fake2,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -380,7 +380,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A_fake3,
             signature_B_for_A,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="withdraw: channel id mismatch"):
         token_network.functions.setTotalWithdraw(
             channel_identifier,
             A,
@@ -389,7 +389,7 @@ def test_withdraw_wrong_signature_content(
             signature_A_for_A,
             signature_B_for_A_fake3,
         ).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/withdraw: expired"):
+    with pytest.raises(TransactionFailed, match="withdraw: expired"):
         call_and_transact(
             token_network.functions.setTotalWithdraw(
                 channel_identifier,
@@ -401,7 +401,7 @@ def test_withdraw_wrong_signature_content(
             ),
             {"from": A},
         )
-    with pytest.raises(TransactionFailed, match="TN/withdraw: expired"):
+    with pytest.raises(TransactionFailed, match="withdraw: expired"):
         call_and_transact(
             token_network.functions.setTotalWithdraw(
                 channel_identifier,
@@ -581,7 +581,7 @@ def test_withdraw_replay_reopened_channel(
     channel_deposit(channel_identifier2, A, deposit_A, B)
 
     assert channel_identifier1 != channel_identifier2
-    with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
+    with pytest.raises(TransactionFailed, match="withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
             channel_identifier2,
             A,

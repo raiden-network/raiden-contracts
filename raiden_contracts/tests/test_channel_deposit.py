@@ -69,17 +69,17 @@ def test_deposit_channel_call(
     with pytest.raises(ValidationError):
         token_network.functions.setTotalDeposit(channel_identifier, A, -1, B)
     # Transaction failure with the zero address
-    with pytest.raises(TransactionFailed, match="TN: participant address zero"):
+    with pytest.raises(TransactionFailed, match="participant address zero"):
         token_network.functions.setTotalDeposit(
             channel_identifier, EMPTY_ADDRESS, deposit_A, B
         ).call({"from": A})
     # Transaction failure with the zero address
-    with pytest.raises(TransactionFailed, match="TN: partner address zero"):
+    with pytest.raises(TransactionFailed, match="partner address zero"):
         token_network.functions.setTotalDeposit(
             channel_identifier, A, deposit_A, EMPTY_ADDRESS
         ).call({"from": A})
     # Transaction failure with zero total deposit
-    with pytest.raises(TransactionFailed, match="TN/deposit: total_deposit is zero"):
+    with pytest.raises(TransactionFailed, match="deposit: total_deposit is zero"):
         token_network.functions.setTotalDeposit(channel_identifier, A, 0, B).call({"from": A})
 
     call_and_transact(
@@ -136,9 +136,9 @@ def test_null_or_negative_deposit_fail(
     assign_tokens(A, 1)
 
     # setTotalDeposit is idempotent
-    with pytest.raises(TransactionFailed, match="TN/deposit: no deposit added"):
+    with pytest.raises(TransactionFailed, match="deposit: no deposit added"):
         token_network.functions.setTotalDeposit(channel_identifier, A, 2, B).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit underflow"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit underflow"):
         token_network.functions.setTotalDeposit(channel_identifier, A, 1, B).call({"from": A})
     assert (
         2 == token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()[0]
@@ -172,9 +172,9 @@ def test_deposit_wrong_channel(
     channel_identifier2 = create_channel(A, C)[0]
     assign_tokens(A, 10)
 
-    with pytest.raises(TransactionFailed, match="TN/deposit: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="deposit: channel id mismatch"):
         token_network.functions.setTotalDeposit(channel_identifier2, A, 10, B).call({"from": A})
-    with pytest.raises(TransactionFailed, match="TN/deposit: channel id mismatch"):
+    with pytest.raises(TransactionFailed, match="deposit: channel id mismatch"):
         token_network.functions.setTotalDeposit(channel_identifier, A, 10, C).call({"from": A})
 
     call_and_transact(
@@ -198,7 +198,7 @@ def test_channel_deposit_overflow(
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
-    with pytest.raises(TransactionFailed, match="TN/deposit: deposit overflow"):
+    with pytest.raises(TransactionFailed, match="deposit: deposit overflow"):
         channel_deposit(channel_identifier, B, deposit_B_fail, A)
 
     channel_deposit(channel_identifier, B, deposit_B_ok, A)
@@ -300,22 +300,22 @@ def test_deposit_wrong_state_fail(
     assign_tokens(B, 10)
     vals_A.deposit += 5
     vals_B.deposit += 5
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(
             {"from": A}
         )
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A).call(
             {"from": B}
         )
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.setTotalDeposit(channel_identifier, A, vals_A.deposit, B).call(
             {"from": A}
         )
-    with pytest.raises(TransactionFailed, match="TN: channel not open"):
+    with pytest.raises(TransactionFailed, match="channel not open"):
         token_network.functions.setTotalDeposit(channel_identifier, B, vals_B.deposit, A).call(
             {"from": B}
         )
