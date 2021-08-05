@@ -1413,7 +1413,6 @@ contract TokenNetwork is Utils, Controllable {
             participant1_settlement.withdrawn,
             participant1_settlement.transferred,
             participant1_settlement.locked,
-            participant2_settlement.withdrawn,
             participant2_settlement.transferred,
             participant2_settlement.locked
         );
@@ -1668,7 +1667,6 @@ contract TokenNetwork is Utils, Controllable {
         uint256 participant1_withdrawn,
         uint256 participant1_transferred,
         uint256 participant1_locked,
-        uint256 participant2_withdrawn,
         uint256 participant2_transferred,
         uint256 participant2_locked
     )
