@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 /// @title Utils
 /// @notice Utils contract for various helpers used by the Raiden Network smart
