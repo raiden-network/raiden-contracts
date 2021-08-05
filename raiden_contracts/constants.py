@@ -9,6 +9,7 @@ from raiden_contracts.utils.type_aliases import ChainID, Locksroot
 
 # The last digit is supposed to be zero always. See `RELEASE.rst`.
 CONTRACTS_VERSION = "0.38.0"
+BESPIN_VERSION = "0.37.0"
 ALDERAAN_VERSION = "0.37.0"
 
 PRECOMPILED_DATA_FIELDS = ["abi", "bin", "bin-runtime", "metadata"]
