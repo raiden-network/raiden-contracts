@@ -39,7 +39,9 @@ class ContractJoiner:
         for line in contract_file:
             line = line.strip("\r\n")
             stripped_line = line.strip()
-            if stripped_line.startswith("pragma"):
+            if stripped_line.startswith("pragma") or stripped_line.startswith(
+                "// SPDX-License-Identifier: MIT"
+            ):
                 self._on_pragma_line(line=line, out=out)
             elif stripped_line.startswith("import"):
                 self._on_import_line(stripped_line=stripped_line, out=out)
