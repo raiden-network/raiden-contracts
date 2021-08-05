@@ -22,18 +22,18 @@ $ python ./utils/join_contracts.py ./contracts/TokenNetwork.sol joined.sol
 
 
 class ContractJoiner:
-    def __init__(self, import_map: Dict = None):
-        self.have_pragma = False
-        self.seen: Set[str] = set()
+    def __init__(self, import_map: Dict[str, str] = None):
+        self.seen_pragmas: Set[str] = set()
+        self.seen_contracts: Set[str] = set()
         self.import_map = import_map if import_map else {}
 
     def join(self, contract_file: TextIO) -> List[str]:
         out: List[str] = []
-        if contract_file.name in self.seen:
+        if contract_file.name in self.seen_contracts:
             print("Skipping duplicate {}".format(contract_file.name), file=sys.stderr)
             return []
 
-        self.seen.add(contract_file.name)
+        self.seen_contracts.add(contract_file.name)
         print("Reading {}".format(contract_file.name), file=sys.stderr)
 
         for line in contract_file:
@@ -48,8 +48,8 @@ class ContractJoiner:
         return out
 
     def _on_pragma_line(self, line: str, out: List[str]) -> None:
-        if not self.have_pragma:
-            self.have_pragma = True
+        if line not in self.seen_pragmas:
+            self.seen_pragmas.add(line)
             out.append(line)
 
     def _on_import_line(self, stripped_line: str, out: List[str]) -> None:
