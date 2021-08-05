@@ -82,7 +82,6 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
             participant1_state.withdrawn_amount,
             participant1_transferred_amount,
             participant1_locked_amount,
-            participant2_state.withdrawn_amount,
             participant2_transferred_amount,
             participant2_locked_amount
         );
