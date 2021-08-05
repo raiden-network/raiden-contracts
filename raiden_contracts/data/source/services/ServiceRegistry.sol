@@ -2,6 +2,7 @@
 /* solium-disable indentation */
 /* solium-disable security/no-block-members */
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
