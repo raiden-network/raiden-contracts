@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-/* solium-disable error-reason */
 /* solium-disable indentation */
 pragma solidity 0.7.6;
 pragma abicoder v2;
