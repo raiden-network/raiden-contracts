@@ -5,11 +5,16 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-- [#1494](https://github.com/raiden-network/raiden-contracts/pull/1494) Add both participants addresses to the `TokenNetwork.ChannelSettled` event
-- [#1436](https://github.com/raiden-network/raiden-contracts/issues/1436) Add `TokenNetwork.openChannelWithDeposit`, which combines opening and depositing to a channel
-- [#1482](https://github.com/raiden-network/raiden-contracts/issues/1482) Add `UserDeposit.withdrawToBeneficiary`, which allows withdrawing to a beneficiary
-- [#1383](https://github.com/raiden-network/raiden-contracts/issues/1383) Add `TokenNetwork.cooperativeSettle`, which settles the channel in a single transaction when the participants cooperate
+## [Unreleased]
 
+- [#81](https://github.com/raiden-network/raiden-contracts/issues/81) Add error messages to all contracts
+- [#1182](https://github.com/raiden-network/raiden-contracts/issues/1182) Add support for reusing the `ServiceRegistry` in the deployment scripts
+- [#1383](https://github.com/raiden-network/raiden-contracts/issues/1383) Add `TokenNetwork.cooperativeSettle`, which settles the channel in a single transaction when the participants cooperate
+- [#1436](https://github.com/raiden-network/raiden-contracts/issues/1436) Add `TokenNetwork.openChannelWithDeposit`, which combines opening and depositing to a channel
+- [#1481](https://github.com/raiden-network/raiden-contracts/issues/1481) Allow removing the limits after deployments
+- [#1482](https://github.com/raiden-network/raiden-contracts/issues/1482) Add `UserDeposit.withdrawToBeneficiary`, which allows withdrawing to a beneficiary
+- [#1494](https://github.com/raiden-network/raiden-contracts/pull/1494) Add both participants addresses to the `TokenNetwork.ChannelSettled` event
+- [#1496](https://github.com/raiden-network/raiden-contracts/pull/1496) Enable contract optimizations
 
 ## [0.38.0]
 - [#1462](https://github.com/raiden-network/raiden-contracts/pull/1462) TokenNetwork: allow updating channel state anytime before a channel is settled
