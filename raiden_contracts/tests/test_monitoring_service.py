@@ -1,6 +1,5 @@
 from typing import Callable, Dict, List
 
-import eth_abi
 import pytest
 from eth_abi import encode_single
 from eth_tester.exceptions import TransactionFailed
@@ -236,14 +235,8 @@ def test_monitor(
     # parameters passed to it are handled correctly.
 
     # Changing reward amount must lead to a failure during reward signature check.
-    # FIXME: This check does not fail with the expected error anymore. But
-    #        since it does fail, this is not a serious problem.
-    # with pytest.raises(TransactionFailed,
-    #                    match="Reward proof with wrong non_closing_participant"):
-    with pytest.raises(
-        eth_abi.exceptions.NonEmptyPaddingBytes, match="Padding bytes were not empty"
-    ):
-        txn_hash = call_and_transact(
+    with pytest.raises(TransactionFailed, match="Reward proof with wrong non_closing_participant"):
+        call_and_transact(
             monitoring_service_external.functions.monitor(
                 A,
                 B,
@@ -259,7 +252,7 @@ def test_monitor(
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
         assert web3.eth.block_number < monitor_data["first_allowed"]
-        txn_hash = call_and_transact(
+        call_and_transact(
             monitoring_service_external.functions.monitor(
                 A,
                 B,
