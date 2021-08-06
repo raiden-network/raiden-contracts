@@ -5,7 +5,7 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
-## [Unreleased]
+## [0.39.0]
 
 - [#81](https://github.com/raiden-network/raiden-contracts/issues/81) Add error messages to all contracts
 - [#1182](https://github.com/raiden-network/raiden-contracts/issues/1182) Add support for reusing the `ServiceRegistry` in the deployment scripts
