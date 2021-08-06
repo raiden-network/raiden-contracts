@@ -51,9 +51,6 @@ Now, we do not manually need to check if the compiled data is correct, because t
 * if the ``contracts_version`` from ``contracts.json`` matches the current ``CONTRACTS_VERSION``
 * if the ``contracts_checksums`` and ``overall_checksum`` from ``contracts.json`` matches the source code checksums, calculated in the test.
 
-Additionally, we test whether each contract source code ``contracts_version`` matches the ``CONTRACTS_VERSION``. E.g. https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/tests/test_token_network.py#L16-L17
-
-
 **Deployment Data**
 
 Deployment data is kept in the ``data/deployment_[CHAIN_NAME].json`` files.
@@ -90,9 +87,10 @@ We currently deploy on:
 **Checking Validity of deployment_*.json Data**
 
 We have checks for:
-- ``contracts_version``: https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/deploy/__main__.py#L503
-- ``chain_id``: https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/deploy/__main__.py#L503
-- deployment addresses & transaction data for each contract, checked against the chain we are running the script on
+
+* ``contracts_version``: https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/deploy/__main__.py#L503
+* ``chain_id``: https://github.com/raiden-network/raiden-contracts/blob/9fd2124eb648a629aee886f37ade5e502431371f/raiden_contracts/deploy/__main__.py#L504
+* deployment addresses & transaction data for each contract, checked against the chain we are running the script on
 
 These checks are performed at the end of the deployment script. They can also be run independently with ``python -m raiden_contracts.deploy verify``, as described in the above link.
 
@@ -104,9 +102,6 @@ Etherscan Verification
 ----------------------
 
 Etherscan verification is documented here: https://github.com/raiden-network/raiden-contracts#verification-with-etherscan.
-
-Note that we currently have some issues with the script: https://github.com/raiden-network/raiden-contracts/issues/349.
-
 
 .. _measure-gas:
 
@@ -143,7 +138,7 @@ Before bumping the package version, ``git add`` the deployment data at ``data/de
 
 ::
 
-    bumpversion --config-file ./.bumpversion.cfg [PART]
+    bump2version --config-file ./.bumpversion.cfg [PART]
 
 ``[PART]`` can be ``major``, ``minor``, ``patch``.
 
