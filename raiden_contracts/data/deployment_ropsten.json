@@ -3,19 +3,19 @@
   "chain_id": 3,
   "contracts": {
     "SecretRegistry": {
-      "address": "0xC6CD0b14519DACA6c8784c1c35619Bda5F90f490",
-      "transaction_hash": "0xa344e1897011a18229421d25bb69968fad7c3e78da39c7d975d502d7efc183db",
-      "block_number": 7931782,
-      "gas_cost": 247286,
+      "address": "0xb4433bF1AbA523e59Dc1eE828d0B2eC28C58e7C8",
+      "transaction_hash": "0x6a7b0d09082d951004d1be205192e9d56a09d5f60b1eb1981ed5e314b2f92261",
+      "block_number": 10784635,
+      "gas_cost": 232724,
       "constructor_arguments": []
     },
     "TokenNetworkRegistry": {
-      "address": "0xAe40f2c0a6c72498F330a1e4CCF1527D9F028443",
-      "transaction_hash": "0x111e0bacec7f113f78463923046d545516bb35bdccb813e9dcc03ca707cdbf1e",
-      "block_number": 7931794,
-      "gas_cost": 4001594,
+      "address": "0x5A6C58d0e4191C1fd2dAE766E0B7A365A4EDF428",
+      "transaction_hash": "0x9fad401303572e1e577b2fb2123e33096805ea4399c964d0b72a8de1648f49b9",
+      "block_number": 10784637,
+      "gas_cost": 4608226,
       "constructor_arguments": [
-        "0xC6CD0b14519DACA6c8784c1c35619Bda5F90f490",
+        "0xb4433bF1AbA523e59Dc1eE828d0B2eC28C58e7C8",
         3,
         20,
         555428,
@@ -25,14 +25,14 @@
   },
   "token_networks": [
     {
-      "token_network_address": "0x2FA965fE214570bab9D676B5DE7EAffd5b82fcAe",
+      "token_network_address": "0x261cf45489AD99b340FdB574fF59e2bb9C00c041",
       "constructor_arguments": {
-        "_token_address": "0x342d1D825B1c8790522E0B8999DB876ddEE82052",
-        "_secret_registry": "0xC6CD0b14519DACA6c8784c1c35619Bda5F90f490",
+        "_token_address": "0xe7bb98De6eb3BCc7351E629475DF159318D812AB",
+        "_secret_registry": "0xb4433bF1AbA523e59Dc1eE828d0B2eC28C58e7C8",
         "_chain_id": 3,
         "_settlement_timeout_min": 20,
         "_settlement_timeout_max": 555428,
-        "_deprecation_executor": "0x062C12c01D0f17fC9eAa33940D994594d91a0182",
+        "_controller": "0xfB398E621c15E2BC5Ae6A508D8D89AF1f88c93e8",
         "_channel_participant_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
         "_token_network_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935
       }
