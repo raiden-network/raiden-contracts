@@ -3,19 +3,19 @@
   "chain_id": 5,
   "contracts": {
     "SecretRegistry": {
-      "address": "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
-      "transaction_hash": "0x74e45a70fbfe991b9dcee98b248a8165c5cb1cbfe0a8e8b5cca07219e958bce9",
-      "block_number": 2723613,
-      "gas_cost": 247286,
+      "address": "0xc3816C06e36D6D95dD27661843e7F3b750E31080",
+      "transaction_hash": "0x5a60a7898cc274c261f926630cb35fbc947ed2df0ea92717bbf3b1ef98359b99",
+      "block_number": 5271996,
+      "gas_cost": 232724,
       "constructor_arguments": []
     },
     "TokenNetworkRegistry": {
-      "address": "0x5a5CF4A63022F61F1506D1A2398490c2e8dfbb98",
-      "transaction_hash": "0x229a818e87c41e5ca1818e7f102d02edb22018475706846071b2f0e7dc59eca6",
-      "block_number": 2723614,
-      "gas_cost": 4001594,
+      "address": "0x03396cF9Ed3fC5dc4833C7D8bBd495c57B285560",
+      "transaction_hash": "0x0bdeed7bb9d1511ad0ac206105c8c3b7b090695d5a32aa123f64fc37ce5a09f4",
+      "block_number": 5271998,
+      "gas_cost": 4608226,
       "constructor_arguments": [
-        "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
+        "0xc3816C06e36D6D95dD27661843e7F3b750E31080",
         5,
         20,
         555428,
@@ -25,14 +25,14 @@
   },
   "token_networks": [
     {
-      "token_network_address": "0x812650FB6Acdf9dD47E631cBB5518B32FFD4D129",
+      "token_network_address": "0xCB2Bd3b998E8B1dB823A00c15368669D65e7a276",
       "constructor_arguments": {
         "_token_address": "0xC563388e2e2fdD422166eD5E76971D11eD37A466",
-        "_secret_registry": "0x9fC80eb1939d8147aB90BAC01AD585f3a71BeE7e",
+        "_secret_registry": "0xc3816C06e36D6D95dD27661843e7F3b750E31080",
         "_chain_id": 5,
         "_settlement_timeout_min": 20,
         "_settlement_timeout_max": 555428,
-        "_deprecation_executor": "0x062C12c01D0f17fC9eAa33940D994594d91a0182",
+        "_controller": "0x2645bcF95d1c3fE89dB435be8AaEFb887832803b",
         "_channel_participant_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
         "_token_network_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935
       }
