@@ -117,12 +117,9 @@ class ContractVerifier:
         )
 
     def verify_deployment_data(self, deployment_data: DeployedContracts) -> bool:
-        chain_id = self.web3.eth.chain_id
 
         if self.contract_manager.contracts_version != deployment_data["contracts_version"]:
             raise RuntimeError("Version string mismatch.")
-        if chain_id != deployment_data["chain_id"]:
-            raise RuntimeError("chain id mismatch.")
 
         secret_registry, _ = self._verify_deployed_contract(
             deployment_data=deployment_data, contract_name=CONTRACT_SECRET_REGISTRY
@@ -146,8 +143,6 @@ class ContractVerifier:
             raise RuntimeError(
                 "TokenNetworkRegistry's constructor received a different SecretRegistry address."
             )
-        if token_network_registry.functions.chain_id().call() != constructor_arguments[1]:
-            raise RuntimeError("TokenNetwork remembers a wrong chain_id.")
         assert (
             token_network_registry.functions.settlement_timeout_min().call()
             == constructor_arguments[2]

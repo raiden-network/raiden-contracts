@@ -146,7 +146,6 @@ def token_network_contract(
 
 @pytest.fixture()
 def token_network_external(
-    web3: Web3,
     get_token_network: Callable,
     custom_token: Contract,
     secret_registry_contract: Contract,
@@ -156,7 +155,6 @@ def token_network_external(
     return get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=DEPLOYER_ADDRESS,

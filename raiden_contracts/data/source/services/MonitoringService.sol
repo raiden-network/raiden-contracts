@@ -125,7 +125,6 @@ contract MonitoringService is Utils {
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
-            token_network.chain_id(),
             token_network_address,
             non_closing_participant,
             non_closing_signature,
@@ -376,7 +375,6 @@ contract MonitoringService is Utils {
     }
 
     function recoverAddressFromRewardProof(
-        uint256 chain_id,
         address token_network_address,
         address non_closing_participant,
         bytes memory non_closing_signature,
@@ -402,7 +400,7 @@ contract MonitoringService is Utils {
                 signature_prefix,
                 "221",  // 20 + 32 + 32 + 20 + 20 + 65 + 32
                 address(this),
-                chain_id,
+                block.chainid,
                 uint256(MessageType.MessageTypeId.MSReward),
                 token_network_address,
                 non_closing_participant,

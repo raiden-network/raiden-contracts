@@ -9,14 +9,12 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
             msg.sender,
@@ -129,14 +127,12 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
             msg.sender,
@@ -158,7 +154,6 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         returns (address signature_address)
     {
         return recoverAddressFromBalanceProof(
-            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -182,7 +177,6 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     {
         return recoverAddressFromBalanceProofCounterSignature(
             message_type_id,
-            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -204,7 +198,6 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         returns (address signature_address)
     {
         return recoverAddressFromWithdrawMessage(
-            chain_id,
             channel_identifier,
             participant,
             total_withdraw,
@@ -218,14 +211,12 @@ contract TokenNetworkUtilsTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
             msg.sender,

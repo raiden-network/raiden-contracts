@@ -10,12 +10,10 @@ from raiden_contracts.utils.proofs import eth_sign_hash_message, pack_balance_pr
 from raiden_contracts.utils.signature import sign
 from raiden_contracts.utils.type_aliases import ChainID, PrivateKey
 
-
 # pylint: disable=E1120
 
 
 def test_verify(
-    web3: Web3,
     token_network: Contract,
     signature_test_contract: Contract,
     get_accounts: Callable,
@@ -34,7 +32,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chain_id),
+            chain_identifier=ChainID(token_network.functions.chain_id().call()),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,
@@ -50,7 +48,7 @@ def test_verify(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chain_id),
+            chain_identifier=ChainID(token_network.functions.chain_id().call()),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_B.balance_hash,
             nonce=balance_proof_B.nonce,
@@ -85,7 +83,6 @@ def test_verify_fail(
 
 
 def test_ecrecover_output(
-    web3: Web3,
     token_network: Contract,
     signature_test_contract: Contract,
     get_accounts: Callable,
@@ -103,7 +100,7 @@ def test_ecrecover_output(
     balance_proof_hash = eth_sign_hash_message(
         pack_balance_proof(
             token_network_address=token_network.address,
-            chain_identifier=ChainID(web3.eth.chain_id),
+            chain_identifier=ChainID(token_network.functions.chain_id().call()),
             channel_identifier=channel_identifier,
             balance_hash=balance_proof_A.balance_hash,
             nonce=balance_proof_A.nonce,

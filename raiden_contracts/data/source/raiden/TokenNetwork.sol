@@ -21,10 +21,6 @@ contract TokenNetwork is Utils, Controllable {
     // mediating transfer.
     SecretRegistry public secret_registry;
 
-    // Chain ID as specified by EIP155 used in balance proof signatures to
-    // avoid replay attacks
-    uint256 public chain_id;
-
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
 
@@ -212,7 +208,6 @@ contract TokenNetwork is Utils, Controllable {
 
     /// @param _token_address The address of the ERC20 token contract
     /// @param _secret_registry The address of SecretRegistry contract that witnesses the onchain secret reveals
-    /// @param _chain_id EIP-155 Chain ID of the blockchain where this instance is being deployed
     /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
     /// that can be chosen at the channel opening
     /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
@@ -225,7 +220,6 @@ contract TokenNetwork is Utils, Controllable {
     constructor(
         address _token_address,
         address _secret_registry,
-        uint256 _chain_id,
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
         address _controller,
@@ -235,7 +229,6 @@ contract TokenNetwork is Utils, Controllable {
         require(_token_address != address(0x0), "TN: invalid token address");
         require(_secret_registry != address(0x0), "TN: invalid SR address");
         require(_controller != address(0x0), "TN: invalid controller address");
-        require(_chain_id > 0, "TN: invalid chain id");
         require(_settlement_timeout_min > 0, "TN: invalid settle timeout min");
         require(_settlement_timeout_max > _settlement_timeout_min, "TN: invalid settle timeouts");
         require(contractExists(_token_address), "TN: invalid token contract");
@@ -247,7 +240,6 @@ contract TokenNetwork is Utils, Controllable {
         token = Token(_token_address);
 
         secret_registry = SecretRegistry(_secret_registry);
-        chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
 
@@ -428,7 +420,6 @@ contract TokenNetwork is Utils, Controllable {
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
         require(withdraw_data.participant == recoverAddressFromWithdrawMessage(
-            chain_id,
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
@@ -436,7 +427,6 @@ contract TokenNetwork is Utils, Controllable {
             withdraw_data.participant_signature
         ), "TN/withdraw: invalid participant sig");
         partner = recoverAddressFromWithdrawMessage(
-            chain_id,
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
@@ -621,7 +611,6 @@ contract TokenNetwork is Utils, Controllable {
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProof,
-            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -637,7 +626,6 @@ contract TokenNetwork is Utils, Controllable {
         // lose the tokens that were transferred to him.
         if (nonce > 0) {
             recovered_non_closing_participant_address = recoverAddressFromBalanceProof(
-                chain_id,
                 channel_identifier,
                 balance_hash,
                 nonce,
@@ -709,7 +697,6 @@ contract TokenNetwork is Utils, Controllable {
         // anyone to make this transaction. E.g. a monitoring service.
         recovered_non_closing_participant = recoverAddressFromBalanceProofCounterSignature(
             MessageType.MessageTypeId.BalanceProofUpdate,
-            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -720,7 +707,6 @@ contract TokenNetwork is Utils, Controllable {
         require(non_closing_participant == recovered_non_closing_participant, "TN/update: invalid non-closing sig");
 
         recovered_closing_participant = recoverAddressFromBalanceProof(
-            chain_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -1573,7 +1559,6 @@ contract TokenNetwork is Utils, Controllable {
     }
 
     function recoverAddressFromBalanceProof(
-        uint256 chain_id,
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -1591,7 +1576,7 @@ contract TokenNetwork is Utils, Controllable {
             signature_prefix,
             message_length,
             address(this),
-            chain_id,
+            block.chainid,
             uint256(MessageType.MessageTypeId.BalanceProof),
             channel_identifier,
             balance_hash,
@@ -1604,7 +1589,6 @@ contract TokenNetwork is Utils, Controllable {
 
     function recoverAddressFromBalanceProofCounterSignature(
         MessageType.MessageTypeId message_type_id,
-        uint256 chain_id,
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -1622,7 +1606,7 @@ contract TokenNetwork is Utils, Controllable {
         bytes32 message_hash = keccak256(abi.encodePacked(
             message_prefix,
             address(this),
-            chain_id,
+            block.chainid,
             uint256(message_type_id),
             channel_identifier,
             balance_hash,
@@ -1635,7 +1619,6 @@ contract TokenNetwork is Utils, Controllable {
     }
 
     function recoverAddressFromWithdrawMessage(
-        uint256 chain_id,
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
@@ -1653,7 +1636,7 @@ contract TokenNetwork is Utils, Controllable {
             signature_prefix,
             message_length,
             address(this),
-            chain_id,
+            block.chainid,
             uint256(MessageType.MessageTypeId.Withdraw),
             channel_identifier,
             participant,
@@ -1736,5 +1719,14 @@ contract TokenNetwork is Utils, Controllable {
     {
         channel_participant_deposit_limit = MAX_SAFE_UINT256;
         token_network_deposit_limit = MAX_SAFE_UINT256;
+    }
+
+    /// @notice For backwards compatibility and testing only
+    /// This can probably be removed once https://github.com/ethereum/web3.py/issues/1677 is fixed.
+    function chain_id()
+        external
+        returns (uint256)
+    {
+        return block.chainid;
     }
 }

@@ -104,16 +104,6 @@ def test_constructor_call(
             _max_token_networks=1,
         )
 
-    # failure with chain ID zero
-    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id=0,
-            _settlement_timeout_min=settle_min,
-            _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-
     # failure with strings instead of the minimal challenge period
     with pytest.raises(TypeError):
         get_token_network_registry(
@@ -168,32 +158,6 @@ def test_constructor_call(
             _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-
-    # failures with chain_id zero
-    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id=0,
-            _settlement_timeout_min=0,
-            _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id=0,
-            _settlement_timeout_min=settle_min,
-            _settlement_timeout_max=0,
-            _max_token_networks=1,
-        )
-    with pytest.raises(TransactionFailed, match="TNR: invalid chain id"):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id=0,
-            _settlement_timeout_min=settle_max,
-            _settlement_timeout_max=settle_min,
             _max_token_networks=1,
         )
 
@@ -266,7 +230,6 @@ def test_constructor_call_state(
         _max_token_networks=30,
     )
     assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
-    assert chain_id == registry.functions.chain_id().call()
     assert TEST_SETTLE_TIMEOUT_MIN == registry.functions.settlement_timeout_min().call()
     assert TEST_SETTLE_TIMEOUT_MAX == registry.functions.settlement_timeout_max().call()
     assert 30 == registry.functions.max_token_networks().call()
@@ -392,9 +355,6 @@ def test_create_erc20_token_network(
 
     secret_registry = token_network_registry_contract.functions.secret_registry_address().call()
     assert token_network.functions.secret_registry().call() == secret_registry
-
-    chain_id = token_network_registry_contract.functions.chain_id().call()
-    assert token_network.functions.chain_id().call() == chain_id
 
     settle_timeout_min = token_network_registry_contract.functions.settlement_timeout_min().call()
     assert token_network.functions.settlement_timeout_min().call() == settle_timeout_min

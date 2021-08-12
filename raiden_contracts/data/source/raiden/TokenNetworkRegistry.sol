@@ -13,7 +13,6 @@ import "raiden/Controllable.sol";
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils, Controllable {
     address public secret_registry_address;
-    uint256 public chain_id;
     uint256 public settlement_timeout_min;
     uint256 public settlement_timeout_max;
     uint256 public max_token_networks;
@@ -42,12 +41,11 @@ contract TokenNetworkRegistry is Utils, Controllable {
     /// MAX_UINT256 means no limits
     constructor(
         address _secret_registry_address,
-        uint256 _chain_id,
+        uint256 _chain_id,  // Ignored and only left for backward compatibility
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
         uint256 _max_token_networks
     ) {
-        require(_chain_id > 0, "TNR: invalid chain id");
         require(_settlement_timeout_min > 0, "TNR: invalid settle timeout min");
         require(_settlement_timeout_max > 0, "TNR: invalid settle timeout max");
         require(_settlement_timeout_max > _settlement_timeout_min, "TNR: invalid settle timeouts");
@@ -55,7 +53,6 @@ contract TokenNetworkRegistry is Utils, Controllable {
         require(contractExists(_secret_registry_address), "TNR: invalid SR");
         require(_max_token_networks > 0, "TNR: invalid TN limit");
         secret_registry_address = _secret_registry_address;
-        chain_id = _chain_id;
         settlement_timeout_min = _settlement_timeout_min;
         settlement_timeout_max = _settlement_timeout_max;
         max_token_networks = _max_token_networks;
@@ -94,7 +91,6 @@ contract TokenNetworkRegistry is Utils, Controllable {
         token_network = new TokenNetwork(
             _token_address,
             secret_registry_address,
-            chain_id,
             settlement_timeout_min,
             settlement_timeout_max,
             controller,
