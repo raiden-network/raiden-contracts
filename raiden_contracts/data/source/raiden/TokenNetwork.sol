@@ -1186,32 +1186,34 @@ contract TokenNetwork is Utils, Controllable {
         Participant storage participant_state = channel.participants[participant];
         Participant storage partner_state = channel.participants[partner];
 
-        // Calculate the actual amount of tokens that will be transferred
-        added_deposit = total_deposit - participant_state.deposit;
+        unchecked {
+            // Calculate the actual amount of tokens that will be transferred
+            added_deposit = total_deposit - participant_state.deposit;
 
-        // The actual amount of tokens that will be transferred must be > 0
-        require(added_deposit > 0, "TN/deposit: no deposit added");
+            // The actual amount of tokens that will be transferred must be > 0
+            require(added_deposit > 0, "TN/deposit: no deposit added");
 
-        // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
-        require(added_deposit <= total_deposit, "TN/deposit: deposit underflow");
+            // Underflow check; we use <= because added_deposit == total_deposit for the first deposit
+            require(added_deposit <= total_deposit, "TN/deposit: deposit underflow");
 
-        // This should never fail at this point. Added check for security, because we directly set
-        // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens
-        assert(participant_state.deposit + added_deposit == total_deposit);
+            // This should never fail at this point. Added check for security, because we directly set
+            // the participant_state.deposit = total_deposit, while we transfer `added_deposit` tokens
+            assert(participant_state.deposit + added_deposit == total_deposit);
 
-        // Red Eyes release token network limit
-        require(
-            token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit,
-            "TN/deposit: network limit reached"
-        );
+            // Red Eyes release token network limit
+            require(
+                token.balanceOf(address(this)) + added_deposit <= token_network_deposit_limit,
+                "TN/deposit: network limit reached"
+            );
 
-        // Update the participant's channel deposit
-        participant_state.deposit = total_deposit;
+            // Update the participant's channel deposit
+            participant_state.deposit = total_deposit;
 
-        // Calculate the entire channel deposit, to avoid overflow
-        channel_deposit = participant_state.deposit + partner_state.deposit;
-        // Overflow check
-        require(channel_deposit >= participant_state.deposit, "TN/deposit: deposit overflow");
+            // Calculate the entire channel deposit, to avoid overflow
+            channel_deposit = participant_state.deposit + partner_state.deposit;
+            // Overflow check
+            require(channel_deposit >= participant_state.deposit, "TN/deposit: deposit overflow");
+        }
 
         emit ChannelNewDeposit(
             channel_identifier,
