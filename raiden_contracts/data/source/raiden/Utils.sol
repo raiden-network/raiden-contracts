@@ -45,7 +45,9 @@ contract Utils {
         pure
         returns (uint256, uint256)
     {
-        return a > b ? (a - b, b) : (0, a);
+        unchecked {
+            return a > b ? (a - b, b) : (0, a);
+        }
     }
 
     /// @dev Special addition function that does not fail when overflowing.
@@ -58,7 +60,9 @@ contract Utils {
         pure
         returns (uint256)
     {
-        uint256 sum = a + b;
-        return sum >= a ? sum : MAX_SAFE_UINT256;
+        unchecked {
+            uint256 sum = a + b;
+            return sum >= a ? sum : MAX_SAFE_UINT256;
+        }
     }
 }
