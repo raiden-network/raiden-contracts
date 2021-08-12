@@ -2,7 +2,6 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
@@ -15,7 +14,6 @@ from raiden_contracts.tests.utils.contracts import call_and_transact
 
 
 def test_constructor_call(
-    web3: Web3,
     get_token_network: Callable,
     custom_token: Contract,
     secret_registry_contract: Contract,
@@ -26,7 +24,6 @@ def test_constructor_call(
     """Try to deploy TokenNetwork with various wrong arguments"""
 
     (A, controller) = get_accounts(2)
-    chain_id = web3.eth.chain_id
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
 
@@ -40,7 +37,6 @@ def test_constructor_call(
             [
                 3,
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -53,7 +49,6 @@ def test_constructor_call(
             [
                 0,
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -68,7 +63,6 @@ def test_constructor_call(
             [
                 "",
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -81,7 +75,6 @@ def test_constructor_call(
             [
                 NOT_ADDRESS,
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -96,7 +89,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 3,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -109,7 +101,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 0,
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -124,7 +115,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 "",
-                chain_id,
                 settle_min,
                 settle_max,
                 controller,
@@ -137,35 +127,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 NOT_ADDRESS,
-                chain_id,
-                settle_min,
-                settle_max,
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid chain_id
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                "",
-                settle_min,
-                settle_max,
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                -3,
                 settle_min,
                 settle_max,
                 controller,
@@ -180,7 +141,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 secret_registry_contract.address,
-                chain_id,
                 "",
                 settle_max,
                 controller,
@@ -193,7 +153,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 secret_registry_contract.address,
-                chain_id,
                 -3,
                 settle_max,
                 controller,
@@ -208,7 +167,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 "",
                 controller,
@@ -221,7 +179,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 secret_registry_contract.address,
-                chain_id,
                 settle_min,
                 -3,
                 controller,
@@ -235,7 +192,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=EMPTY_ADDRESS,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -246,7 +202,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=A,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -257,7 +212,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=secret_registry_contract.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -270,7 +224,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=EMPTY_ADDRESS,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -281,20 +234,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=A,
-            _chain_id=chain_id,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
-            _controller=controller,
-            _channel_participant_deposit_limit=channel_participant_deposit_limit,
-            _token_network_deposit_limit=token_network_deposit_limit,
-        )
-
-    # failure with chain_id zero
-    with pytest.raises(TransactionFailed, match="invalid chain id"):
-        get_token_network(
-            _token_address=custom_token.address,
-            _secret_registry=secret_registry_contract.address,
-            _chain_id=0,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -307,7 +246,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MAX,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
             _controller=controller,
@@ -320,7 +258,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=0,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
             _controller=controller,
@@ -333,7 +270,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=0,
             _controller=controller,
@@ -346,7 +282,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -359,7 +294,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -373,7 +307,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
             _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
@@ -385,7 +318,6 @@ def test_constructor_call(
     get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=controller,
@@ -412,10 +344,6 @@ def test_constructor_not_registered(
     token_network = token_network_external
     assert token_network.functions.token().call() == custom_token.address
     assert token_network.functions.secret_registry().call() == secret_registry_contract.address
-    assert (
-        token_network.functions.chain_id().call()
-        == token_network_registry_contract.functions.chain_id().call()
-    )
 
     # The TokenNetworkRegistry doesn't know about the TokenNetwork
     assert (

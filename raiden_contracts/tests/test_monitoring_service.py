@@ -452,7 +452,6 @@ def test_recoverAddressFromRewardProof(
         monitoring_service_internals.functions.recoverAddressFromRewardProofPublic
     )
     recovered_address = recoverAddressFromRewardProof(
-        chain_id=token_network.functions.chain_id().call(),
         token_network_address=token_network.address,
         non_closing_participant=B,
         non_closing_signature=monitor_data_internal["non_closing_signature"],

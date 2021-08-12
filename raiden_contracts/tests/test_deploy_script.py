@@ -220,11 +220,6 @@ def test_deploy_script_raiden(
         deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
 
     deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail["chain_id"] = 0
-    with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(deployment_data=deployed_contracts_info_fail)
-
-    deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
     deployed_contracts_info_fail["contracts"][CONTRACT_SECRET_REGISTRY]["address"] = EMPTY_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
@@ -284,13 +279,6 @@ def test_deploy_script_raiden(
     deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
         "constructor_arguments"
     ][0] = DEPLOYER_ADDRESS
-    with pytest.raises(RuntimeError):
-        deployer.verify_deployment_data(deployed_contracts_info_fail)
-
-    deployed_contracts_info_fail = deepcopy(deployed_contracts_info)
-    deployed_contracts_info_fail["contracts"][CONTRACT_TOKEN_NETWORK_REGISTRY][
-        "constructor_arguments"
-    ][1] = DEPLOYER_ADDRESS
     with pytest.raises(RuntimeError):
         deployer.verify_deployment_data(deployed_contracts_info_fail)
 

@@ -87,7 +87,6 @@ def print_gas_token_network_registry(
 
 @pytest.fixture
 def print_gas_token_network_deployment(
-    web3: Web3,
     get_accounts: Callable,
     print_gas: Callable,
     custom_token: Contract,
@@ -102,7 +101,6 @@ def print_gas_token_network_deployment(
         CONTRACT_TOKEN_NETWORK,
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=controller,
