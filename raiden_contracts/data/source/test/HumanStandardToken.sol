@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solium-disable */
-pragma solidity 0.8.6;
+pragma solidity 0.8.7;
 
 import "test/StandardToken.sol";
 
