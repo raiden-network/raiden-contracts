@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity 0.8.7;
 
 /*
  * This is a contract used for testing the ECVerify library and ecrecover behaviour.

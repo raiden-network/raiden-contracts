@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solium-disable indentation */
 /* solium-disable security/no-block-members */
-pragma solidity 0.8.6;
+pragma solidity 0.8.7;
 pragma abicoder v2;
 
 import "raiden/Token.sol";
