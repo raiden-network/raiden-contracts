@@ -306,21 +306,6 @@ def test_deploy_script_raiden(
         )
 
 
-@pytest.mark.slow
-def test_deploy_script_raiden_0_37_0(
-    deployer_0_37_0: ContractDeployer,
-) -> None:
-    """Checks that `verify_deployment_data` works fine with older contracts."""
-    data = deployer_0_37_0.deploy_raiden_contracts(
-        max_num_of_token_networks=1,
-        reuse_secret_registry_from_deploy_file=None,
-        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
-    )
-
-    deployer_0_37_0.verify_deployment_data(deployment_data=data)
-
-
 def test_deploy_raiden_reuse_secret_registry(
     deployer: ContractDeployer, deployed_raiden_info: DeployedContracts
 ) -> None:
@@ -781,25 +766,6 @@ def test_store_and_verify_services(
         deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
         token_network_registry_address=token_network_registry_contract.address,
-    )
-
-
-@pytest.mark.slow
-def test_alderaan_deployer(web3: Web3) -> None:
-    """A smoke test for deploying Alderaan version contracts"""
-    deployer = ContractDeployer(
-        web3=web3,
-        private_key=FAUCET_PRIVATE_KEY,
-        gas_limit=GAS_LIMIT,
-        gas_price=1,
-        wait=10,
-        contracts_version=ALDERAAN_VERSION,
-    )
-    deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=2,
-        reuse_secret_registry_from_deploy_file=None,
-        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )
 
 
