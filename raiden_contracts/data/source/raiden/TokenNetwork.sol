@@ -503,7 +503,7 @@ contract TokenNetwork is Utils, Controllable {
     /// have any outstanding locked transfers.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place
-    /// @param data1 Withdraw data of the participant initiating the cooperative settlement
+    /// @param data1 Withdraw data of the first participant
     /// @param data2 Withdraw data of the second participant
     function cooperativeSettle(
         uint256 channel_identifier,
