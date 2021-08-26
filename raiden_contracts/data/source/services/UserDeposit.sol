@@ -137,6 +137,10 @@ contract UserDeposit is Utils {
         require(sender != receiver, "sender == receiver");
         if (balances[sender] >= amount && amount > 0) {
             balances[sender] -= amount;
+            // This can overflow in theory, but this is checked by solidity since 0.8.0.
+            // In practice, with any reasonable token, where the supply is limited to uint256,
+            // this can never overflow.
+            // See https://github.com/raiden-network/raiden-contracts/pull/448#discussion_r250609178
             balances[receiver] += amount;
             emit BalanceReduced(sender, balances[sender]);
             return true;
