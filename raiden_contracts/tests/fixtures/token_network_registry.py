@@ -28,12 +28,9 @@ def get_token_network_registry(deploy_tester_contract: Callable) -> Callable:
 
 
 @pytest.fixture(scope="session")
-def token_network_registry_constructor_args(
-    web3: Web3, secret_registry_contract: Contract
-) -> Dict:
+def token_network_registry_constructor_args(secret_registry_contract: Contract) -> Dict:
     return {
         "_secret_registry_address": secret_registry_contract.address,
-        "_chain_id": web3.eth.chain_id,
         "_settlement_timeout_min": TEST_SETTLE_TIMEOUT_MIN,
         "_settlement_timeout_max": TEST_SETTLE_TIMEOUT_MAX,
         "_max_token_networks": 1,

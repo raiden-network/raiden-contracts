@@ -199,7 +199,6 @@ class ContractDeployer(ContractVerifier):
 
         token_network_registry_args = [
             secret_registry.address,
-            deployed_contracts["chain_id"],
             settle_timeout_min,
             settle_timeout_max,
             max_num_of_token_networks,

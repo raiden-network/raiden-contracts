@@ -32,7 +32,6 @@ contract TokenNetworkRegistry is Utils, Controllable {
 
     /// @param _secret_registry_address The address of SecretRegistry that's used by all
     /// TokenNetworks created by this contract
-    /// @param _chain_id EIP-155 Chain-ID of the chain where this contract is deployed
     /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
     /// that can be chosen at the channel opening
     /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
@@ -41,7 +40,6 @@ contract TokenNetworkRegistry is Utils, Controllable {
     /// MAX_UINT256 means no limits
     constructor(
         address _secret_registry_address,
-        uint256 _chain_id,  // Ignored and only left for backward compatibility
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max,
         uint256 _max_token_networks
