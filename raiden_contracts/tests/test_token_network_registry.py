@@ -2,7 +2,6 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
@@ -19,14 +18,12 @@ from raiden_contracts.utils.events import check_token_network_created
 
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_call(
-    web3: Web3,
     get_token_network_registry: Callable,
     secret_registry_contract: Contract,
     get_accounts: Callable,
 ) -> None:
     """Try to create a TokenNetworkRegistry with various wrong arguments."""
     A = get_accounts(1)[0]
-    chain_id = web3.eth.chain_id
     settle_min = TEST_SETTLE_TIMEOUT_MIN
     settle_max = TEST_SETTLE_TIMEOUT_MAX
 
@@ -38,7 +35,6 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=3,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -48,7 +44,6 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=0,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -58,7 +53,6 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address="",
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -68,37 +62,6 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=NOT_ADDRESS,
-            _chain_id=chain_id,
-            _settlement_timeout_min=settle_min,
-            _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-
-    # failure with the empty string instead of a chain ID
-    with pytest.raises(TypeError):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id="",
-            _settlement_timeout_min=settle_min,
-            _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-
-    # failure with a string instead of a chain ID
-    with pytest.raises(TypeError):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id="1",
-            _settlement_timeout_min=settle_min,
-            _settlement_timeout_max=settle_max,
-            _max_token_networks=1,
-        )
-
-    # failure with a negative integer instead of a chain ID
-    with pytest.raises(TypeError):
-        get_token_network_registry(
-            _secret_registry_address=secret_registry_contract.address,
-            _chain_id=-3,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -106,23 +69,16 @@ def test_constructor_call(
 
     # failure with strings instead of the minimal challenge period
     with pytest.raises(TypeError):
-        get_token_network_registry(
-            [secret_registry_contract.address, chain_id, "", settle_max, 1, 1]
-        )
+        get_token_network_registry([secret_registry_contract.address, "", settle_max, 1, 1])
     with pytest.raises(TypeError):
-        get_token_network_registry(
-            [secret_registry_contract.address, chain_id, "1", settle_max, 1, 1]
-        )
+        get_token_network_registry([secret_registry_contract.address, "1", settle_max, 1, 1])
     with pytest.raises(TypeError):
-        get_token_network_registry(
-            [secret_registry_contract.address, chain_id, -3, settle_max, 1, 1]
-        )
+        get_token_network_registry([secret_registry_contract.address, -3, settle_max, 1, 1])
 
     # failure with strings instead of the max challenge period
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max="",
             _max_token_networks=1,
@@ -130,14 +86,12 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min="settle_min,1",
             _max_token_networks=1,
         )
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=-3,
             _max_token_networks=1,
@@ -147,7 +101,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid SR address"):
         get_token_network_registry(
             _secret_registry_address=EMPTY_ADDRESS,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -155,7 +108,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid SR"):
         get_token_network_registry(
             _secret_registry_address=A,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -165,7 +117,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout min"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=0,
             _settlement_timeout_max=settle_max,
             _max_token_networks=1,
@@ -173,7 +124,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout max"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=0,
             _max_token_networks=1,
@@ -181,7 +131,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid settle timeouts"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_max,
             _settlement_timeout_max=settle_min,
             _max_token_networks=1,
@@ -191,7 +140,6 @@ def test_constructor_call(
     with pytest.raises(TransactionFailed, match="TNR: invalid TN limit"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=settle_min,
             _settlement_timeout_max=settle_max,
             _max_token_networks=0,
@@ -199,7 +147,6 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
-            _chain_id=chain_id,
             _settlement_timeout_min=0,
             _settlement_timeout_max=settle_max,
             _max_token_networks="limit",
@@ -207,7 +154,6 @@ def test_constructor_call(
 
     get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=chain_id,
         _settlement_timeout_min=settle_min,
         _settlement_timeout_max=settle_max,
         _max_token_networks=1,
@@ -216,15 +162,12 @@ def test_constructor_call(
 
 @pytest.mark.usefixtures("no_token_network")
 def test_constructor_call_state(
-    web3: Web3, get_token_network_registry: Callable, secret_registry_contract: Contract
+    get_token_network_registry: Callable, secret_registry_contract: Contract
 ) -> None:
     """The constructor should set the parameters into the storage of the contract"""
 
-    chain_id = web3.eth.chain_id
-
     registry = get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=30,

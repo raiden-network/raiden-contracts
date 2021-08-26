@@ -68,7 +68,6 @@ def test_gas_json_has_enough_fields(version: Optional[str]) -> None:
 
 @pytest.fixture
 def print_gas_token_network_registry(
-    web3: Web3,
     deploy_tester_contract_txhash: Callable,
     secret_registry_contract: Contract,
     print_gas: Callable,
@@ -77,7 +76,6 @@ def print_gas_token_network_registry(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         _secret_registry_address=secret_registry_contract.address,
-        _chain_id=web3.eth.chain_id,
         _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
         _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=10,
