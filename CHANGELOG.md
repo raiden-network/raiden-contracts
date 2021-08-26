@@ -5,6 +5,12 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.40.0]
+
+- [#1517](https://github.com/raiden-network/raiden-contracts/pull/1517), [#1522](https://github.com/raiden-network/raiden-contracts/pull/1522) Upgrade to solidity 0.8 series
+- [#1519](https://github.com/raiden-network/raiden-contracts/pull/1519) Use `block.chainid` in contracts instead of a deploy time value
+  - This changes the ABI of the `TokenNetworkRegistry` and `TokenNetwork` contract constructors
+
 ## [0.39.0]
 
 - [#81](https://github.com/raiden-network/raiden-contracts/issues/81) Add error messages to all contracts
