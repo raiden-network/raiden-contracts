@@ -121,6 +121,15 @@ contract TokenNetworkRegistry is Utils, Controllable {
     {
         max_token_networks = MAX_SAFE_UINT256;
     }
+
+    /// @notice Disables the creation of new token networks.
+    /// Can only be called by the controller.
+    function deprecate()
+        external
+        onlyController
+    {
+        max_token_networks = token_network_created;
+    }
 }
 
 // MIT License
