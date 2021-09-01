@@ -8,7 +8,8 @@ from eth_utils import keccak
 from raiden_contracts.utils.type_aliases import ChainID, Locksroot
 
 # The last digit is supposed to be zero always. See `RELEASE.rst`.
-CONTRACTS_VERSION = "0.39.0"
+CONTRACTS_VERSION = "0.40.0"
+CORUSCANT_VERSION = "0.40.0"
 BESPIN_VERSION = "0.37.0"
 ALDERAAN_VERSION = "0.37.0"
 
@@ -22,7 +23,6 @@ CONTRACT_SECRET_REGISTRY = "SecretRegistry"
 CONTRACT_CUSTOM_TOKEN = "CustomToken"
 CONTRACT_CUSTOM_TOKEN_NO_DECIMALS = "CustomTokenNoDecimals"
 CONTRACT_MONITORING_SERVICE = "MonitoringService"
-CONTRACT_RAIDEN_SERVICE_BUNDLE = "ServiceRegistry"  # old name for compatibility, deprecated
 CONTRACT_SERVICE_REGISTRY = "ServiceRegistry"
 CONTRACT_USER_DEPOSIT = "UserDeposit"
 CONTRACT_ONE_TO_N = "OneToN"
