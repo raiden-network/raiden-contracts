@@ -11,6 +11,7 @@ from raiden_contracts.constants import (
     CHAINNAME_TO_ID,
     CONTRACT_TOKEN_NETWORK,
     CONTRACTS_VERSION,
+    CORUSCANT_VERSION,
     PRECOMPILED_DATA_FIELDS,
     ChannelEvent,
 )
@@ -244,7 +245,9 @@ def test_contract_manager_constructor_does_not_invent_version() -> None:
     assert manager.contracts_version is None
 
 
-@pytest.mark.parametrize("version", [CONTRACTS_VERSION, ALDERAAN_VERSION, BESPIN_VERSION, "0.4.0"])
+@pytest.mark.parametrize(
+    "version", [CONTRACTS_VERSION, ALDERAAN_VERSION, BESPIN_VERSION, CORUSCANT_VERSION, "0.4.0"]
+)
 def test_contract_manager_constructor_keeps_existing_versions(version: str) -> None:
     """ContractManager should keep an existing version string"""
     manager = ContractManager(contracts_precompiled_path(version=version))
