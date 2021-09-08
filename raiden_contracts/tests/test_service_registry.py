@@ -600,3 +600,20 @@ def test_deploying_service_registry_with_denominator_zero(
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
         )
+
+
+def test_deploying_service_registry_with_changed_min_price(
+    deploy_tester_contract: Callable, custom_token: Contract
+) -> None:
+    """ServiceRegistry's constructor must allow changing `min_price`"""
+    deploy_tester_contract(
+        CONTRACT_SERVICE_REGISTRY,
+        _token_for_registration=custom_token.address,
+        _controller=DEPLOYER_ADDRESS,
+        _initial_price=100,
+        _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
+        _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
+        _decay_constant=DEFAULT_DECAY_CONSTANT,
+        _min_price=100,
+        _registration_duration=DEFAULT_REGISTRATION_DURATION,
+    )
