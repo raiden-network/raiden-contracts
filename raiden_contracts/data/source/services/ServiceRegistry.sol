@@ -245,7 +245,7 @@ contract ServiceRegistry is Utils, ServiceRegistryConfigurableParameters {
     ) {
         require(address(_token_for_registration) != address(0x0), "token at address zero");
         require(contractExists(address(_token_for_registration)), "token has no code");
-        require(_initial_price >= min_price, "initial price too low");
+        require(_initial_price >= _min_price, "initial price too low");
         require(_initial_price <= 2 ** 90, "intiial price too high");
 
         token = _token_for_registration;
