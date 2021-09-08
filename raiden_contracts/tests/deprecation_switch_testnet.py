@@ -129,7 +129,9 @@ def deprecation_test_setup(
     token_contract = deployer.web3.eth.contract(abi=token_abi, address=token_address)
 
     # Mint some tokens for the owner
-    txhash = call_and_transact(token_contract.functions.mint(token_amount), deployer.transaction)
+    txhash = call_and_transact(
+        token_contract.functions.mint(token_amount), deployer.get_tx_params()
+    )
 
     log.debug(f"Minting tokens txHash={encode_hex(txhash)}")
     check_successful_tx(deployer.web3, txhash, deployer.wait)
@@ -154,7 +156,7 @@ def deprecation_test_setup(
 
     txhash = call_and_transact(
         token_contract.functions.approve(token_network.address, token_amount),
-        deployer.transaction,
+        deployer.get_tx_params(),
     )
     log.debug(f"Approving tokens for the TokenNetwork contract txHash={encode_hex(txhash)}")
     check_successful_tx(deployer.web3, txhash, deployer.wait)
@@ -184,7 +186,7 @@ def open_and_deposit(
             token_network.functions.openChannel(
                 participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT_MIN
             ),
-            deployer.transaction,
+            deployer.get_tx_params(),
         )
         log.debug(f"Opening a channel between {A} and {B} txHash={encode_hex(txhash)}")
         check_successful_tx(web3=deployer.web3, txid=txhash, timeout=deployer.wait)
@@ -209,7 +211,7 @@ def open_and_deposit(
                 total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
                 partner=B,
             ),
-            deployer.transaction,
+            deployer.get_tx_params(),
         )
         log.debug(
             f"Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {A} in a channel with "
@@ -233,7 +235,7 @@ def open_and_deposit(
                 total_deposit=int(MAX_ETH_CHANNEL_PARTICIPANT / 2),
                 partner=A,
             ),
-            deployer.transaction,
+            deployer.get_tx_params(),
         )
         log.debug(
             f"Depositing {MAX_ETH_CHANNEL_PARTICIPANT} tokens for {B} in a channel with "

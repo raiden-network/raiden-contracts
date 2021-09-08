@@ -4,12 +4,13 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
+import web3
 from eth_typing import ChecksumAddress, HexAddress
 from eth_utils import encode_hex, is_address, to_checksum_address
-from eth_utils.units import units
 from hexbytes import HexBytes
-from web3 import Web3
+from web3 import Web3, eth
 from web3.contract import Contract, ContractFunction
+from web3.gas_strategies.rpc import rpc_gas_price_strategy
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, TxParams, TxReceipt, Wei
 
@@ -48,7 +49,7 @@ class ContractDeployer(ContractVerifier):
         web3: Web3,
         private_key: PrivateKey,
         gas_limit: int,
-        gas_price: int,
+        gas_price: Optional[int] = None,
         wait: int = 10,
         contracts_version: Optional[str] = None,
     ):
@@ -56,14 +57,11 @@ class ContractDeployer(ContractVerifier):
         super(ContractDeployer, self).__init__(web3=web3, contracts_version=contracts_version)
         self.wait = wait
         self.owner = private_key_to_address(private_key)
-        self.transaction = TxParams(
-            {
-                "from": self.owner,
-                "gas": Wei(gas_limit),
-                "gasPrice": Wei(gas_price * int(units["gwei"])),
-            }
-        )
+        self.gas_limit = Wei(gas_limit)
+        self.gas_price = gas_price
 
+        # set gas price strategy
+        web3.eth.setGasPriceStrategy(rpc_gas_price_strategy)
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
         # Check that the precompiled data matches the source code
@@ -75,6 +73,23 @@ class ContractDeployer(ContractVerifier):
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
+
+    def get_tx_params(self) -> TxParams:
+        gas_price = self.gas_price
+        if gas_price is None:
+            maybe_price = web3.eth.generate_gas_price()
+            if maybe_price is not None:
+                gas_price = int(maybe_price)
+            else:
+                gas_price = int(web3.eth.gas_price)
+
+        return TxParams(
+            {
+                "from": self.owner,
+                "gas": self.gas_limit,
+                "gasPrice": Wei(gas_price),
+            }
+        )
 
     def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
@@ -116,7 +131,7 @@ class ContractDeployer(ContractVerifier):
 
     def transact(self, contract_method: ContractFunction) -> TxReceipt:
         """A wrapper around to_be_called.transact() that waits until the transaction succeeds."""
-        txhash = contract_method.transact(self.transaction)
+        txhash = contract_method.transact(self.get_tx_params())
         LOG.debug(f"Sending txHash={encode_hex(txhash)}")
         receipt, _ = check_successful_tx(web3=self.web3, txid=txhash, timeout=self.wait)
         return receipt
@@ -125,7 +140,7 @@ class ContractDeployer(ContractVerifier):
         txhash = None
         while txhash is None:
             try:
-                txhash = contract.constructor(*args).transact(self.transaction)
+                txhash = contract.constructor(*args).transact(self.get_tx_params())
             except ValueError as ex:
                 # pylint: disable=E1126
                 if ex.args[0]["code"] == -32015:
