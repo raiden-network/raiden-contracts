@@ -3,6 +3,7 @@
 pragma solidity 0.8.7;
 pragma abicoder v2;
 
+import "lib/ArbSys.sol";
 import "lib/ECVerify.sol";
 import "lib/MessageType.sol";
 import "raiden/Token.sol";
@@ -415,7 +416,7 @@ contract TokenNetwork is Utils, Controllable {
         address partner;
 
         require(withdraw_data.total_withdraw > 0, "TN/withdraw: total withdraw is zero");
-        require(block.number < withdraw_data.expiration_block, "TN/withdraw: expired");
+        require(ArbSys(100).arbBlockNumber() < withdraw_data.expiration_block, "TN/withdraw: expired");
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -606,7 +607,7 @@ contract TokenNetwork is Utils, Controllable {
         channel.participants[closing_participant].is_the_closer = true;
 
         // This is the block number at which the channel can be settled.
-        channel.settle_block_number += uint256(block.number);
+        channel.settle_block_number += uint256(ArbSys(100).arbBlockNumber());
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -818,7 +819,7 @@ contract TokenNetwork is Utils, Controllable {
         require(channel.state == ChannelState.Closed, "TN/settle: channel not closed");
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number, "TN/settle: settlement timeout");
+        require(channel.settle_block_number < ArbSys(100).arbBlockNumber(), "TN/settle: settlement timeout");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];

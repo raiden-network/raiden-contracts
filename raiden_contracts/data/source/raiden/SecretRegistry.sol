@@ -2,6 +2,8 @@
 pragma solidity 0.8.7;
 pragma abicoder v2;
 
+import "lib/ArbSys.sol";
+
 /// @title SecretRegistry
 /// @notice SecretRegistry contract for registering secrets from Raiden Network
 /// clients.
@@ -21,7 +23,7 @@ contract SecretRegistry {
         if (secrethash_to_block[secrethash] > 0) {
             return false;
         }
-        secrethash_to_block[secrethash] = block.number;
+        secrethash_to_block[secrethash] = ArbSys(100).arbBlockNumber();
         emit SecretRevealed(secrethash, secret);
         return true;
     }

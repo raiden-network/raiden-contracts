@@ -2,6 +2,7 @@
 pragma solidity 0.8.7;
 pragma abicoder v2;
 
+import "lib/ArbSys.sol";
 import "lib/ECVerify.sol";
 import "lib/MessageType.sol";
 import "raiden/Token.sol";
@@ -203,7 +204,7 @@ contract MonitoringService is Utils {
             closing_participant, non_closing_participant
         );
         require(
-            block.number >= firstBlockAllowedToMonitorChannel(
+            ArbSys(100).arbBlockNumber() >= firstBlockAllowedToMonitorChannel(
                 token_network,
                 channel_identifier,
                 closing_participant,
@@ -345,7 +346,7 @@ contract MonitoringService is Utils {
             channel_state == TokenNetwork.ChannelState.Settled ||
             channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
         );
-        require(settle_block_number < block.number, "channel not settled yet");
+        require(settle_block_number < ArbSys(100).arbBlockNumber(), "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];
 

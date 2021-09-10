@@ -2,6 +2,7 @@
 pragma solidity 0.8.7;
 pragma abicoder v2;
 
+import "lib/ArbSys.sol";
 import "lib/ECVerify.sol";
 import "lib/MessageType.sol";
 import "raiden/Utils.sol";
@@ -74,7 +75,7 @@ contract OneToN is Utils {
         returns (uint)
     {
         require(service_registry_contract.hasValidRegistration(receiver), "receiver not registered");
-        require(block.number <= expiration_block, "IOU expired");
+        require(ArbSys(100).arbBlockNumber() <= expiration_block, "IOU expired");
 
         // validate signature
         address addressFromSignature = recoverAddressFromSignature(

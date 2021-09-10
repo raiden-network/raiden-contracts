@@ -2,6 +2,7 @@
 pragma solidity 0.8.7;
 pragma abicoder v2;
 
+import "lib/ArbSys.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
@@ -161,7 +162,7 @@ contract UserDeposit is Utils {
 
         withdraw_plans[msg.sender] = WithdrawPlan({
             amount: amount,
-            withdraw_block: block.number + withdraw_delay
+            withdraw_block: ArbSys(100).arbBlockNumber() + withdraw_delay
         });
         emit WithdrawPlanned(msg.sender, balances[msg.sender] - amount);
     }
@@ -212,7 +213,7 @@ contract UserDeposit is Utils {
         require(beneficiary != address(0x0), "beneficiary is zero");
         WithdrawPlan storage withdraw_plan = withdraw_plans[deposit_holder];
         require(amount <= withdraw_plan.amount, "withdrawing more than planned");
-        require(withdraw_plan.withdraw_block <= block.number, "withdrawing too early");
+        require(withdraw_plan.withdraw_block <= ArbSys(100).arbBlockNumber(), "withdrawing too early");
         uint256 withdrawable = min(amount, balances[deposit_holder]);
         balances[deposit_holder] -= withdrawable;
 
