@@ -21,6 +21,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
+    ID_TO_CHAINNAME,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -63,6 +64,20 @@ class ContractDeployer(ContractVerifier):
                 "gasPrice": Wei(gas_price * int(units["gwei"])),
             }
         )
+
+        # Special case deployment on arbitrum
+        # Gas usage on Arbitrum is different that EVM gas usage, so increase the limit here
+        chain_id = ChainID(web3.eth.chain_id)
+        if chain_id != 61 and "arbitrum" in ID_TO_CHAINNAME[chain_id]:
+            gas_limit = Wei(1_000_000_000)
+            gas_price = Wei(int(units["gwei"]))
+            LOG.info(
+                "Adapting transaction parameters for arbitrum",
+                gas_limit=gas_limit,
+                gas_price=gas_price,
+            )
+            self.transaction["gas"] = gas_limit
+            self.transaction["gasPrice"] = gas_price
 
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
