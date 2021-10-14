@@ -1724,7 +1724,7 @@ contract TokenNetwork is Utils, Controllable {
     /// @notice For backwards compatibility and testing only
     /// This can probably be removed once https://github.com/ethereum/web3.py/issues/1677 is fixed.
     function chain_id()
-        external
+        external view
         returns (uint256)
     {
         return block.chainid;
