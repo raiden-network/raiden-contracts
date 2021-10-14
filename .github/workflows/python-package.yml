@@ -32,7 +32,7 @@ jobs:
       run: |
         if [ ! -x venv ]; then python3 -m venv venv; fi
         source ./venv/bin/activate
-        python -m pip install --upgrade pip wheel codecov
+        python -m pip install --upgrade pip=="21.2.3" wheel codecov
         make install-dev
         make verify_contracts
     - name: Lint
