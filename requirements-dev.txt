@@ -21,6 +21,6 @@ requests_mock
 isort==5.9.3
 pipdeptree
 six~=1.16
-pip==21.2.3
+pip==21.3
 twine
 wheel
