@@ -73,7 +73,6 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         channel_identifier = getChannelIdentifier(participant1, participant2);
         Channel storage channel = channels[channel_identifier];
         Participant storage participant1_state = channel.participants[participant1];
-        Participant storage participant2_state = channel.participants[participant2];
 
         return getMaxPossibleReceivableAmount(
             participant1_state.deposit,
@@ -242,17 +241,17 @@ contract TokenNetworkUtilsTest is TokenNetwork {
         return getLockedAmountFromLock(locks, offset);
     }
 
-    function minPublic(uint256 a, uint256 b) public view returns (uint256)
+    function minPublic(uint256 a, uint256 b) public pure returns (uint256)
     {
         return min(a, b);
     }
 
-    function failsafe_subtractPublic(uint256 a, uint256 b) public view returns (uint256, uint256)
+    function failsafe_subtractPublic(uint256 a, uint256 b) public pure returns (uint256, uint256)
     {
         return failsafe_subtract(a, b);
     }
 
-    function failsafe_additionPublic(uint256 a, uint256 b) public view returns (uint256)
+    function failsafe_additionPublic(uint256 a, uint256 b) public pure returns (uint256)
     {
         return failsafe_addition(a, b);
     }
