@@ -72,9 +72,8 @@ class ContractDeployer(ContractVerifier):
             gas_limit = Wei(1_000_000_000)
             gas_price = Wei(int(units["gwei"]))
             LOG.info(
-                "Adapting transaction parameters for arbitrum",
-                gas_limit=gas_limit,
-                gas_price=gas_price,
+                "Adapting transaction parameters for arbitrum. "
+                f"gas limit: {gas_limit}, gas_price: {gas_price}"
             )
             self.transaction["gas"] = gas_limit
             self.transaction["gasPrice"] = gas_price
@@ -294,6 +293,7 @@ class ContractDeployer(ContractVerifier):
                 token_address
             ).call()
             time.sleep(2)
+
         LOG.debug(f"TokenNetwork address: {token_network_address}")
         return dict(
             token_network_address=token_network_address,

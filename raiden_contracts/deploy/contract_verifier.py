@@ -173,9 +173,10 @@ class ContractVerifier:
         contracts = deployment_data["contracts"]
 
         # Check blockchain transaction hash & block information
-        receipt = self.web3.eth.get_transaction_receipt(
+        receipt = self.web3.eth.wait_for_transaction_receipt(
             contracts[contract_name]["transaction_hash"]
         )
+
         if receipt["blockNumber"] != contracts[contract_name]["block_number"]:
             raise RuntimeError(
                 f'We have block_number {contracts[contract_name]["block_number"]} in the '
