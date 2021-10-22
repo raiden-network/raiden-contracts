@@ -64,19 +64,7 @@ class ContractDeployer(ContractVerifier):
                 "gasPrice": Wei(gas_price * int(units["gwei"])),
             }
         )
-
-        # Special case deployment on arbitrum
-        # Gas usage on Arbitrum is different that EVM gas usage, so increase the limit here
-        chain_id = ChainID(web3.eth.chain_id)
-        if chain_id != 61 and "arbitrum" in ID_TO_CHAINNAME[chain_id]:
-            gas_limit = Wei(1_000_000_000)
-            gas_price = Wei(int(units["gwei"]))
-            LOG.info(
-                "Adapting transaction parameters for arbitrum. "
-                f"gas limit: {gas_limit}, gas_price: {gas_price}"
-            )
-            self.transaction["gas"] = gas_limit
-            self.transaction["gasPrice"] = gas_price
+        self._maybe_set_arbitrum_settings()
 
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
@@ -89,6 +77,20 @@ class ContractDeployer(ContractVerifier):
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
+
+    def _maybe_set_arbitrum_settings(self) -> None:
+        # Special case deployment on arbitrum
+        # Gas usage on Arbitrum is different that EVM gas usage, so increase the limit here
+        chain_id = ChainID(self.web3.eth.chain_id)
+        if chain_id != 61 and "arbitrum" in ID_TO_CHAINNAME[chain_id]:
+            gas_limit = Wei(1_000_000_000)
+            gas_price = Wei(int(units["gwei"]))
+            LOG.info(
+                "Adapting transaction parameters for arbitrum. "
+                f"gas limit: {gas_limit}, gas_price: {gas_price}"
+            )
+            self.transaction["gas"] = gas_limit
+            self.transaction["gasPrice"] = gas_price
 
     def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
