@@ -18,7 +18,7 @@ types-requests==2.25.11
 pylint<2.12
 pylint-quotes
 requests_mock
-isort==5.9.3
+isort==5.10.0
 pipdeptree
 six~=1.16
 pip==21.2.4
