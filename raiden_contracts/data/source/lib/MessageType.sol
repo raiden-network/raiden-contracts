@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solium-disable error-reason */
-pragma solidity 0.8.7;
+pragma solidity 0.8.10;
 pragma abicoder v2;
 
 library MessageType {
