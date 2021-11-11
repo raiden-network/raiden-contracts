@@ -10,7 +10,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_DEPRECATION_SWITCH,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT_MAX,
     TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
@@ -46,8 +45,6 @@ def test_controller(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         controller,
         _secret_registry_address=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=1,
     )
 

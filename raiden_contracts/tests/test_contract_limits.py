@@ -8,8 +8,6 @@ from web3.contract import Contract
 from raiden_contracts.constants import (
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
     ParticipantInfoIndex,
 )
 from raiden_contracts.tests.utils import call_and_transact
@@ -26,8 +24,6 @@ def test_register_three_but_not_four(
     """Check that TokenNetworkRegistry observes the max number of tokens"""
     token_network_registry = get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=3,
     )
     assert token_network_registry.functions.max_token_networks().call() == 3

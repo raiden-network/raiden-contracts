@@ -8,15 +8,11 @@ import "raiden/TokenNetwork.sol";
 contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
         address _token_address,
-        address _secret_registry,
-        uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        address _secret_registry
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settlement_timeout_min,
-            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
@@ -126,15 +122,11 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
 contract TokenNetworkSignatureTest is TokenNetwork {
     constructor (
         address _token_address,
-        address _secret_registry,
-        uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        address _secret_registry
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settlement_timeout_min,
-            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
@@ -210,15 +202,11 @@ contract TokenNetworkSignatureTest is TokenNetwork {
 contract TokenNetworkUtilsTest is TokenNetwork {
     constructor (
         address _token_address,
-        address _secret_registry,
-        uint256 _settlement_timeout_min,
-        uint256 _settlement_timeout_max
+        address _secret_registry
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settlement_timeout_min,
-            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256

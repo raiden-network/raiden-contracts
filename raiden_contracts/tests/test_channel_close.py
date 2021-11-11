@@ -63,7 +63,7 @@ def test_close_settled_channel_fail(
 ) -> None:
     """Test getChannelInfo and closeChannel on an already settled channel"""
     (A, B) = get_accounts(2)
-    channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
 
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
@@ -321,7 +321,7 @@ def test_close_first_argument_is_for_partner_transfer(
     (A, B) = get_accounts(2)
 
     # Create channel
-    channel_identifier = create_channel(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN)[0]
+    channel_identifier = create_channel(A, B)[0]
 
     # Create balance proofs
     balance_proof = create_balance_proof(channel_identifier, B)
@@ -468,7 +468,7 @@ def test_close_channel_state(
     )
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Check the state of the openned channel

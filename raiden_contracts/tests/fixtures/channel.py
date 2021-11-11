@@ -60,10 +60,9 @@ def create_channel(token_network: Contract) -> Callable:
 
         # Test the channel state on chain
         (
-            channel_settle_timeout,
+            _,
             channel_state,
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-        assert channel_settle_timeout == settle_timeout
         assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)

@@ -12,8 +12,6 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
     MessageTypeId,
 )
 from raiden_contracts.contract_manager import gas_measurements
@@ -76,8 +74,6 @@ def print_gas_token_network_registry(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         _secret_registry_address=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=10,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + " DEPLOYMENT")
@@ -99,8 +95,6 @@ def print_gas_token_network_deployment(
         CONTRACT_TOKEN_NETWORK,
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=controller,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,

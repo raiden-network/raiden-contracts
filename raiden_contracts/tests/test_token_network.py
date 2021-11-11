@@ -4,11 +4,7 @@ import pytest
 from eth_tester.exceptions import TransactionFailed
 from web3.contract import Contract
 
-from raiden_contracts.constants import (
-    EMPTY_ADDRESS,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
-)
+from raiden_contracts.constants import EMPTY_ADDRESS
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS
 from raiden_contracts.tests.utils.contracts import call_and_transact
 
@@ -24,9 +20,6 @@ def test_constructor_call(
     """Try to deploy TokenNetwork with various wrong arguments"""
 
     (A, controller) = get_accounts(2)
-    settle_min = TEST_SETTLE_TIMEOUT_MIN
-    settle_max = TEST_SETTLE_TIMEOUT_MAX
-
     # failure with no arguments
     with pytest.raises(TypeError):
         get_token_network([])
@@ -37,8 +30,6 @@ def test_constructor_call(
             [
                 3,
                 secret_registry_contract.address,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -49,8 +40,6 @@ def test_constructor_call(
             [
                 0,
                 secret_registry_contract.address,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -63,8 +52,6 @@ def test_constructor_call(
             [
                 "",
                 secret_registry_contract.address,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -75,8 +62,6 @@ def test_constructor_call(
             [
                 NOT_ADDRESS,
                 secret_registry_contract.address,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -89,8 +74,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 3,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -101,8 +84,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 0,
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -115,8 +96,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 "",
-                settle_min,
-                settle_max,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -127,60 +106,6 @@ def test_constructor_call(
             [
                 custom_token.address,
                 NOT_ADDRESS,
-                settle_min,
-                settle_max,
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid settle_min
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                "",
-                settle_max,
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                -3,
-                settle_max,
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-
-    # failures with invalid settle_max
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                settle_min,
-                "",
-                controller,
-                channel_participant_deposit_limit,
-                token_network_deposit_limit,
-            ]
-        )
-    with pytest.raises(TypeError):
-        get_token_network(
-            [
-                custom_token.address,
-                secret_registry_contract.address,
-                settle_min,
-                -3,
                 controller,
                 channel_participant_deposit_limit,
                 token_network_deposit_limit,
@@ -192,8 +117,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=EMPTY_ADDRESS,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -202,8 +125,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=A,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -212,8 +133,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=secret_registry_contract.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -224,8 +143,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=EMPTY_ADDRESS,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -234,8 +151,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=A,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -246,8 +161,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MAX,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -258,8 +171,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=0,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MIN,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -270,8 +181,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=0,
             _controller=controller,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -282,8 +191,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=token_network_deposit_limit,
@@ -294,8 +201,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=0,
             _token_network_deposit_limit=0,
@@ -307,8 +212,6 @@ def test_constructor_call(
         get_token_network(
             _token_address=custom_token.address,
             _secret_registry=secret_registry_contract.address,
-            _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-            _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
             _controller=controller,
             _channel_participant_deposit_limit=token_network_deposit_limit,
             _token_network_deposit_limit=channel_participant_deposit_limit,
@@ -318,8 +221,6 @@ def test_constructor_call(
     get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=controller,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,

@@ -9,6 +9,10 @@ contract Utils {
 
     uint256 constant MAX_SAFE_UINT256 = 2**256 - 1;
 
+    uint256 public constant settlement_timeout_min = 100;
+    uint256 public constant settlement_timeout_max = 500;
+    uint256 public constant settle_timeout = 300;
+
     /// @notice Check if a contract exists
     /// @param contract_address The address to check whether a contract is
     /// deployed or not
