@@ -254,15 +254,13 @@ contract MonitoringService is Utils {
         );
         require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
 
-        // We don't actually know when the channel has been closed. So we'll
-        // make a guess so that assumed_close_block >= real_close_block.
-        uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
-        require(settle_block_number >= assumed_settle_timeout, "too low settle block number");
-        uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
+        uint256 settle_timeout = token_network.settle_timeout();
+        require(settle_block_number >= settle_timeout, "too low settle block number");
+        uint256 assumed_close_block = settle_block_number - settle_timeout;
 
         return firstBlockAllowedToMonitor(
             assumed_close_block,
-            assumed_settle_timeout,
+            settle_timeout,
             closing_participant,
             non_closing_participant,
             monitoring_service_address

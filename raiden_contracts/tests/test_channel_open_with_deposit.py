@@ -2,7 +2,7 @@ from typing import Callable
 
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ChannelEvent
 from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.events import check_channel_opened, check_new_deposit
 
@@ -23,7 +23,7 @@ def test_channel_open_with_deposit_basics(
     # Check channel creation by participant
     assign_tokens(A, deposit)
     call_and_transact(
-        token_network.functions.openChannelWithDeposit(A, B, TEST_SETTLE_TIMEOUT_MIN, deposit),
+        token_network.functions.openChannelWithDeposit(A, B, deposit),
         {"from": A},
     )
     assert token_network.functions.getChannelIdentifier(A, B).call() == 1
@@ -33,7 +33,7 @@ def test_channel_open_with_deposit_basics(
     # Check channel creation by delegate
     assign_tokens(D, deposit)
     call_and_transact(
-        token_network.functions.openChannelWithDeposit(B, C, TEST_SETTLE_TIMEOUT_MIN, deposit),
+        token_network.functions.openChannelWithDeposit(B, C, deposit),
         {"from": D},
     )
     assert token_network.functions.getChannelIdentifier(B, C).call() == 2
@@ -54,7 +54,7 @@ def test_channel_open_with_deposit_events(
 
     assign_tokens(A, deposit)
     txn_hash = call_and_transact(
-        token_network.functions.openChannelWithDeposit(A, B, TEST_SETTLE_TIMEOUT_MIN, deposit),
+        token_network.functions.openChannelWithDeposit(A, B, deposit),
         {"from": A},
     )
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
@@ -62,7 +62,7 @@ def test_channel_open_with_deposit_events(
     ev_handler.add(
         txn_hash,
         ChannelEvent.OPENED,
-        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT_MIN),
+        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT),
     )
     ev_handler.add(
         txn_hash,
