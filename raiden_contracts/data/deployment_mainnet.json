@@ -16,8 +16,7 @@
       "gas_cost": 4579528,
       "constructor_arguments": [
         "0x70f0c29b946E63803BD0Be796E17E47138668A68",
-        100,
-        500,
+        200,
         1
       ]
     }
@@ -29,8 +28,7 @@
         "_token_address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
         "_secret_registry": "0x70f0c29b946E63803BD0Be796E17E47138668A68",
         "_chain_id": 1,
-        "_settlement_timeout_min": 100,
-        "_settlement_timeout_max": 500,
+        "_settle_timeout": 200,
         "_controller": "0xD96338420166d3965DF1aD93eb977F70F828A46f",
         "_channel_participant_deposit_limit": 1000000000000000000000,
         "_token_network_deposit_limit": 1000000000000000000000000

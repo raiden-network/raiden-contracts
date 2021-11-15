@@ -9,8 +9,7 @@ from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
     ChannelEvent,
     ChannelInfoIndex,
     ChannelState,
@@ -34,55 +33,42 @@ from .utils.blockchain import mine_blocks
 def test_open_channel_call(token_network: Contract, get_accounts: Callable) -> None:
     """Calling openChannel() with various wrong arguments"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
-
-    # Validation failure with a negative settle timeout
-    with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, B, -3)
 
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(0x0, B, settle_timeout)
+        token_network.functions.openChannel(0x0, B)
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel("", B, settle_timeout)
+        token_network.functions.openChannel("", B)
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(NOT_ADDRESS, B, settle_timeout)
+        token_network.functions.openChannel(NOT_ADDRESS, B)
 
     # Validation failure with the number zero instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, 0x0, settle_timeout)
+        token_network.functions.openChannel(A, 0x0)
 
     # Validation failure with the empty string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, "", settle_timeout)
+        token_network.functions.openChannel(A, "")
 
     # Validation failure with an odd-length string instead of an address
     with pytest.raises(ValidationError):
-        token_network.functions.openChannel(A, NOT_ADDRESS, settle_timeout)
+        token_network.functions.openChannel(A, NOT_ADDRESS)
 
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed, match="TN: participant address zero"):
-        token_network.functions.openChannel(EMPTY_ADDRESS, B, settle_timeout).call()
+        token_network.functions.openChannel(EMPTY_ADDRESS, B).call()
 
     # Transaction failure with the zero address
     with pytest.raises(TransactionFailed, match="TN: partner address zero"):
-        token_network.functions.openChannel(A, EMPTY_ADDRESS, settle_timeout).call()
+        token_network.functions.openChannel(A, EMPTY_ADDRESS).call()
 
     # Cannot open a channel between 2 participants with the same address
     with pytest.raises(TransactionFailed, match="TN: identical addresses"):
-        token_network.functions.openChannel(A, A, settle_timeout).call()
-
-    # Cannot open a channel for one-too-small settle timeout
-    with pytest.raises(TransactionFailed, match="TN: settle timeout < min"):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN - 1).call()
-
-    # Cannot open a channel for one-too-big settle timeout
-    with pytest.raises(TransactionFailed, match="TN: settle timeout > max"):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX + 1).call()
+        token_network.functions.openChannel(A, A).call()
 
 
 def test_max_1_channel(
@@ -90,12 +76,12 @@ def test_max_1_channel(
 ) -> None:
     """For two participants, at most one channel can be opened"""
     (A, B) = get_accounts(2)
-    create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)
+    create_channel(A, B)
 
     with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN).call()
+        token_network.functions.openChannel(A, B).call()
     with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
-        token_network.functions.openChannel(B, A, TEST_SETTLE_TIMEOUT_MIN).call()
+        token_network.functions.openChannel(B, A).call()
 
 
 def test_participants_hash(token_network: Contract, get_accounts: Callable) -> None:
@@ -192,7 +178,6 @@ def test_state_channel_identifier_invalid(
 def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> None:
     """Observe the state of the channel after a openChannel() call"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN + 10
 
     channel_counter = token_network.functions.channel_counter().call()
     participants_hash = token_network.functions.getParticipantsHash(A, B).call()
@@ -203,7 +188,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     )
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
-    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
+    call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     assert token_network.functions.channel_counter().call() == channel_counter + 1
@@ -213,9 +198,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
     )
 
     channel_info_response = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    settle_block_number = channel_info_response[ChannelInfoIndex.SETTLE_BLOCK]
     state = channel_info_response[ChannelInfoIndex.STATE]
-    assert settle_block_number == settle_timeout
     assert state == ChannelState.OPENED
 
     response = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
@@ -260,9 +243,9 @@ def test_reopen_channel(
 ) -> None:
     """Open a second channel after settling one"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
-    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
+    call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
         get_participants_hash(A, B)
@@ -270,7 +253,7 @@ def test_reopen_channel(
 
     # Opening twice fails
     with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
-        token_network.functions.openChannel(A, B, settle_timeout).call()
+        token_network.functions.openChannel(A, B).call()
 
     # Close channel
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier1)
@@ -290,7 +273,7 @@ def test_reopen_channel(
 
     # Reopen Channel before settlement fails
     with pytest.raises(TransactionFailed, match="TN/open: channel exists for participants"):
-        token_network.functions.openChannel(A, B, settle_timeout).call()
+        token_network.functions.openChannel(A, B).call()
 
     # Settlement window must be over before settling the channel
     mine_blocks(web3, settle_timeout + 1)
@@ -312,7 +295,7 @@ def test_reopen_channel(
     )
 
     # Reopening the channel should work iff channel is settled
-    call_and_transact(token_network.functions.openChannel(A, B, settle_timeout))
+    call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier2 = token_network.functions.getChannelIdentifier(A, B).call()
     assert channel_identifier2 != channel_identifier1
     assert (
@@ -370,14 +353,12 @@ def test_open_channel_event(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
 
-    txn_hash = call_and_transact(
-        token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN)
-    )
+    txn_hash = call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
     ev_handler.add(
         txn_hash,
         ChannelEvent.OPENED,
-        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT_MIN),
+        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT),
     )
     ev_handler.check()

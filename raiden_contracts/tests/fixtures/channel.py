@@ -8,7 +8,7 @@ from web3 import Web3
 from web3.contract import Contract
 from web3.types import Nonce
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelState, MessageTypeId
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ChannelState, MessageTypeId
 from raiden_contracts.tests.utils import (
     EMPTY_ADDITIONAL_HASH,
     EMPTY_BALANCE_HASH,
@@ -44,15 +44,13 @@ from raiden_contracts.utils.type_aliases import (
 
 @pytest.fixture(scope="session")
 def create_channel(token_network: Contract) -> Callable:
-    def get(A: HexAddress, B: HexAddress, settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN) -> Tuple:
+    def get(A: HexAddress, B: HexAddress) -> Tuple:
         # Make sure there is no channel existent on chain
         assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
         # Open the channel and retrieve the channel identifier
         txn_hash = call_and_transact(
-            token_network.functions.openChannel(
-                participant1=A, participant2=B, settle_timeout=settle_timeout
-            )
+            token_network.functions.openChannel(participant1=A, participant2=B)
         )
 
         # Get the channel identifier
@@ -60,10 +58,9 @@ def create_channel(token_network: Contract) -> Callable:
 
         # Test the channel state on chain
         (
-            channel_settle_timeout,
+            _,
             channel_state,
         ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-        assert channel_settle_timeout == settle_timeout
         assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)
@@ -137,9 +134,8 @@ def create_channel_and_deposit(create_channel: Callable, channel_deposit: Callab
         participant2: HexAddress,
         deposit1: int = 0,
         deposit2: int = 0,
-        settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN,
     ) -> int:
-        channel_identifier = create_channel(participant1, participant2, settle_timeout)[0]
+        channel_identifier = create_channel(participant1, participant2)[0]
 
         if deposit1 > 0:
             channel_deposit(channel_identifier, participant1, deposit1, participant2)
@@ -328,7 +324,7 @@ def create_settled_channel(
         participant2: HexAddress,
         locked_amount2: int,
         locksroot2: bytes,
-        settle_timeout: int = TEST_SETTLE_TIMEOUT_MIN,
+        settle_timeout: int = TEST_SETTLE_TIMEOUT,
     ) -> int:
         participant1_values = ChannelValues(
             transferred=5,
@@ -353,7 +349,6 @@ def create_settled_channel(
             participant2,
             participant1_values.deposit,
             participant2_values.deposit,
-            settle_timeout,
         )
 
         close_and_update_channel(

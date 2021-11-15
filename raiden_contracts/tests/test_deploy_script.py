@@ -26,8 +26,6 @@ from raiden_contracts.constants import (
     CONTRACT_SERVICE_REGISTRY,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    DEPLOY_SETTLE_TIMEOUT_MAX,
-    DEPLOY_SETTLE_TIMEOUT_MIN,
     EMPTY_ADDRESS,
 )
 from raiden_contracts.contract_manager import DeployedContracts, contracts_precompiled_path
@@ -91,10 +89,7 @@ def deployer_0_37_0(web3: Web3) -> ContractDeployer:
 @pytest.fixture(scope="session")
 def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=1,
-        reuse_secret_registry_from_deploy_file=None,
-        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
+        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
     )
 
 
@@ -102,10 +97,7 @@ def deployed_raiden_info(deployer: ContractDeployer) -> DeployedContracts:
 @pytest.fixture(scope="session")
 def deployed_raiden_info2(deployer: ContractDeployer) -> DeployedContracts:
     return deployer.deploy_raiden_contracts(
-        max_num_of_token_networks=1,
-        reuse_secret_registry_from_deploy_file=None,
-        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
+        max_num_of_token_networks=1, reuse_secret_registry_from_deploy_file=None
     )
 
 
@@ -298,12 +290,7 @@ def test_deploy_script_raiden(
         wait=10,
     )
     with pytest.raises(ValidationError):
-        deployer.deploy_raiden_contracts(
-            1,
-            reuse_secret_registry_from_deploy_file=None,
-            settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-            settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
-        )
+        deployer.deploy_raiden_contracts(1, reuse_secret_registry_from_deploy_file=None)
 
 
 def test_deploy_raiden_reuse_secret_registry(
@@ -314,10 +301,7 @@ def test_deploy_raiden_reuse_secret_registry(
         previous_deployment_file.write(bytearray(json.dumps(deployed_raiden_info), "ascii"))
         previous_deployment_file.flush()
         new_deployment = deployer.deploy_raiden_contracts(
-            1,
-            reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name),
-            settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
-            settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
+            1, reuse_secret_registry_from_deploy_file=Path(previous_deployment_file.name)
         )
         assert (
             new_deployment["contracts"][CONTRACT_SECRET_REGISTRY]
