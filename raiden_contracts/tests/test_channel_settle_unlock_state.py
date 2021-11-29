@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ParticipantInfoIndex
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.fixtures.channel_test_values import (
     channel_settle_invalid_test_values,
@@ -83,7 +83,7 @@ def test_settlement_outcome(
 
         close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-        mine_blocks(web3, TEST_SETTLE_TIMEOUT)
+        mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN)
 
         pre_balance_A = custom_token.functions.balanceOf(A).call()
         pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -391,7 +391,7 @@ def test_channel_settle_invalid_balance_proof_values(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()

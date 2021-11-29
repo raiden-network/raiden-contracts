@@ -4,7 +4,7 @@ import pytest
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
 
 
 @pytest.fixture
@@ -20,6 +20,8 @@ def token_network_test_storage(
             custom_token.address,
             secret_registry_contract.address,
             web3.eth.chain_id,
+            TEST_SETTLE_TIMEOUT_MIN,
+            TEST_SETTLE_TIMEOUT_MAX,
         ],
     )
 
@@ -33,8 +35,9 @@ def token_network_test_signatures(
     return deploy_tester_contract(
         "TokenNetworkSignatureTest",
         _token_address=custom_token.address,
-        _settle_timeout=TEST_SETTLE_TIMEOUT,
         _secret_registry=secret_registry_contract.address,
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )
 
 
@@ -48,7 +51,8 @@ def token_network_test_utils(
         "TokenNetworkUtilsTest",
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _settle_timeout=TEST_SETTLE_TIMEOUT,
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
     )
 
 

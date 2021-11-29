@@ -21,7 +21,8 @@ contract TokenNetwork is Utils, Controllable {
     // mediating transfer.
     SecretRegistry public secret_registry;
 
-    uint256 public settle_timeout;
+    uint256 public settlement_timeout_min;
+    uint256 public settlement_timeout_max;
 
     // The deposit limit per channel per participant.
     uint256 public channel_participant_deposit_limit;
@@ -199,10 +200,18 @@ contract TokenNetwork is Utils, Controllable {
         _;
     }
 
+    modifier settleTimeoutValid(uint256 timeout) {
+        require(timeout >= settlement_timeout_min, "TN: settle timeout < min");
+        require(timeout <= settlement_timeout_max, "TN: settle timeout > max");
+        _;
+    }
+
     /// @param _token_address The address of the ERC20 token contract
     /// @param _secret_registry The address of SecretRegistry contract that witnesses the onchain secret reveals
-    /// @param _settle_timeout Number of blocks that need to be mined between a
-    /// call to closeChannel and settleChannel
+    /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening
+    /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening
     /// @param _controller The Ethereum address that can disable new deposits and channel creation
     /// @param _channel_participant_deposit_limit The maximum amount of tokens that can be deposited by each
     /// participant of each channel. MAX_SAFE_UINT256 means no limits
@@ -211,7 +220,8 @@ contract TokenNetwork is Utils, Controllable {
     constructor(
         address _token_address,
         address _secret_registry,
-        uint256 _settle_timeout,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max,
         address _controller,
         uint256 _channel_participant_deposit_limit,
         uint256 _token_network_deposit_limit
@@ -219,6 +229,8 @@ contract TokenNetwork is Utils, Controllable {
         require(_token_address != address(0x0), "TN: invalid token address");
         require(_secret_registry != address(0x0), "TN: invalid SR address");
         require(_controller != address(0x0), "TN: invalid controller address");
+        require(_settlement_timeout_min > 0, "TN: invalid settle timeout min");
+        require(_settlement_timeout_max > _settlement_timeout_min, "TN: invalid settle timeouts");
         require(contractExists(_token_address), "TN: invalid token contract");
         require(contractExists(_secret_registry), "TN: invalid SR contract");
         require(_channel_participant_deposit_limit > 0, "TN: invalid participant limit");
@@ -228,9 +240,8 @@ contract TokenNetwork is Utils, Controllable {
         token = Token(_token_address);
 
         secret_registry = SecretRegistry(_secret_registry);
-
-        require(_settle_timeout > 0, "TNR: invalid settle timeout");
-        settle_timeout = _settle_timeout;
+        settlement_timeout_min = _settlement_timeout_min;
+        settlement_timeout_max = _settlement_timeout_max;
 
         // Make sure the contract is indeed a token contract
         require(token.totalSupply() > 0, "TN: no supply for token");
@@ -249,10 +260,12 @@ contract TokenNetwork is Utils, Controllable {
     /// Can be called by anyone
     /// @param participant1 Ethereum address of a channel participant
     /// @param participant2 Ethereum address of the other channel participant
+    /// @param settle_timeout Number of blocks that need to be mined between a
     /// call to closeChannel and settleChannel
-    function openChannel(address participant1, address participant2)
+    function openChannel(address participant1, address participant2, uint256 settle_timeout)
         public
         isSafe
+        settleTimeoutValid(settle_timeout)
         returns (uint256)
     {
         bytes32 pair_hash;
@@ -298,20 +311,24 @@ contract TokenNetwork is Utils, Controllable {
     /// and deposits for `participant1`. Can be called by anyone
     /// @param participant1 Ethereum address of a channel participant
     /// @param participant2 Ethereum address of the other channel participant
+    /// @param settle_timeout Number of blocks that need to be mined between a
+    /// call to closeChannel and settleChannel
     /// @param participant1_total_deposit The total amount of tokens that
     /// `participant1` will have as deposit
     function openChannelWithDeposit(
         address participant1,
         address participant2,
+        uint256 settle_timeout,
         uint256 participant1_total_deposit
     )
         public
         isSafe
+        settleTimeoutValid(settle_timeout)
         returns (uint256)
     {
         uint256 channel_identifier;
 
-        channel_identifier = openChannel(participant1, participant2);
+        channel_identifier = openChannel(participant1, participant2, settle_timeout);
         setTotalDepositFor(
             channel_identifier,
             participant1,

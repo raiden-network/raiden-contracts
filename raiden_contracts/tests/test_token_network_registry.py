@@ -8,7 +8,8 @@ from web3.exceptions import ValidationError
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, NOT_ADDRESS
@@ -23,6 +24,8 @@ def test_constructor_call(
 ) -> None:
     """Try to create a TokenNetworkRegistry with various wrong arguments."""
     A = get_accounts(1)[0]
+    settle_min = TEST_SETTLE_TIMEOUT_MIN
+    settle_max = TEST_SETTLE_TIMEOUT_MAX
 
     # failure with no arguments
     with pytest.raises(TypeError):
@@ -32,66 +35,128 @@ def test_constructor_call(
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=3,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
 
     # failure with zero instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=0,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
 
     # failure with the empty string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address="",
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
 
     # failure with an odd-length hex string instead of the SecretRegistry's address
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=NOT_ADDRESS,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failure with strings instead of the minimal challenge period
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, "", settle_max, 1, 1])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, "1", settle_max, 1, 1])
+    with pytest.raises(TypeError):
+        get_token_network_registry([secret_registry_contract.address, -3, settle_max, 1, 1])
+
+    # failure with strings instead of the max challenge period
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max="",
+            _max_token_networks=1,
+        )
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min="settle_min,1",
+            _max_token_networks=1,
+        )
+    with pytest.raises(TypeError):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=-3,
+            _max_token_networks=1,
         )
 
     # failure with Ethereum accounts that doesn't look like a SecretRegistry
     with pytest.raises(TransactionFailed, match="TNR: invalid SR address"):
         get_token_network_registry(
             _secret_registry_address=EMPTY_ADDRESS,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
     with pytest.raises(TransactionFailed, match="TNR: invalid SR"):
         get_token_network_registry(
             _secret_registry_address=A,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=1,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
+        )
+
+    # failures with nonsense challenge periods
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout min"):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=0,
+            _settlement_timeout_max=settle_max,
+            _max_token_networks=1,
+        )
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeout max"):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=0,
+            _max_token_networks=1,
+        )
+    with pytest.raises(TransactionFailed, match="TNR: invalid settle timeouts"):
+        get_token_network_registry(
+            _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=settle_max,
+            _settlement_timeout_max=settle_min,
+            _max_token_networks=1,
         )
 
     # failures with nonsense token number limits
     with pytest.raises(TransactionFailed, match="TNR: invalid TN limit"):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=settle_min,
+            _settlement_timeout_max=settle_max,
             _max_token_networks=0,
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
     with pytest.raises(TypeError):
         get_token_network_registry(
             _secret_registry_address=secret_registry_contract.address,
+            _settlement_timeout_min=0,
+            _settlement_timeout_max=settle_max,
             _max_token_networks="limit",
-            _settle_timeout=TEST_SETTLE_TIMEOUT,
         )
 
     get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
+        _settlement_timeout_min=settle_min,
+        _settlement_timeout_max=settle_max,
         _max_token_networks=1,
-        _settle_timeout=TEST_SETTLE_TIMEOUT,
     )
 
 
@@ -103,10 +168,13 @@ def test_constructor_call_state(
 
     registry = get_token_network_registry(
         _secret_registry_address=secret_registry_contract.address,
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=30,
-        _settle_timeout=TEST_SETTLE_TIMEOUT,
     )
     assert secret_registry_contract.address == registry.functions.secret_registry_address().call()
+    assert TEST_SETTLE_TIMEOUT_MIN == registry.functions.settlement_timeout_min().call()
+    assert TEST_SETTLE_TIMEOUT_MAX == registry.functions.settlement_timeout_max().call()
     assert 30 == registry.functions.max_token_networks().call()
 
 
@@ -231,8 +299,11 @@ def test_create_erc20_token_network(
     secret_registry = token_network_registry_contract.functions.secret_registry_address().call()
     assert token_network.functions.secret_registry().call() == secret_registry
 
-    settle_timeout = token_network_registry_contract.functions.settle_timeout().call()
-    assert token_network.functions.settle_timeout().call() == settle_timeout
+    settle_timeout_min = token_network_registry_contract.functions.settlement_timeout_min().call()
+    assert token_network.functions.settlement_timeout_min().call() == settle_timeout_min
+
+    settle_timeout_max = token_network_registry_contract.functions.settlement_timeout_max().call()
+    assert token_network.functions.settlement_timeout_max().call() == settle_timeout_max
 
 
 @pytest.mark.usefixtures("no_token_network")

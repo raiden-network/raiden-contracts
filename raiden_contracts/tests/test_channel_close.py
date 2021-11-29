@@ -8,7 +8,7 @@ from web3.contract import Contract
 from web3.types import Wei
 
 from raiden_contracts.constants import (
-    TEST_SETTLE_TIMEOUT,
+    TEST_SETTLE_TIMEOUT_MIN,
     ChannelEvent,
     ChannelState,
     MessageTypeId,
@@ -63,7 +63,7 @@ def test_close_settled_channel_fail(
 ) -> None:
     """Test getChannelInfo and closeChannel on an already settled channel"""
     (A, B) = get_accounts(2)
-    channel_identifier = create_channel(A, B)[0]
+    channel_identifier = create_channel(A, B, TEST_SETTLE_TIMEOUT_MIN)[0]
     channel_deposit(channel_identifier, A, 5, B)
 
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
@@ -83,7 +83,7 @@ def test_close_settled_channel_fail(
         ),
         {"from": A},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier,
@@ -321,7 +321,7 @@ def test_close_first_argument_is_for_partner_transfer(
     (A, B) = get_accounts(2)
 
     # Create channel
-    channel_identifier = create_channel(A, B)[0]
+    channel_identifier = create_channel(A, B, settle_timeout=TEST_SETTLE_TIMEOUT_MIN)[0]
 
     # Create balance proofs
     balance_proof = create_balance_proof(channel_identifier, B)
@@ -384,7 +384,7 @@ def test_close_first_participant_can_close(
     (settle_block_number, state) = token_network.functions.getChannelInfo(
         channel_identifier, B, A
     ).call()
-    assert settle_block_number == TEST_SETTLE_TIMEOUT + get_block(close_tx)
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(close_tx)
     assert state == ChannelState.CLOSED
 
     (
@@ -458,7 +458,7 @@ def test_close_channel_state(
     accounts before/after a successful closeChannel call.
     """
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
+    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     vals_B = ChannelValues(
         deposit=20,
         transferred=5,
@@ -468,7 +468,7 @@ def test_close_channel_state(
     )
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B)[0]
+    channel_identifier = create_channel(A, B, settle_timeout)[0]
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Check the state of the openned channel
@@ -659,7 +659,7 @@ def test_close_replay_reopened_channel(
         ),
         {"from": A},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier1,

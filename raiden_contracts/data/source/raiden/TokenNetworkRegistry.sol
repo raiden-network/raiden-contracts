@@ -13,7 +13,8 @@ import "raiden/Controllable.sol";
 /// Raiden Network protocol.
 contract TokenNetworkRegistry is Utils, Controllable {
     address public secret_registry_address;
-    uint256 public settle_timeout;
+    uint256 public settlement_timeout_min;
+    uint256 public settlement_timeout_max;
     uint256 public max_token_networks;
 
     // Only for the limited Red Eyes release
@@ -31,24 +32,27 @@ contract TokenNetworkRegistry is Utils, Controllable {
 
     /// @param _secret_registry_address The address of SecretRegistry that's used by all
     /// TokenNetworks created by this contract
+    /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
     /// that can be chosen at the channel opening
-    /// @param _settle_timeout Number of blocks that need to be mined between a
-    /// call to closeChannel and settleChannel
+    /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
+    /// that can be chosen at the channel opening
     /// @param _max_token_networks the number of tokens that can be registered
     /// MAX_UINT256 means no limits
     constructor(
         address _secret_registry_address,
-        uint256 _settle_timeout,
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max,
         uint256 _max_token_networks
     ) {
+        require(_settlement_timeout_min > 0, "TNR: invalid settle timeout min");
+        require(_settlement_timeout_max > 0, "TNR: invalid settle timeout max");
+        require(_settlement_timeout_max > _settlement_timeout_min, "TNR: invalid settle timeouts");
         require(_secret_registry_address != address(0x0), "TNR: invalid SR address");
         require(contractExists(_secret_registry_address), "TNR: invalid SR");
         require(_max_token_networks > 0, "TNR: invalid TN limit");
-        require(_settle_timeout > 0, "TNR: invalid settle timeout");
         secret_registry_address = _secret_registry_address;
-
-        settle_timeout = _settle_timeout;
-
+        settlement_timeout_min = _settlement_timeout_min;
+        settlement_timeout_max = _settlement_timeout_max;
         max_token_networks = _max_token_networks;
 
         controller = msg.sender;
@@ -85,7 +89,8 @@ contract TokenNetworkRegistry is Utils, Controllable {
         token_network = new TokenNetwork(
             _token_address,
             secret_registry_address,
-            settle_timeout,
+            settlement_timeout_min,
+            settlement_timeout_max,
             controller,
             _channel_participant_deposit_limit,
             _token_network_deposit_limit

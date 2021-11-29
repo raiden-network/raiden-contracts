@@ -11,7 +11,6 @@ from web3.contract import Contract
 from raiden_contracts.constants import (
     CONTRACT_MONITORING_SERVICE,
     LOCKSROOT_OF_NO_LOCKS,
-    TEST_SETTLE_TIMEOUT,
     MessageTypeId,
     MonitoringServiceEvent,
 )
@@ -178,7 +177,7 @@ def test_claimReward_with_settle_call(
         ).call({"from": ms_address})
 
     # Settle channel after settle_timeout elapsed
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, 4)
     if with_settle:
         call_and_transact(
             token_network.functions.settleChannel(
