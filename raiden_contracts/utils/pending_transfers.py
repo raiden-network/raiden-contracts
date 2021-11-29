@@ -8,7 +8,7 @@ from eth_abi import encode_abi
 from eth_utils import keccak
 from web3 import Web3
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN
 
 PendingTransfersTree = NamedTuple(
     "PendingTransfersTree",
@@ -93,7 +93,7 @@ def get_pending_transfers(
     if expired_amounts is None:
         expired_amounts = []
     min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
-    max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT)
+    max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT_MIN)
     unlockable_locks = [
         [
             current_block + randint(min_expiration_delta, max_expiration_delta),

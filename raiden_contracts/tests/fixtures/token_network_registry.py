@@ -10,7 +10,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils import call_and_transact
@@ -30,7 +31,8 @@ def get_token_network_registry(deploy_tester_contract: Callable) -> Callable:
 def token_network_registry_constructor_args(secret_registry_contract: Contract) -> Dict:
     return {
         "_secret_registry_address": secret_registry_contract.address,
-        "_settle_timeout": TEST_SETTLE_TIMEOUT,
+        "_settlement_timeout_min": TEST_SETTLE_TIMEOUT_MIN,
+        "_settlement_timeout_max": TEST_SETTLE_TIMEOUT_MAX,
         "_max_token_networks": 1,
     }
 

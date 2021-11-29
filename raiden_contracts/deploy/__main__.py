@@ -19,7 +19,8 @@ from web3.middleware import geth_poa_middleware
 from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
-    DEPLOY_SETTLE_TIMEOUT,
+    DEPLOY_SETTLE_TIMEOUT_MAX,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import DeployedContracts, contracts_deployed_path
 from raiden_contracts.deploy.contract_deployer import ContractDeployer
@@ -174,11 +175,21 @@ def check_version_dependent_parameters(
     help="The deployment file from which SecretRegistry should be reused",
 )
 @click.option(
-    "--settle-timeout",
+    "--settle-timeout-max",
     type=click.INT,
-    default=DEPLOY_SETTLE_TIMEOUT,
+    default=DEPLOY_SETTLE_TIMEOUT_MAX,
     help=(
-        "The expected settle timeout for the channels opened with this " "set of smart contracts"
+        "The maximum allowed settle timeout for the channels opened with this "
+        "set of smart contracts"
+    ),
+)
+@click.option(
+    "--settle-timeout-min",
+    type=click.INT,
+    default=DEPLOY_SETTLE_TIMEOUT_MIN,
+    help=(
+        "The minimum allowed settle timeout for the channels opened with this "
+        "set of smart contracts"
     ),
 )
 @click.pass_context
@@ -191,7 +202,8 @@ def raiden(
     gas_price: int,
     gas_limit: int,
     save_info: int,
-    settle_timeout: int,
+    settle_timeout_min: int,
+    settle_timeout_max: int,
     contracts_version: Optional[str],
     max_token_networks: Optional[int],
     secret_registry_from_deployment_file: Optional[str],
@@ -215,7 +227,8 @@ def raiden(
     deployed_contracts_info = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=max_token_networks,
         reuse_secret_registry_from_deploy_file=secret_registry_from_deployment_path,
-        settle_timeout=settle_timeout,
+        settle_timeout_min=settle_timeout_min,
+        settle_timeout_max=settle_timeout_max,
     )
     deployed_contracts = {
         contract_name: info["address"]

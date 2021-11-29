@@ -1,9 +1,11 @@
 from typing import Callable
 
+import pytest
+from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MAX, TEST_SETTLE_TIMEOUT_MIN
 from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, call_and_transact, fake_bytes
 from raiden_contracts.tests.utils.blockchain import mine_blocks
 
@@ -22,13 +24,22 @@ def test_settle_timeout_inrange(
     """
     (A, B) = get_accounts(2)
 
-    call_and_transact(token_network.functions.openChannel(A, B))
+    small_settle_timeout = TEST_SETTLE_TIMEOUT_MIN - 1
+    large_settle_timeout = TEST_SETTLE_TIMEOUT_MAX + 1
+
+    with pytest.raises(TransactionFailed, match="TN: settle timeout < min"):
+        token_network.functions.openChannel(A, B, small_settle_timeout).call()
+
+    with pytest.raises(TransactionFailed, match="TN: settle timeout > max"):
+        token_network.functions.openChannel(A, B, large_settle_timeout).call()
+
+    call_and_transact(token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MIN))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (settle_block_number, _) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
     ).call()
 
-    assert settle_block_number == TEST_SETTLE_TIMEOUT
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     call_and_transact(
@@ -44,7 +55,7 @@ def test_settle_timeout_inrange(
         ),
         {"from": A},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier,
@@ -59,10 +70,10 @@ def test_settle_timeout_inrange(
         ),
         {"from": A},
     )
-    call_and_transact(token_network.functions.openChannel(A, B))
+    call_and_transact(token_network.functions.openChannel(A, B, TEST_SETTLE_TIMEOUT_MAX))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
     (settle_block_number, _) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
     ).call()
 
-    assert settle_block_number == TEST_SETTLE_TIMEOUT
+    assert settle_block_number == TEST_SETTLE_TIMEOUT_MAX

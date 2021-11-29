@@ -9,12 +9,14 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _settle_timeout
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settle_timeout,
+            _settlement_timeout_min,
+            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
@@ -125,12 +127,14 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _settle_timeout
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settle_timeout,
+            _settlement_timeout_min,
+            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256
@@ -207,12 +211,14 @@ contract TokenNetworkUtilsTest is TokenNetwork {
     constructor (
         address _token_address,
         address _secret_registry,
-        uint256 _settle_timeout
+        uint256 _settlement_timeout_min,
+        uint256 _settlement_timeout_max
     )
         TokenNetwork(
             _token_address,
             _secret_registry,
-            _settle_timeout,
+            _settlement_timeout_min,
+            _settlement_timeout_max,
             msg.sender,
             MAX_SAFE_UINT256,
             MAX_SAFE_UINT256

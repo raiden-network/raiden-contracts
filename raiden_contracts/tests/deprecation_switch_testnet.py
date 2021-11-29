@@ -10,7 +10,8 @@ from raiden_contracts.constants import (
     CONTRACT_CUSTOM_TOKEN,
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
-    DEPLOY_SETTLE_TIMEOUT,
+    DEPLOY_SETTLE_TIMEOUT_MAX,
+    DEPLOY_SETTLE_TIMEOUT_MIN,
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
 )
@@ -103,6 +104,8 @@ def deprecation_test_setup(
     deployed_contracts = deployer.deploy_raiden_contracts(
         max_num_of_token_networks=1,
         reuse_secret_registry_from_deploy_file=None,
+        settle_timeout_min=DEPLOY_SETTLE_TIMEOUT_MIN,
+        settle_timeout_max=DEPLOY_SETTLE_TIMEOUT_MAX,
     )["contracts"]
 
     token_network_registry_abi = deployer.contract_manager.get_contract_abi(
@@ -179,7 +182,7 @@ def open_and_deposit(
     try:
         txhash = call_and_transact(
             token_network.functions.openChannel(
-                participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT
+                participant1=A, participant2=B, settle_timeout=DEPLOY_SETTLE_TIMEOUT_MIN
             ),
             deployer.transaction,
         )

@@ -10,7 +10,8 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     EVENT_DEPRECATION_SWITCH,
     EVENT_TOKEN_NETWORK_CREATED,
-    TEST_SETTLE_TIMEOUT,
+    TEST_SETTLE_TIMEOUT_MAX,
+    TEST_SETTLE_TIMEOUT_MIN,
 )
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.fixtures.channel import call_settle
@@ -45,8 +46,9 @@ def test_controller(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         controller,
         _secret_registry_address=secret_registry_contract.address,
+        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
+        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=1,
-        _settle_timeout=TEST_SETTLE_TIMEOUT,
     )
 
     # Make sure deployer is controller
@@ -215,7 +217,7 @@ def test_deprecation_switch_settle(
 
     # We need to make sure we can still close, settle & unlock the channels
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
