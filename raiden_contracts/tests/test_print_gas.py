@@ -374,7 +374,7 @@ def print_gas_monitoring_service(
         ),
         {"from": A},
     )
-    mine_blocks(web3, 4)
+    mine_blocks(web3, 6)
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = call_and_transact(
