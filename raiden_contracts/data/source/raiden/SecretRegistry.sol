@@ -21,7 +21,7 @@ contract SecretRegistry {
         if (secrethash_to_block[secrethash] > 0) {
             return false;
         }
-        secrethash_to_block[secrethash] = block.number;
+        secrethash_to_block[secrethash] = block.timestamp;
         emit SecretRevealed(secrethash, secret);
         return true;
     }
@@ -42,8 +42,8 @@ contract SecretRegistry {
 
     /// @notice Get the stored block number at which the secret was revealed
     /// @param secrethash The hash of the registered secret `keccak256(secret)`
-    /// @return The block number at which the secret was revealed
-    function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256) {
+    /// @return The block timestamp at which the secret was revealed
+    function getSecretRevealBlockTime(bytes32 secrethash) public view returns (uint256) {
         return secrethash_to_block[secrethash];
     }
 }

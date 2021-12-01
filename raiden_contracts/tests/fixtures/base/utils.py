@@ -12,7 +12,7 @@ from eth_utils.units import units
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
-from web3.types import ABI, Wei
+from web3.types import ABI, BlockData, Wei
 
 from raiden_contracts.contract_manager import contracts_gas_path
 from raiden_contracts.tests.utils import call_and_transact, get_random_privkey
@@ -173,11 +173,11 @@ def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
 
     return get
 
-
 @pytest.fixture()
 def get_block(web3: Web3) -> Callable:
-    def get(txn_hash: HexBytes) -> int:
+    def get(txn_hash: HexBytes) -> BlockData:
         receipt = web3.eth.get_transaction_receipt(txn_hash)
-        return receipt["blockNumber"]
+        block = web3.eth.get_block(receipt["blockNumber"])
+        return block
 
     return get

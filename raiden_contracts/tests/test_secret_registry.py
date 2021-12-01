@@ -61,13 +61,13 @@ def test_register_secret(
     secret2 = b"secretsecretsecretsecretsecretss"
     secrethash = sha256(secret).digest()
 
-    assert secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call() == 0
+    assert secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call() == 0
 
     txn_hash = call_and_transact(
         secret_registry_contract.functions.registerSecret(secret), {"from": A}
     )
 
-    assert secret_registry_contract.functions.getSecretRevealBlockHeight(
+    assert secret_registry_contract.functions.getSecretRevealBlockTime(
         secrethash
     ).call() == get_block(txn_hash)
 
@@ -84,7 +84,7 @@ def test_register_secret_batch(
     secret_hashes = [sha256(secret).digest() for secret in secrets]
 
     for h in secret_hashes:
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == 0
+        assert secret_registry_contract.functions.getSecretRevealBlockTime(h).call() == 0
 
     txn_hash = call_and_transact(
         secret_registry_contract.functions.registerSecretBatch(secrets), {"from": A}
@@ -92,7 +92,7 @@ def test_register_secret_batch(
     block = get_block(txn_hash)
 
     for h in secret_hashes:
-        assert secret_registry_contract.functions.getSecretRevealBlockHeight(h).call() == block
+        assert secret_registry_contract.functions.getSecretRevealBlockTime(h).call() == block
 
 
 def test_register_secret_batch_return_value(

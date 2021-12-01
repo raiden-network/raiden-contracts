@@ -32,7 +32,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
     /// @param _secret_registry_address The address of SecretRegistry that's used by all
     /// TokenNetworks created by this contract
     /// that can be chosen at the channel opening
-    /// @param _settle_timeout Number of blocks that need to be mined between a
+    /// @param _settle_timeout Number of seconds that need to elapse between a
     /// call to closeChannel and settleChannel
     /// @param _max_token_networks the number of tokens that can be registered
     /// MAX_UINT256 means no limits
