@@ -78,7 +78,7 @@ def test_1_item_unlockable(
         {"from": A},
     )
     assert (
-        secret_registry_contract.functions.getSecretRevealBlockHeight(
+        secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
         == web3.eth.block_number
@@ -114,7 +114,7 @@ def test_get_hash_length_fail(
         {"from": A},
     )
     assert (
-        secret_registry_contract.functions.getSecretRevealBlockHeight(
+        secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
         == web3.eth.block_number
@@ -310,7 +310,7 @@ def test_lock_data_from_packed_locks(
     call_and_transact(secret_registry_contract.functions.registerSecret(last_lock[3]))
     # ensure registration was done
     assert (
-        secret_registry_contract.functions.getSecretRevealBlockHeight(last_lock[2]).call()
+        secret_registry_contract.functions.getSecretRevealBlockTime(last_lock[2]).call()
         == web3.eth.block_number
     )
 
@@ -769,7 +769,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
         call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
         assert (
-            secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
+            secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
             == web3.eth.block_number
         )
 

@@ -381,10 +381,10 @@ def test_close_first_participant_can_close(
         {"from": A},
     )
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
+    (settle_block_timestamp, state) = token_network.functions.getChannelInfo(
         channel_identifier, B, A
     ).call()
-    assert settle_block_number == TEST_SETTLE_TIMEOUT + get_block(close_tx)
+    assert settle_block_timestamp == TEST_SETTLE_TIMEOUT + get_block(close_tx).timestamp
     assert state == ChannelState.CLOSED
 
     (
@@ -542,10 +542,10 @@ def test_close_channel_state(
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
+    (settle_block_timestamp, state) = token_network.functions.getChannelInfo(
         channel_identifier, A, B
     ).call()
-    assert settle_block_number == settle_timeout + get_block(txn_hash)
+    assert settle_block_timestamp == settle_timeout + get_block(txn_hash).timestamp
     assert state == ChannelState.CLOSED
 
     (

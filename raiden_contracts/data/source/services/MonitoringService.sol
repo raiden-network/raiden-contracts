@@ -248,15 +248,15 @@ contract MonitoringService is Utils {
         require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
 
         TokenNetwork.ChannelState channel_state;
-        uint256 settle_block_number;
-        (settle_block_number, channel_state) = token_network.getChannelInfo(
+        uint256 settle_window;
+        (settle_window, channel_state) = token_network.getChannelInfo(
             channel_identifier, closing_participant, non_closing_participant
         );
         require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
 
         uint256 settle_timeout = token_network.settle_timeout();
-        require(settle_block_number >= settle_timeout, "too low settle block number");
-        uint256 assumed_close_block = settle_block_number - settle_timeout;
+        require(settle_window >= settle_timeout, "too low settle block number");
+        uint256 assumed_close_block = settle_window - settle_timeout;
 
         return firstBlockAllowedToMonitor(
             assumed_close_block,
@@ -326,16 +326,16 @@ contract MonitoringService is Utils {
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
         TokenNetwork.ChannelState channel_state;
-        uint256 settle_block_number;
-        (settle_block_number, channel_state) = token_network.getChannelInfo(
+        uint256 settle_window;
+        (settle_window, channel_state) = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
             non_closing_participant
         );
         // We are trying to figure out when the settlement period ends.
-        // The meaning of settle_block_number is totally different depending on channel_state.
-        // When channel_state is NonExistent, settle_block_number is zero so it's not useful.
-        // When channel_state is Open, settle_block_number is the length of the settlement period.
+        // The meaning of settle_window is totally different depending on channel_state.
+        // When channel_state is NonExistent, settle_window is zero so it's not useful.
+        // When channel_state is Open, settle_window is the length of the settlement period.
         // In these cases, we don't want to proceed anyway because the settlement period has not even started.
         // We can only proceed with these other channel states.
         require(
@@ -343,7 +343,7 @@ contract MonitoringService is Utils {
             channel_state == TokenNetwork.ChannelState.Settled ||
             channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
         );
-        require(settle_block_number < block.number, "channel not settled yet");
+        require(settle_window < block.timestamp, "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];
 

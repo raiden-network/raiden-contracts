@@ -1,3 +1,4 @@
+import time
 from typing import Callable
 
 import pytest
@@ -10,7 +11,7 @@ from raiden_contracts.tests.utils import EMPTY_LOCKSROOT, call_and_transact
 from raiden_contracts.utils.events import check_channel_settled, check_withdraw_2
 from raiden_contracts.utils.type_aliases import BlockExpiration
 
-EXPIRATION = BlockExpiration(100)
+EXPIRATION = int(time.time()) + BlockExpiration(100) * 15
 
 
 def test_cooperative_settle_channel_call(
