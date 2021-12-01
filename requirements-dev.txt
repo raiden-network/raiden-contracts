@@ -1,5 +1,5 @@
 -r requirements.txt
-black==21.9b0
+black==21.11b1
 eth-tester[py-evm]==0.5.0b4
 coverage
 pytest
@@ -14,13 +14,12 @@ attrs>=19.2.0
 bump2version
 requests
 mypy==0.910
-types-requests==2.25.9
-pylint<2.12
+types-requests==2.26.1
+pylint<2.13
 pylint-quotes
 requests_mock
-isort==5.9.3
+isort==5.10.1
 pipdeptree
 six~=1.16
-pip==21.2.3
 twine
 wheel

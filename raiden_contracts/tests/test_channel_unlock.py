@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from web3 import Web3
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT_MIN, ChannelEvent, ParticipantInfoIndex
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ChannelEvent, ParticipantInfoIndex
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import (
     LOCKSROOT_OF_NO_LOCKS,
@@ -344,7 +344,6 @@ def test_unlock_wrong_locksroot(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
@@ -397,7 +396,6 @@ def test_channel_unlock_bigger_locked_amount(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -456,7 +454,6 @@ def test_channel_unlock_smaller_locked_amount(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -511,7 +508,6 @@ def test_channel_unlock_bigger_unlocked_amount(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
@@ -552,7 +548,7 @@ def test_channel_unlock_no_locked_amount_fail(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     channel_identifier = create_settled_channel(
-        A, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, LOCKSROOT_OF_NO_LOCKS, settle_timeout
+        A, 0, LOCKSROOT_OF_NO_LOCKS, B, 0, LOCKSROOT_OF_NO_LOCKS
     )
 
     with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
@@ -582,7 +578,7 @@ def test_channel_unlock(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -654,7 +650,6 @@ def test_channel_settle_and_unlock(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
     call_and_transact(
         token_network.functions.unlock(
@@ -700,7 +695,6 @@ def test_channel_settle_and_unlock(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     # Mock pending transfers data for a reopened channel
@@ -715,7 +709,6 @@ def test_channel_settle_and_unlock(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     # Both old and new unlocks should go through
@@ -752,7 +745,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -818,7 +811,7 @@ def test_channel_unlock_unregistered_locks(
 ) -> None:
     """unlock() should refund tokens locked by secrets not registered before settlement"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
     locked_A = pending_transfers_tree.locked_amount
@@ -841,7 +834,7 @@ def test_channel_unlock_unregistered_locks(
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     # Secret hasn't been registered before settlement timeout
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
@@ -877,7 +870,7 @@ def test_channel_unlock_before_settlement_fails(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -966,7 +959,6 @@ def test_unlock_fails_with_partial_locks(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     # Unlock with one leave missing does not work
@@ -1012,7 +1004,6 @@ def test_unlock_tampered_proof_fails(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     # Unlock with tampered locks does not work
@@ -1054,7 +1045,7 @@ def test_channel_unlock_both_participants(
     values_B = ChannelValues(deposit=100, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -1154,7 +1145,6 @@ def test_unlock_twice_fails(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
     call_and_transact(
         token_network.functions.unlock(
@@ -1193,7 +1183,6 @@ def test_unlock_no_locks(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
     call_and_transact(
         token_network.functions.unlock(
@@ -1227,7 +1216,7 @@ def test_channel_unlock_with_a_large_expiration(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
@@ -1300,7 +1289,6 @@ def test_reverse_participants_unlock(
         B,
         pending_transfers_tree_B.locked_amount,
         pending_transfers_tree_B.hash_of_packed_transfers,
-        settle_timeout,
     )
 
     # A trying to unlock its own locksroot & locked amount MUST fail
@@ -1375,7 +1363,6 @@ def test_unlock_different_channel_same_participants_fail(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     # The first channel is settled, so we create another one
@@ -1388,7 +1375,6 @@ def test_unlock_different_channel_same_participants_fail(
         B,
         0,
         LOCKSROOT_OF_NO_LOCKS,
-        settle_timeout,
     )
 
     with pytest.raises(TransactionFailed, match="TN/unlock: locksroot mismatch"):
@@ -1433,7 +1419,7 @@ def test_unlock_channel_event(
     values_B = ChannelValues(deposit=30, transferred=40)
 
     # Create channel and deposit
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, values_A.deposit, B)
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
