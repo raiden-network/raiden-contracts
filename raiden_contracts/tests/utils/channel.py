@@ -1,3 +1,5 @@
+import time
+import math
 from collections import namedtuple
 from copy import deepcopy
 from typing import Tuple
@@ -325,11 +327,11 @@ def get_unlocked_amount(secret_registry: Contract, packed_locks: bytes) -> int:
 
     for i in range(0, len(packed_locks), 96):
         lock = packed_locks[i : (i + 96)]
-        expiration_block = int.from_bytes(lock[0:32], byteorder="big")
+        expiration_block = math.ceil(time.time()) + (int.from_bytes(lock[0:32], byteorder="big") * 15)
         locked_amount = int.from_bytes(lock[32:64], byteorder="big")
         secrethash = lock[64:96]
 
-        reveal_block = secret_registry.functions.getSecretRevealBlockHeight(secrethash).call()
+        reveal_block = secret_registry.functions.getSecretRevealBlockTime(secrethash).call()
         if 0 < reveal_block < expiration_block:
             unlocked_amount += locked_amount
     return unlocked_amount

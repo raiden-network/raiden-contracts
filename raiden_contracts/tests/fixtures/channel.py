@@ -385,8 +385,8 @@ def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
                 {"from": tx_from},
             )
             assert (
-                secret_registry_contract.functions.getSecretRevealBlockHeight(secrethash).call()
-                == web3.eth.block_number
+                secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
+                == web3.eth.get_block("latest").timestamp
             )
 
     return get

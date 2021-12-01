@@ -90,11 +90,11 @@ contract TokenNetwork is Utils, Controllable {
 
     struct Channel {
         // After opening the channel this value represents the settlement
-        // window. This is the number of blocks that need to be mined between
+        // window. This is the number of seconds that need to elapse between
         // closing the channel uncooperatively and settling the channel.
         // After the channel has been uncooperatively closed, this value
-        // represents the block number after which settleChannel can be called.
-        uint256 settle_block_number;
+        // represents the time after which settleChannel can be called.
+        uint256 settle_window;
 
         ChannelState state;
 
@@ -104,7 +104,7 @@ contract TokenNetwork is Utils, Controllable {
     struct WithdrawInput {
         address participant;
         uint256 total_withdraw;
-        uint256 expiration_block;
+        uint256 expiration_time;
         bytes participant_signature;
         bytes partner_signature;
     }
@@ -201,7 +201,7 @@ contract TokenNetwork is Utils, Controllable {
 
     /// @param _token_address The address of the ERC20 token contract
     /// @param _secret_registry The address of SecretRegistry contract that witnesses the onchain secret reveals
-    /// @param _settle_timeout Number of blocks that need to be mined between a
+    /// @param _settle_timeout Number of seconds that need to elapse between a
     /// call to closeChannel and settleChannel
     /// @param _controller The Ethereum address that can disable new deposits and channel creation
     /// @param _channel_participant_deposit_limit The maximum amount of tokens that can be deposited by each
@@ -277,11 +277,11 @@ contract TokenNetwork is Utils, Controllable {
 
         // We always increase the channel counter, therefore no channel data can already exist,
         // corresponding to this channel_identifier. This check must never fail.
-        assert(channel.settle_block_number == 0);
+        assert(channel.settle_window == 0);
         assert(channel.state == ChannelState.NonExistent);
 
         // Store channel information
-        channel.settle_block_number = settle_timeout;
+        channel.settle_window = settle_timeout;
         channel.state = ChannelState.Opened;
 
         emit ChannelOpened(
@@ -367,7 +367,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        uint256 expiration_block,
+        uint256 expiration_time,
         bytes calldata participant_signature,
         bytes calldata partner_signature
     )
@@ -379,7 +379,7 @@ contract TokenNetwork is Utils, Controllable {
             WithdrawInput({
                 participant: participant,
                 total_withdraw: total_withdraw,
-                expiration_block: expiration_block,
+                expiration_time: expiration_time,
                 participant_signature: participant_signature,
                 partner_signature: partner_signature
             })
@@ -398,7 +398,7 @@ contract TokenNetwork is Utils, Controllable {
         address partner;
 
         require(withdraw_data.total_withdraw > 0, "TN/withdraw: total withdraw is zero");
-        require(block.number < withdraw_data.expiration_block, "TN/withdraw: expired");
+        require(block.timestamp < withdraw_data.expiration_time, "TN/withdraw: expired");
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -406,14 +406,14 @@ contract TokenNetwork is Utils, Controllable {
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
-            withdraw_data.expiration_block,
+            withdraw_data.expiration_time,
             withdraw_data.participant_signature
         ), "TN/withdraw: invalid participant sig");
         partner = recoverAddressFromWithdrawMessage(
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
-            withdraw_data.expiration_block,
+            withdraw_data.expiration_time,
             withdraw_data.partner_signature
         );
 
@@ -588,8 +588,8 @@ contract TokenNetwork is Utils, Controllable {
         channel.state = ChannelState.Closed;
         channel.participants[closing_participant].is_the_closer = true;
 
-        // This is the block number at which the channel can be settled.
-        channel.settle_block_number += uint256(block.number);
+        // This is the timestamp at which the channel can be settled.
+        channel.settle_window += uint256(block.timestamp);
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -801,7 +801,7 @@ contract TokenNetwork is Utils, Controllable {
         require(channel.state == ChannelState.Closed, "TN/settle: channel not closed");
 
         // Settlement window must be over
-        require(channel.settle_block_number < block.number, "TN/settle: settlement timeout");
+        require(channel.settle_window < block.timestamp, "TN/settle: settlement timeout");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -1051,7 +1051,7 @@ contract TokenNetwork is Utils, Controllable {
         }
 
         return (
-            channel.settle_block_number,
+            channel.settle_window,
             state
         );
     }
@@ -1476,7 +1476,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 length = locks.length;
 
         // each lock has this form:
-        // (locked_amount || expiration_block || secrethash) = 3 * 32 bytes
+        // (locked_amount || expiration_timestamp || secrethash) = 3 * 32 bytes
         require(length % 96 == 0, "TN: invalid locks size");
 
         uint256 i;
@@ -1499,7 +1499,7 @@ contract TokenNetwork is Utils, Controllable {
         view
         returns (uint256)
     {
-        uint256 expiration_block;
+        uint256 expiration_timestamp;
         uint256 locked_amount;
         uint256 reveal_block;
         bytes32 secrethash;
@@ -1509,17 +1509,17 @@ contract TokenNetwork is Utils, Controllable {
         }
 
         assembly { // solium-disable-line security/no-inline-assembly
-            expiration_block := mload(add(locks, offset))
+            expiration_timestamp := mload(add(locks, offset))
             locked_amount := mload(add(locks, add(offset, 32)))
             secrethash := mload(add(locks, add(offset, 64)))
         }
 
         // Check if the lock's secret was revealed in the SecretRegistry The
         // secret must have been revealed in the SecretRegistry contract before
-        // the lock's expiration_block in order for the hash time lock transfer
+        // the lock's expiration_timestamp in order for the hash time lock transfer
         // to be successful.
-        reveal_block = secret_registry.getSecretRevealBlockHeight(secrethash);
-        if (reveal_block == 0 || expiration_block <= reveal_block) {
+        reveal_block = secret_registry.getSecretRevealBlockTime(secrethash);
+        if (reveal_block == 0 || expiration_timestamp <= reveal_block) {
             locked_amount = 0;
         }
 
@@ -1605,7 +1605,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        uint256 expiration_block,
+        uint256 expiration_timestamp,
         bytes memory signature
     )
         internal
@@ -1624,7 +1624,7 @@ contract TokenNetwork is Utils, Controllable {
             channel_identifier,
             participant,
             total_withdraw,
-            expiration_block
+            expiration_timestamp
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
