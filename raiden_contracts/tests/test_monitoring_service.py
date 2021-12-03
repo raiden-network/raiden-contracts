@@ -155,7 +155,14 @@ def test_claimReward_with_settle_call(
     channel_identifier = monitor_data["channel_identifier"]
 
     # wait until MS is allowed to monitor
+    print("\n")
+    print("-" * 120)
+    print("Before monitoring")
+    print(monitor_data["first_allowed"])
     mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
+    print("After monitoring")
+    print("-" * 120)
+    print("\n")
 
     # MS updates closed channel on behalf of B
     txn_hash = call_and_transact(
@@ -178,7 +185,7 @@ def test_claimReward_with_settle_call(
         ).call({"from": ms_address})
 
     # Settle channel after settle_timeout elapsed
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT // 15 + 1)
     if with_settle:
         call_and_transact(
             token_network.functions.settleChannel(

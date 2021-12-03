@@ -173,6 +173,7 @@ def print_gas(txn_gas: Callable, gas_measurement_results: Dict) -> Callable:
 
     return get
 
+
 @pytest.fixture()
 def get_block(web3: Web3) -> Callable:
     def get(txn_hash: HexBytes) -> BlockData:

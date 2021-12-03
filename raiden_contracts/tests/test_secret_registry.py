@@ -67,9 +67,10 @@ def test_register_secret(
         secret_registry_contract.functions.registerSecret(secret), {"from": A}
     )
 
-    assert secret_registry_contract.functions.getSecretRevealBlockTime(
-        secrethash
-    ).call() == get_block(txn_hash)
+    assert (
+        secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
+        == get_block(txn_hash).timestamp
+    )
 
     # A should be able to register any number of secrets
     call_and_transact(secret_registry_contract.functions.registerSecret(secret2), {"from": A})
@@ -92,7 +93,10 @@ def test_register_secret_batch(
     block = get_block(txn_hash)
 
     for h in secret_hashes:
-        assert secret_registry_contract.functions.getSecretRevealBlockTime(h).call() == block
+        assert (
+            secret_registry_contract.functions.getSecretRevealBlockTime(h).call()
+            == block.timestamp
+        )
 
 
 def test_register_secret_batch_return_value(
