@@ -386,7 +386,7 @@ def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
             )
             assert (
                 secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
-                == web3.eth.get_block("latest").timestamp
+                == web3.eth.get_block("latest").timestamp  # type: ignore
             )
 
     return get
@@ -467,7 +467,7 @@ def update_state_tests(token_network: Contract, get_block: Callable) -> Callable
             channel_identifier, A, B
         ).call()
 
-        assert settle_block_number == settle_timeout + get_block(txn_hash1)
+        assert settle_block_number == settle_timeout + get_block(txn_hash1).timestamp
         assert state == ChannelState.CLOSED
 
         (

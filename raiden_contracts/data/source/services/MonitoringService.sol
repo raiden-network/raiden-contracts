@@ -286,6 +286,9 @@ contract MonitoringService is Utils {
         uint256 BEST_CASE = 30;
         uint256 WORST_CASE = 80;
 
+        closed_at_block = closed_at_block / 15;
+        settle_timeout = settle_timeout / 15;
+
         // When is the first block that any MS might be allowed to monitor
         uint256 best_case_block = closed_at_block + BEST_CASE * settle_timeout / 100;
         // Length of the range into which the first allowed block will fall
@@ -298,7 +301,7 @@ contract MonitoringService is Utils {
             uint256(uint160(monitoring_service_address))
         ) % range_length;
 
-        return best_case_block + ms_offset;
+        return (best_case_block + ms_offset) / 15;
     }
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward

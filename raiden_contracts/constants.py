@@ -29,9 +29,9 @@ CONTRACT_ONE_TO_N = "OneToN"
 CONTRACT_DEPOSIT = "Deposit"
 
 # Timeouts
-TEST_SETTLE_TIMEOUT = 8
+TEST_SETTLE_TIMEOUT = 8 * 15  # Timeout in seconds
 
-DEPLOY_SETTLE_TIMEOUT = 1000  # ~ 4 hours
+DEPLOY_SETTLE_TIMEOUT = 1000 * 15  # ~ 4 hours
 
 # Temporary deposit limits for the Red Eyes release in WEI
 MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10 ** 18)

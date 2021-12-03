@@ -81,7 +81,7 @@ def test_1_item_unlockable(
         secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.block_number
+        == web3.eth.get_block("latest").timestamp  # type: ignore
     )
 
     (
@@ -117,7 +117,7 @@ def test_get_hash_length_fail(
         secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.block_number
+        == web3.eth.get_block("latest").timestamp  # type: ignore
     )
 
     packed = pending_transfers_tree.packed_transfers
@@ -311,7 +311,7 @@ def test_lock_data_from_packed_locks(
     # ensure registration was done
     assert (
         secret_registry_contract.functions.getSecretRevealBlockTime(last_lock[2]).call()
-        == web3.eth.block_number
+        == web3.eth.get_block("latest").timestamp  # type: ignore
     )
 
     # Check that last secret is still regarded as expired
@@ -332,7 +332,7 @@ def test_unlock_wrong_locksroot(
 ) -> None:
     """Test unlocking with wrong pending locks"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [], settle_timeout)
     pending_transfers_tree_A_fake = get_pending_transfers_tree(web3, [1, 3, 6], [], settle_timeout)
@@ -378,7 +378,7 @@ def test_channel_unlock_bigger_locked_amount(
     to the other party.
     """
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -436,7 +436,7 @@ def test_channel_unlock_smaller_locked_amount(
     the participant receives less tokens. Stealing tokens from other channels
     is then prevented."""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -490,7 +490,7 @@ def test_channel_unlock_bigger_unlocked_amount(
 ) -> None:
     """unlock() transfers not more than the locked amount for more expensive unlock() demands"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -541,7 +541,7 @@ def test_channel_unlock_no_locked_amount_fail(
 ) -> None:
     """After settleChannel() is called with zero locked amount, unlock() calls fail"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [2, 5], [4], settle_timeout)
@@ -572,7 +572,7 @@ def test_channel_unlock(
     """unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -636,7 +636,7 @@ def test_channel_settle_and_unlock(
 ) -> None:
     """Regular channel life-cycle: open -> settle -> unlock -> open -> settle -> unlock"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -739,7 +739,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
     """unlock() should refund tokens locked with secrets revealed after the expiration"""
     (A, B) = get_accounts(2)
     max_lock_expiration = 3
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -770,7 +770,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
         assert (
             secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
-            == web3.eth.block_number
+            == web3.eth.get_block("latest").timestamp  # type: ignore
         )
 
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
@@ -864,7 +864,7 @@ def test_channel_unlock_before_settlement_fails(
 ) -> None:
     """unlock() should not work before settlement"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -945,7 +945,7 @@ def test_unlock_fails_with_partial_locks(
 ) -> None:
     """unlock() should fail when one lock is missing"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -990,7 +990,7 @@ def test_unlock_tampered_proof_fails(
 ) -> None:
     """unlock() should fail when the submitted proofs are tampered"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1039,7 +1039,7 @@ def test_channel_unlock_both_participants(
 ) -> None:
     """A scenario where both parties get some of the pending transfers"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=100, transferred=5)
     values_B = ChannelValues(deposit=100, transferred=40)
@@ -1131,7 +1131,7 @@ def test_unlock_twice_fails(
 ) -> None:
     """The same unlock() call twice do not work"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1165,7 +1165,7 @@ def test_unlock_no_locks(
 ) -> None:
     """unlock() should work on no pending locks"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(
@@ -1210,7 +1210,7 @@ def test_channel_unlock_with_a_large_expiration(
 ) -> None:
     """unlock() should still work after a delayed settleChannel() call"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -1267,7 +1267,7 @@ def test_reverse_participants_unlock(
 ) -> None:
     """unlock() with wrong argument orders"""
     (A, B, C) = get_accounts(3)
-    settle_timeout = 12
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1351,7 +1351,7 @@ def test_unlock_different_channel_same_participants_fail(
 ) -> None:
     """Try to confuse unlock() with two channels between the same participants"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
     pending_transfers_tree_1 = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
@@ -1413,7 +1413,7 @@ def test_unlock_channel_event(
 ) -> None:
     """Successful unlock() should cause an UNLOCKED event"""
     (A, B) = get_accounts(2)
-    settle_timeout = 8
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)

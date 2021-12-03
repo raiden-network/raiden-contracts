@@ -521,13 +521,13 @@ def test_settle_wrong_state_fail(
     ).call()
     assert state == ChannelState.CLOSED
     assert settle_block_timeout == TEST_SETTLE_TIMEOUT + get_block(txn_hash).timestamp
-    assert web3.eth.get_block("latest").timestamp < settle_block_timeout
+    assert web3.eth.get_block("latest").timestamp < settle_block_timeout  # type: ignore
 
     with pytest.raises(TransactionFailed, match="TN/settle: settlement timeout"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
-    assert web3.eth.get_block("latest").timestamp > settle_block_timeout
+    assert web3.eth.get_block("latest").timestamp > settle_block_timeout  # type: ignore
 
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
