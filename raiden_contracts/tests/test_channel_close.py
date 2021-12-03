@@ -5,7 +5,7 @@ from eth_tester.exceptions import TransactionFailed
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
-from web3.types import Wei
+from web3.types import BlockData, Wei
 
 from raiden_contracts.constants import (
     TEST_SETTLE_TIMEOUT,
@@ -357,7 +357,7 @@ def test_close_first_participant_can_close(
     token_network: Contract,
     create_channel: Callable,
     get_accounts: Callable,
-    get_block: Callable[[HexBytes], int],
+    get_block: Callable[[HexBytes], BlockData],
     create_close_signature_for_no_balance_proof: Callable,
 ) -> None:
     """Simplest successful closeChannel by the first participant"""
@@ -384,7 +384,8 @@ def test_close_first_participant_can_close(
     (settle_block_timestamp, state) = token_network.functions.getChannelInfo(
         channel_identifier, B, A
     ).call()
-    assert settle_block_timestamp == TEST_SETTLE_TIMEOUT + get_block(close_tx).timestamp
+    block_timestamp = get_block(close_tx).timestamp  # type: ignore
+    assert settle_block_timestamp == TEST_SETTLE_TIMEOUT + block_timestamp
     assert state == ChannelState.CLOSED
 
     (
