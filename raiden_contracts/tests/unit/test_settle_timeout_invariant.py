@@ -5,7 +5,6 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
 from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, call_and_transact, fake_bytes
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 
 
 def test_settle_timeout_inrange(
@@ -24,11 +23,9 @@ def test_settle_timeout_inrange(
 
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_block_number, _) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
+    (settle_window, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
-    assert settle_block_number == TEST_SETTLE_TIMEOUT
+    assert settle_window == TEST_SETTLE_TIMEOUT
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     call_and_transact(
@@ -44,7 +41,11 @@ def test_settle_timeout_inrange(
         ),
         {"from": A},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + settle_window + 2  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier,
@@ -61,8 +62,6 @@ def test_settle_timeout_inrange(
     )
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_block_number, _) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
+    (settle_window, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
-    assert settle_block_number == TEST_SETTLE_TIMEOUT
+    assert settle_window == TEST_SETTLE_TIMEOUT

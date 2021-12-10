@@ -49,17 +49,17 @@ def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable)
         sender: HexAddress,
         receiver: HexAddress,
         amount: int = 10,
-        expiration_block: int = None,
+        expiration_timestamp: int = None,
         chain_id: int = chain_id,
         one_to_n_address: HexAddress = one_to_n_contract.address,
     ) -> dict:
-        if expiration_block is None:
-            expiration_block = web3.eth.block_number + 10
+        if expiration_timestamp is None:
+            expiration_timestamp = web3.eth.get_block("latest").timestamp + 150  # type: ignore
         iou = dict(
             sender=sender,
             receiver=receiver,
             amount=amount,
-            expiration_block=expiration_block,
+            expiration_timestamp=expiration_timestamp,
             one_to_n_address=one_to_n_address,
             chain_id=chain_id,
         )
