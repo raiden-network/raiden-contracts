@@ -21,7 +21,6 @@ from raiden_contracts.tests.utils import (
     call_and_transact,
     fake_bytes,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_transfer_updated
 
 
@@ -227,7 +226,6 @@ def test_update_wrong_nonce_fail(
     update_state_tests: Callable,
 ) -> None:
     (A, B, Delegate) = get_accounts(3)
-    settle_timeout = TEST_SETTLE_TIMEOUT
     deposit_A = 20
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
@@ -309,7 +307,7 @@ def test_update_wrong_nonce_fail(
         balance_proof_A,
         B,
         balance_proof_B,
-        settle_timeout,
+        TEST_SETTLE_TIMEOUT,
         txn_hash1,
     )
 
@@ -542,7 +540,6 @@ def test_update_allowed_after_settlement_period(
 ) -> None:
     """updateNonClosingBalanceProof can be called after the settlement period."""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
     deposit_A = 20
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
@@ -566,7 +563,11 @@ def test_update_allowed_after_settlement_period(
         ),
         {"from": A},
     )
-    mine_blocks(web3, settle_timeout + 1)
+
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
+
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
         A,
@@ -1132,7 +1133,10 @@ def test_update_replay_reopened_channel(
         {"from": A},
     )
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1,

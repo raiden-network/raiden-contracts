@@ -6,7 +6,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    uint constant public withdraw_delay = 100;  // time before withdraw is allowed in blocks
+    uint constant public withdraw_delay = 15 * 100;  // time before withdraw is allowed in seconds
 
     // Token to be used for the deposit
     Token public token;
@@ -32,7 +32,7 @@ contract UserDeposit is Utils {
      */
     struct WithdrawPlan {
         uint256 amount;
-        uint256 withdraw_block;  // earliest block at which withdraw is allowed
+        uint256 withdraw_timestamp;  // earliest timestamp at which withdraw is allowed
     }
 
     /*
@@ -150,7 +150,7 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Announce intention to withdraw tokens.
-    /// Sets the planned withdraw amount and resets the withdraw_block.
+    /// Sets the planned withdraw amount and resets the withdraw_timestamp.
     /// There is only one planned withdrawal at a time, the old one gets overwritten.
     /// @param amount Maximum amount of tokens to be withdrawn
     function planWithdraw(uint256 amount)
@@ -161,7 +161,7 @@ contract UserDeposit is Utils {
 
         withdraw_plans[msg.sender] = WithdrawPlan({
             amount: amount,
-            withdraw_block: block.number + withdraw_delay
+            withdraw_timestamp: block.timestamp + withdraw_delay
         });
         emit WithdrawPlanned(msg.sender, balances[msg.sender] - amount);
     }
@@ -212,7 +212,7 @@ contract UserDeposit is Utils {
         require(beneficiary != address(0x0), "beneficiary is zero");
         WithdrawPlan storage withdraw_plan = withdraw_plans[deposit_holder];
         require(amount <= withdraw_plan.amount, "withdrawing more than planned");
-        require(withdraw_plan.withdraw_block <= block.number, "withdrawing too early");
+        require(withdraw_plan.withdraw_timestamp <= block.timestamp, "withdrawing too early");
         uint256 withdrawable = min(amount, balances[deposit_holder]);
         balances[deposit_holder] -= withdrawable;
 

@@ -9,7 +9,7 @@ from web3.contract import Contract
 from raiden_contracts.constants import OneToNEvent
 from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.proofs import sign_one_to_n_iou
-from raiden_contracts.utils.type_aliases import BlockExpiration, ChainID, TokenAmount
+from raiden_contracts.utils.type_aliases import ChainID, TokenAmount
 
 
 def test_claim(
@@ -29,33 +29,33 @@ def test_claim(
 
     # IOU expired
     with pytest.raises(TransactionFailed, match="IOU expired"):
-        bad_expiration = web3.eth.block_number - 1
+        bad_expiration = web3.eth.get_block(web3.eth.block_number - 1).timestamp  # type: ignore
         one_to_n_contract.functions.claim(
-            **make_iou(sender=A, receiver=B, expiration_block=bad_expiration)
+            *make_iou(sender=A, receiver=B, expiration_timestamp=bad_expiration).values()
         ).call({"from": A})
 
     # Wrong OneToN address
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
         one_to_n_contract.functions.claim(
-            **make_iou(sender=A, receiver=B, one_to_n_address=A)
+            *make_iou(sender=A, receiver=B, one_to_n_address=A).values()
         ).call({"from": A})
 
     # Wrong chain_id
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
-        one_to_n_contract.functions.claim(**make_iou(sender=A, receiver=B, chain_id=77)).call(
-            {"from": A}
-        )
+        one_to_n_contract.functions.claim(
+            *make_iou(sender=A, receiver=B, chain_id=77).values()
+        ).call({"from": A})
 
     # bad signature
     with pytest.raises(TransactionFailed, match="Signature mismatch"):
         iou = make_iou(sender=A, receiver=B, amount=10)
         iou2 = make_iou(sender=A, receiver=B, amount=11)
         iou["signature"] = iou2["signature"]  # use signature for wrong amount
-        one_to_n_contract.functions.claim(**iou).call({"from": A})
+        one_to_n_contract.functions.claim(*iou.values()).call({"from": A})
 
     # happy case
     iou = make_iou(sender=A, receiver=B)
-    tx_hash = call_and_transact(one_to_n_contract.functions.claim(**iou), {"from": A})
+    tx_hash = call_and_transact(one_to_n_contract.functions.claim(*iou.values()), {"from": A})
 
     ev_handler.assert_event(
         tx_hash,
@@ -63,7 +63,7 @@ def test_claim(
         dict(
             sender=A,
             receiver=B,
-            expiration_block=iou["expiration_block"],
+            expiration_timestamp=iou["expiration_timestamp"],
             transferred=iou["amount"],
         ),
     )
@@ -72,7 +72,7 @@ def test_claim(
 
     # can't be claimed twice
     with pytest.raises(TransactionFailed, match="Already settled session"):
-        one_to_n_contract.functions.claim(**iou).call({"from": A})
+        one_to_n_contract.functions.claim(*iou.values()).call({"from": A})
 
 
 def test_bulk_claim_happy_path(
@@ -94,7 +94,7 @@ def test_bulk_claim_happy_path(
                 senders=[x["sender"] for x in ious],
                 receivers=[x["receiver"] for x in ious],
                 amounts=[x["amount"] for x in ious],
-                expiration_blocks=[x["expiration_block"] for x in ious],
+                expiration_timestamps=[x["expiration_timestamp"] for x in ious],
                 signatures=b"".join(x["signature"] for x in ious),
             ),
             {"from": A},
@@ -124,7 +124,7 @@ def test_bulk_claim_errors(
     senders = [x["sender"] for x in ious]
     receivers = [x["receiver"] for x in ious]
     amounts = [x["amount"] for x in ious]
-    expiration_blocks = [x["expiration_block"] for x in ious]
+    expiration_timestamps = [x["expiration_timestamp"] for x in ious]
     signatures = b"".join(x["signature"] for x in ious)
 
     # One value too many to `amounts`
@@ -137,7 +137,7 @@ def test_bulk_claim_errors(
                 senders=senders,
                 receivers=receivers,
                 amounts=amounts + [1],
-                expiration_blocks=expiration_blocks,
+                expiration_timestamps=expiration_timestamps,
                 signatures=signatures,
             ),
             {"from": A},
@@ -153,7 +153,7 @@ def test_bulk_claim_errors(
                     senders=senders,
                     receivers=receivers,
                     amounts=amounts,
-                    expiration_blocks=expiration_blocks,
+                    expiration_timestamps=expiration_timestamps,
                     signatures=sig,
                 ),
                 {"from": A},
@@ -166,7 +166,7 @@ def test_bulk_claim_errors(
                 senders=senders,
                 receivers=receivers,
                 amounts=[amounts[0], amounts[1] + 1],
-                expiration_blocks=expiration_blocks,
+                expiration_timestamps=expiration_timestamps,
                 signatures=signatures,
             ),
             {"from": A},
@@ -201,7 +201,7 @@ def test_claim_by_unregistered_service(
     deposit_to_udc(A, 30)
 
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.block_number + 2)
+    expiration = web3.eth.get_block("latest").timestamp + 30  # type: ignore
     chain_id = web3.eth.chain_id
 
     signature = sign_one_to_n_iou(
@@ -209,7 +209,7 @@ def test_claim_by_unregistered_service(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_block=expiration,
+        expiration_timestamp=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -218,11 +218,11 @@ def test_claim_by_unregistered_service(
     with pytest.raises(TransactionFailed, match="receiver not registered"):
         call_and_transact(
             one_to_n_contract.functions.claim(
-                sender=A,
-                receiver=B,
-                amount=amount,
-                expiration_block=expiration,
-                signature=signature,
+                A,
+                B,
+                amount,
+                expiration,
+                signature,
             ),
             {"from": A},
         )
@@ -245,13 +245,13 @@ def test_claim_with_insufficient_deposit(
     chain_id = web3.eth.chain_id
 
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.block_number + 1)
+    expiration = web3.eth.get_block("latest").timestamp + 15  # type: ignore
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_block=expiration,
+        expiration_timestamp=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -272,13 +272,13 @@ def test_claim_with_insufficient_deposit(
     assert user_deposit_contract.functions.balances(B).call() == 6
 
     # claim can be retried when transferred amount was 0
-    expiration = BlockExpiration(web3.eth.block_number + 10)
+    expiration = web3.eth.get_block("latest").timestamp + 150  # type: ignore
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_block=expiration,
+        expiration_timestamp=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -294,5 +294,5 @@ def test_claim_with_insufficient_deposit(
     ev_handler.assert_event(
         tx_hash,
         OneToNEvent.CLAIMED,
-        dict(sender=A, receiver=B, expiration_block=expiration, transferred=4),
+        dict(sender=A, receiver=B, expiration_timestamp=expiration, transferred=4),
     )

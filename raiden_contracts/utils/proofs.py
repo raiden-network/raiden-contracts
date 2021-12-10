@@ -247,7 +247,7 @@ def sign_one_to_n_iou(
     sender: HexAddress,
     receiver: HexAddress,
     amount: TokenAmount,
-    expiration_block: BlockExpiration,
+    expiration_timestamp: int,
     one_to_n_address: HexAddress,
     chain_id: ChainID,
     v: int = 27,
@@ -259,6 +259,6 @@ def sign_one_to_n_iou(
         + Web3.toBytes(hexstr=sender)
         + Web3.toBytes(hexstr=receiver)
         + encode_single("uint256", amount)
-        + encode_single("uint256", expiration_block)
+        + encode_single("uint256", expiration_timestamp)
     )
     return sign(privkey=privatekey, msg_hash=iou_hash, v=v)
