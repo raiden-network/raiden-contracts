@@ -8,7 +8,6 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.contract_manager import ContractManager
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS
 
 log = logging.getLogger(__name__)
@@ -31,10 +30,10 @@ def deploy_contract_txhash(
     else:
         contract = web3.eth.contract(abi=abi, bytecode=bytecode)
 
-    mine_blocks(web3, 3)
+    web3.testing.mine(3)  # type: ignore
     # Failure does not fire an exception. Check the receipt for status.
     txhash = contract.constructor(**kwargs).transact({"from": deployer_address})
-    mine_blocks(web3, 1)
+    web3.testing.mine(1)  # type: ignore
 
     receipt = web3.eth.get_transaction_receipt(txhash)
     if receipt["status"] != 1:

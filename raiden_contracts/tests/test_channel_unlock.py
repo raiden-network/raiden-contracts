@@ -18,7 +18,6 @@ from raiden_contracts.tests.utils import (
     fake_bytes,
     get_unlocked_amount,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_channel_unlocked
 from raiden_contracts.utils.pending_transfers import (
     get_locked_amount,
@@ -262,12 +261,13 @@ def test_lock_data_from_packed_locks(
 ) -> None:
     """Test getLockDataFromLockPublic() on various offsets"""
     network_utils = token_network_test_utils
+    max_lock_expiration = 100
     A = get_accounts(1)[0]
 
     unlockable_amounts = [3, 5]
     expired_amounts = [2, 8, 7]
     pending_transfers_tree = get_pending_transfers_tree(
-        web3, unlockable_amounts, expired_amounts, max_expiration_delta=5
+        web3, unlockable_amounts, expired_amounts, max_expiration_delta=max_lock_expiration
     )
     reveal_secrets(A, pending_transfers_tree.unlockable)
 
@@ -302,10 +302,13 @@ def test_lock_data_from_packed_locks(
     assert claimable_amount == claimable(4)
 
     # Register last secret after expiration
-    mine_blocks(web3, 5)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + max_lock_expiration + 1  # type: ignore
+    )
+
     last_lock = pending_transfers_tree.expired[-1]
     # expiration
-    assert web3.eth.block_number > last_lock[0]
+    assert web3.eth.get_block("latest").timestamp > last_lock[0]  # type: ignore
     # register secret
     call_and_transact(secret_registry_contract.functions.registerSecret(last_lock[3]))
     # ensure registration was done
@@ -572,7 +575,6 @@ def test_channel_unlock(
     """unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -583,7 +585,9 @@ def test_channel_unlock(
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
     # Mock pending transfers data
-    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT
+    )
     values_B.locksroot = pending_transfers_tree.hash_of_packed_transfers
     values_B.locked_amounts = LockedAmounts(
         claimable_locked=get_locked_amount(pending_transfers_tree.transfers)
@@ -595,7 +599,9 @@ def test_channel_unlock(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -738,8 +744,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
 ) -> None:
     """unlock() should refund tokens locked with secrets revealed after the expiration"""
     (A, B) = get_accounts(2)
-    max_lock_expiration = 3
-    settle_timeout = TEST_SETTLE_TIMEOUT
+    max_lock_expiration = 100
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -754,7 +759,7 @@ def test_channel_unlock_registered_expired_lock_refunds(
         web3,
         [1, 3, 5],
         [2, 4],
-        min_expiration_delta=max_lock_expiration - 2,
+        min_expiration_delta=max_lock_expiration - 50,
         max_expiration_delta=max_lock_expiration,
     )
     values_B.locksroot = pending_transfers_tree.hash_of_packed_transfers
@@ -763,7 +768,9 @@ def test_channel_unlock_registered_expired_lock_refunds(
     )
 
     # Locks expire
-    mine_blocks(web3, max_lock_expiration)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + max_lock_expiration + 1  # type: ignore
+    )
 
     # Secrets are revealed before settlement window, but after expiration
     for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
@@ -774,7 +781,9 @@ def test_channel_unlock_registered_expired_lock_refunds(
         )
 
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     # settle channel
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
@@ -811,9 +820,10 @@ def test_channel_unlock_unregistered_locks(
 ) -> None:
     """unlock() should refund tokens locked by secrets not registered before settlement"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
-    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT
+    )
     locked_A = pending_transfers_tree.locked_amount
     (vals_A, vals_B) = (
         ChannelValues(
@@ -834,7 +844,9 @@ def test_channel_unlock_unregistered_locks(
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     # Secret hasn't been registered before settlement timeout
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
@@ -864,7 +876,6 @@ def test_channel_unlock_before_settlement_fails(
 ) -> None:
     """unlock() should not work before settlement"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -873,7 +884,9 @@ def test_channel_unlock_before_settlement_fails(
     channel_identifier = create_channel(A, B)[0]
 
     # Mock pending transfers data
-    pending_transfers_tree = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    pending_transfers_tree = get_pending_transfers_tree(
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT
+    )
     values_B.locksroot = pending_transfers_tree.hash_of_packed_transfers
     values_B.locked_amounts = LockedAmounts(
         claimable_locked=get_locked_amount(pending_transfers_tree.transfers)
@@ -906,7 +919,9 @@ def test_channel_unlock_before_settlement_fails(
         ).call()
 
     # Settlement window must be over before settling the channel
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     # Unlock fails before settle is called
     with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
@@ -1039,7 +1054,6 @@ def test_channel_unlock_both_participants(
 ) -> None:
     """A scenario where both parties get some of the pending transfers"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=100, transferred=5)
     values_B = ChannelValues(deposit=100, transferred=40)
@@ -1050,7 +1064,9 @@ def test_channel_unlock_both_participants(
     channel_deposit(channel_identifier, B, values_B.deposit, A)
 
     # Mock pending transfers data for A
-    pending_transfers_tree_A = get_pending_transfers_tree(web3, [1, 3, 5], [2, 4], settle_timeout)
+    pending_transfers_tree_A = get_pending_transfers_tree(
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT
+    )
     values_A.locksroot = pending_transfers_tree_A.hash_of_packed_transfers
     values_A.locked_amounts = LockedAmounts(
         claimable_locked=get_locked_amount(pending_transfers_tree_A.transfers)
@@ -1060,7 +1076,9 @@ def test_channel_unlock_both_participants(
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     # Mock pending transfers data for B
-    pending_transfers_tree_B = get_pending_transfers_tree(web3, [2, 4, 6], [5, 10], settle_timeout)
+    pending_transfers_tree_B = get_pending_transfers_tree(
+        web3, [2, 4, 6], [5, 10], TEST_SETTLE_TIMEOUT
+    )
     values_B.locksroot = pending_transfers_tree_B.hash_of_packed_transfers
     values_B.locked_amounts = LockedAmounts(
         claimable_locked=get_locked_amount(pending_transfers_tree_B.transfers)
@@ -1072,7 +1090,9 @@ def test_channel_unlock_both_participants(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1210,7 +1230,6 @@ def test_channel_unlock_with_a_large_expiration(
 ) -> None:
     """unlock() should still work after a delayed settleChannel() call"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -1222,7 +1241,7 @@ def test_channel_unlock_with_a_large_expiration(
 
     # Mock pending transfers data with large expiration date
     pending_transfers_tree = get_pending_transfers_tree(
-        web3, [1, 3, 5], [2, 4], settle_timeout + 100
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT + 100
     )
     values_B.locksroot = pending_transfers_tree.hash_of_packed_transfers
     values_B.locked_amounts = LockedAmounts(
@@ -1235,7 +1254,9 @@ def test_channel_unlock_with_a_large_expiration(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel after a "long" time
-    mine_blocks(web3, settle_timeout + 50)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 500  # type: ignore
+    )
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1413,7 +1434,6 @@ def test_unlock_channel_event(
 ) -> None:
     """Successful unlock() should cause an UNLOCKED event"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     values_A = ChannelValues(deposit=20, transferred=5)
     values_B = ChannelValues(deposit=30, transferred=40)
@@ -1425,7 +1445,7 @@ def test_unlock_channel_event(
 
     # Mock pending transfers data
     pending_transfers_tree = get_pending_transfers_tree(
-        web3, [1, 3, 5], [2, 4], settle_timeout + 100
+        web3, [1, 3, 5], [2, 4], TEST_SETTLE_TIMEOUT + 100
     )
     values_B.locksroot = pending_transfers_tree.hash_of_packed_transfers
     values_B.locked_amounts = LockedAmounts(
@@ -1438,7 +1458,9 @@ def test_unlock_channel_event(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 

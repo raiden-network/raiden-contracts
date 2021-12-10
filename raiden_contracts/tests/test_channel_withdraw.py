@@ -20,7 +20,6 @@ from raiden_contracts.tests.utils import (
     UINT256_MAX,
     call_and_transact,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_withdraw
 
 
@@ -86,55 +85,55 @@ def test_withdraw_call(
     # Failure with the zero address insted of a participant's address
     with pytest.raises(TransactionFailed, match="TN/withdraw: invalid participant sig"):
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=EMPTY_ADDRESS,
-            total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
-            participant_signature=signature_A_for_A,
-            partner_signature=signature_B_for_A,
+            channel_identifier,
+            EMPTY_ADDRESS,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_B_for_A,
         ).call({"from": A})
 
     # Failure with zero as the total withdrawn amount
     with pytest.raises(TransactionFailed, match="TN/withdraw: total withdraw is zero"):
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_withdraw=0,
-            expiration_block=UINT256_MAX,
-            participant_signature=signature_A_for_A,
-            partner_signature=signature_B_for_A,
+            channel_identifier,
+            A,
+            0,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_B_for_A,
         ).call({"from": A})
 
     # Failure with the empty signature instead of A's
     with pytest.raises(TransactionFailed):  # TODO: why doesn't this throw an error message?
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
-            participant_signature=EMPTY_SIGNATURE,
-            partner_signature=signature_B_for_A,
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            EMPTY_SIGNATURE,
+            signature_B_for_A,
         ).call({"from": A})
 
     # Failure with the empty signature instead of B's
     with pytest.raises(TransactionFailed):  # TODO: why doesn't this throw an error message?
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
-            participant_signature=signature_A_for_A,
-            partner_signature=EMPTY_SIGNATURE,
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            EMPTY_SIGNATURE,
         ).call({"from": A})
 
     call_and_transact(
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
-            participant_signature=signature_A_for_A,
-            partner_signature=signature_B_for_A,
+            channel_identifier,
+            A,
+            withdraw_A,
+            UINT256_MAX,
+            signature_A_for_A,
+            signature_B_for_A,
         ),
         {"from": A},
     )
@@ -153,7 +152,7 @@ def test_withdraw_call_near_expiration(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
     # The block must still be one block in the future when the transaction is
     # processed, so we have to choose an expiration two block in the future
-    expiration = web3.eth.block_number + 2
+    expiration = web3.eth.get_block("latest").timestamp + 30  # type: ignore
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier, A, withdraw_A, expiration
@@ -161,12 +160,12 @@ def test_withdraw_call_near_expiration(
 
     call_and_transact(
         token_network.functions.setTotalWithdraw(
-            channel_identifier=channel_identifier,
-            participant=A,
-            total_withdraw=withdraw_A,
-            expiration_block=expiration,
-            participant_signature=signature_A_for_A,
-            partner_signature=signature_B_for_A,
+            channel_identifier,
+            A,
+            withdraw_A,
+            expiration,
+            signature_A_for_A,
+            signature_B_for_A,
         ),
         {"from": A},
     )
@@ -213,7 +212,10 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed, match="TN: channel not open"):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier,
@@ -560,7 +562,11 @@ def test_withdraw_replay_reopened_channel(
         ),
         {"from": B},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1,

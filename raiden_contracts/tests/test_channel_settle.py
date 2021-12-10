@@ -26,7 +26,6 @@ from raiden_contracts.tests.utils import (
     get_onchain_settlement_amounts,
     get_settlement_amounts,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.events import check_channel_settled
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
@@ -45,7 +44,6 @@ def test_settle_no_bp_success(
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
-    settle_timeout = TEST_SETTLE_TIMEOUT
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -67,7 +65,9 @@ def test_settle_no_bp_success(
     # Do not call updateNonClosingBalanceProof
 
     # Settlement window must be over before settling the channel
-    mine_blocks(web3, settle_timeout + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
 
     # Settling the channel should work with no balance proofs
     call_and_transact(
@@ -101,7 +101,6 @@ def test_settle2_no_bp_success(
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
-    settle_timeout = TEST_SETTLE_TIMEOUT
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -123,7 +122,9 @@ def test_settle2_no_bp_success(
     # Do not call updateNonClosingBalanceProof
 
     # Settlement window must be over before settling the channel
-    mine_blocks(web3, settle_timeout + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
 
     # Settling the channel should work with no balance proofs
     call_and_transact(
@@ -192,7 +193,9 @@ def test_settle_channel_state(
     withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -243,7 +246,6 @@ def test_settle_single_direct_transfer_for_closing_party(
         ChannelValues(deposit=1, withdrawn=0, transferred=0),
         ChannelValues(deposit=10, withdrawn=0, transferred=5),
     )
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -274,7 +276,10 @@ def test_settle_single_direct_transfer_for_closing_party(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    mine_blocks(web3, settle_timeout + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier,
@@ -323,7 +328,6 @@ def test_settle_single_direct_transfer_for_counterparty(
         ChannelValues(deposit=10, withdrawn=0, transferred=5),
         ChannelValues(deposit=1, withdrawn=0, transferred=0),
     )
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -373,7 +377,10 @@ def test_settle_single_direct_transfer_for_counterparty(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    mine_blocks(web3, settle_timeout + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
+
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier,
@@ -448,7 +455,9 @@ def test_settlement_with_unauthorized_token_transfer(
         pre_balance_contract + externally_transferred_amount
     )
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     # Compute expected settlement amounts
     settlement = get_settlement_amounts(vals_A, vals_B)
@@ -526,7 +535,10 @@ def test_settle_wrong_state_fail(
     with pytest.raises(TransactionFailed, match="TN/settle: settlement timeout"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
+    )
+
     assert web3.eth.get_block("latest").timestamp > settle_block_timeout  # type: ignore
 
     # Channel is settled
@@ -585,7 +597,9 @@ def test_settle_wrong_balance_hash(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
@@ -680,7 +694,6 @@ def test_settle_channel_event(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
@@ -717,7 +730,10 @@ def test_settle_channel_event(
         {"from": B},
     )
 
-    mine_blocks(web3, settle_timeout + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
+
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier=channel_identifier,

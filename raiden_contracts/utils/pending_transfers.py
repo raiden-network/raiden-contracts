@@ -89,20 +89,22 @@ def get_pending_transfers(
     min_expiration_delta: Optional[int],
     max_expiration_delta: Optional[int],
 ) -> Tuple:
-    current_block = web3.eth.block_number
+    current_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
+
     if expired_amounts is None:
         expired_amounts = []
+
     min_expiration_delta = min_expiration_delta or (len(unlockable_amounts) + 1)
     max_expiration_delta = max_expiration_delta or (min_expiration_delta + TEST_SETTLE_TIMEOUT)
     unlockable_locks = [
         [
-            current_block + randint(min_expiration_delta, max_expiration_delta),
+            current_timestamp + randint(min_expiration_delta, max_expiration_delta),
             amount,
             *random_secret(),
         ]
         for amount in unlockable_amounts
     ]
-    expired_locks = [[current_block, amount, *random_secret()] for amount in expired_amounts]
+    expired_locks = [[current_timestamp, amount, *random_secret()] for amount in expired_amounts]
     return (unlockable_locks, expired_locks)
 
 
