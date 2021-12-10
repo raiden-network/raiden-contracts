@@ -203,7 +203,7 @@ contract MonitoringService is Utils {
             closing_participant, non_closing_participant
         );
         require(
-            block.number >= firstBlockAllowedToMonitorChannel(
+            block.timestamp >= firstTimestampAllowedToMonitorChannel(
                 token_network,
                 channel_identifier,
                 closing_participant,
@@ -235,7 +235,7 @@ contract MonitoringService is Utils {
         );
     }
 
-    function firstBlockAllowedToMonitorChannel(
+    function firstTimestampAllowedToMonitorChannel(
         TokenNetwork token_network,
         uint256 channel_identifier,
         address closing_participant,
@@ -256,10 +256,10 @@ contract MonitoringService is Utils {
 
         uint256 settle_timeout = token_network.settle_timeout();
         require(settle_window >= settle_timeout, "too low settle block number");
-        uint256 assumed_close_block = settle_window - settle_timeout;
+        uint256 assumed_close_timestamp = settle_window - settle_timeout;
 
-        return firstBlockAllowedToMonitor(
-            assumed_close_block,
+        return firstTimestampAllowedToMonitor(
+            assumed_close_timestamp,
             settle_timeout,
             closing_participant,
             non_closing_participant,
@@ -267,8 +267,8 @@ contract MonitoringService is Utils {
         );
     }
 
-    function firstBlockAllowedToMonitor(
-        uint256 closed_at_block,
+    function firstTimestampAllowedToMonitor(
+        uint256 closed_at_timestamp,
         uint256 settle_timeout,
         address participant1,
         address participant2,
@@ -279,19 +279,16 @@ contract MonitoringService is Utils {
     {
         // avoid overflows when multiplying with percentages
         require(settle_timeout < MAX_SAFE_UINT256 / 100, "maliciously big settle timeout");
-        require(closed_at_block < MAX_SAFE_UINT256 / 100, "maliciously big closed_at_block");
+        require(closed_at_timestamp < MAX_SAFE_UINT256 / 100, "maliciously big closed_at_timestamp");
 
-        // First allowed block as percentage of settle_timeout. We're using
+        // First allowed timestamp as percentage of settle_timeout. We're using
         // integers here to avoid accuracy loss during calculations.
         uint256 BEST_CASE = 30;
         uint256 WORST_CASE = 80;
 
-        closed_at_block = closed_at_block / 15;
-        settle_timeout = settle_timeout / 15;
-
-        // When is the first block that any MS might be allowed to monitor
-        uint256 best_case_block = closed_at_block + BEST_CASE * settle_timeout / 100;
-        // Length of the range into which the first allowed block will fall
+        // When is the first timestamp that any MS might be allowed to monitor
+        uint256 best_case_timestamp = closed_at_timestamp + BEST_CASE * settle_timeout / 100;
+        // Length of the range into which the first allowed timestamp will fall
         uint256 range_length = (WORST_CASE - BEST_CASE) * settle_timeout / 100;
 
         // Offset for this specific MS within the range
@@ -301,7 +298,7 @@ contract MonitoringService is Utils {
             uint256(uint160(monitoring_service_address))
         ) % range_length;
 
-        return (best_case_block + ms_offset) / 15;
+        return best_case_timestamp + ms_offset;
     }
 
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward

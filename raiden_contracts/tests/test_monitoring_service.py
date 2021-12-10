@@ -21,7 +21,6 @@ from raiden_contracts.tests.utils import (
     SERVICE_DEPOSIT,
     call_and_transact,
 )
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.proofs import sign_reward_proof
 from raiden_contracts.utils.type_aliases import TokenAmount
 
@@ -106,13 +105,15 @@ def setup_monitor_data(
         )
 
         # calculate when this MS is allowed to monitor
-        first_allowed = monitoring_service_contract.functions.firstBlockAllowedToMonitorChannel(
-            token_network=token_network.address,
-            channel_identifier=channel_identifier,
-            closing_participant=A,
-            non_closing_participant=B,
-            monitoring_service_address=ms_address,
-        ).call()
+        first_allowed = (
+            monitoring_service_contract.functions.firstTimestampAllowedToMonitorChannel(
+                token_network=token_network.address,
+                channel_identifier=channel_identifier,
+                closing_participant=A,
+                non_closing_participant=B,
+                monitoring_service_address=ms_address,
+            ).call()
+        )
 
         # return args for `monitor` function
         return {
@@ -155,14 +156,7 @@ def test_claimReward_with_settle_call(
     channel_identifier = monitor_data["channel_identifier"]
 
     # wait until MS is allowed to monitor
-    print("\n")
-    print("-" * 120)
-    print("Before monitoring")
-    print(monitor_data["first_allowed"])
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
-    print("After monitoring")
-    print("-" * 120)
-    print("\n")
+    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
 
     # MS updates closed channel on behalf of B
     txn_hash = call_and_transact(
@@ -185,7 +179,9 @@ def test_claimReward_with_settle_call(
         ).call({"from": ms_address})
 
     # Settle channel after settle_timeout elapsed
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT // 15 + 1)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.getBlock("latest").timestamp + TEST_SETTLE_TIMEOUT
+    )
     if with_settle:
         call_and_transact(
             token_network.functions.settleChannel(
@@ -259,7 +255,8 @@ def test_monitor(
 
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
-        assert web3.eth.block_number < monitor_data["first_allowed"]
+        latest_block_timestamp = web3.eth.getBlock("latest").timestamp
+        assert latest_block_timestamp < monitor_data["first_allowed"]
         call_and_transact(
             monitoring_service_external.functions.monitor(
                 A,
@@ -274,7 +271,7 @@ def test_monitor(
         )
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
+    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
 
     # successful monitor call
     txn_hash = call_and_transact(
@@ -316,7 +313,7 @@ def test_monitor_by_unregistered_service(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
+    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
 
     # only registered service providers may call `monitor`
     with pytest.raises(TransactionFailed, match="service not registered"):
@@ -355,7 +352,7 @@ def test_monitor_on_wrong_token_network_registry(
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    mine_blocks(web3, monitor_data["first_allowed"] - web3.eth.block_number)
+    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
 
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry
@@ -414,14 +411,14 @@ def test_updateReward(
     assert monitoring_service_internals.functions.rewardNonce(reward_identifier).call() == 3
 
 
-def test_pureFirstAllowedBlock(monitoring_service_external: Contract) -> None:
+def test_pureFirstAllowedTimestamp(monitoring_service_external: Contract) -> None:
     def call(addresses: List[int], closed_at_block: int = 1000, settle_timeout: int = 100) -> int:
-        first_allowed = monitoring_service_external.functions.firstBlockAllowedToMonitor(
-            closed_at_block=closed_at_block,
-            settle_timeout=settle_timeout,
-            participant1=to_checksum_address("0x%040x" % addresses[0]),
-            participant2=to_checksum_address("0x%040x" % addresses[1]),
-            monitoring_service_address=to_checksum_address("0x%040x" % addresses[2]),
+        first_allowed = monitoring_service_external.functions.firstTimestampAllowedToMonitor(
+            closed_at_block,
+            settle_timeout,
+            to_checksum_address("0x%040x" % addresses[0]),
+            to_checksum_address("0x%040x" % addresses[1]),
+            to_checksum_address("0x%040x" % addresses[2]),
         ).call()
         assert closed_at_block < first_allowed <= closed_at_block + settle_timeout
         return first_allowed

@@ -17,11 +17,10 @@ from raiden_contracts.constants import (
 )
 from raiden_contracts.contract_manager import gas_measurements
 from raiden_contracts.tests.utils import call_and_transact
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.tests.utils.constants import DEPLOYER_ADDRESS, SERVICE_DEPOSIT, UINT256_MAX
 from raiden_contracts.utils.pending_transfers import get_locked_amount, get_pending_transfers_tree
 from raiden_contracts.utils.proofs import sign_one_to_n_iou, sign_reward_proof
-from raiden_contracts.utils.type_aliases import BlockExpiration, ChainID, TokenAmount
+from raiden_contracts.utils.type_aliases import ChainID, TokenAmount
 
 
 @pytest.mark.parametrize("version", [None])
@@ -156,7 +155,7 @@ def print_gas_channel_cycle(
 ) -> None:
     """Abusing pytest to print gas costs of TokenNetwork's operations"""
     (A, B, C, D) = get_accounts(4)
-    settle_timeout = 11
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     (channel_identifier, txn_hash) = create_channel(A, B)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".openChannel")
@@ -230,7 +229,10 @@ def print_gas_channel_cycle(
     )
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".updateNonClosingBalanceProof")
 
-    mine_blocks(web3, settle_timeout)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + settle_timeout + 1  # type: ignore
+    )
+
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier,
@@ -310,6 +312,7 @@ def print_gas_coop_settle(
 
 @pytest.fixture
 def print_gas_monitoring_service(
+    user_deposit_contract: Contract,
     token_network: Contract,
     monitoring_service_external: Contract,
     get_accounts: Callable,
@@ -374,7 +377,16 @@ def print_gas_monitoring_service(
         ),
         {"from": A},
     )
-    mine_blocks(web3, 6)
+
+    closed_at_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
+    best_case_timestamp = int(closed_at_timestamp + TEST_SETTLE_TIMEOUT * 30 / 100)
+    range_length = int((80 - 30) * TEST_SETTLE_TIMEOUT / 100)
+    ms_offset = (int(A, 16) + int(B, 16) + int(MS, 16)) % range_length
+    first_timestamp_allowed_to_monitor = best_case_timestamp + ms_offset
+
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        first_timestamp_allowed_to_monitor + 1
+    )
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = call_and_transact(
@@ -394,7 +406,10 @@ def print_gas_monitoring_service(
     )
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + withdraw_delay + 1  # type: ignore
+    )
 
     # MS claims the reward
     txn_hash = call_and_transact(
@@ -425,13 +440,13 @@ def print_gas_one_to_n(
     # happy case
     chain_id = web3.eth.chain_id
     amount = TokenAmount(10)
-    expiration = BlockExpiration(web3.eth.block_number + 2)
+    expiration = web3.eth.get_block("latest").timestamp + 100000  # type: ignore
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_block=expiration,
+        expiration_timestamp=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -462,7 +477,7 @@ def print_gas_one_to_n(
                 concat_iou_data(ious, "sender"),
                 concat_iou_data(ious, "receiver"),
                 concat_iou_data(ious, "amount"),
-                concat_iou_data(ious, "expiration_block"),
+                concat_iou_data(ious, "expiration_timestamp"),
                 concat_iou_signatures(ious),
             ),
             {"from": A},
@@ -501,7 +516,9 @@ def print_gas_user_deposit(
 
     # withdraw
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    mine_blocks(web3, withdraw_delay)
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + withdraw_delay + 1  # type: ignore
+    )
     txn_hash = call_and_transact(user_deposit_contract.functions.withdraw(10), {"from": A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 

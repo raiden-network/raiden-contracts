@@ -15,7 +15,6 @@ from raiden_contracts.constants import (
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.fixtures.channel import call_settle
 from raiden_contracts.tests.utils import ChannelValues, LockedAmounts, call_and_transact
-from raiden_contracts.tests.utils.blockchain import mine_blocks
 from raiden_contracts.utils.pending_transfers import (
     get_pending_transfers_tree_with_generated_lists,
 )
@@ -215,7 +214,10 @@ def test_deprecation_switch_settle(
 
     # We need to make sure we can still close, settle & unlock the channels
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
+
+    web3.provider.ethereum_tester.time_travel(  # type: ignore
+        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
+    )
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
