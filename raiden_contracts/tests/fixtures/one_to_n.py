@@ -42,7 +42,12 @@ def one_to_n_internals(
 
 
 @pytest.fixture
-def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable) -> Callable:
+def make_iou(
+    web3: Web3,
+    one_to_n_contract: Contract,
+    get_private_key: Callable,
+    get_block_timestamp: Callable,
+) -> Callable:
     chain_id = web3.eth.chain_id
 
     def f(
@@ -54,7 +59,7 @@ def make_iou(web3: Web3, one_to_n_contract: Contract, get_private_key: Callable)
         one_to_n_address: HexAddress = one_to_n_contract.address,
     ) -> dict:
         if expiration_timestamp is None:
-            expiration_timestamp = web3.eth.get_block("latest").timestamp + 150  # type: ignore
+            expiration_timestamp = get_block_timestamp() + 150
         iou = dict(
             sender=sender,
             receiver=receiver,

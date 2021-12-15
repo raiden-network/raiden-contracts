@@ -40,6 +40,8 @@ def test_settlement_outcome(
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
     reveal_secrets: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> Callable:
     def f(
         participants: Tuple,
@@ -82,9 +84,7 @@ def test_settlement_outcome(
 
         close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-        web3.provider.ethereum_tester.time_travel(  # type: ignore
-            web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-        )
+        time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
         pre_balance_A = custom_token.functions.balanceOf(A).call()
         pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -348,6 +348,8 @@ def test_channel_settle_invalid_balance_proof_values(
     settle_state_tests: Callable,
     reveal_secrets: Callable,
     channel_test_values: Tuple,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Check the settlement results with invalid balance proofs"""
     (A, B, C, D) = get_accounts(4)
@@ -392,9 +394,7 @@ def test_channel_settle_invalid_balance_proof_values(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()

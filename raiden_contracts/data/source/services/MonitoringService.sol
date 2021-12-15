@@ -256,10 +256,10 @@ contract MonitoringService is Utils {
 
         uint256 settle_timeout = token_network.settle_timeout();
         require(settle_window >= settle_timeout, "too low settle block number");
-        uint256 assumed_close_timestamp = settle_window - settle_timeout;
+        uint256 close_timestamp = settle_window - settle_timeout;
 
         return firstTimestampAllowedToMonitor(
-            assumed_close_timestamp,
+            close_timestamp,
             settle_timeout,
             closing_participant,
             non_closing_participant,
@@ -277,10 +277,6 @@ contract MonitoringService is Utils {
         public pure
         returns (uint256)
     {
-        // avoid overflows when multiplying with percentages
-        require(settle_timeout < MAX_SAFE_UINT256 / 100, "maliciously big settle timeout");
-        require(closed_at_timestamp < MAX_SAFE_UINT256 / 100, "maliciously big closed_at_timestamp");
-
         // First allowed timestamp as percentage of settle_timeout. We're using
         // integers here to avoid accuracy loss during calculations.
         uint256 BEST_CASE = 30;

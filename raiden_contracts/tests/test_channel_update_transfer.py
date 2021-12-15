@@ -536,7 +536,8 @@ def test_update_allowed_after_settlement_period(
     get_accounts: Callable,
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
-    web3: Web3,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """updateNonClosingBalanceProof can be called after the settlement period."""
     (A, B) = get_accounts(2)
@@ -564,9 +565,7 @@ def test_update_allowed_after_settlement_period(
         {"from": A},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     token_network.functions.updateNonClosingBalanceProof(
         channel_identifier,
@@ -1075,7 +1074,6 @@ def test_update_signature_on_invalid_arguments(
 
 
 def test_update_replay_reopened_channel(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
@@ -1083,6 +1081,8 @@ def test_update_replay_reopened_channel(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """updateNonClosingBalanceProof() should refuse a balance proof with a stale channel id"""
     (A, B) = get_accounts(2)
@@ -1133,9 +1133,7 @@ def test_update_replay_reopened_channel(
         {"from": A},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_and_transact(
         token_network.functions.settleChannel(

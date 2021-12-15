@@ -159,6 +159,8 @@ def test_deprecation_switch_settle(
     create_channel: Callable,
     channel_deposit: Callable,
     close_and_update_channel: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Channel close and settlement still work after the depracation switch is turned on"""
     controller = token_network.functions.controller().call()
@@ -215,9 +217,7 @@ def test_deprecation_switch_settle(
     # We need to make sure we can still close, settle & unlock the channels
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 

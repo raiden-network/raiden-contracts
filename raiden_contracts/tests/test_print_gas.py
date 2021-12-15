@@ -152,6 +152,8 @@ def print_gas_channel_cycle(
     print_gas: Callable,
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Abusing pytest to print gas costs of TokenNetwork's operations"""
     (A, B, C, D) = get_accounts(4)
@@ -229,9 +231,7 @@ def print_gas_channel_cycle(
     )
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".updateNonClosingBalanceProof")
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + settle_timeout + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + settle_timeout + 1)
 
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(
@@ -325,7 +325,8 @@ def print_gas_monitoring_service(
     print_gas: Callable,
     get_private_key: Callable,
     create_service_account: Callable,
-    web3: Web3,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Abusing pytest to print gas cost of MonitoringService functions"""
     # setup: two parties + MS
@@ -378,15 +379,13 @@ def print_gas_monitoring_service(
         {"from": A},
     )
 
-    closed_at_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
+    closed_at_timestamp = get_block_timestamp()
     best_case_timestamp = int(closed_at_timestamp + TEST_SETTLE_TIMEOUT * 30 / 100)
     range_length = int((80 - 30) * TEST_SETTLE_TIMEOUT / 100)
     ms_offset = (int(A, 16) + int(B, 16) + int(MS, 16)) % range_length
     first_timestamp_allowed_to_monitor = best_case_timestamp + ms_offset
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        first_timestamp_allowed_to_monitor + 1
-    )
+    time_travel(first_timestamp_allowed_to_monitor + 1)
 
     # MS calls `MSC::monitor()` using c1's BP and reward proof
     txn_hash = call_and_transact(
@@ -407,9 +406,7 @@ def print_gas_monitoring_service(
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + withdraw_delay + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + withdraw_delay + 1)
 
     # MS claims the reward
     txn_hash = call_and_transact(
@@ -431,6 +428,7 @@ def print_gas_one_to_n(
     get_private_key: Callable,
     create_service_account: Callable,
     create_account: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Abusing pytest to print gas cost of OneToN functions"""
     A = create_account()
@@ -440,7 +438,7 @@ def print_gas_one_to_n(
     # happy case
     chain_id = web3.eth.chain_id
     amount = TokenAmount(10)
-    expiration = web3.eth.get_block("latest").timestamp + 100000  # type: ignore
+    expiration = get_block_timestamp() + 100000
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -490,8 +488,9 @@ def print_gas_user_deposit(
     user_deposit_contract: Contract,
     custom_token: Contract,
     get_accounts: Callable,
-    web3: Web3,
     print_gas: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Abusing pytest to print gas cost of UserDeposit functions
 
@@ -516,9 +515,7 @@ def print_gas_user_deposit(
 
     # withdraw
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + withdraw_delay + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + withdraw_delay + 1)
     txn_hash = call_and_transact(user_deposit_contract.functions.withdraw(10), {"from": A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 
