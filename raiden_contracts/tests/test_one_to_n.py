@@ -21,6 +21,7 @@ def test_claim(
     create_account: Callable,
     create_service_account: Callable,
     make_iou: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     ev_handler = event_handler(one_to_n_contract)
     A = create_account()
@@ -29,7 +30,7 @@ def test_claim(
 
     # IOU expired
     with pytest.raises(TransactionFailed, match="IOU expired"):
-        bad_expiration = web3.eth.get_block(web3.eth.block_number - 1).timestamp  # type: ignore
+        bad_expiration = get_block_timestamp(web3.eth.block_number - 1)
         one_to_n_contract.functions.claim(
             *make_iou(sender=A, receiver=B, expiration_timestamp=bad_expiration).values()
         ).call({"from": A})
@@ -195,13 +196,14 @@ def test_claim_by_unregistered_service(
     get_accounts: Callable,
     get_private_key: Callable,
     web3: Web3,
+    get_block_timestamp: Callable,
 ) -> None:
     """OneToN contract should not work for an unregistered service provider."""
     (A, B) = get_accounts(2)
     deposit_to_udc(A, 30)
 
     amount = TokenAmount(10)
-    expiration = web3.eth.get_block("latest").timestamp + 30  # type: ignore
+    expiration = get_block_timestamp() + 30
     chain_id = web3.eth.chain_id
 
     signature = sign_one_to_n_iou(
@@ -237,6 +239,7 @@ def test_claim_with_insufficient_deposit(
     event_handler: Callable,
     create_account: Callable,
     create_service_account: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     ev_handler = event_handler(one_to_n_contract)
     A = create_account()
@@ -245,7 +248,7 @@ def test_claim_with_insufficient_deposit(
     chain_id = web3.eth.chain_id
 
     amount = TokenAmount(10)
-    expiration = web3.eth.get_block("latest").timestamp + 15  # type: ignore
+    expiration = get_block_timestamp() + 15
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,
@@ -272,7 +275,7 @@ def test_claim_with_insufficient_deposit(
     assert user_deposit_contract.functions.balances(B).call() == 6
 
     # claim can be retried when transferred amount was 0
-    expiration = web3.eth.get_block("latest").timestamp + 150  # type: ignore
+    expiration = get_block_timestamp() + 150
     signature = sign_one_to_n_iou(
         get_private_key(A),
         sender=A,

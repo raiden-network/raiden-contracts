@@ -144,7 +144,7 @@ def test_withdraw_call_near_expiration(
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
-    web3: Web3,
+    get_block_timestamp: Callable,
 ) -> None:
     """setTotalWithdraw() succeeds when expiration_block is one block in the future"""
     (A, B) = get_accounts(2)
@@ -152,7 +152,7 @@ def test_withdraw_call_near_expiration(
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
     # The block must still be one block in the future when the transaction is
     # processed, so we have to choose an expiration two block in the future
-    expiration = web3.eth.get_block("latest").timestamp + 30  # type: ignore
+    expiration = get_block_timestamp() + 30
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier, A, withdraw_A, expiration
@@ -172,12 +172,13 @@ def test_withdraw_call_near_expiration(
 
 
 def test_withdraw_wrong_state(
-    web3: Web3,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     withdraw_channel: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """setTotalWithdraw() should fail on a closed or settled channel"""
     (A, B) = get_accounts(2)
@@ -212,9 +213,7 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed, match="TN: channel not open"):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(
@@ -519,13 +518,14 @@ def test_withdraw_channel_state(
 
 
 def test_withdraw_replay_reopened_channel(
-    web3: Web3,
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
     get_accounts: Callable,
     create_withdraw_signatures: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     (A, B) = get_accounts(2)
     deposit_A = 20
@@ -563,9 +563,7 @@ def test_withdraw_replay_reopened_channel(
         {"from": B},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(

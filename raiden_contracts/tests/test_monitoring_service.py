@@ -149,14 +149,15 @@ def test_claimReward_with_settle_call(
     event_handler: Callable,
     monitor_data: Dict,
     ms_address: HexAddress,
-    web3: Web3,
     with_settle: bool,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     A, B = monitor_data["participants"]
     channel_identifier = monitor_data["channel_identifier"]
 
     # wait until MS is allowed to monitor
-    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
+    time_travel(monitor_data["first_allowed"] + 1)
 
     # MS updates closed channel on behalf of B
     txn_hash = call_and_transact(
@@ -179,9 +180,7 @@ def test_claimReward_with_settle_call(
         ).call({"from": ms_address})
 
     # Settle channel after settle_timeout elapsed
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.getBlock("latest").timestamp + TEST_SETTLE_TIMEOUT
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT)
     if with_settle:
         call_and_transact(
             token_network.functions.settleChannel(
@@ -231,7 +230,8 @@ def test_monitor(
     monitor_data: Dict,
     ms_address: HexAddress,
     event_handler: Callable,
-    web3: Web3,
+    get_block_timestamp: Callable,
+    time_travel: Callable,
 ) -> None:
     A, B = monitor_data["participants"]
 
@@ -255,8 +255,7 @@ def test_monitor(
 
     # monitoring too early must fail
     with pytest.raises(TransactionFailed, match="not allowed to monitor"):
-        latest_block_timestamp = web3.eth.getBlock("latest").timestamp
-        assert latest_block_timestamp < monitor_data["first_allowed"]
+        assert get_block_timestamp() < monitor_data["first_allowed"]
         call_and_transact(
             monitoring_service_external.functions.monitor(
                 A,
@@ -271,7 +270,7 @@ def test_monitor(
         )
 
     # wait until MS is allowed to monitor
-    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
+    time_travel(monitor_data["first_allowed"] + 1)
 
     # successful monitor call
     txn_hash = call_and_transact(
@@ -308,12 +307,12 @@ def test_monitor_by_unregistered_service(
     monitoring_service_external: Contract,
     monitor_data: Dict,
     ms_address: HexAddress,
-    web3: Web3,
+    time_travel: Callable,
 ) -> None:
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
+    time_travel(monitor_data["first_allowed"] + 1)
 
     # only registered service providers may call `monitor`
     with pytest.raises(TransactionFailed, match="service not registered"):
@@ -347,12 +346,12 @@ def test_monitor_on_wrong_token_network_registry(
     monitoring_service_external: Contract,
     monitor_data: Dict,
     ms_address: HexAddress,
-    web3: Web3,
+    time_travel: Callable,
 ) -> None:
     A, B = monitor_data["participants"]
 
     # wait until MS is allowed to monitor
-    web3.provider.ethereum_tester.time_travel(monitor_data["first_allowed"] + 1)  # type: ignore
+    time_travel(monitor_data["first_allowed"] + 1)
 
     # monitor() call fails because the TokenNetwork is not registered on the
     # supposed TokenNetworkRegistry
@@ -433,19 +432,8 @@ def test_pureFirstAllowedTimestamp(monitoring_service_external: Contract) -> Non
     assert call([40, 40, 40]) == 1000 + 30 + (40 + 40 + 40) % 50
 
     # Show that high address values don't cause overflows
-    MAX_ADDRESS = 256**20 - 1
+    MAX_ADDRESS = 256 ** 20 - 1
     assert call([MAX_ADDRESS] * 3) == 1000 + 30 + (3 * MAX_ADDRESS) % 50
-
-    # The highest settle_timeout does not cause overflows
-    MAX_SETTLE_TIMEOUT = (2**256 - 1) // 100 - 1
-    assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT) == 1000 + (
-        MAX_SETTLE_TIMEOUT * 30
-    ) // 100 + (1 + 2 + 3)
-
-    # Extreme settle_timeout that would cause overflows will make the
-    # transaction fail instead of giving the wrong result
-    with pytest.raises(TransactionFailed, match="maliciously big settle timeout"):
-        assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT + 1)
 
 
 def test_recoverAddressFromRewardProof(

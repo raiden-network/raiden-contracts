@@ -3,7 +3,6 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
@@ -235,10 +234,11 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
 
 
 def test_reopen_channel(
-    web3: Web3,
     token_network: Contract,
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Open a second channel after settling one"""
     (A, B) = get_accounts(2)
@@ -275,9 +275,7 @@ def test_reopen_channel(
         token_network.functions.openChannel(A, B).call()
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     # Settle channel
     call_and_transact(
