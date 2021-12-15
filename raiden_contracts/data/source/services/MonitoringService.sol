@@ -255,7 +255,7 @@ contract MonitoringService is Utils {
         require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
 
         uint256 settle_timeout = token_network.settle_timeout();
-        require(settle_window >= settle_timeout, "too low settle block number");
+        require(settle_window >= settle_timeout, "too low settle block timeout");
         uint256 close_timestamp = settle_window - settle_timeout;
 
         return firstTimestampAllowedToMonitor(

@@ -6,22 +6,22 @@ pragma abicoder v2;
 /// @notice SecretRegistry contract for registering secrets from Raiden Network
 /// clients.
 contract SecretRegistry {
-    // sha256(secret) => block number at which the secret was revealed
-    mapping(bytes32 => uint256) private secrethash_to_block;
+    // sha256(secret) => block timestamp at which the secret was revealed
+    mapping(bytes32 => uint256) private secrethash_to_timestamp;
 
     event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 
-    /// @notice Registers a hash time lock secret and saves the block number.
+    /// @notice Registers a hash time lock secret and saves the block timestamp.
     /// This allows the lock to be unlocked after the expiration block
     /// @param secret The secret used to lock the hash time lock
     /// @return true if secret was registered, false if the secret was already
     /// registered
     function registerSecret(bytes32 secret) public returns (bool) {
         bytes32 secrethash = sha256(abi.encodePacked(secret));
-        if (secrethash_to_block[secrethash] > 0) {
+        if (secrethash_to_timestamp[secrethash] > 0) {
             return false;
         }
-        secrethash_to_block[secrethash] = block.timestamp;
+        secrethash_to_timestamp[secrethash] = block.timestamp;
         emit SecretRevealed(secrethash, secret);
         return true;
     }
@@ -44,7 +44,7 @@ contract SecretRegistry {
     /// @param secrethash The hash of the registered secret `keccak256(secret)`
     /// @return The block timestamp at which the secret was revealed
     function getSecretRevealBlockTime(bytes32 secrethash) public view returns (uint256) {
-        return secrethash_to_block[secrethash];
+        return secrethash_to_timestamp[secrethash];
     }
 }
 
