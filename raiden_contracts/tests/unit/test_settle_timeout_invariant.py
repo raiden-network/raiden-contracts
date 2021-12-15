@@ -23,9 +23,9 @@ def test_settle_timeout_inrange(
 
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_window, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    (settle_timeout, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
-    assert settle_window == TEST_SETTLE_TIMEOUT
+    assert settle_timeout == TEST_SETTLE_TIMEOUT
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     call_and_transact(
@@ -42,7 +42,7 @@ def test_settle_timeout_inrange(
         {"from": A},
     )
 
-    time_travel(get_block_timestamp() + settle_window + 2)
+    time_travel(get_block_timestamp() + settle_timeout + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(
@@ -60,6 +60,6 @@ def test_settle_timeout_inrange(
     )
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_window, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    (settle_timeout, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
 
-    assert settle_window == TEST_SETTLE_TIMEOUT
+    assert settle_timeout == TEST_SETTLE_TIMEOUT

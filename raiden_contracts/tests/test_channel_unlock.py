@@ -546,10 +546,9 @@ def test_channel_unlock_no_locked_amount_fail(
 ) -> None:
     """After settleChannel() is called with zero locked amount, unlock() calls fail"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
 
     # Mock pending transfers data
-    pending_transfers_tree_A = get_pending_transfers_tree(web3, [2, 5], [4], settle_timeout)
+    pending_transfers_tree_A = get_pending_transfers_tree(web3, [2, 5], [4], TEST_SETTLE_TIMEOUT)
     reveal_secrets(A, pending_transfers_tree_A.unlockable)
 
     channel_identifier = create_settled_channel(
