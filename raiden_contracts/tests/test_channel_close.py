@@ -53,12 +53,13 @@ def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callab
 
 
 def test_close_settled_channel_fail(
-    web3: Web3,
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test getChannelInfo and closeChannel on an already settled channel"""
     (A, B) = get_accounts(2)
@@ -83,9 +84,7 @@ def test_close_settled_channel_fail(
         {"from": A},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(
@@ -623,13 +622,14 @@ def test_close_channel_event_no_offchain_transfers(
 
 
 def test_close_replay_reopened_channel(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """The same balance proof cannot close another channel between the same participants"""
     (A, B) = get_accounts(2)
@@ -664,9 +664,7 @@ def test_close_replay_reopened_channel(
         {"from": A},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(

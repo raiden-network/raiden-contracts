@@ -182,3 +182,21 @@ def get_block(web3: Web3) -> Callable:
         return block
 
     return get
+
+
+@pytest.fixture()
+def time_travel(web3: Web3) -> Callable:
+    def get(timestamp: int) -> None:
+        web3.provider.ethereum_tester.time_travel(timestamp)  # type: ignore
+
+    return get
+
+
+@pytest.fixture()
+def get_block_timestamp(web3: Web3) -> Callable:
+    def get(block_number: Optional[int] = None) -> int:
+        number = block_number or "latest"
+        block = web3.eth.get_block(number)  # type: ignore
+        return block.timestamp  # type: ignore
+
+    return get

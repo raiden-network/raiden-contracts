@@ -3,7 +3,6 @@ from typing import Callable, Tuple
 import pytest
 from eth.constants import ZERO_ADDRESS
 from eth_tester.exceptions import TransactionFailed
-from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import UserDepositEvent
@@ -142,8 +141,9 @@ def test_withdraw(
     user_deposit_contract: Contract,
     deposit_to_udc: Callable,
     get_accounts: Callable,
-    web3: Web3,
     event_handler: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test the interaction between planWithdraw, withdraw and effectiveBalance"""
     ev_handler = event_handler(user_deposit_contract)
@@ -163,19 +163,13 @@ def test_withdraw(
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 10
 
     # withdraw won't work before withdraw_delay elapsed
-    current_block_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        current_block_timestamp + withdraw_delay - 1
-    )
+    time_travel(get_block_timestamp() + withdraw_delay - 1)
     with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdraw(18).call({"from": A})
 
     # can't withdraw more then planned
-    current_block_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        current_block_timestamp + withdraw_delay + 1
-    )  # now withdraw_delay is over
+    time_travel(get_block_timestamp() + withdraw_delay + 1)  # now withdraw_delay is over
     with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdraw(21).call({"from": A})
 
@@ -189,9 +183,10 @@ def test_withdraw_to_beneficiary(
     user_deposit_contract: Contract,
     deposit_to_udc: Callable,
     get_accounts: Callable,
-    web3: Web3,
     event_handler: Callable,
     custom_token: Contract,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test the interaction between planWithdraw, withdrawToBeneficiary and effectiveBalance"""
     ev_handler = event_handler(user_deposit_contract)
@@ -215,19 +210,13 @@ def test_withdraw_to_beneficiary(
         user_deposit_contract.functions.withdrawToBeneficiary(18, ZERO_ADDRESS).call({"from": A})
 
     # withdraw won't work before withdraw_delay elapsed
-    current_block_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
     withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        current_block_timestamp + withdraw_delay - 1
-    )
+    time_travel(get_block_timestamp() + withdraw_delay - 1)
     with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdrawToBeneficiary(18, B).call({"from": A})
 
     # can't withdraw more then planned
-    current_block_timestamp = web3.eth.get_block("latest").timestamp  # type: ignore
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        current_block_timestamp + withdraw_delay + 1
-    )  # now withdraw_delay is over
+    time_travel(get_block_timestamp() + withdraw_delay + 1)  # now withdraw_delay is over
     with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdrawToBeneficiary(21, B).call({"from": A})
 

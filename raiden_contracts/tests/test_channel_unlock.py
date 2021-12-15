@@ -63,6 +63,7 @@ def test_1_item_unlockable(
     get_accounts: Callable,
     token_network_test_utils: Contract,
     secret_registry_contract: Contract,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test getHashRootAndUnlockedAmount() on a single item whose secret has been registered"""
     A = get_accounts(1)[0]
@@ -80,7 +81,7 @@ def test_1_item_unlockable(
         secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.get_block("latest").timestamp  # type: ignore
+        == get_block_timestamp()
     )
 
     (
@@ -100,6 +101,7 @@ def test_get_hash_length_fail(
     get_accounts: Callable,
     token_network_test_utils: Contract,
     secret_registry_contract: Contract,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test getHashAndUnlockedAmount() on inputs of irregular lengths"""
     network_utils = token_network_test_utils
@@ -116,7 +118,7 @@ def test_get_hash_length_fail(
         secret_registry_contract.functions.getSecretRevealBlockTime(
             pending_transfers_tree.unlockable[0][LockIndex.SECRETHASH]
         ).call()
-        == web3.eth.get_block("latest").timestamp  # type: ignore
+        == get_block_timestamp()
     )
 
     packed = pending_transfers_tree.packed_transfers
@@ -258,6 +260,8 @@ def test_lock_data_from_packed_locks(
     token_network_test_utils: Contract,
     secret_registry_contract: Contract,
     reveal_secrets: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test getLockDataFromLockPublic() on various offsets"""
     network_utils = token_network_test_utils
@@ -302,19 +306,17 @@ def test_lock_data_from_packed_locks(
     assert claimable_amount == claimable(4)
 
     # Register last secret after expiration
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + max_lock_expiration + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + max_lock_expiration + 1)
 
     last_lock = pending_transfers_tree.expired[-1]
     # expiration
-    assert web3.eth.get_block("latest").timestamp > last_lock[0]  # type: ignore
+    assert get_block_timestamp() > last_lock[0]
     # register secret
     call_and_transact(secret_registry_contract.functions.registerSecret(last_lock[3]))
     # ensure registration was done
     assert (
         secret_registry_contract.functions.getSecretRevealBlockTime(last_lock[2]).call()
-        == web3.eth.get_block("latest").timestamp  # type: ignore
+        == get_block_timestamp()
     )
 
     # Check that last secret is still regarded as expired
@@ -571,6 +573,8 @@ def test_channel_unlock(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """unlock() on pending transfers with unlockable and expired locks should
     split the locked amount accordingly, to both parties"""
@@ -599,9 +603,7 @@ def test_channel_unlock(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -741,6 +743,8 @@ def test_channel_unlock_registered_expired_lock_refunds(
     channel_deposit: Callable,
     get_accounts: Callable,
     close_and_update_channel: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """unlock() should refund tokens locked with secrets revealed after the expiration"""
     (A, B) = get_accounts(2)
@@ -768,22 +772,18 @@ def test_channel_unlock_registered_expired_lock_refunds(
     )
 
     # Locks expire
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + max_lock_expiration + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + max_lock_expiration + 1)
 
     # Secrets are revealed before settlement window, but after expiration
     for (_, _, secrethash, secret) in pending_transfers_tree.unlockable:
         call_and_transact(secret_registry_contract.functions.registerSecret(secret), {"from": A})
         assert (
             secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
-            == web3.eth.get_block("latest").timestamp  # type: ignore
+            == get_block_timestamp()
         )
 
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     # settle channel
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
@@ -817,6 +817,8 @@ def test_channel_unlock_unregistered_locks(
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
     custom_token: Contract,
+    get_block_timestamp: Callable,
+    time_travel: Callable,
 ) -> None:
     """unlock() should refund tokens locked by secrets not registered before settlement"""
     (A, B) = get_accounts(2)
@@ -844,9 +846,7 @@ def test_channel_unlock_unregistered_locks(
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
     # Secret hasn't been registered before settlement timeout
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
     # Someone unlocks A's pending transfers - all tokens should be refunded
@@ -873,6 +873,8 @@ def test_channel_unlock_before_settlement_fails(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    get_block_timestamp: Callable,
+    time_travel: Callable,
 ) -> None:
     """unlock() should not work before settlement"""
     (A, B) = get_accounts(2)
@@ -919,9 +921,7 @@ def test_channel_unlock_before_settlement_fails(
         ).call()
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     # Unlock fails before settle is called
     with pytest.raises(TransactionFailed, match="TN/unlock: channel id still exists"):
@@ -1051,6 +1051,8 @@ def test_channel_unlock_both_participants(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    get_block_timestamp: Callable,
+    time_travel: Callable,
 ) -> None:
     """A scenario where both parties get some of the pending transfers"""
     (A, B) = get_accounts(2)
@@ -1090,9 +1092,7 @@ def test_channel_unlock_both_participants(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1227,6 +1227,8 @@ def test_channel_unlock_with_a_large_expiration(
     get_accounts: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """unlock() should still work after a delayed settleChannel() call"""
     (A, B) = get_accounts(2)
@@ -1254,9 +1256,7 @@ def test_channel_unlock_with_a_large_expiration(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settle channel after a "long" time
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 500  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 500)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 
@@ -1431,6 +1431,8 @@ def test_unlock_channel_event(
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
     event_handler: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Successful unlock() should cause an UNLOCKED event"""
     (A, B) = get_accounts(2)
@@ -1458,9 +1460,7 @@ def test_unlock_channel_event(
     close_and_update_channel(channel_identifier, A, values_A, B, values_B)
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_settle(token_network, channel_identifier, A, values_A, B, values_B)
 

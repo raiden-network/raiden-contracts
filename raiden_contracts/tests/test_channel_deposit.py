@@ -2,7 +2,6 @@ from typing import Callable
 
 import pytest
 from eth_tester.exceptions import TransactionFailed
-from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ValidationError
 
@@ -246,12 +245,13 @@ def test_deposit_channel_state(
 
 
 def test_deposit_wrong_state_fail(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
     assign_tokens: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """setTotalDeposit() fails on Closed or Settled channels."""
     (A, B) = get_accounts(2)
@@ -306,9 +306,7 @@ def test_deposit_wrong_state_fail(
             {"from": B}
         )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
     with pytest.raises(TransactionFailed, match="TN: channel not open"):

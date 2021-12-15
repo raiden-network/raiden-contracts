@@ -33,12 +33,13 @@ from raiden_contracts.utils.pending_transfers import (
 
 
 def test_settle_no_bp_success(
-    web3: Web3,
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """The simplest settlement without any balance proofs provided"""
     (A, B) = get_accounts(2)
@@ -65,9 +66,7 @@ def test_settle_no_bp_success(
     # Do not call updateNonClosingBalanceProof
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     # Settling the channel should work with no balance proofs
     call_and_transact(
@@ -90,12 +89,13 @@ def test_settle_no_bp_success(
 
 
 def test_settle2_no_bp_success(
-    web3: Web3,
     custom_token: Contract,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_accounts: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """The simplest settlement, tested against the V2 ABI settle"""
     (A, B) = get_accounts(2)
@@ -122,9 +122,7 @@ def test_settle2_no_bp_success(
     # Do not call updateNonClosingBalanceProof
 
     # Settlement window must be over before settling the channel
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     # Settling the channel should work with no balance proofs
     call_and_transact(
@@ -159,6 +157,8 @@ def test_settle_channel_state(
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
     settle_state_tests: Callable,
+    get_block_timestamp: Callable,
+    time_travel: Callable,
 ) -> None:
     """settleChannel() with some balance proofs"""
     (A, B) = get_accounts(2)
@@ -193,9 +193,7 @@ def test_settle_channel_state(
     withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -229,7 +227,6 @@ def test_settle_channel_state(
 
 
 def test_settle_single_direct_transfer_for_closing_party(
-    web3: Web3,
     get_accounts: Callable,
     custom_token: Contract,
     token_network: Contract,
@@ -237,6 +234,8 @@ def test_settle_single_direct_transfer_for_closing_party(
     channel_deposit: Callable,
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test settle of a channel with one direct transfer to the participant
     that called close.
@@ -276,9 +275,7 @@ def test_settle_single_direct_transfer_for_closing_party(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(
@@ -310,7 +307,6 @@ def test_settle_single_direct_transfer_for_closing_party(
 
 
 def test_settle_single_direct_transfer_for_counterparty(
-    web3: Web3,
     get_accounts: Callable,
     custom_token: Contract,
     token_network: Contract,
@@ -319,6 +315,8 @@ def test_settle_single_direct_transfer_for_counterparty(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Test settle of a channel with one direct transfer to the participant
     that did not call close.
@@ -377,9 +375,7 @@ def test_settle_single_direct_transfer_for_counterparty(
     pre_balance_B = custom_token.functions.balanceOf(B).call()
     pre_balance_contract = custom_token.functions.balanceOf(token_network.address).call()
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     call_and_transact(
         token_network.functions.settleChannel(
@@ -411,7 +407,6 @@ def test_settle_single_direct_transfer_for_counterparty(
 
 
 def test_settlement_with_unauthorized_token_transfer(
-    web3: Web3,
     get_accounts: Callable,
     custom_token: Contract,
     token_network: Contract,
@@ -419,6 +414,8 @@ def test_settlement_with_unauthorized_token_transfer(
     create_channel_and_deposit: Callable,
     withdraw_channel: Callable,
     close_and_update_channel: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """A participant transfers some tokens to the contract and so loses them"""
     externally_transferred_amount = 5
@@ -455,9 +452,7 @@ def test_settlement_with_unauthorized_token_transfer(
         pre_balance_contract + externally_transferred_amount
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     # Compute expected settlement amounts
     settlement = get_settlement_amounts(vals_A, vals_B)
@@ -488,12 +483,13 @@ def test_settlement_with_unauthorized_token_transfer(
 
 
 def test_settle_wrong_state_fail(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     get_block: Callable,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """settleChannel() fails on OPENED state and on CLOSED state before the settlement block"""
     (A, B) = get_accounts(2)
@@ -530,16 +526,14 @@ def test_settle_wrong_state_fail(
     ).call()
     assert state == ChannelState.CLOSED
     assert settle_block_timeout == TEST_SETTLE_TIMEOUT + get_block(txn_hash).timestamp
-    assert web3.eth.get_block("latest").timestamp < settle_block_timeout  # type: ignore
+    assert get_block_timestamp() < settle_block_timeout
 
     with pytest.raises(TransactionFailed, match="TN/settle: settlement timeout"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 2)
 
-    assert web3.eth.get_block("latest").timestamp > settle_block_timeout  # type: ignore
+    assert get_block_timestamp() > settle_block_timeout
 
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
@@ -558,6 +552,8 @@ def test_settle_wrong_balance_hash(
     create_channel_and_deposit: Callable,
     close_and_update_channel: Callable,
     reveal_secrets: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """Calling settleChannel() with various wrong arguments and see failures"""
     (A, B) = get_accounts(2)
@@ -597,9 +593,7 @@ def test_settle_wrong_balance_hash(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
@@ -681,7 +675,6 @@ def test_settle_wrong_balance_hash(
 
 
 def test_settle_channel_event(
-    web3: Web3,
     get_accounts: Callable,
     token_network: Contract,
     create_channel: Callable,
@@ -689,6 +682,8 @@ def test_settle_channel_event(
     create_balance_proof: Callable,
     create_balance_proof_countersignature: Callable,
     event_handler: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """A successful settleChannel() call causes a SETTLED event"""
     ev_handler = event_handler(token_network)
@@ -730,9 +725,7 @@ def test_settle_channel_event(
         {"from": B},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + TEST_SETTLE_TIMEOUT + 1  # type: ignore
-    )
+    time_travel(get_block_timestamp() + TEST_SETTLE_TIMEOUT + 1)
 
     txn_hash = call_and_transact(
         token_network.functions.settleChannel(

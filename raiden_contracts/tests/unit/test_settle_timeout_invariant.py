@@ -1,6 +1,5 @@
 from typing import Callable
 
-from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
@@ -10,8 +9,9 @@ from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, call_and_transac
 def test_settle_timeout_inrange(
     token_network: Contract,
     get_accounts: Callable,
-    web3: Web3,
     create_close_signature_for_no_balance_proof: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> None:
     """The TokenNetwork constructor must enforce that settle timeout is in
     the valid range.
@@ -42,9 +42,7 @@ def test_settle_timeout_inrange(
         {"from": A},
     )
 
-    web3.provider.ethereum_tester.time_travel(  # type: ignore
-        web3.eth.get_block("latest").timestamp + settle_window + 2  # type: ignore
-    )
+    time_travel(get_block_timestamp() + settle_window + 2)
 
     call_and_transact(
         token_network.functions.settleChannel(
