@@ -311,10 +311,11 @@ def close_and_update_channel(
 
 @pytest.fixture()
 def create_settled_channel(
-    web3: Web3,
     token_network: Contract,
     create_channel_and_deposit: Callable,
     close_and_update_channel: Callable,
+    time_travel: Callable,
+    get_block_timestamp: Callable,
 ) -> Callable:
     def get(
         participant1: HexAddress,
@@ -358,9 +359,7 @@ def create_settled_channel(
             participant2_values,
         )
 
-        web3.provider.ethereum_tester.time_travel(  # type: ignore
-            web3.eth.get_block("latest").timestamp + settle_timeout + 1  # type: ignore
-        )
+        time_travel(get_block_timestamp() + settle_timeout + 1)
 
         call_settle(
             token_network,
@@ -377,7 +376,9 @@ def create_settled_channel(
 
 
 @pytest.fixture()
-def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
+def reveal_secrets(
+    web3: Web3, secret_registry_contract: Contract, get_block_timestamp: Callable
+) -> Callable:
     def get(tx_from: HexAddress, transfers: List[Tuple]) -> None:
         for (expiration, _, secrethash, secret) in transfers:
             assert web3.eth.block_number < expiration
@@ -387,7 +388,7 @@ def reveal_secrets(web3: Web3, secret_registry_contract: Contract) -> Callable:
             )
             assert (
                 secret_registry_contract.functions.getSecretRevealBlockTime(secrethash).call()
-                == web3.eth.get_block("latest").timestamp  # type: ignore
+                == get_block_timestamp()
             )
 
     return get
