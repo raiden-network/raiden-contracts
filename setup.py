@@ -11,7 +11,7 @@ from setuptools import Command
 from setuptools.command.build_py import build_py
 
 DESCRIPTION = "Raiden contracts library and utilities"
-VERSION = "0.40.3"
+VERSION = "0.40.1"
 
 
 def read_requirements(path: str) -> List[str]:
@@ -100,7 +100,6 @@ config = {
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
     ],
     "entry_points": {"console_scripts": ["deploy = raiden_contracts.deploy.__main__:main"]},
     "cmdclass": {
