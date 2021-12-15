@@ -94,7 +94,7 @@ contract TokenNetwork is Utils, Controllable {
         // closing the channel uncooperatively and settling the channel.
         // After the channel has been uncooperatively closed, this value
         // represents the time after which settleChannel can be called.
-        uint256 settle_window;
+        uint256 settle_timeout;
 
         ChannelState state;
 
@@ -277,11 +277,11 @@ contract TokenNetwork is Utils, Controllable {
 
         // We always increase the channel counter, therefore no channel data can already exist,
         // corresponding to this channel_identifier. This check must never fail.
-        assert(channel.settle_window == 0);
+        assert(channel.settle_timeout == 0);
         assert(channel.state == ChannelState.NonExistent);
 
         // Store channel information
-        channel.settle_window = settle_timeout;
+        channel.settle_timeout = settle_timeout;
         channel.state = ChannelState.Opened;
 
         emit ChannelOpened(
@@ -589,7 +589,7 @@ contract TokenNetwork is Utils, Controllable {
         channel.participants[closing_participant].is_the_closer = true;
 
         // This is the timestamp at which the channel can be settled.
-        channel.settle_window += uint256(block.timestamp);
+        channel.settle_timeout += uint256(block.timestamp);
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -801,7 +801,7 @@ contract TokenNetwork is Utils, Controllable {
         require(channel.state == ChannelState.Closed, "TN/settle: channel not closed");
 
         // Settlement window must be over
-        require(channel.settle_window < block.timestamp, "TN/settle: settlement timeout");
+        require(channel.settle_timeout < block.timestamp, "TN/settle: settlement timeout");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -1008,7 +1008,7 @@ contract TokenNetwork is Utils, Controllable {
     /// operation takes place
     /// @param participant1 Address of a channel participant
     /// @param participant2 Address of the other channel participant
-    /// @return Channel settle_block_number and state
+    /// @return Channel settle_timeout and state
     /// @notice The contract cannot really distinguish Settled and Removed
     /// states, especially when wrong participants are given as input.
     /// The contract does not remember the participants of the channel
@@ -1051,7 +1051,7 @@ contract TokenNetwork is Utils, Controllable {
         }
 
         return (
-            channel.settle_window,
+            channel.settle_timeout,
             state
         );
     }
@@ -1501,7 +1501,7 @@ contract TokenNetwork is Utils, Controllable {
     {
         uint256 expiration_timestamp;
         uint256 locked_amount;
-        uint256 reveal_block;
+        uint256 reveal_timestamp;
         bytes32 secrethash;
 
         if (locks.length <= offset) {
@@ -1518,8 +1518,8 @@ contract TokenNetwork is Utils, Controllable {
         // secret must have been revealed in the SecretRegistry contract before
         // the lock's expiration_timestamp in order for the hash time lock transfer
         // to be successful.
-        reveal_block = secret_registry.getSecretRevealBlockTime(secrethash);
-        if (reveal_block == 0 || expiration_timestamp <= reveal_block) {
+        reveal_timestamp = secret_registry.getSecretRevealBlockTime(secrethash);
+        if (reveal_timestamp == 0 || expiration_timestamp <= reveal_timestamp) {
             locked_amount = 0;
         }
 
