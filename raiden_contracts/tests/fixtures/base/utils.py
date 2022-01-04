@@ -38,7 +38,7 @@ def create_account(web3: Web3, ethereum_tester: EthereumTester) -> Callable:
                     {
                         "from": faucet,
                         "to": address,
-                        "value": Wei(1 * int(units["finney"])),
+                        "value": Wei(100 * int(units["finney"])),
                     }
                 )
                 break
