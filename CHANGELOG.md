@@ -5,6 +5,10 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.40.2]
+
+- [#1584](https://github.com/raiden-network/raiden-contracts/pull/1584) Upgrade `web3` and `eth-tester` dependencies
+
 ## [0.40.1]
 
 - [#1576](https://github.com/raiden-network/raiden-contracts/pull/1576) Add missing `mypy_extensions` requirement
