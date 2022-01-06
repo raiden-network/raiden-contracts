@@ -69,13 +69,6 @@ class ChannelEvent(str, Enum):
     DEPRECATED = "DeprecationSwitch"
 
 
-class ChannelInfoIndex(IntEnum):
-    """Index for accessing fields in return information from TokenNetwork.getChannelInfo."""
-
-    SETTLE_BLOCK = 0
-    STATE = 1
-
-
 class ParticipantInfoIndex(IntEnum):
     """Index for accessing fields in return value of TokenNetwork.getChannelParticipantInfo."""
 
@@ -89,7 +82,7 @@ class ParticipantInfoIndex(IntEnum):
 
 
 class ChannelState(IntEnum):
-    """Meaning of values returned by TokenNetwork.getChannelInfo[ChannelInfoIndex.STATE]"""
+    """Meaning of values returned by TokenNetwork.getChannelInfo"""
 
     NONEXISTENT = 0
     OPENED = 1
