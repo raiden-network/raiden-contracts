@@ -56,10 +56,7 @@ def create_channel(token_network: Contract) -> Callable:
         channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
 
         # Test the channel state on chain
-        (
-            _,
-            channel_state,
-        ) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        channel_state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
         assert channel_state == ChannelState.OPENED
 
         return (channel_identifier, txn_hash)
@@ -465,9 +462,8 @@ def update_state_tests(token_network: Contract, get_block: Callable) -> Callable
         settle_timeout: int,
         txn_hash1: str,
     ) -> None:
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
+        state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
 
         assert settle_block_number == settle_timeout + get_block(txn_hash1).timestamp
         assert state == ChannelState.CLOSED
@@ -530,9 +526,8 @@ def cooperative_settle_state_tests(token_network: Contract, custom_token: Contra
             pre_balance_contract,
         )
 
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
+        state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
         assert settle_block_number == 0
         assert state == ChannelState.REMOVED
 
@@ -595,9 +590,8 @@ def settle_state_tests(token_network: Contract, custom_token: Contract) -> Calla
         if locked_amount_B > 0:
             assert locksroot_B == values_B.locksroot
 
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            channel_identifier, A, B
-        ).call()
+        state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+        settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
         assert settle_block_number == 0
         if locked_amount_A > 0 or locked_amount_B > 0:
             assert state == ChannelState.SETTLED
@@ -648,7 +642,7 @@ def withdraw_state_tests(custom_token: Contract, token_network: Contract) -> Cal
         delegate: Optional[HexAddress] = None,
     ) -> None:
         current_withdrawn_participant = total_withdrawn_participant - pre_withdrawn_participant
-        (_, state) = token_network.functions.getChannelInfo(
+        state = token_network.functions.getChannelInfo(
             channel_identifier, participant, partner
         ).call()
         assert state == ChannelState.OPENED

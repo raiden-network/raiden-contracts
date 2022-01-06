@@ -187,7 +187,7 @@ def test_withdraw_wrong_state(
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
     channel_identifier = create_channel_and_deposit(A, B, 10, 14)
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
     # Channel is open, withdraw must work
@@ -207,7 +207,7 @@ def test_withdraw_wrong_state(
         ),
         {"from": A},
     )
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.CLOSED
 
     with pytest.raises(TransactionFailed, match="TN: channel not open"):
@@ -229,7 +229,7 @@ def test_withdraw_wrong_state(
         ),
         {"from": A},
     )
-    (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.REMOVED
 
     with pytest.raises(TransactionFailed, match="TN: channel not open"):
