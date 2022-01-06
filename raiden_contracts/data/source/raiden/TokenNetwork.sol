@@ -40,6 +40,10 @@ contract TokenNetwork is Utils, Controllable {
     // the channel
     mapping (uint256 => Channel) public channels;
 
+    // channel_identifier => settleable_after
+    // used only in case of and during uncooperative settle
+    mapping (uint256 => uint256) public settleable_after;
+
     // This is needed to enforce one channel per pair of participants
     // The key is keccak256(participant1_address, participant2_address)
     mapping (bytes32 => uint256) public participants_hash_to_channel_identifier;
@@ -89,13 +93,6 @@ contract TokenNetwork is Utils, Controllable {
     }
 
     struct Channel {
-        // After opening the channel this value represents the settlement
-        // window. This is the number of seconds that need to elapse between
-        // closing the channel uncooperatively and settling the channel.
-        // After the channel has been uncooperatively closed, this value
-        // represents the time after which settleChannel can be called.
-        uint256 settle_timeout;
-
         ChannelState state;
 
         mapping(address => Participant) participants;
@@ -134,8 +131,7 @@ contract TokenNetwork is Utils, Controllable {
     event ChannelOpened(
         uint256 indexed channel_identifier,
         address indexed participant1,
-        address indexed participant2,
-        uint256 settle_timeout
+        address indexed participant2
     );
 
     event ChannelNewDeposit(
@@ -277,18 +273,15 @@ contract TokenNetwork is Utils, Controllable {
 
         // We always increase the channel counter, therefore no channel data can already exist,
         // corresponding to this channel_identifier. This check must never fail.
-        assert(channel.settle_timeout == 0);
         assert(channel.state == ChannelState.NonExistent);
 
         // Store channel information
-        channel.settle_timeout = settle_timeout;
         channel.state = ChannelState.Opened;
 
         emit ChannelOpened(
             channel_identifier,
             participant1,
-            participant2,
-            settle_timeout
+            participant2
         );
 
         return channel_identifier;
@@ -588,8 +581,8 @@ contract TokenNetwork is Utils, Controllable {
         channel.state = ChannelState.Closed;
         channel.participants[closing_participant].is_the_closer = true;
 
-        // This is the timestamp at which the channel can be settled.
-        channel.settle_timeout += uint256(block.timestamp);
+        // This is the timestamp after which the channel can be settled.
+	settleable_after[channel_identifier] = uint256(block.timestamp) + settle_timeout;
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -801,7 +794,7 @@ contract TokenNetwork is Utils, Controllable {
         require(channel.state == ChannelState.Closed, "TN/settle: channel not closed");
 
         // Settlement window must be over
-        require(channel.settle_timeout < block.timestamp, "TN/settle: settlement timeout");
+        require(settleable_after[channel_identifier] < block.timestamp, "TN/settle: settlement timeout");
 
         Participant storage participant1_state = channel.participants[participant1];
         Participant storage participant2_state = channel.participants[participant2];
@@ -1008,7 +1001,7 @@ contract TokenNetwork is Utils, Controllable {
     /// operation takes place
     /// @param participant1 Address of a channel participant
     /// @param participant2 Address of the other channel participant
-    /// @return Channel settle_timeout and state
+    /// @return Channel state
     /// @notice The contract cannot really distinguish Settled and Removed
     /// states, especially when wrong participants are given as input.
     /// The contract does not remember the participants of the channel
@@ -1019,7 +1012,7 @@ contract TokenNetwork is Utils, Controllable {
     )
         external
         view
-        returns (uint256, ChannelState)
+        returns (ChannelState)
     {
         bytes32 unlock_key1;
         bytes32 unlock_key2;
@@ -1050,10 +1043,7 @@ contract TokenNetwork is Utils, Controllable {
             }
         }
 
-        return (
-            channel.settle_timeout,
-            state
-        );
+	return state;
     }
 
     /// @dev Returns the channel specific data.
@@ -1535,6 +1525,7 @@ contract TokenNetwork is Utils, Controllable {
         delete channel.participants[participant1];
         delete channel.participants[participant2];
         delete channels[channel_identifier];
+        delete settleable_after[channel_identifier];
 
         // Remove the pair's channel counter
         pair_hash = getParticipantsHash(participant1, participant2);
