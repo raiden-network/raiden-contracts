@@ -2,7 +2,7 @@ from typing import Callable
 
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ChannelEvent
+from raiden_contracts.constants import ChannelEvent
 from raiden_contracts.tests.utils import call_and_transact
 from raiden_contracts.utils.events import check_channel_opened, check_new_deposit
 
@@ -62,7 +62,7 @@ def test_channel_open_with_deposit_events(
     ev_handler.add(
         txn_hash,
         ChannelEvent.OPENED,
-        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT),
+        check_channel_opened(channel_identifier, A, B),
     )
     ev_handler.add(
         txn_hash,

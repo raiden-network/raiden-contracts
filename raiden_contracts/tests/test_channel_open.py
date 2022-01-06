@@ -10,7 +10,6 @@ from raiden_contracts.constants import (
     EMPTY_ADDRESS,
     TEST_SETTLE_TIMEOUT,
     ChannelEvent,
-    ChannelInfoIndex,
     ChannelState,
     ParticipantInfoIndex,
 )
@@ -151,24 +150,23 @@ def test_state_channel_identifier_invalid(
 
     pairs = permutations([A, B, C], 2)
     for pair in pairs:
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            channel_id, *pair
-        ).call()
+        state = token_network.functions.getChannelInfo(channel_id, *pair).call()
+        settle_block_number = token_network.functions.settleable_after(channel_id).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
 
     for pair in pairs:
         create_channel(*pair)
-        (settle_block_number, state) = token_network.functions.getChannelInfo(0, *pair).call()
-        assert settle_block_number > 0
+        state = token_network.functions.getChannelInfo(0, *pair).call()
+        settle_block_number = token_network.functions.settleable_after(0)
+        assert settle_block_number == 0  # initialized on channel close
         assert state == ChannelState.OPENED
 
     current_counter = token_network.functions.channel_counter().call()
 
     for pair in pairs:
-        (settle_block_number, state) = token_network.functions.getChannelInfo(
-            current_counter + 1, *pair
-        ).call()
+        state = token_network.functions.getChannelInfo(current_counter + 1, *pair).call()
+        settle_block_number = token_network.functions.settleable_after(current_counter + 1).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
 
@@ -195,8 +193,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
         == channel_counter + 1
     )
 
-    channel_info_response = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
-    state = channel_info_response[ChannelInfoIndex.STATE]
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
     response = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
@@ -242,8 +239,6 @@ def test_reopen_channel(
 ) -> None:
     """Open a second channel after settling one"""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT
-
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier1 = token_network.functions.getChannelIdentifier(A, B).call()
     channel_counter1 = token_network.functions.participants_hash_to_channel_identifier(
@@ -304,10 +299,7 @@ def test_reopen_channel(
         == channel_counter1 + 1
     )
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier2, A, B
-    ).call()
-    assert settle_block_number == settle_timeout
+    state = token_network.functions.getChannelInfo(channel_identifier2, A, B).call()
     assert state == ChannelState.OPENED
 
     (
@@ -358,6 +350,6 @@ def test_open_channel_event(
     ev_handler.add(
         txn_hash,
         ChannelEvent.OPENED,
-        check_channel_opened(channel_identifier, A, B, TEST_SETTLE_TIMEOUT),
+        check_channel_opened(channel_identifier, A, B),
     )
     ev_handler.check()
