@@ -2,7 +2,7 @@ from typing import Callable
 
 from web3.contract import Contract
 
-from raiden_contracts.constants import TEST_SETTLE_TIMEOUT
+from raiden_contracts.constants import TEST_SETTLE_TIMEOUT, ChannelState
 from raiden_contracts.tests.utils import LOCKSROOT_OF_NO_LOCKS, call_and_transact, fake_bytes
 
 
@@ -23,9 +23,11 @@ def test_settle_timeout_inrange(
 
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_timeout, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    settle_timeout = token_network.functions.settle_timeout().call()
+    settleable_after = token_network.functions.settleable_after(channel_identifier).call()
 
     assert settle_timeout == TEST_SETTLE_TIMEOUT
+    assert settleable_after == 0
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
     call_and_transact(
@@ -60,6 +62,8 @@ def test_settle_timeout_inrange(
     )
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    (settle_timeout, _) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    settleable_after = token_network.functions.settleable_after(channel_identifier).call()
 
-    assert settle_timeout == TEST_SETTLE_TIMEOUT
+    assert state == ChannelState.OPENED
+    assert settleable_after == 0
