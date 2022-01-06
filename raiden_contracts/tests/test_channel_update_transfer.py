@@ -155,9 +155,8 @@ def test_update_nonexistent_fail(
     (A, B, C) = get_accounts(3)
     channel_identifier = 1
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
     assert settle_block_number == 0
     assert state == ChannelState.NONEXISTENT
 
@@ -200,10 +199,7 @@ def test_update_notclosed_fail(
         **balance_proof_A._asdict(),
     )
 
-    (settle_block_number, state) = token_network.functions.getChannelInfo(
-        channel_identifier, A, B
-    ).call()
-    assert settle_block_number > 0
+    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
     with pytest.raises(TransactionFailed, match="TN/update: channel not closed"):
