@@ -38,16 +38,12 @@ def check_address_registered(eth_address: HexAddress, endpoint: str) -> Callable
 
 
 def check_channel_opened(
-    channel_identifier: int,
-    participant1: HexAddress,
-    participant2: HexAddress,
-    settle_timeout: int,
+    channel_identifier: int, participant1: HexAddress, participant2: HexAddress
 ) -> Callable[[Dict[str, Any]], None]:
     def get(event: Dict[str, Any]) -> None:
         assert event["args"]["channel_identifier"] == channel_identifier
         assert event["args"]["participant1"] == participant1
         assert event["args"]["participant2"] == participant2
-        assert event["args"]["settle_timeout"] == settle_timeout
 
     return get
 

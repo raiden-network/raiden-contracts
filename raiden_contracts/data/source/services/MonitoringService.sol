@@ -247,16 +247,15 @@ contract MonitoringService is Utils {
     {
         require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
 
-        TokenNetwork.ChannelState channel_state;
-        uint256 settle_window;
-        (settle_window, channel_state) = token_network.getChannelInfo(
+        TokenNetwork.ChannelState channel_state = token_network.getChannelInfo(
             channel_identifier, closing_participant, non_closing_participant
         );
         require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
 
+        uint256 settleable_after = token_network.settleable_after(channel_identifier);
         uint256 settle_timeout = token_network.settle_timeout();
-        require(settle_window >= settle_timeout, "too low settle block timeout");
-        uint256 close_timestamp = settle_window - settle_timeout;
+        require(settleable_after >= settle_timeout, "too low settle block timeout");
+        uint256 close_timestamp = settleable_after - settle_timeout;
 
         return firstTimestampAllowedToMonitor(
             close_timestamp,
@@ -321,15 +320,12 @@ contract MonitoringService is Utils {
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
-        TokenNetwork.ChannelState channel_state;
-        uint256 settle_window;
-        (settle_window, channel_state) = token_network.getChannelInfo(
+        TokenNetwork.ChannelState channel_state = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
             non_closing_participant
         );
         // We are trying to figure out when the settlement period ends.
-        // The meaning of settle_window is totally different depending on channel_state.
         // When channel_state is NonExistent, settle_window is zero so it's not useful.
         // When channel_state is Open, settle_window is the length of the settlement period.
         // In these cases, we don't want to proceed anyway because the settlement period has not even started.
@@ -339,7 +335,8 @@ contract MonitoringService is Utils {
             channel_state == TokenNetwork.ChannelState.Settled ||
             channel_state == TokenNetwork.ChannelState.Removed, "too early channel state"
         );
-        require(settle_window < block.timestamp, "channel not settled yet");
+        uint256 settleable_after = token_network.settleable_after(channel_identifier);
+        require(settleable_after < block.timestamp, "channel not settled yet");
 
         Reward storage reward = rewards[reward_identifier];
 
