@@ -497,7 +497,7 @@ def test_settle_wrong_state_fail(
     vals_B = ChannelValues(deposit=40)
     channel_identifier = create_channel_and_deposit(A, B, vals_A.deposit, vals_B.deposit)
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
     with pytest.raises(TransactionFailed, match="TN/settle: channel not closed"):
@@ -518,7 +518,7 @@ def test_settle_wrong_state_fail(
         {"from": A},
     )
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settle_block_timeout = token_network.functions.settleable_after(channel_identifier).call()
     assert state == ChannelState.CLOSED
     assert settle_block_timeout == TEST_SETTLE_TIMEOUT + get_block(txn_hash).timestamp
@@ -534,7 +534,7 @@ def test_settle_wrong_state_fail(
     # Channel is settled
     call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
     assert state == ChannelState.REMOVED
     assert settle_block_number == 0

@@ -996,7 +996,7 @@ contract TokenNetwork is Utils, Controllable {
         return participants_hash_to_channel_identifier[pair_hash];
     }
 
-    /// @dev Returns the channel specific data.
+    /// @dev Returns the channel state as per ChannelState enum.
     /// @param channel_identifier Identifier for the channel on which this
     /// operation takes place
     /// @param participant1 Address of a channel participant
@@ -1005,7 +1005,7 @@ contract TokenNetwork is Utils, Controllable {
     /// @notice The contract cannot really distinguish Settled and Removed
     /// states, especially when wrong participants are given as input.
     /// The contract does not remember the participants of the channel
-    function getChannelInfo(
+    function getChannelState(
         uint256 channel_identifier,
         address participant1,
         address participant2
