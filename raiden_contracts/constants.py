@@ -82,7 +82,7 @@ class ParticipantInfoIndex(IntEnum):
 
 
 class ChannelState(IntEnum):
-    """Meaning of values returned by TokenNetwork.getChannelInfo"""
+    """Meaning of values returned by TokenNetwork.getChannelState"""
 
     NONEXISTENT = 0
     OPENED = 1
