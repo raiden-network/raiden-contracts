@@ -144,20 +144,20 @@ def test_counter(
 def test_state_channel_identifier_invalid(
     token_network: Contract, get_accounts: Callable, create_channel: Callable
 ) -> None:
-    """getChannelInfo() returns the empty channel state for ont-too-big channelID"""
+    """getChannelState() returns the empty channel state for ont-too-big channelID"""
     (A, B, C) = get_accounts(3)
     channel_id = 0
 
     pairs = permutations([A, B, C], 2)
     for pair in pairs:
-        state = token_network.functions.getChannelInfo(channel_id, *pair).call()
+        state = token_network.functions.getChannelState(channel_id, *pair).call()
         settle_block_number = token_network.functions.settleable_after(channel_id).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
 
     for pair in pairs:
         create_channel(*pair)
-        state = token_network.functions.getChannelInfo(0, *pair).call()
+        state = token_network.functions.getChannelState(0, *pair).call()
         settle_block_number = token_network.functions.settleable_after(0)
         assert settle_block_number == 0  # initialized on channel close
         assert state == ChannelState.OPENED
@@ -165,7 +165,7 @@ def test_state_channel_identifier_invalid(
     current_counter = token_network.functions.channel_counter().call()
 
     for pair in pairs:
-        state = token_network.functions.getChannelInfo(current_counter + 1, *pair).call()
+        state = token_network.functions.getChannelState(current_counter + 1, *pair).call()
         settle_block_number = token_network.functions.settleable_after(current_counter + 1).call()
         assert settle_block_number == 0
         assert state == ChannelState.NONEXISTENT
@@ -193,7 +193,7 @@ def test_open_channel_state(token_network: Contract, get_accounts: Callable) -> 
         == channel_counter + 1
     )
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
     response = token_network.functions.getChannelParticipantInfo(channel_identifier, A, B).call()
@@ -299,7 +299,7 @@ def test_reopen_channel(
         == channel_counter1 + 1
     )
 
-    state = token_network.functions.getChannelInfo(channel_identifier2, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier2, A, B).call()
     assert state == ChannelState.OPENED
 
     (

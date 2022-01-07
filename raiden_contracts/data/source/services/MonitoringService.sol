@@ -247,7 +247,7 @@ contract MonitoringService is Utils {
     {
         require(service_registry.hasValidRegistration(monitoring_service_address), "service not registered");
 
-        TokenNetwork.ChannelState channel_state = token_network.getChannelInfo(
+        TokenNetwork.ChannelState channel_state = token_network.getChannelState(
             channel_identifier, closing_participant, non_closing_participant
         );
         require(channel_state == TokenNetwork.ChannelState.Closed, "channel not closed");
@@ -320,7 +320,7 @@ contract MonitoringService is Utils {
 
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
-        TokenNetwork.ChannelState channel_state = token_network.getChannelInfo(
+        TokenNetwork.ChannelState channel_state = token_network.getChannelState(
             channel_identifier,
             closing_participant,
             non_closing_participant

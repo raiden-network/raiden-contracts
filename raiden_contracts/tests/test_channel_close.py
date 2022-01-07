@@ -27,11 +27,11 @@ from raiden_contracts.utils.events import check_channel_closed
 
 
 def test_close_nonexistent_channel(token_network: Contract, get_accounts: Callable) -> None:
-    """Test getChannelInfo and closeChannel on a not-yet opened channel"""
+    """Test getChannelState and closeChannel on a not-yet opened channel"""
     (A, B) = get_accounts(2)
     non_existent_channel_identifier = 1
 
-    state = token_network.functions.getChannelInfo(
+    state = token_network.functions.getChannelState(
         channel_identifier=non_existent_channel_identifier,
         participant1=A,
         participant2=B,
@@ -64,12 +64,12 @@ def test_close_settled_channel_fail(
     time_travel: Callable,
     get_block_timestamp: Callable,
 ) -> None:
-    """Test getChannelInfo and closeChannel on an already settled channel"""
+    """Test getChannelState and closeChannel on an already settled channel"""
     (A, B) = get_accounts(2)
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, 5, B)
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -104,7 +104,7 @@ def test_close_settled_channel_fail(
         {"from": A},
     )
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
     assert state == ChannelState.REMOVED
     assert settle_block_number == 0
@@ -385,7 +385,7 @@ def test_close_first_participant_can_close(
         {"from": A},
     )
 
-    state = token_network.functions.getChannelInfo(channel_identifier, B, A).call()
+    state = token_network.functions.getChannelState(channel_identifier, B, A).call()
     settle_block_timestamp = token_network.functions.settleable_after(channel_identifier).call()
     block_timestamp = get_block(close_tx).timestamp  # type: ignore
     assert settle_block_timestamp == TEST_SETTLE_TIMEOUT + block_timestamp
@@ -476,7 +476,7 @@ def test_close_channel_state(
     channel_deposit(channel_identifier, B, vals_B.deposit, A)
 
     # Check the state of the openned channel
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settle_block_number = token_network.functions.settleable_after(channel_identifier).call()
     assert settle_block_number == 0  # initialized only on channel close
     assert state == ChannelState.OPENED
@@ -545,7 +545,7 @@ def test_close_channel_state(
     assert custom_token.functions.balanceOf(B).call() == pre_balance_B
     assert custom_token.functions.balanceOf(token_network.address).call() == pre_balance_contract
 
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settle_block_timestamp = token_network.functions.settleable_after(channel_identifier).call()
     assert settle_block_timestamp == settle_timeout + get_block(txn_hash).timestamp
     assert state == ChannelState.CLOSED
