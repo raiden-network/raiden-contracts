@@ -62,7 +62,7 @@ def test_settle_timeout_inrange(
     )
     call_and_transact(token_network.functions.openChannel(A, B))
     channel_identifier = token_network.functions.getChannelIdentifier(A, B).call()
-    state = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
+    state = token_network.functions.getChannelState(channel_identifier, A, B).call()
     settleable_after = token_network.functions.settleable_after(channel_identifier).call()
 
     assert state == ChannelState.OPENED
