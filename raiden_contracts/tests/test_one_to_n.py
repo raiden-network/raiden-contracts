@@ -32,7 +32,7 @@ def test_claim(
     with pytest.raises(TransactionFailed, match="IOU expired"):
         bad_expiration = get_block_timestamp(web3.eth.block_number - 1)
         one_to_n_contract.functions.claim(
-            *make_iou(sender=A, receiver=B, expiration_timestamp=bad_expiration).values()
+            *make_iou(sender=A, receiver=B, claimable_until=bad_expiration).values()
         ).call({"from": A})
 
     # Wrong OneToN address
@@ -64,7 +64,7 @@ def test_claim(
         dict(
             sender=A,
             receiver=B,
-            expiration_timestamp=iou["expiration_timestamp"],
+            claimable_until=iou["claimable_until"],
             transferred=iou["amount"],
         ),
     )
@@ -95,7 +95,7 @@ def test_bulk_claim_happy_path(
                 senders=[x["sender"] for x in ious],
                 receivers=[x["receiver"] for x in ious],
                 amounts=[x["amount"] for x in ious],
-                expiration_timestamps=[x["expiration_timestamp"] for x in ious],
+                claimable_until_list=[x["claimable_until"] for x in ious],
                 signatures=b"".join(x["signature"] for x in ious),
             ),
             {"from": A},
@@ -125,7 +125,7 @@ def test_bulk_claim_errors(
     senders = [x["sender"] for x in ious]
     receivers = [x["receiver"] for x in ious]
     amounts = [x["amount"] for x in ious]
-    expiration_timestamps = [x["expiration_timestamp"] for x in ious]
+    claimable_until_list = [x["claimable_until"] for x in ious]
     signatures = b"".join(x["signature"] for x in ious)
 
     # One value too many to `amounts`
@@ -138,7 +138,7 @@ def test_bulk_claim_errors(
                 senders=senders,
                 receivers=receivers,
                 amounts=amounts + [1],
-                expiration_timestamps=expiration_timestamps,
+                claimable_until_list=claimable_until_list,
                 signatures=signatures,
             ),
             {"from": A},
@@ -154,7 +154,7 @@ def test_bulk_claim_errors(
                     senders=senders,
                     receivers=receivers,
                     amounts=amounts,
-                    expiration_timestamps=expiration_timestamps,
+                    claimable_until_list=claimable_until_list,
                     signatures=sig,
                 ),
                 {"from": A},
@@ -167,7 +167,7 @@ def test_bulk_claim_errors(
                 senders=senders,
                 receivers=receivers,
                 amounts=[amounts[0], amounts[1] + 1],
-                expiration_timestamps=expiration_timestamps,
+                claimable_until_list=claimable_until_list,
                 signatures=signatures,
             ),
             {"from": A},
@@ -211,7 +211,7 @@ def test_claim_by_unregistered_service(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_timestamp=expiration,
+        claimable_until=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -254,7 +254,7 @@ def test_claim_with_insufficient_deposit(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_timestamp=expiration,
+        claimable_until=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -281,7 +281,7 @@ def test_claim_with_insufficient_deposit(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_timestamp=expiration,
+        claimable_until=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -297,5 +297,5 @@ def test_claim_with_insufficient_deposit(
     ev_handler.assert_event(
         tx_hash,
         OneToNEvent.CLAIMED,
-        dict(sender=A, receiver=B, expiration_timestamp=expiration, transferred=4),
+        dict(sender=A, receiver=B, claimable_until=expiration, transferred=4),
     )

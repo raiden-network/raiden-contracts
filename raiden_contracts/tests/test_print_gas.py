@@ -405,8 +405,8 @@ def print_gas_monitoring_service(
     )
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
-    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    time_travel(get_block_timestamp() + withdraw_delay + 1)
+    withdraw_timeout = user_deposit_contract.functions.withdraw_timeout().call()
+    time_travel(get_block_timestamp() + withdraw_timeout + 1)
 
     # MS claims the reward
     txn_hash = call_and_transact(
@@ -444,7 +444,7 @@ def print_gas_one_to_n(
         sender=A,
         receiver=B,
         amount=amount,
-        expiration_timestamp=expiration,
+        claimable_until=expiration,
         one_to_n_address=one_to_n_contract.address,
         chain_id=ChainID(chain_id),
     )
@@ -475,7 +475,7 @@ def print_gas_one_to_n(
                 concat_iou_data(ious, "sender"),
                 concat_iou_data(ious, "receiver"),
                 concat_iou_data(ious, "amount"),
-                concat_iou_data(ious, "expiration_timestamp"),
+                concat_iou_data(ious, "claimable_until"),
                 concat_iou_signatures(ious),
             ),
             {"from": A},
@@ -514,8 +514,8 @@ def print_gas_user_deposit(
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".planWithdraw")
 
     # withdraw
-    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    time_travel(get_block_timestamp() + withdraw_delay + 1)
+    withdraw_timeout = user_deposit_contract.functions.withdraw_timeout().call()
+    time_travel(get_block_timestamp() + withdraw_timeout + 1)
     txn_hash = call_and_transact(user_deposit_contract.functions.withdraw(10), {"from": A})
     print_gas(txn_hash, CONTRACT_USER_DEPOSIT + ".withdraw")
 

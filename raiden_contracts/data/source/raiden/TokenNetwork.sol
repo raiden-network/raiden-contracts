@@ -101,7 +101,7 @@ contract TokenNetwork is Utils, Controllable {
     struct WithdrawInput {
         address participant;
         uint256 total_withdraw;
-        uint256 expiration_time;
+        uint256 withdrawable_until;
         bytes participant_signature;
         bytes partner_signature;
     }
@@ -360,7 +360,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        uint256 expiration_time,
+        uint256 withdrawable_until,
         bytes calldata participant_signature,
         bytes calldata partner_signature
     )
@@ -372,7 +372,7 @@ contract TokenNetwork is Utils, Controllable {
             WithdrawInput({
                 participant: participant,
                 total_withdraw: total_withdraw,
-                expiration_time: expiration_time,
+                withdrawable_until: withdrawable_until,
                 participant_signature: participant_signature,
                 partner_signature: partner_signature
             })
@@ -391,7 +391,7 @@ contract TokenNetwork is Utils, Controllable {
         address partner;
 
         require(withdraw_data.total_withdraw > 0, "TN/withdraw: total withdraw is zero");
-        require(block.timestamp < withdraw_data.expiration_time, "TN/withdraw: expired");
+        require(block.timestamp < withdraw_data.withdrawable_until, "TN/withdraw: expired");
 
         // Authenticate both channel partners via their signatures.
         // `participant` is a part of the signed message, so given in the calldata.
@@ -399,14 +399,14 @@ contract TokenNetwork is Utils, Controllable {
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
-            withdraw_data.expiration_time,
+            withdraw_data.withdrawable_until,
             withdraw_data.participant_signature
         ), "TN/withdraw: invalid participant sig");
         partner = recoverAddressFromWithdrawMessage(
             channel_identifier,
             withdraw_data.participant,
             withdraw_data.total_withdraw,
-            withdraw_data.expiration_time,
+            withdraw_data.withdrawable_until,
             withdraw_data.partner_signature
         );
 
@@ -582,7 +582,7 @@ contract TokenNetwork is Utils, Controllable {
         channel.participants[closing_participant].is_the_closer = true;
 
         // This is the timestamp after which the channel can be settled.
-	settleable_after[channel_identifier] = uint256(block.timestamp) + settle_timeout;
+        settleable_after[channel_identifier] = uint256(block.timestamp) + settle_timeout;
 
         // The closing participant must have signed the balance proof.
         address recovered_closing_participant_address = recoverAddressFromBalanceProofCounterSignature(
@@ -1466,7 +1466,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 length = locks.length;
 
         // each lock has this form:
-        // (locked_amount || expiration_timestamp || secrethash) = 3 * 32 bytes
+        // (locked_amount || unlockable_until || secrethash) = 3 * 32 bytes
         require(length % 96 == 0, "TN: invalid locks size");
 
         uint256 i;
@@ -1489,9 +1489,9 @@ contract TokenNetwork is Utils, Controllable {
         view
         returns (uint256)
     {
-        uint256 expiration_timestamp;
+        uint256 unlockable_until;
         uint256 locked_amount;
-        uint256 reveal_timestamp;
+        uint256 revealed_at;
         bytes32 secrethash;
 
         if (locks.length <= offset) {
@@ -1499,17 +1499,17 @@ contract TokenNetwork is Utils, Controllable {
         }
 
         assembly { // solium-disable-line security/no-inline-assembly
-            expiration_timestamp := mload(add(locks, offset))
+            unlockable_until := mload(add(locks, offset))
             locked_amount := mload(add(locks, add(offset, 32)))
             secrethash := mload(add(locks, add(offset, 64)))
         }
 
         // Check if the lock's secret was revealed in the SecretRegistry The
         // secret must have been revealed in the SecretRegistry contract before
-        // the lock's expiration_timestamp in order for the hash time lock transfer
+        // the lock's unlockable_until in order for the hash time lock transfer
         // to be successful.
-        reveal_timestamp = secret_registry.getSecretRevealBlockTime(secrethash);
-        if (reveal_timestamp == 0 || expiration_timestamp <= reveal_timestamp) {
+        revealed_at = secret_registry.getSecretRevealBlockTime(secrethash);
+        if (revealed_at == 0 || unlockable_until <= revealed_at) {
             locked_amount = 0;
         }
 
@@ -1596,7 +1596,7 @@ contract TokenNetwork is Utils, Controllable {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        uint256 expiration_timestamp,
+        uint256 withdrawable_until,
         bytes memory signature
     )
         internal
@@ -1615,7 +1615,7 @@ contract TokenNetwork is Utils, Controllable {
             channel_identifier,
             participant,
             total_withdraw,
-            expiration_timestamp
+            withdrawable_until
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
