@@ -171,7 +171,7 @@ contract Deposit {
     address public withdrawer;
 
     // The timestamp after which the withdrawer can withdraw the deposit.
-    uint256 public release_at;
+    uint256 public withdrawable_after;
 
     /// @param _token The address of the ERC20 token contract where the deposit is accounted
     /// @param _release_at The timestap after which the withdrawer can withdraw the deposit
@@ -185,7 +185,7 @@ contract Deposit {
     ) {
         token = _token;
         // Don't care even if it's in the past.
-        release_at = _release_at;
+        withdrawable_after = _release_at;
         withdrawer = _withdrawer;
         service_registry = _service_registry;
     }
@@ -200,7 +200,7 @@ contract Deposit {
     function withdraw(address payable _to) external {
         uint256 balance = token.balanceOf(address(this));
         require(msg.sender == withdrawer, "the caller is not the withdrawer");
-        require(block.timestamp >= release_at || service_registry.deprecated(), "deposit not released yet");
+        require(block.timestamp >= withdrawable_after || service_registry.deprecated(), "deposit not released yet");
         require(balance > 0, "nothing to withdraw");
         require(token.transfer(_to, balance), "token didn't transfer");
         selfdestruct(_to); // The contract can disappear.

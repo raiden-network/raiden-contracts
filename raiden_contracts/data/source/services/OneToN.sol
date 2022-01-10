@@ -17,7 +17,7 @@ contract OneToN is Utils {
     uint256 public chain_id;
 
     // Indicates which sessions have already been settled by storing
-    // keccak256(receiver, sender, expiration_timestamp) => expiration_timestamp.
+    // keccak256(receiver, sender, claimable_until) => claimable_until.
     mapping (bytes32 => uint256) public settled_sessions;
 
     /*
@@ -34,7 +34,7 @@ contract OneToN is Utils {
     event Claimed(
         address sender,
         address indexed receiver,
-        uint256 expiration_timestamp,
+        uint256 claimable_until,
         uint256 transferred
     );
 
@@ -60,44 +60,44 @@ contract OneToN is Utils {
     /// @param sender Address from which the amount is transferred
     /// @param receiver Address to which the amount is transferred
     /// @param amount Owed amount of tokens
-    /// @param expiration_timestamp Tokens can only be claimed before this time
-    /// @param signature Sender's signature over keccak256(sender, receiver, amount, expiration_timestamp)
+    /// @param claimable_until Tokens can only be claimed before this time
+    /// @param signature Sender's signature over keccak256(sender, receiver, amount, claimable_until)
     /// @return Amount of transferred tokens
     function claim(
         address sender,
         address receiver,
         uint256 amount,
-        uint256 expiration_timestamp,
+        uint256 claimable_until,
         bytes memory signature
     )
         public
         returns (uint)
     {
         require(service_registry_contract.hasValidRegistration(receiver), "receiver not registered");
-        require(block.timestamp <= expiration_timestamp, "IOU expired");
+        require(block.timestamp <= claimable_until, "IOU expired");
 
         // validate signature
         address addressFromSignature = recoverAddressFromSignature(
             sender,
             receiver,
             amount,
-            expiration_timestamp,
+            claimable_until,
             chain_id,
             signature
         );
         require(addressFromSignature == sender, "Signature mismatch");
 
         // must not be claimed before
-        bytes32 _key = keccak256(abi.encodePacked(receiver, sender, expiration_timestamp));
+        bytes32 _key = keccak256(abi.encodePacked(receiver, sender, claimable_until));
         require(settled_sessions[_key] == 0, "Already settled session");
 
         // claim as much as possible
         uint256 transferable = min(amount, deposit_contract.balances(sender));
         if (transferable > 0) {
             // register to avoid double claiming
-            settled_sessions[_key] = expiration_timestamp;
-            assert(expiration_timestamp > 0);
-            emit Claimed(sender, receiver, expiration_timestamp, transferable);
+            settled_sessions[_key] = claimable_until;
+            assert(claimable_until > 0);
+            emit Claimed(sender, receiver, claimable_until, transferable);
 
             require(deposit_contract.transfer(sender, receiver, transferable), "deposit did not transfer");
         }
@@ -109,14 +109,14 @@ contract OneToN is Utils {
     /// @param senders Addresses from which the amounts are transferred
     /// @param receivers Addresses to which the amounts are transferred
     /// @param amounts Owed amounts of tokens
-    /// @param expiration_timestamps Tokens can only be claimed before this time
+    /// @param claimable_until_list Tokens can only be claimed before this time
     /// @param signatures Sender's signatures concatenated into a single bytes array
     /// @return Amount of transferred tokens
     function bulkClaim(
         address[] calldata senders,
         address[] calldata receivers,
         uint256[] calldata amounts,
-        uint256[] calldata expiration_timestamps,
+        uint256[] calldata claimable_until_list,
         bytes calldata signatures
     )
         external
@@ -126,7 +126,7 @@ contract OneToN is Utils {
         require(
             senders.length == receivers.length &&
             senders.length == amounts.length &&
-            senders.length == expiration_timestamps.length,
+            senders.length == claimable_until_list.length,
             "Same number of elements required for all input parameters"
         );
         require(
@@ -138,7 +138,7 @@ contract OneToN is Utils {
                 senders[i],
                 receivers[i],
                 amounts[i],
-                expiration_timestamps[i],
+                claimable_until_list[i],
                 getSingleSignature(signatures, i)
             );
         }
@@ -183,7 +183,7 @@ contract OneToN is Utils {
         address sender,
         address receiver,
         uint256 amount,
-        uint256 expiration_timestamp,
+        uint256 claimable_until,
         uint256 chain_id,
         bytes memory signature
     )
@@ -201,7 +201,7 @@ contract OneToN is Utils {
                 sender,
                 receiver,
                 amount,
-                expiration_timestamp
+                claimable_until
             )
         );
         return ECVerify.ecverify(message_hash, signature);

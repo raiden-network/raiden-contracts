@@ -6,7 +6,7 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    uint constant public withdraw_delay = 15 * 100;  // time before withdraw is allowed in seconds
+    uint constant public withdraw_timeout = 15 * 100;  // time before withdraw is allowed in seconds
 
     // Token to be used for the deposit
     Token public token;
@@ -32,7 +32,7 @@ contract UserDeposit is Utils {
      */
     struct WithdrawPlan {
         uint256 amount;
-        uint256 withdraw_timestamp;  // earliest timestamp at which withdraw is allowed
+        uint256 withdrawable_after;  // earliest timestamp at which withdraw is allowed
     }
 
     /*
@@ -150,7 +150,7 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Announce intention to withdraw tokens.
-    /// Sets the planned withdraw amount and resets the withdraw_timestamp.
+    /// Sets the planned withdraw amount and resets the withdrawable_after.
     /// There is only one planned withdrawal at a time, the old one gets overwritten.
     /// @param amount Maximum amount of tokens to be withdrawn
     function planWithdraw(uint256 amount)
@@ -161,13 +161,13 @@ contract UserDeposit is Utils {
 
         withdraw_plans[msg.sender] = WithdrawPlan({
             amount: amount,
-            withdraw_timestamp: block.timestamp + withdraw_delay
+            withdrawable_after: block.timestamp + withdraw_timeout
         });
         emit WithdrawPlanned(msg.sender, balances[msg.sender] - amount);
     }
 
     /// @notice Execute a planned withdrawal
-    /// Will only work after the withdraw_delay has expired.
+    /// Will only work after the withdraw_timeout has expired.
     /// An amount lower or equal to the planned amount may be withdrawn.
     /// Removes the withdraw plan even if not the full amount has been
     /// withdrawn.
@@ -180,7 +180,7 @@ contract UserDeposit is Utils {
     }
 
     /// @notice Execute a planned withdrawal
-    /// Will only work after the withdraw_delay has expired.
+    /// Will only work after the withdraw_timeout has expired.
     /// An amount lower or equal to the planned amount may be withdrawn.
     /// Removes the withdraw plan even if not the full amount has been
     /// withdrawn.
@@ -212,7 +212,7 @@ contract UserDeposit is Utils {
         require(beneficiary != address(0x0), "beneficiary is zero");
         WithdrawPlan storage withdraw_plan = withdraw_plans[deposit_holder];
         require(amount <= withdraw_plan.amount, "withdrawing more than planned");
-        require(withdraw_plan.withdraw_timestamp <= block.timestamp, "withdrawing too early");
+        require(withdraw_plan.withdrawable_after <= block.timestamp, "withdrawing too early");
         uint256 withdrawable = min(amount, balances[deposit_holder]);
         balances[deposit_holder] -= withdrawable;
 

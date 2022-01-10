@@ -162,14 +162,14 @@ def test_withdraw(
     assert user_deposit_contract.functions.balances(A).call() == 30
     assert user_deposit_contract.functions.effectiveBalance(A).call() == 10
 
-    # withdraw won't work before withdraw_delay elapsed
-    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    time_travel(get_block_timestamp() + withdraw_delay - 1)
+    # withdraw won't work before withdraw_timeout elapsed
+    withdraw_timeout = user_deposit_contract.functions.withdraw_timeout().call()
+    time_travel(get_block_timestamp() + withdraw_timeout - 1)
     with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdraw(18).call({"from": A})
 
     # can't withdraw more then planned
-    time_travel(get_block_timestamp() + withdraw_delay + 1)  # now withdraw_delay is over
+    time_travel(get_block_timestamp() + withdraw_timeout + 1)  # now withdraw_timeout is over
     with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdraw(21).call({"from": A})
 
@@ -209,14 +209,14 @@ def test_withdraw_to_beneficiary(
     with pytest.raises(TransactionFailed, match="beneficiary is zero"):
         user_deposit_contract.functions.withdrawToBeneficiary(18, ZERO_ADDRESS).call({"from": A})
 
-    # withdraw won't work before withdraw_delay elapsed
-    withdraw_delay = user_deposit_contract.functions.withdraw_delay().call()
-    time_travel(get_block_timestamp() + withdraw_delay - 1)
+    # withdraw won't work before withdraw_timeout elapsed
+    withdraw_timeout = user_deposit_contract.functions.withdraw_timeout().call()
+    time_travel(get_block_timestamp() + withdraw_timeout - 1)
     with pytest.raises(TransactionFailed, match="withdrawing too early"):
         user_deposit_contract.functions.withdrawToBeneficiary(18, B).call({"from": A})
 
     # can't withdraw more then planned
-    time_travel(get_block_timestamp() + withdraw_delay + 1)  # now withdraw_delay is over
+    time_travel(get_block_timestamp() + withdraw_timeout + 1)  # now withdraw_timeout is over
     with pytest.raises(TransactionFailed, match="withdrawing more than planned"):
         user_deposit_contract.functions.withdrawToBeneficiary(21, B).call({"from": A})
 
