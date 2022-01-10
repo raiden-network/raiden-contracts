@@ -54,17 +54,17 @@ def make_iou(
         sender: HexAddress,
         receiver: HexAddress,
         amount: int = 10,
-        expiration_timestamp: int = None,
+        claimable_until: int = None,
         chain_id: int = chain_id,
         one_to_n_address: HexAddress = one_to_n_contract.address,
     ) -> dict:
-        if expiration_timestamp is None:
-            expiration_timestamp = get_block_timestamp() + 150
+        if claimable_until is None:
+            claimable_until = get_block_timestamp() + 150
         iou = dict(
             sender=sender,
             receiver=receiver,
             amount=amount,
-            expiration_timestamp=expiration_timestamp,
+            claimable_until=claimable_until,
             one_to_n_address=one_to_n_address,
             chain_id=chain_id,
         )
