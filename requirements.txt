@@ -4,7 +4,7 @@ coincurve>=8.0.0
 py-solc-x
 semantic_version>=2.8
 web3==5.26.0
-eth-abi<3.0.0,>=2.0.0
+eth-abi>=2.0.0,<4.0.0
 eth-utils>=1.8.4,<3.0.0
 eth-typing>=2.2.1,<4.0.0
 mypy_extensions<0.5.0,>0.4.0
