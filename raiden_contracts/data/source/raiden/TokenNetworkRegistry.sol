@@ -22,7 +22,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
     // Token address => TokenNetwork address
     mapping(address => address) public token_to_token_networks;
 
-    event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
+    event TokenNetworkCreated(address indexed token_address, address indexed token_network_address, uint256 settle_timeout);
 
     modifier canCreateTokenNetwork() {
         require(token_network_created < max_token_networks, "TNR: registry full");
@@ -94,7 +94,7 @@ contract TokenNetworkRegistry is Utils, Controllable {
         token_network_address = address(token_network);
 
         token_to_token_networks[_token_address] = token_network_address;
-        emit TokenNetworkCreated(_token_address, token_network_address);
+        emit TokenNetworkCreated(_token_address, token_network_address, settle_timeout);
 
         return token_network_address;
     }
