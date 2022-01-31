@@ -1,5 +1,5 @@
 -r requirements.txt
-black==21.12b0
+black==22.1.0
 eth-tester[py-evm]==0.6.0b6
 coverage
 pytest
