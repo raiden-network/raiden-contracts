@@ -33,10 +33,10 @@ from raiden_contracts.utils.proofs import (
 from raiden_contracts.utils.type_aliases import (
     AdditionalHash,
     BalanceHash,
-    BlockExpiration,
     ChannelID,
     Locksroot,
     Signature,
+    Timestamp,
     TokenAmount,
 )
 
@@ -148,7 +148,7 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
         channel_identifier: int,
         participant: HexAddress,
         withdraw_amount: int,
-        expiration_block: int,
+        withdrawable_until: int,
         partner: HexAddress,
         delegate: Optional[HexAddress] = None,
     ) -> HexBytes:
@@ -162,14 +162,14 @@ def withdraw_channel(token_network: Contract, create_withdraw_signatures: Callab
             channel_identifier,
             participant,
             withdraw_amount,
-            expiration_block,
+            withdrawable_until,
         )
         txn_hash = call_and_transact(
             token_network.functions.setTotalWithdraw(
                 channel_identifier,
                 participant,
                 withdraw_amount,
-                expiration_block,
+                withdrawable_until,
                 signature_participant,
                 signature_partner,
             ),
@@ -190,7 +190,7 @@ def cooperative_settle_channel(
         partner: HexAddress,
         withdraw_amount_participant: int,
         withdraw_amount_partner: int,
-        expiration_block: int,
+        withdrawable_until: int,
         delegate: Optional[HexAddress] = None,
     ) -> HexBytes:
         delegate = delegate or participant
@@ -203,14 +203,14 @@ def cooperative_settle_channel(
             channel_identifier,
             participant,
             withdraw_amount_participant,
-            expiration_block,
+            withdrawable_until,
         )
         (signature_A2, signature_B2) = create_withdraw_signatures(
             [participant, partner],
             channel_identifier,
             partner,
             withdraw_amount_partner,
-            expiration_block,
+            withdrawable_until,
         )
 
         txn_hash = call_and_transact(
@@ -219,11 +219,11 @@ def cooperative_settle_channel(
                 (
                     participant,
                     withdraw_amount_participant,
-                    expiration_block,
+                    withdrawable_until,
                     signature_A1,
                     signature_B1,
                 ),
-                (partner, withdraw_amount_partner, expiration_block, signature_B2, signature_A2),
+                (partner, withdraw_amount_partner, withdrawable_until, signature_B2, signature_A2),
             ),
             {"from": delegate},
         )
@@ -815,7 +815,7 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
         channel_identifier: ChannelID,
         participant_who_withdraws: HexAddress,
         amount_to_withdraw: TokenAmount,
-        expiration_block: BlockExpiration,
+        withdrawable_until: Timestamp,
         token_network_address: Optional[HexAddress] = None,
         v: int = 27,
     ) -> List[bytes]:
@@ -832,7 +832,7 @@ def create_withdraw_signatures(token_network: Contract, get_private_key: Callabl
                 channel_identifier,
                 participant_who_withdraws,
                 amount_to_withdraw,
-                expiration_block,
+                withdrawable_until,
                 v,
             )
             signatures.append(signature)

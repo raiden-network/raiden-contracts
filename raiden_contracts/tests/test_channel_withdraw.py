@@ -44,7 +44,7 @@ def test_withdraw_call(
             channel_identifier=channel_identifier,
             participant=0x0,
             total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
+            withdrawable_until=UINT256_MAX,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
         )
@@ -55,7 +55,7 @@ def test_withdraw_call(
             channel_identifier=channel_identifier,
             participant="",
             total_withdraw=withdraw_A,
-            expiration_block=UINT256_MAX,
+            withdrawable_until=UINT256_MAX,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
         )
@@ -66,7 +66,7 @@ def test_withdraw_call(
             channel_identifier=channel_identifier,
             participant=A,
             total_withdraw=-1,
-            expiration_block=UINT256_MAX,
+            withdrawable_until=UINT256_MAX,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
         )
@@ -77,7 +77,7 @@ def test_withdraw_call(
             channel_identifier=channel_identifier,
             participant=A,
             total_withdraw=UINT256_MAX + 1,
-            expiration_block=UINT256_MAX,
+            withdrawable_until=UINT256_MAX,
             participant_signature=signature_A_for_A,
             partner_signature=signature_B_for_A,
         )
@@ -146,13 +146,11 @@ def test_withdraw_call_near_expiration(
     create_withdraw_signatures: Callable,
     get_block_timestamp: Callable,
 ) -> None:
-    """setTotalWithdraw() succeeds when expiration_block is one block in the future"""
+    """setTotalWithdraw() succeeds when withdrawable_until is 2 seconds in the future"""
     (A, B) = get_accounts(2)
     withdraw_A = 3
     channel_identifier = create_channel_and_deposit(A, B, 10, 1)
-    # The block must still be one block in the future when the transaction is
-    # processed, so we have to choose an expiration two block in the future
-    expiration = get_block_timestamp() + 30
+    expiration = get_block_timestamp() + 2
 
     (signature_A_for_A, signature_B_for_A) = create_withdraw_signatures(
         [A, B], channel_identifier, A, withdraw_A, expiration
