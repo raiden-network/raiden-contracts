@@ -25,5 +25,8 @@ PrivateKey = NewType("PrivateKey", T_PrivateKey)
 T_Signature = bytes
 Signature = NewType("Signature", T_Signature)
 
+T_Timestamp = int
+Timestamp = NewType("Timestamp", T_Timestamp)
+
 T_TokenAmount = int
 TokenAmount = NewType("TokenAmount", T_TokenAmount)
