@@ -7,12 +7,12 @@ from raiden_contracts.constants import MessageTypeId
 from raiden_contracts.utils.type_aliases import (
     AdditionalHash,
     BalanceHash,
-    BlockExpiration,
     ChainID,
     ChannelID,
     Locksroot,
     PrivateKey,
     Signature,
+    Timestamp,
     TokenAmount,
 )
 
@@ -109,7 +109,7 @@ def pack_withdraw_message(
     channel_identifier: ChannelID,
     participant: HexAddress,
     amount_to_withdraw: TokenAmount,
-    expiration_block: BlockExpiration,
+    withdrawable_until: Timestamp,
 ) -> bytes:
     return (
         Web3.toBytes(hexstr=token_network_address)
@@ -118,7 +118,7 @@ def pack_withdraw_message(
         + encode_single("uint256", channel_identifier)
         + Web3.toBytes(hexstr=participant)
         + encode_single("uint256", amount_to_withdraw)
-        + encode_single("uint256", expiration_block)
+        + encode_single("uint256", withdrawable_until)
     )
 
 
@@ -202,7 +202,7 @@ def sign_withdraw_message(
     channel_identifier: ChannelID,
     participant: HexAddress,
     amount_to_withdraw: TokenAmount,
-    expiration_block: BlockExpiration,
+    withdrawable_until: Timestamp,
     v: int = 27,
 ) -> bytes:
     message_hash = eth_sign_hash_message(
@@ -212,7 +212,7 @@ def sign_withdraw_message(
             channel_identifier=channel_identifier,
             participant=participant,
             amount_to_withdraw=amount_to_withdraw,
-            expiration_block=expiration_block,
+            withdrawable_until=withdrawable_until,
         )
     )
 

@@ -186,7 +186,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        uint256 expiration_block,
+        uint256 withdrawable_until,
         bytes memory signature
     )
         public
@@ -197,7 +197,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             channel_identifier,
             participant,
             total_withdraw,
-            expiration_block,
+            withdrawable_until,
             signature
         );
     }
