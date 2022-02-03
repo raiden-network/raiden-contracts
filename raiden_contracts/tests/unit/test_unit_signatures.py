@@ -20,7 +20,7 @@ def test_recover_address_from_withdraw_message(
     deposit_A = 5
     deposit_B = 7
     withdraw_A = 3
-    withdrawable_until = 492889 * 15
+    withdrawable_until = 492889
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     (signature_A, signature_B) = create_withdraw_signatures(
         [A, B],
