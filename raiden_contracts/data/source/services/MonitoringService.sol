@@ -254,7 +254,6 @@ contract MonitoringService is Utils {
 
         uint256 settleable_after = token_network.settleable_after(channel_identifier);
         uint256 settle_timeout = token_network.settle_timeout();
-        require(settleable_after >= settle_timeout, "too low settle block timeout");
         uint256 close_timestamp = settleable_after - settle_timeout;
 
         return firstTimestampAllowedToMonitor(
