@@ -12,7 +12,7 @@ contract SecretRegistry {
     event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 
     /// @notice Registers a hash time lock secret and saves the block timestamp.
-    /// This allows the lock to be unlocked after the expiration block
+    /// This allows the lock to be unlocked after the expiration timestamp
     /// @param secret The secret used to lock the hash time lock
     /// @return true if secret was registered, false if the secret was already
     /// registered

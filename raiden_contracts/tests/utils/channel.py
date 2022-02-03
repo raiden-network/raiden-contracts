@@ -1,4 +1,3 @@
-import math
 from collections import namedtuple
 from copy import deepcopy
 from datetime import datetime
@@ -327,7 +326,7 @@ def get_unlocked_amount(secret_registry: Contract, packed_locks: bytes) -> int:
 
     for i in range(0, len(packed_locks), 96):
         lock = packed_locks[i : (i + 96)]
-        expiration_timestamp = math.ceil(datetime.utcnow().timestamp()) + (
+        expiration_timestamp = int(datetime.utcnow().timestamp()) + (
             int.from_bytes(lock[0:32], byteorder="big")
         )
         locked_amount = int.from_bytes(lock[32:64], byteorder="big")
