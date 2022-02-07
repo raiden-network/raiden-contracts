@@ -60,7 +60,7 @@ def deploy_custom_token(
         contracts_manager=contract_manager,
         contract_name=CONTRACT_CUSTOM_TOKEN,
         deployer_key=deployer_key,
-        args=[10 ** 26, 18, CONTRACT_CUSTOM_TOKEN, "TKN"],
+        args=[10**26, 18, CONTRACT_CUSTOM_TOKEN, "TKN"],
     )
 
 

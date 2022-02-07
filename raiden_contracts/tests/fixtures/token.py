@@ -5,7 +5,7 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import CONTRACT_CUSTOM_TOKEN, CONTRACT_HUMAN_STANDARD_TOKEN
 
-CUSTOM_TOKEN_TOTAL_SUPPLY = 10 ** 26
+CUSTOM_TOKEN_TOTAL_SUPPLY = 10**26
 
 
 @pytest.fixture(scope="session")

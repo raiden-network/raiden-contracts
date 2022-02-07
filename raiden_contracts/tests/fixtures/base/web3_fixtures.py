@@ -25,7 +25,7 @@ def ethereum_tester(patch_genesis_gas_limit: None) -> EthereumTester:  # pylint:
 def patch_genesis_gas_limit() -> None:
     """Increases the block gas limit, to make the TokenNetworkRegistry contract deployable"""
 
-    tmp_limit = 6 * 10 ** 6
+    tmp_limit = 6 * 10**6
     import eth_tester.backends.pyevm.main as pyevm_main
 
     pyevm_main.GENESIS_GAS_LIMIT = tmp_limit

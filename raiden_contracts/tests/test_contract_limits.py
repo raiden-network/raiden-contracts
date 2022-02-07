@@ -185,7 +185,7 @@ def test_network_deposit_limit(
 
     # ! Only for testing, otherwise we need 1300+ channels and test needs a lot of time to complete
     # ! The token_network_deposit_limit also needs to be changed for this to work
-    MAX_ETH_TOKEN_NETWORK_TESTING = int(1 * 10 ** 18)
+    MAX_ETH_TOKEN_NETWORK_TESTING = int(1 * 10**18)
 
     def remaining() -> int:
         return (

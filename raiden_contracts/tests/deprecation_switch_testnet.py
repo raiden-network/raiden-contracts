@@ -117,8 +117,8 @@ def deprecation_test_setup(
     )
 
     token_decimals = 18
-    multiplier = 10 ** token_decimals
-    token_supply = 10 ** 6 * multiplier
+    multiplier = 10**token_decimals
+    token_supply = 10**6 * multiplier
     token_amount = int(token_amount * multiplier)
 
     deployed_token = deployer.deploy_token_contract(

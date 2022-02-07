@@ -427,7 +427,7 @@ def token(
         contracts_version=contracts_version,
     )
     deployer = ctx.obj["deployer"]
-    token_supply *= 10 ** token_decimals
+    token_supply *= 10**token_decimals
     deployed_token = deployer.deploy_token_contract(
         token_supply,
         token_decimals,

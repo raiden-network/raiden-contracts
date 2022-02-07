@@ -428,11 +428,11 @@ def test_pureFirstAllowedBlock(monitoring_service_external: Contract) -> None:
     assert call([40, 40, 40]) == 1000 + 30 + (40 + 40 + 40) % 50
 
     # Show that high address values don't cause overflows
-    MAX_ADDRESS = 256 ** 20 - 1
+    MAX_ADDRESS = 256**20 - 1
     assert call([MAX_ADDRESS] * 3) == 1000 + 30 + (3 * MAX_ADDRESS) % 50
 
     # The highest settle_timeout does not cause overflows
-    MAX_SETTLE_TIMEOUT = (2 ** 256 - 1) // 100 - 1
+    MAX_SETTLE_TIMEOUT = (2**256 - 1) // 100 - 1
     assert call([1, 2, 3], settle_timeout=MAX_SETTLE_TIMEOUT) == 1000 + (
         MAX_SETTLE_TIMEOUT * 30
     ) // 100 + (1 + 2 + 3)

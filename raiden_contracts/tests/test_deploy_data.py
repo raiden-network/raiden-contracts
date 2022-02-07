@@ -178,7 +178,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
-            user_deposit_whole_balance_limit=2 ** 256 - 1,
+            user_deposit_whole_balance_limit=2**256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )
 
@@ -204,6 +204,6 @@ def test_verify_existent_deployment_with_wrong_code(
     with pytest.raises(RuntimeError):
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
-            user_deposit_whole_balance_limit=2 ** 256 - 1,
+            user_deposit_whole_balance_limit=2**256 - 1,
             token_network_registry_address=token_network_registry_contract.address,
         )

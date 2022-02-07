@@ -209,7 +209,7 @@ def test_changing_duration_to_huge_value(
     service_registry: Contract, get_accounts: Callable, custom_token: Contract
 ) -> None:
     """When the duration is huge and the deadline overflows, deposit fails"""
-    new_duration = 2 ** 256 - 1
+    new_duration = 2**256 - 1
     call_and_transact(
         service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
@@ -263,7 +263,7 @@ def test_too_high_bump_numerator_fail(service_registry: Contract) -> None:
     with pytest.raises(TransactionFailed, match="price dump numerator is too big"):
         call_and_transact(
             service_registry.functions.changeParameters(
-                _price_bump_numerator=2 ** 40,
+                _price_bump_numerator=2**40,
                 _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
                 _decay_constant=DEFAULT_DECAY_CONSTANT,
                 _min_price=DEFAULT_MIN_PRICE,
@@ -366,7 +366,7 @@ def test_too_high_decay_constant_fail(service_registry: Contract) -> None:
             service_registry.functions.changeParameters(
                 _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
                 _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-                _decay_constant=2 ** 40,
+                _decay_constant=2**40,
                 _min_price=DEFAULT_MIN_PRICE,
                 _registration_duration=DEFAULT_REGISTRATION_DURATION,
             ),
@@ -380,7 +380,7 @@ def test_very_big_decay_cosntant(service_registry: Contract) -> None:
         service_registry.functions.changeParameters(
             _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
             _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
-            _decay_constant=2 ** 40 - 1,
+            _decay_constant=2**40 - 1,
             _min_price=DEFAULT_MIN_PRICE,
             _registration_duration=DEFAULT_REGISTRATION_DURATION,
         ),
@@ -487,10 +487,10 @@ def service_registry_with_zero_supply_token(
             [
                 zero_supply_custom_token.address,
                 EMPTY_ADDRESS,
-                2 ** 90,
-                2 ** 40 - 1,
+                2**90,
+                2**40 - 1,
                 1,
-                2 ** 40 - 1,
+                2**40 - 1,
                 DEFAULT_MIN_PRICE,
                 DEFAULT_REGISTRATION_DURATION,
             ],
@@ -507,15 +507,15 @@ def service_registry_with_high_numbers(
         [
             custom_token.address,
             EMPTY_ADDRESS,
-            2 ** 90,
-            2 ** 40 - 1,
+            2**90,
+            2**40 - 1,
             1,
-            2 ** 40 - 1,
+            2**40 - 1,
             DEFAULT_MIN_PRICE,
             DEFAULT_REGISTRATION_DURATION,
         ],
     )
-    assert contract.functions.currentPrice() == 2 ** 90
+    assert contract.functions.currentPrice() == 2**90
 
 
 def test_deprecation_switch(
