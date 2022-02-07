@@ -13,7 +13,7 @@ from raiden_contracts.contract_manager import ContractManager, contracts_precomp
 from raiden_contracts.utils.private_key import get_private_key
 from raiden_contracts.utils.signature import private_key_to_address
 
-WEI_TO_ETH = 10 ** 18
+WEI_TO_ETH = 10**18
 
 
 @click.command()

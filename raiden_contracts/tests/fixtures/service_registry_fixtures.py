@@ -37,7 +37,7 @@ def service_registry_without_controller(
         CONTRACT_SERVICE_REGISTRY,
         _token_for_registration=custom_token.address,
         _controller=EMPTY_ADDRESS,
-        _initial_price=3000 * (10 ** 18),
+        _initial_price=3000 * (10**18),
         _price_bump_numerator=DEFAULT_BUMP_NUMERATOR,
         _price_bump_denominator=DEFAULT_BUMP_DENOMINATOR,
         _decay_constant=DEFAULT_DECAY_CONSTANT,

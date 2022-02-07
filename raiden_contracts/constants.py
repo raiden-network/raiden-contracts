@@ -36,8 +36,8 @@ DEPLOY_SETTLE_TIMEOUT_MIN = 500  # ~ 2 hours
 DEPLOY_SETTLE_TIMEOUT_MAX = 555428  # ~ 3 months
 
 # Temporary deposit limits for the Red Eyes release in WEI
-MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10 ** 18)
-MAX_ETH_TOKEN_NETWORK = int(250 * 10 ** 18)
+MAX_ETH_CHANNEL_PARTICIPANT = int(0.075 * 10**18)
+MAX_ETH_TOKEN_NETWORK = int(250 * 10**18)
 
 # Special hashes
 LOCKSROOT_OF_NO_LOCKS = Locksroot(keccak(b""))
