@@ -141,6 +141,8 @@ ID_TO_CHAINNAME: Dict[ChainID, str] = {
     ChainID(5): "goerli",
     ChainID(42): "kovan",
     ChainID(627): "smoketest",
+    ChainID(42161): "arbitrum-one",
+    ChainID(421611): "rinkeby-arbitrum",
 }
 
 CHAINNAME_TO_ID: Dict[str, ChainID] = {name: id for id, name in ID_TO_CHAINNAME.items()}
