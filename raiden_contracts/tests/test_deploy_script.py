@@ -814,7 +814,10 @@ def test_deploy_token_no_balance(privkey_file: IO) -> None:
             mock_deployer.assert_not_called()
 
 
-def test_deploy_token_with_balance(privkey_file: IO) -> None:
+@patch.object(ContractDeployer, "_adjust_chain_settings")
+def test_deploy_token_with_balance(
+    mock_adjust_chain_settings: MagicMock, privkey_file: IO
+) -> None:
     """Call deploy token command with a private key with some balance"""
     with patch.object(
         ContractDeployer,
@@ -826,6 +829,7 @@ def test_deploy_token_with_balance(privkey_file: IO) -> None:
             runner = CliRunner()
             result = runner.invoke(token, deploy_token_arguments(privkey=privkey_file.name))
             assert result.exit_code == 0
+            mock_adjust_chain_settings.assert_called_once()
             mock_deployer.assert_called_once()
 
 
@@ -854,11 +858,13 @@ def deploy_raiden_arguments(
     return arguments
 
 
-@patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_raiden")
+@patch.object(ContractDeployer, "deploy_raiden_contracts")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
 @pytest.mark.parametrize("contracts_version", [None, ALDERAAN_VERSION])
 @pytest.mark.parametrize("reuse_secret_registry", [False, True])
 def test_deploy_raiden(
+    mock_adjust_chain_settings: MagicMock,
     mock_deploy: MagicMock,
     mock_verify: MagicMock,
     contracts_version: Optional[str],
@@ -879,13 +885,16 @@ def test_deploy_raiden(
         )
         assert result.exception is None
         assert result.exit_code == 0
+        mock_adjust_chain_settings.assert_called_once()
         mock_deploy.assert_called_once()
         mock_verify.assert_called_once()
 
 
 @patch.object(ContractDeployer, "register_token_network")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
 def test_register_script(
-    mock_deploy: MagicMock,
+    mock_adjust_chain_settings: MagicMock,
+    mock_register: MagicMock,
     deployed_raiden_info: DeployedContracts,
     privkey_file: IO,
 ) -> None:
@@ -919,12 +928,18 @@ def test_register_script(
                 catch_exceptions=False,
             )
             assert result.exit_code == 0
-            mock_deploy.assert_called_once()
+            mock_adjust_chain_settings.assert_called_once()
+            mock_register.assert_called_once()
             add_tn_info.assert_called_once()
 
 
 @patch.object(ContractDeployer, "register_token_network")
-def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_file: IO) -> None:
+@patch.object(ContractDeployer, "_adjust_chain_settings")
+def test_register_script_without_token_network(
+    mock_adjust_chain_settings: MagicMock,
+    mock_register: MagicMock,
+    privkey_file: IO,
+) -> None:
     """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
@@ -952,13 +967,18 @@ def test_register_script_without_token_network(mock_deploy: MagicMock, privkey_f
             "No TokenNetworkRegistry was specified. "
             "Add --token-network-registry-address <address>.",
         )
-        mock_deploy.assert_not_called()
+        mock_adjust_chain_settings.assert_called_once()
+        mock_register.assert_not_called()
 
 
-@patch.object(ContractDeployer, "deploy_raiden_contracts")
 @patch.object(ContractDeployer, "verify_deployment_data")
+@patch.object(ContractDeployer, "deploy_raiden_contracts")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
 def test_deploy_raiden_save_info_false(
-    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
+    mock_adjust_chain_settings: MagicMock,
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    privkey_file: IO,
 ) -> None:
     """Calling deploy raiden command with --save_info False"""
     with patch.object(Eth, "get_balance", return_value=1):
@@ -974,6 +994,7 @@ def test_deploy_raiden_save_info_false(
         )
         assert result.exception is None
         assert result.exit_code == 0
+        mock_adjust_chain_settings.assert_called_once()
         mock_deploy.assert_called_once()
         mock_verify.assert_called_once()
 
@@ -1022,9 +1043,15 @@ def deploy_services_arguments(
     return arguments
 
 
-@patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
-def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO) -> None:
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
+def test_deploy_services(
+    mock_adjust_chain_settings: MagicMock,
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    privkey_file: IO,
+) -> None:
     """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
         runner = CliRunner()
@@ -1039,6 +1066,7 @@ def test_deploy_services(mock_deploy: MagicMock, mock_verify: MagicMock, privkey
         )
         assert result.exception is None
         assert result.exit_code == 0
+        mock_adjust_chain_settings.assert_called_once()
         mock_deploy.assert_called_once()
         mock_verify.assert_called_once()
 
@@ -1061,10 +1089,14 @@ def test_deploy_old_services(privkey_file: IO) -> None:
         assert result.exit_code == 2
 
 
-@patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractVerifier, "store_and_verify_deployment_info_services")
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
 def test_deploy_services_with_controller(
-    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
+    mock_adjust_chain_settings: MagicMock,
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    privkey_file: IO,
 ) -> None:
     """Calling deploy raiden command"""
     with patch.object(Eth, "get_balance", return_value=1):
@@ -1080,14 +1112,19 @@ def test_deploy_services_with_controller(
         )
         assert result.exception is None
         assert result.exit_code == 0
+        mock_adjust_chain_settings.assert_called_once()
         mock_deploy.assert_called_once()
         mock_verify.assert_called_once()
 
 
-@patch.object(ContractDeployer, "deploy_service_contracts")
 @patch.object(ContractDeployer, "verify_service_contracts_deployment_data")
+@patch.object(ContractDeployer, "deploy_service_contracts")
+@patch.object(ContractDeployer, "_adjust_chain_settings")
 def test_deploy_services_save_info_false(
-    mock_deploy: MagicMock, mock_verify: MagicMock, privkey_file: IO
+    mock_adjust_chain_settings: MagicMock,
+    mock_deploy: MagicMock,
+    mock_verify: MagicMock,
+    privkey_file: IO,
 ) -> None:
     """Calling deploy raiden command with --save_info False"""
     with patch.object(Eth, "get_balance", return_value=1):
@@ -1103,6 +1140,7 @@ def test_deploy_services_save_info_false(
         )
         assert result.exception is None
         assert result.exit_code == 0
+        mock_adjust_chain_settings.assert_called_once()
         mock_deploy.assert_called_once()
         mock_verify.assert_called_once()
 

@@ -22,6 +22,7 @@ from raiden_contracts.constants import (
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
     DEPLOY_SETTLE_TIMEOUT,
+    ID_TO_CHAINNAME,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -64,6 +65,7 @@ class ContractDeployer(ContractVerifier):
                 "gasPrice": Wei(gas_price * int(units["gwei"])),
             }
         )
+        self._adjust_chain_settings()
 
         self.web3.middleware_onion.add(construct_sign_and_send_raw_middleware(private_key))
 
@@ -76,6 +78,25 @@ class ContractDeployer(ContractVerifier):
             contract_manager_source.verify_precompiled_checksums(self.precompiled_path)
         else:
             LOG.info("Skipped checks against the source code because it is not available.")
+
+    @property
+    def is_connected_to_arbitrum_chain(self) -> bool:
+        chain_id = ChainID(self.web3.eth.chain_id)
+        return "arbitrum" in ID_TO_CHAINNAME.get(chain_id, "")
+
+    def _adjust_chain_settings(self) -> None:
+        # Gas usage on Arbitrum is different that EVM gas usage, so increase the limit here
+        if self.is_connected_to_arbitrum_chain:
+            gas_limit = Wei(1_000_000_000)
+            gas_price = Wei(int(units["gwei"]))
+
+            self.transaction["gas"] = gas_limit
+            self.transaction["gasPrice"] = gas_price
+
+            LOG.info(
+                "Adapting transaction parameters for arbitrum. "
+                f"gas limit: {gas_limit}, gas_price: {gas_price}"
+            )
 
     def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
@@ -157,6 +178,7 @@ class ContractDeployer(ContractVerifier):
         self,
         max_num_of_token_networks: int,
         reuse_secret_registry_from_deploy_file: Optional[Path],
+        settle_timeout: int = DEPLOY_SETTLE_TIMEOUT,
     ) -> DeployedContracts:
         """Deploy all required raiden contracts and return a dict of contract_name:address
 
@@ -198,8 +220,8 @@ class ContractDeployer(ContractVerifier):
 
         token_network_registry_args = [
             secret_registry.address,
+            settle_timeout,
             max_num_of_token_networks,
-            DEPLOY_SETTLE_TIMEOUT,
         ]
         self._deploy_and_remember(
             contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
