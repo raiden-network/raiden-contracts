@@ -88,15 +88,8 @@ class ContractDeployer(ContractVerifier):
         # Gas usage on Arbitrum is different that EVM gas usage, so increase the limit here
         if self.is_connected_to_arbitrum_chain:
             gas_limit = Wei(1_000_000_000)
-            gas_price = Wei(int(units["gwei"]))
-
             self.transaction["gas"] = gas_limit
-            self.transaction["gasPrice"] = gas_price
-
-            LOG.info(
-                "Adapting transaction parameters for arbitrum. "
-                f"gas limit: {gas_limit}, gas_price: {gas_price}"
-            )
+            LOG.info(f"Adapting transaction parameters for Arbitrum: gas_limit = {gas_limit}")
 
     def deploy(self, contract_name: str, args: Optional[List] = None) -> TxReceipt:
         if args is None:
