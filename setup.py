@@ -11,7 +11,7 @@ from setuptools import Command
 from setuptools.command.build_py import build_py
 
 DESCRIPTION = "Raiden contracts library and utilities"
-VERSION = "1.0.0rc2"
+VERSION = "1.0.0rc1"
 
 
 def read_requirements(path: str) -> List[str]:
