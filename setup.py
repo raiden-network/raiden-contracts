@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 try:
-    from setuptools import setup, find_packages
+    from setuptools import find_packages, setup
 except ImportError:
     from distutils.core import setup
 
@@ -11,7 +11,7 @@ from setuptools import Command
 from setuptools.command.build_py import build_py
 
 DESCRIPTION = "Raiden contracts library and utilities"
-VERSION = "0.40.1"
+VERSION = "1.0.0rc1"
 
 
 def read_requirements(path: str) -> List[str]:
