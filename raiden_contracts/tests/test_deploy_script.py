@@ -118,6 +118,7 @@ def token_address(deployer: ContractDeployer) -> HexAddress:
 
 
 DEPOSIT_LIMIT = TOKEN_SUPPLY // 2
+WITHDRAW_TIMEOUT = 25 * 60
 
 
 @pytest.mark.slow
@@ -130,6 +131,7 @@ def deployed_service_info(
     return deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
         service_registry_controller=DEPLOYER_ADDRESS,
         initial_service_deposit_price=SERVICE_DEPOSIT // 2,
         service_deposit_bump_numerator=6,
@@ -153,6 +155,7 @@ def test_deploy_service_0_37_0(
         deployer_0_37_0.deploy_service_contracts(
             token_address=token_address,
             user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             service_registry_controller=DEPLOYER_ADDRESS,
             initial_service_deposit_price=SERVICE_DEPOSIT // 2,
             service_deposit_bump_numerator=6,
@@ -326,6 +329,7 @@ def test_deploy_services_reuse_service_registry(
         new_deployment = deployer.deploy_service_contracts(
             token_address=token_address,
             user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             service_registry_controller=DEPLOYER_ADDRESS,
             initial_service_deposit_price=SERVICE_DEPOSIT // 2,
             service_deposit_bump_numerator=6,
@@ -466,6 +470,7 @@ def test_deploy_script_service(
     deployer.verify_service_contracts_deployment_data(
         token_address=token_address,
         user_deposit_whole_balance_limit=deposit_limit,
+        user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
         deployed_contracts_info=deployed_service_contracts,
         token_network_registry_address=token_network_registry_contract.address,
     )
@@ -475,6 +480,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=EMPTY_ADDRESS,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_service_contracts,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -485,6 +491,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -495,6 +502,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -507,6 +515,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -519,6 +528,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -530,6 +540,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -542,6 +553,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -554,6 +566,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -569,6 +582,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -581,6 +595,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -593,6 +608,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -605,6 +621,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -615,6 +632,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -625,6 +643,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -635,6 +654,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -646,6 +666,7 @@ def test_deploy_script_service(
         deployer.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=deposit_limit,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             deployed_contracts_info=deployed_info_fail,
             token_network_registry_address=token_network_registry_contract.address,
         )
@@ -657,6 +678,7 @@ def test_deploy_script_service(
             deployer.verify_service_contracts_deployment_data(
                 token_address=token_address,
                 user_deposit_whole_balance_limit=deposit_limit,
+                user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
                 deployed_contracts_info=deployed_info_fail,
                 token_network_registry_address=token_network_registry_contract.address,
             )
@@ -743,12 +765,14 @@ def test_store_and_verify_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
         token_network_registry_address=token_network_registry_contract.address,
     )
     deployer.store_and_verify_deployment_info_services(
         token_address=token_address,
         deployed_contracts_info=deployed_contracts_info,
         user_deposit_whole_balance_limit=DEPOSIT_LIMIT,
+        user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
         token_network_registry_address=token_network_registry_contract.address,
     )
 
@@ -1208,6 +1232,7 @@ def test_user_deposit_deployment_with_wrong_one_to_n_address() -> None:
             constructor_arguments=user_deposit_constructor_arguments,
             token_address=token_addr,
             user_deposit_whole_balance_limit=UINT256_MAX,
+            user_deposit_withdraw_timeout=WITHDRAW_TIMEOUT,
             one_to_n_address=wrong_one_to_n_address,
             monitoring_service_address=HexAddress(
                 HexStr("0xb7765972d78B6C97bB0a5a6b7529DC1fb64aA287")

@@ -300,6 +300,7 @@ class ContractDeployer(ContractVerifier):
         self,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        user_deposit_withdraw_timeout: int,
         service_registry_controller: HexAddress,
         initial_service_deposit_price: int,
         service_deposit_bump_numerator: int,
@@ -358,7 +359,11 @@ class ContractDeployer(ContractVerifier):
 
         user_deposit = self._deploy_and_remember(
             contract_name=CONTRACT_USER_DEPOSIT,
-            arguments=[token_address, user_deposit_whole_balance_limit],
+            arguments=[
+                token_address,
+                user_deposit_whole_balance_limit,
+                user_deposit_withdraw_timeout,
+            ],
             deployed_contracts=deployed_contracts,
         )
 

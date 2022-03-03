@@ -15,15 +15,22 @@ def user_deposit_whole_balance_limit() -> int:
 
 
 @pytest.fixture(scope="session")
+def user_deposit_withdraw_timeout() -> int:
+    return 25 * 60
+
+
+@pytest.fixture(scope="session")
 def uninitialized_user_deposit_contract(
     deploy_tester_contract: Callable,
     custom_token: Contract,
     user_deposit_whole_balance_limit: int,
+    user_deposit_withdraw_timeout: int,
 ) -> Contract:
     return deploy_tester_contract(
         CONTRACT_USER_DEPOSIT,
         _token_address=custom_token.address,
         _whole_balance_limit=user_deposit_whole_balance_limit,
+        _withdraw_timeout=user_deposit_withdraw_timeout,
     )
 
 
