@@ -248,6 +248,12 @@ def raiden(
     help="Maximum amount of tokens deposited in UserDeposit",
 )
 @click.option(
+    "--user-deposit-withdraw-timeout",
+    default=25 * 60,
+    type=int,
+    help="Time in seconds after which a withdraw is allowed",
+)
+@click.option(
     "--service-registry-controller",
     required=True,
     callback=validate_address,
@@ -315,6 +321,7 @@ def services(
     save_info: bool,
     contracts_version: Optional[str],
     user_deposit_whole_limit: int,
+    user_deposit_withdraw_timeout: int,
     service_registry_controller: HexAddress,
     initial_service_deposit_price: int,
     service_deposit_bump_numerator: int,
@@ -344,6 +351,7 @@ def services(
     deployed_contracts_info = deployer.deploy_service_contracts(
         token_address=token_address,
         user_deposit_whole_balance_limit=user_deposit_whole_limit,
+        user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
         service_registry_controller=service_registry_controller,
         initial_service_deposit_price=initial_service_deposit_price,
         service_deposit_bump_numerator=service_deposit_bump_numerator,
@@ -364,6 +372,7 @@ def services(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             token_network_registry_address=token_network_registry_address,
         )
     else:
@@ -371,6 +380,7 @@ def services(
             deployed_contracts_info=deployed_contracts_info,
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             token_network_registry_address=token_network_registry_address,
         )
 
