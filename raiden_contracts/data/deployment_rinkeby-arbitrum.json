@@ -1,5 +1,5 @@
 {
-  "contracts_version": "null",
+  "contracts_version": null,
   "chain_id": 421611,
   "contracts": {
     "SecretRegistry": {
