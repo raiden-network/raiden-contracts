@@ -56,6 +56,7 @@ class ContractVerifier:
         self,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        user_deposit_withdraw_timeout: int,
         token_network_registry_address: HexAddress,
     ) -> None:
         chain_id = ChainID(self.web3.eth.chain_id)
@@ -74,6 +75,7 @@ class ContractVerifier:
         if self.verify_service_contracts_deployment_data(
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             deployed_contracts_info=deployment_data,
             token_network_registry_address=token_network_registry_address,
         ):
@@ -93,12 +95,14 @@ class ContractVerifier:
         deployed_contracts_info: DeployedContracts,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        user_deposit_withdraw_timeout: int,
         token_network_registry_address: HexAddress,
     ) -> None:
         self._store_deployment_info(services=True, deployment_info=deployed_contracts_info)
         self.verify_deployed_service_contracts_in_filesystem(
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             token_network_registry_address=token_network_registry_address,
         )
 
@@ -214,6 +218,7 @@ class ContractVerifier:
         self,
         token_address: HexAddress,
         user_deposit_whole_balance_limit: int,
+        user_deposit_withdraw_timeout: int,
         token_network_registry_address: HexAddress,
         deployed_contracts_info: DeployedContracts,
     ) -> bool:
@@ -250,6 +255,7 @@ class ContractVerifier:
             constructor_arguments=user_deposit_constructor_arguments,
             token_address=token_address,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             one_to_n_address=one_to_n.address,
             monitoring_service_address=monitoring_service.address,
         )
@@ -276,11 +282,12 @@ def _verify_user_deposit_deployment(
     constructor_arguments: List,
     token_address: HexAddress,
     user_deposit_whole_balance_limit: int,
+    user_deposit_withdraw_timeout: int,
     one_to_n_address: HexAddress,
     monitoring_service_address: HexAddress,
 ) -> None:
     """Check an onchain deployment of UserDeposit and constructor arguments at deployment time"""
-    if len(constructor_arguments) != 2:
+    if len(constructor_arguments) != 3:
         raise RuntimeError("UserDeposit has a wrong number of constructor arguments.")
     if token_address != constructor_arguments[0]:
         raise RuntimeError("UserDeposit received a wrong token address during construction.")
@@ -290,6 +297,10 @@ def _verify_user_deposit_deployment(
         raise RuntimeError("UserDeposit has a wrong whole_balance_limit onchain")
     if user_deposit_whole_balance_limit != constructor_arguments[1]:
         raise RuntimeError("UserDeposit received a wrong whole_balance_limit during construction.")
+    if user_deposit.functions.withdraw_timeout().call() != user_deposit_withdraw_timeout:
+        raise RuntimeError("UserDeposit has a wrong withdraw_timeout onchain")
+    if user_deposit_withdraw_timeout != constructor_arguments[2]:
+        raise RuntimeError("UserDeposit received a wrong withdraw_timeout during construction.")
     if to_checksum_address(user_deposit.functions.one_to_n_address().call()) != one_to_n_address:
         raise RuntimeError("UserDeposit has a wrong OneToN address onchain.")
     onchain_msc_address = to_checksum_address(user_deposit.functions.msc_address().call())

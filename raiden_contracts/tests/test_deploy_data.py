@@ -146,7 +146,9 @@ def test_version_provides_services() -> None:
 
 
 def test_verify_nonexistent_deployment(
-    user_deposit_whole_balance_limit: int, token_network_registry_address: HexAddress
+    user_deposit_whole_balance_limit: int,
+    user_deposit_withdraw_timeout: int,
+    token_network_registry_address: HexAddress,
 ) -> None:
     """Test verify_deployed_contracts_in_filesystem() with a non-existent deployment data."""
     web3_mock = Mock()
@@ -159,6 +161,7 @@ def test_verify_nonexistent_deployment(
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=EMPTY_ADDRESS,
             user_deposit_whole_balance_limit=user_deposit_whole_balance_limit,
+            user_deposit_withdraw_timeout=user_deposit_withdraw_timeout,
             token_network_registry_address=token_network_registry_address,
         )
 
@@ -179,6 +182,7 @@ def test_verify_existent_deployment(token_network_registry_contract: Contract) -
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
+            user_deposit_withdraw_timeout=25 * 60,
             token_network_registry_address=token_network_registry_contract.address,
         )
 
@@ -205,5 +209,6 @@ def test_verify_existent_deployment_with_wrong_code(
         verifier.verify_deployed_service_contracts_in_filesystem(
             token_address=HexAddress(HexStr("0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A")),
             user_deposit_whole_balance_limit=2 ** 256 - 1,
+            user_deposit_withdraw_timeout=25 * 60,
             token_network_registry_address=token_network_registry_contract.address,
         )
