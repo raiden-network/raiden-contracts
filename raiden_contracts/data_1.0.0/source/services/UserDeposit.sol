@@ -6,9 +6,9 @@ import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    uint constant public withdraw_timeout = 15 * 100;  // time before withdraw is allowed in seconds
+    uint public withdraw_timeout;  // time before withdraw is allowed in seconds
 
-    // Token to be used for the deposit
+    // Token to be used foruser_deposit_withdraw_timeout the deposit
     Token public token;
 
     // Trusted contracts (can execute `transfer`)
@@ -57,7 +57,7 @@ contract UserDeposit is Utils {
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    constructor(address _token_address, uint256 _whole_balance_limit)
+    constructor(address _token_address, uint256 _whole_balance_limit, uint _withdraw_timeout)
     {
         // check token contract
         require(_token_address != address(0x0), "token at address zero");
@@ -67,6 +67,7 @@ contract UserDeposit is Utils {
         // check and set the whole balance limit
         require(_whole_balance_limit > 0, "whole balance limit is zero");
         whole_balance_limit = _whole_balance_limit;
+        withdraw_timeout = _withdraw_timeout;
     }
 
     /// @notice Specify trusted contracts. This has to be done outside of the
