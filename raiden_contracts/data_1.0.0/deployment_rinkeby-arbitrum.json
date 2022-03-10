@@ -10,25 +10,37 @@
       "constructor_arguments": []
     },
     "TokenNetworkRegistry": {
-      "address": "0xc769fcf748E53822C42D17C4aa3F9DB7E183a33a",
-      "transaction_hash": "0x93c54951c33b1331f719160b5777223c1638754ffe139f140404f7fdaea47476",
-      "block_number": 10005809,
-      "gas_cost": 37109503,
+      "address": "0xDDee3583d375b83FA8e4A9C5A439c25a28b205A8",
+      "transaction_hash": "0xf9237ca7c920245c3b8f39c9ba4e0593b36d88f1ff8f27c8fd6d15d397080861",
+      "block_number": 10260565,
+      "gas_cost": 37109556,
       "constructor_arguments": [
         "0xcE5bC70b441a0794fF3a6F52BB054F92500402F6",
-        15000,
+        180,
         500000
       ]
     }
   },
   "token_networks": [
     {
-      "token_network_address": "0x3caa121169145C95e2eB3001ec1291350EBd1F36",
+      "token_network_address": "0x257c7B4d811259f8cF0c4f8CD31e2191B7a76dB6",
+      "constructor_arguments": {
+        "_token_address": "0x99C1aE38292791a52E26eE6AFdAeC69563F9b5C3",
+        "_secret_registry": "0xcE5bC70b441a0794fF3a6F52BB054F92500402F6",
+        "_chain_id": 421611,
+        "_settle_timeout": 180,
+        "_controller": "0x73cB9583dB007B3F71F5293cfe183d53F188Bbc0",
+        "_channel_participant_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
+        "_token_network_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935
+      }
+    },
+    {
+      "token_network_address": "0xf3DcF029dE77c4613d134A4F187cd0566b550b7B",
       "constructor_arguments": {
         "_token_address": "0x80FF314a97FE9617C139772E8e08a9c5FF6d7200",
         "_secret_registry": "0xcE5bC70b441a0794fF3a6F52BB054F92500402F6",
         "_chain_id": 421611,
-        "_settle_timeout": 15000,
+        "_settle_timeout": 180,
         "_controller": "0x73cB9583dB007B3F71F5293cfe183d53F188Bbc0",
         "_channel_participant_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
         "_token_network_deposit_limit": 115792089237316195423570985008687907853269984665640564039457584007913129639935
