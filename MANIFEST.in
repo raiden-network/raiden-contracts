@@ -9,6 +9,7 @@ include raiden_contracts/data*/deployment_rinkeby.json
 include raiden_contracts/data*/deployment_rinkeby-arbitrum.json
 include raiden_contracts/data*/deployment_ropsten.json
 include raiden_contracts/data*/deployment_mainnet.json
+include raiden_contracts/data*/deployment_arbitrum-one.json
 include raiden_contracts/data*/deployment_services_kovan.json
 include raiden_contracts/data*/deployment_services_goerli.json
 include raiden_contracts/data*/deployment_services_goerli_unstable.json
@@ -16,6 +17,7 @@ include raiden_contracts/data*/deployment_services_rinkeby.json
 include raiden_contracts/data*/deployment_services_rinkeby-arbitrum.json
 include raiden_contracts/data*/deployment_services_ropsten.json
 include raiden_contracts/data*/deployment_services_mainnet.json
+include raiden_contracts/data*/deployment_services_arbitrum-one.json
 include raiden_contracts/data*/gas.json
 recursive-include raiden_contracts/data*/source *
 prune raiden_contracts/contracts
