@@ -103,6 +103,7 @@ api_of_chain_id = {
     4: "https://api-rinkeby.etherscan.io/api",
     5: "https://api-goerli.etherscan.io/api",
     42: "https://api-kovan.etherscan.io/api",
+    42161: "https://api.arbiscan.io/api",
 }
 
 
