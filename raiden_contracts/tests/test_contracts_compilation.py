@@ -128,11 +128,9 @@ def test_current_development_version() -> None:
     assert contracts_precompiled_path().exists()
 
     # deployment files exist
-    assert contracts_deployed_path(CHAINNAME_TO_ID["rinkeby"]).exists()
-    assert contracts_deployed_path(CHAINNAME_TO_ID["ropsten"]).exists()
+    assert contracts_deployed_path(CHAINNAME_TO_ID["goerli"]).exists()
     # deployment files for service contracts also exist
-    assert contracts_deployed_path(CHAINNAME_TO_ID["rinkeby"], services=True).exists()
-    assert contracts_deployed_path(CHAINNAME_TO_ID["ropsten"], services=True).exists()
+    assert contracts_deployed_path(CHAINNAME_TO_ID["goerli"], services=True).exists()
 
 
 def test_red_eyes_version() -> None:
