@@ -432,7 +432,7 @@ def test_pureFirstAllowedTimestamp(monitoring_service_external: Contract) -> Non
     assert call([40, 40, 40]) == 1000 + 30 + (40 + 40 + 40) % 50
 
     # Show that high address values don't cause overflows
-    MAX_ADDRESS = 256 ** 20 - 1
+    MAX_ADDRESS = 256**20 - 1
     assert call([MAX_ADDRESS] * 3) == 1000 + 30 + (3 * MAX_ADDRESS) % 50
 
 
