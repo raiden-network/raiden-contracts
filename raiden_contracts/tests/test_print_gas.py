@@ -12,8 +12,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK,
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
     MessageTypeId,
 )
 from raiden_contracts.contract_manager import gas_measurements
@@ -76,9 +75,8 @@ def print_gas_token_network_registry(
     txhash = deploy_tester_contract_txhash(
         CONTRACT_TOKEN_NETWORK_REGISTRY,
         _secret_registry_address=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _max_token_networks=10,
+        _settle_timeout=TEST_SETTLE_TIMEOUT,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK_REGISTRY + " DEPLOYMENT")
 
@@ -99,11 +97,10 @@ def print_gas_token_network_deployment(
         CONTRACT_TOKEN_NETWORK,
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
         _controller=controller,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,
+        _settle_timeout=TEST_SETTLE_TIMEOUT,
     )
     print_gas(txhash, CONTRACT_TOKEN_NETWORK + " DEPLOYMENT")
 
@@ -161,10 +158,10 @@ def print_gas_channel_cycle(
     (A, B, C, D) = get_accounts(4)
     settle_timeout = 11
 
-    (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
+    (channel_identifier, txn_hash) = create_channel(A, B)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".openChannel")
 
-    (_, txn_hash) = create_channel(C, D, settle_timeout)
+    (_, txn_hash) = create_channel(C, D)
     print_gas(txn_hash, CONTRACT_TOKEN_NETWORK + ".openChannel")
 
     txn_hash = channel_deposit(channel_identifier, A, 20, B)
@@ -283,12 +280,11 @@ def print_gas_channel_open_with_deposit(
 ) -> None:
     """Abusing pytest to print gas costs of TokenNetwork's `openChannelWithDeposit`"""
     (A, B) = get_accounts(2)
-    settle_timeout = 11
     deposit = 20
 
     assign_tokens(A, deposit)
     tx_hash = call_and_transact(
-        token_network.functions.openChannelWithDeposit(A, B, settle_timeout, deposit),
+        token_network.functions.openChannelWithDeposit(A, B, deposit),
         {"from": A},
     )
     print_gas(tx_hash, CONTRACT_TOKEN_NETWORK + ".openChannelWithDeposit")
@@ -304,9 +300,8 @@ def print_gas_coop_settle(
 ) -> None:
     """Abusing pytest to print gas costs of cooperative settle"""
     (A, B) = get_accounts(2)
-    settle_timeout = 11
 
-    (channel_identifier, txn_hash) = create_channel(A, B, settle_timeout)
+    (channel_identifier, txn_hash) = create_channel(A, B)
     channel_deposit(channel_identifier, A, 20, B)
 
     txn_hash = cooperative_settle_channel(channel_identifier, A, B, 10, 10, UINT256_MAX, A)
@@ -399,7 +394,7 @@ def print_gas_monitoring_service(
     )
     print_gas(txn_hash, CONTRACT_MONITORING_SERVICE + ".monitor")
 
-    mine_blocks(web3, 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
 
     # MS claims the reward
     txn_hash = call_and_transact(

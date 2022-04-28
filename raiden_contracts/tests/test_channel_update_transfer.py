@@ -8,7 +8,7 @@ from web3.contract import Contract
 
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
     ChannelEvent,
     ChannelState,
     MessageTypeId,
@@ -227,9 +227,9 @@ def test_update_wrong_nonce_fail(
     update_state_tests: Callable,
 ) -> None:
     (A, B, Delegate) = get_accounts(3)
-    settle_timeout = 6
+    settle_timeout = TEST_SETTLE_TIMEOUT
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
@@ -406,9 +406,9 @@ def test_update_channel_state(
 ) -> None:
     """A successful updateNonClosingBalanceProof() call should not change token/ETH balances"""
     (A, B, Delegate) = get_accounts(3)
-    settle_timeout = 6
+    settle_timeout = TEST_SETTLE_TIMEOUT
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
@@ -542,9 +542,9 @@ def test_update_allowed_after_settlement_period(
 ) -> None:
     """updateNonClosingBalanceProof can be called after the settlement period."""
     (A, B) = get_accounts(2)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof_A = create_balance_proof(channel_identifier, A, 10, 0, 5, fake_bytes(32, "02"))
     balance_proof_B = create_balance_proof(channel_identifier, B, 5, 0, 3, fake_bytes(32, "02"))
@@ -586,9 +586,8 @@ def test_update_not_allowed_for_the_closing_address(
 ) -> None:
     """Closing address cannot call updateNonClosingBalanceProof."""
     (A, B, M) = get_accounts(3)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
     # Some balance proof from B
@@ -662,9 +661,8 @@ def test_update_invalid_balance_proof_arguments(
 ) -> None:
     """updateNonClosingBalanceProof() should fail on balance proofs with various wrong params"""
     (A, B, C) = get_accounts(3)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
 
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
@@ -900,9 +898,8 @@ def test_update_signature_on_invalid_arguments(
 ) -> None:
     """Call updateNonClosingBalanceProof with signature on invalid argument fails"""
     (A, B, C) = get_accounts(3)
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
     deposit_A = 20
-    channel_identifier = create_channel(A, B, settle_timeout)[0]
+    channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)
     balance_proof = namedtuple(
         "balance_proof", ["balance_hash", "nonce", "additional_hash", "signature"]
@@ -1135,7 +1132,7 @@ def test_update_replay_reopened_channel(
         {"from": A},
     )
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1,
