@@ -5,6 +5,16 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.50.0]
+
+- [#1580](https://github.com/raiden-network/raiden-contracts/issues/1580) Establish better naming convention for time related values
+- [#1550](https://github.com/raiden-network/raiden-contracts/issues/1550) Replace settle timeout range with one constant value
+- [#1582](https://github.com/raiden-network/raiden-contracts/issues/1582) Move settle timeouts from channels to token networks
+- [#1565](https://github.com/raiden-network/raiden-contracts/issues/1565) Switch from block numbers to dates/time values
+- [#1612](https://github.com/raiden-network/raiden-contracts/issues/1612) Add deployment option for user deposit withdraw timeout
+- [#1608](https://github.com/raiden-network/raiden-contracts/issues/1608) Extend documentation for Arbitrum gas prices
+- [#1623](https://github.com/raiden-network/raiden-contracts/pull/1623) Add API endpoint to verify Arbitrum One deployments
+
 ## [0.40.3]
 
 - [#1602](https://github.com/raiden-network/raiden-contracts/pull/1602) Upgrade and unpin `web3` dependency
