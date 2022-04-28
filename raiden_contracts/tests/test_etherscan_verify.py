@@ -114,7 +114,7 @@ def test_etherscan_verify_with_guid() -> None:
 
 def test_etherscan_verify_already_verified() -> None:
     with requests_mock.Mocker() as m:
-        chain_id = 3
+        chain_id = 5
         etherscan_api = api_of_chain_id[chain_id]
         m.post(
             etherscan_api,
@@ -211,7 +211,7 @@ def test_etherscan_verify_unable_to_verify() -> None:
 
 def test_etherscan_verify_success() -> None:
     with requests_mock.Mocker() as m:
-        chain_id = 3
+        chain_id = 5
         etherscan_api = api_of_chain_id[chain_id]
         m.post(etherscan_api, text='{ "status": "1", "result" : "guid", "message" : "" }')
         m.get(
@@ -253,7 +253,7 @@ def first_fail_second_succeed(_: Any, context: Any) -> str:
 
 def test_etherscan_verify_success_after_a_loop() -> None:
     with requests_mock.Mocker() as m:
-        chain_id = 3
+        chain_id = 5
         etherscan_api = api_of_chain_id[chain_id]
         m.post(etherscan_api, text='{ "status": "1", "result" : "guid", "message" : "" }')
         m.get(etherscan_api, text=first_fail_second_succeed)
