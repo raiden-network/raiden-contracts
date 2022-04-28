@@ -22,6 +22,9 @@ from raiden_contracts.utils.type_aliases import ChainID
 from raiden_contracts.utils.versions import contracts_version_provides_services
 
 
+TARGET_CHAINS = [5, 42161, 421611]
+
+
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
 def test_deploy_data_dir_exists(version: Optional[str]) -> None:
     """Make sure directories exist for deployment data"""
@@ -36,7 +39,7 @@ def test_deploy_data_dir_is_not_nested(version: Optional[str]) -> None:
 
 
 @pytest.mark.parametrize("version", [None, CONTRACTS_VERSION])
-@pytest.mark.parametrize("chain_id", [3, 4, 5])
+@pytest.mark.parametrize("chain_id", TARGET_CHAINS)
 @pytest.mark.parametrize("services", [False, True])
 def test_deploy_data_file_exists(
     version: Optional[str], chain_id: ChainID, services: bool
@@ -62,7 +65,7 @@ RAIDEN_CONTRACT_NAMES = ("TokenNetworkRegistry", "SecretRegistry")
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5])
+@pytest.mark.parametrize("chain_id", TARGET_CHAINS)
 def test_deploy_data_has_fields_raiden(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.RAIDEN)
     assert data
@@ -83,7 +86,7 @@ SERVICE_CONTRACT_NAMES = (
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5])
+@pytest.mark.parametrize("chain_id", TARGET_CHAINS)
 def test_deploy_data_has_fields_services(version: Optional[str], chain_id: ChainID) -> None:
     data = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.SERVICES)
     assert data
@@ -96,7 +99,7 @@ def test_deploy_data_has_fields_services(version: Optional[str], chain_id: Chain
 
 
 @pytest.mark.parametrize("version", [None])
-@pytest.mark.parametrize("chain_id", [3, 4, 5])
+@pytest.mark.parametrize("chain_id", TARGET_CHAINS)
 def test_deploy_data_all(version: Optional[str], chain_id: ChainID) -> None:
     data_all = get_contracts_deployment_info(chain_id, version, module=DeploymentModule.ALL)
     data_default = get_contracts_deployment_info(chain_id, version)
