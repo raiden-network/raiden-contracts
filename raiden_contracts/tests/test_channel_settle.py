@@ -7,7 +7,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from raiden_contracts.constants import (
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
     ChannelEvent,
     ChannelState,
     MessageTypeId,
@@ -45,7 +45,7 @@ def test_settle_no_bp_success(
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -101,7 +101,7 @@ def test_settle2_no_bp_success(
     (A, B) = get_accounts(2)
     deposit_A = 10
     deposit_B = 6
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
     channel_identifier = create_channel_and_deposit(A, B, deposit_A, deposit_B)
     closing_sig = create_close_signature_for_no_balance_proof(A, channel_identifier)
 
@@ -192,7 +192,7 @@ def test_settle_channel_state(
     withdraw_channel(channel_identifier, B, vals_B.withdrawn, UINT256_MAX, A)
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
 
     pre_balance_A = custom_token.functions.balanceOf(A).call()
     pre_balance_B = custom_token.functions.balanceOf(B).call()
@@ -243,7 +243,7 @@ def test_settle_single_direct_transfer_for_closing_party(
         ChannelValues(deposit=1, withdrawn=0, transferred=0),
         ChannelValues(deposit=10, withdrawn=0, transferred=5),
     )
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -323,7 +323,7 @@ def test_settle_single_direct_transfer_for_counterparty(
         ChannelValues(deposit=10, withdrawn=0, transferred=5),
         ChannelValues(deposit=1, withdrawn=0, transferred=0),
     )
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, vals_A.deposit, B)
@@ -448,7 +448,7 @@ def test_settlement_with_unauthorized_token_transfer(
         pre_balance_contract + externally_transferred_amount
     )
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
 
     # Compute expected settlement amounts
     settlement = get_settlement_amounts(vals_A, vals_B)
@@ -496,7 +496,7 @@ def test_settle_wrong_state_fail(
         channel_identifier, A, B
     ).call()
     assert state == ChannelState.OPENED
-    assert settle_timeout == TEST_SETTLE_TIMEOUT_MIN
+    assert settle_timeout == TEST_SETTLE_TIMEOUT
 
     with pytest.raises(TransactionFailed, match="TN/settle: channel not closed"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
@@ -520,13 +520,13 @@ def test_settle_wrong_state_fail(
         channel_identifier, A, B
     ).call()
     assert state == ChannelState.CLOSED
-    assert settle_block_number == TEST_SETTLE_TIMEOUT_MIN + get_block(txn_hash)
+    assert settle_block_number == TEST_SETTLE_TIMEOUT + get_block(txn_hash)
     assert web3.eth.block_number < settle_block_number
 
     with pytest.raises(TransactionFailed, match="TN/settle: settlement timeout"):
         call_settle(token_network, channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
     assert web3.eth.block_number > settle_block_number
 
     # Channel is settled
@@ -585,7 +585,7 @@ def test_settle_wrong_balance_hash(
 
     close_and_update_channel(channel_identifier, A, vals_A, B, vals_B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
 
     with pytest.raises(TransactionFailed, match="TN/settle: invalid data for participant 1"):
         call_settle(token_network, channel_identifier, B, vals_A, A, vals_B)
@@ -680,7 +680,7 @@ def test_settle_channel_event(
     ev_handler = event_handler(token_network)
     (A, B) = get_accounts(2)
     deposit_A = 10
-    settle_timeout = TEST_SETTLE_TIMEOUT_MIN
+    settle_timeout = TEST_SETTLE_TIMEOUT
 
     channel_identifier = create_channel(A, B)[0]
     channel_deposit(channel_identifier, A, deposit_A, B)

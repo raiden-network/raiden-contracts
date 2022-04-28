@@ -21,6 +21,7 @@ from raiden_contracts.constants import (
     CONTRACT_TOKEN_NETWORK_REGISTRY,
     CONTRACT_USER_DEPOSIT,
     CONTRACTS_VERSION,
+    DEPLOY_SETTLE_TIMEOUT,
     DeploymentModule,
 )
 from raiden_contracts.contract_manager import (
@@ -156,8 +157,6 @@ class ContractDeployer(ContractVerifier):
         self,
         max_num_of_token_networks: int,
         reuse_secret_registry_from_deploy_file: Optional[Path],
-        settle_timeout_min: int,
-        settle_timeout_max: int,
     ) -> DeployedContracts:
         """Deploy all required raiden contracts and return a dict of contract_name:address
 
@@ -199,9 +198,8 @@ class ContractDeployer(ContractVerifier):
 
         token_network_registry_args = [
             secret_registry.address,
-            settle_timeout_min,
-            settle_timeout_max,
             max_num_of_token_networks,
+            DEPLOY_SETTLE_TIMEOUT,
         ]
         self._deploy_and_remember(
             contract_name=CONTRACT_TOKEN_NETWORK_REGISTRY,
@@ -259,14 +257,12 @@ class ContractDeployer(ContractVerifier):
         token_network_registry = self.contract_instance_from_deployment_data(
             deployment_data, CONTRACT_TOKEN_NETWORK_REGISTRY
         )
-        settle_timeout_min = token_network_registry.functions.settlement_timeout_min().call()
-        settle_timeout_max = token_network_registry.functions.settlement_timeout_max().call()
+        settle_timeout = token_network_registry.functions.settle_timeout().call()
         constructor_arguments = dict(
             _token_address=token_address,
             _secret_registry=secret_registry.address,
             _chain_id=chain_id,
-            _settlement_timeout_min=settle_timeout_min,
-            _settlement_timeout_max=settle_timeout_max,
+            _settle_timeout=settle_timeout,
             _controller=self.owner,
             _channel_participant_deposit_limit=channel_participant_deposit_limit,
             _token_network_deposit_limit=token_network_deposit_limit,

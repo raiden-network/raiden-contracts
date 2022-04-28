@@ -11,8 +11,7 @@ from raiden_contracts.constants import (
     EVENT_TOKEN_NETWORK_CREATED,
     MAX_ETH_CHANNEL_PARTICIPANT,
     MAX_ETH_TOKEN_NETWORK,
-    TEST_SETTLE_TIMEOUT_MAX,
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
 )
 from raiden_contracts.contract_manager import ContractManager
 from raiden_contracts.tests.utils import call_and_transact
@@ -155,8 +154,7 @@ def token_network_external(
     return get_token_network(
         _token_address=custom_token.address,
         _secret_registry=secret_registry_contract.address,
-        _settlement_timeout_min=TEST_SETTLE_TIMEOUT_MIN,
-        _settlement_timeout_max=TEST_SETTLE_TIMEOUT_MAX,
+        _settle_timeout=TEST_SETTLE_TIMEOUT,
         _controller=DEPLOYER_ADDRESS,
         _channel_participant_deposit_limit=channel_participant_deposit_limit,
         _token_network_deposit_limit=token_network_deposit_limit,

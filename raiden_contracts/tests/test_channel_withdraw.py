@@ -8,7 +8,7 @@ from web3.exceptions import ValidationError
 
 from raiden_contracts.constants import (
     EMPTY_ADDRESS,
-    TEST_SETTLE_TIMEOUT_MIN,
+    TEST_SETTLE_TIMEOUT,
     ChannelEvent,
     ChannelState,
 )
@@ -186,7 +186,7 @@ def test_withdraw_wrong_state(
 
     assert token_network.functions.getChannelIdentifier(A, B).call() == 0
 
-    channel_identifier = create_channel_and_deposit(A, B, 10, 14, TEST_SETTLE_TIMEOUT_MIN)
+    channel_identifier = create_channel_and_deposit(A, B, 10, 14)
     (_, state) = token_network.functions.getChannelInfo(channel_identifier, A, B).call()
     assert state == ChannelState.OPENED
 
@@ -213,7 +213,7 @@ def test_withdraw_wrong_state(
     with pytest.raises(TransactionFailed, match="TN: channel not open"):
         withdraw_channel(channel_identifier, A, withdraw_A, UINT256_MAX, B)
 
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier,
@@ -560,7 +560,7 @@ def test_withdraw_replay_reopened_channel(
         ),
         {"from": B},
     )
-    mine_blocks(web3, TEST_SETTLE_TIMEOUT_MIN + 1)
+    mine_blocks(web3, TEST_SETTLE_TIMEOUT + 1)
     call_and_transact(
         token_network.functions.settleChannel(
             channel_identifier1,
