@@ -14,7 +14,7 @@ attrs>=19.2.0
 bump2version
 requests
 mypy==0.971
-types-requests==2.28.7
+types-requests==2.28.9
 pylint<2.15
 pylint-quotes
 requests_mock
