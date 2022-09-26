@@ -13,7 +13,7 @@ flake8-bugbear>=20.1.2
 attrs>=19.2.0
 bump2version
 requests
-mypy==0.971
+mypy==0.981
 types-requests==2.28.7
 pylint<2.15
 pylint-quotes
