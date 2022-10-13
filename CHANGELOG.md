@@ -5,6 +5,9 @@ Documents changes that result in:
 - API changes in the package (externally used constants, externally used utilities and scripts)
 - important bug fixes between releases
 
+## [0.50.2]
+- Reduce dependencies and dependency updates
+
 ## [0.50.0]
 
 - [#1580](https://github.com/raiden-network/raiden-contracts/issues/1580) Establish better naming convention for time related values
