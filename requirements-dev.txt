@@ -1,25 +1,29 @@
 -r requirements.txt
+# Linters
 black==22.6.0
+isort==5.10.1
+mypy==0.982
+pylint<2.15
+pylint-quotes
+flake8>=3.7.9
+flake8-commas>=2.0.0
+flake8-tuple>=0.4.1
+flake8-bugbear>=20.1.2
+
+# Testing
 eth-tester[py-evm]==0.6.0b6
 coverage
 pytest
 pytest-cov
 pytest-xdist
 pyfakefs
-flake8>=3.7.9
-flake8-commas>=2.0.0
-flake8-tuple>=0.4.1
-flake8-bugbear>=20.1.2
-attrs>=19.2.0
-bump2version
+
+# Deployment
 requests
-mypy==0.982
 types-requests==2.28.11.2
-pylint<2.15
-pylint-quotes
 requests_mock
-isort==5.10.1
-pipdeptree
-six~=1.16
+
+# Release
+bump2version
 twine
 wheel
