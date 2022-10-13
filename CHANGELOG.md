@@ -7,6 +7,7 @@ Documents changes that result in:
 
 ## [0.50.2]
 - Reduce dependencies and dependency updates
+- Drop python3.7 support
 
 ## [0.50.0]
 
