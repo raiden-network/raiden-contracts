@@ -4,11 +4,10 @@ import json
 from copy import deepcopy
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from eth_typing import HexStr
 from eth_typing.evm import ChecksumAddress
-from mypy_extensions import TypedDict
 from web3.types import ABI, ABIEvent
 
 from raiden_contracts.constants import ID_TO_CHAINNAME, DeploymentModule
