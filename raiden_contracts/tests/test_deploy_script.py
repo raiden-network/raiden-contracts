@@ -929,7 +929,7 @@ def test_register_script(
         "raiden_contracts.deploy.__main__._add_token_network_deploy_info"
     ) as add_tn_info:
         get_deploy_info_mock.return_value = deployed_raiden_info
-        with patch.object(Eth, "get_balance", return_value=1), patch.object(Eth, "chainId", 61):
+        with patch.object(Eth, "get_balance", return_value=1):
             runner = CliRunner()
             result = runner.invoke(
                 register,
