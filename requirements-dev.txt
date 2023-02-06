@@ -2,7 +2,7 @@
 # Linters
 black==22.10.0
 isort==5.10.1
-mypy==0.982
+mypy==1.0.0
 pylint<2.15
 pylint-quotes
 flake8>=3.7.9
